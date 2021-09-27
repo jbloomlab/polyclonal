@@ -208,6 +208,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'polyclonal', u'polyclonal Documentation',
-     author, 'polyclonal', 'Model mutational escape from polyclonal antibodies.',
+     author, 'polyclonal',
+     'Model mutational escape from polyclonal antibodies.',
      'Miscellaneous'),
     ]

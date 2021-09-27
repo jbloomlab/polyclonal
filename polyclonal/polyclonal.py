@@ -798,7 +798,7 @@ class Polyclonal:
                                 epitope,
                                 type='quantitative',
                                 scale=alt.Scale(
-                                   range=dms_variants.utils.color_gradient_hex(
+                                   range=polyclonal.utils.color_gradient_hex(
                                     'white', self.epitope_colors[epitope], 10),
                                    type='linear',
                                    domain=(escape_min, escape_max),
@@ -899,7 +899,7 @@ class Polyclonal:
         assert self._beta.shape[0] == self._binarymap.binary_variants.shape[1]
 
     def _parse_mutation(self, mutation):
-        """Returns `(wt, site, mut)`."""
+        """Return `(wt, site, mut)`."""
         m = self._mutation_regex.fullmatch(mutation)
         if not m:
             raise ValueError(f"invalid mutation {mutation}")
