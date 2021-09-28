@@ -16,7 +16,7 @@ Contents
    :maxdepth: 2
 
    installation
+   biophysical_model
    polyclonal
-   examples
    package_index
    acknowledgments
