@@ -8,10 +8,7 @@ polyclonal
 .. image:: https://app.travis-ci.com/jbloomlab/polyclonal.svg
         :target: https://app.travis-ci.com/github/jbloomlab/polyclonal
 
-.. image:: https://mybinder.org/badge_logo.svg
-        :target: https://mybinder.org/v2/gh/jbloomlab/polyclonal/master?filepath=notebooks
-
-Model mutational escape from polyclonal antibodies.
+Model mutational escape from polyclonal antibodies using deep mutational scanning data.
 
 ``polyclonal`` is a Python package written by `the Bloom lab <https://research.fhcrc.org/bloom/en.html>`_.
 
