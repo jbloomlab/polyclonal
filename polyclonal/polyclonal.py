@@ -446,7 +446,7 @@ class Polyclonal:
                                 input_pdbfile,
                                 chains,
                                 metric,
-                                outdir,
+                                outdir=None,
                                 outfile='{metric}-{epitope}.pdb',
                                 missing_metric=0,
                                 ):
@@ -495,7 +495,8 @@ class Polyclonal:
             output_pdbfile = output_pdbfile.format(epitope=epitope,
                                                    metric=metric
                                                    ).replace(' ', '_')
-            os.makedirs(os.path.dirname(output_pdbfile), exist_ok=True)
+            if os.path.dirname(output_pdbfile):
+                os.makedirs(os.path.dirname(output_pdbfile), exist_ok=True)
             result_files.append((epitope, output_pdbfile))
             polyclonal.pdb_utils.reassign_b_factor(
                         input_pdbfile,
