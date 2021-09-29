@@ -514,6 +514,7 @@ class Polyclonal:
                             height=100,
                             width=900,
                             init_metric='mean',
+                            zoom_bar_width=500,
                             ):
         r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
 
@@ -533,6 +534,8 @@ class Polyclonal:
         init_metric : str
             Metric to show initially (others can be selected by dropdown).
             One of metrics in :attr:`Polyclonal.site_summary_df`.
+        zoom_bar_width : float
+            Width of zoom bar
 
         Returns
         -------
@@ -586,7 +589,10 @@ class Polyclonal:
                     .mark_rect(color='gray')
                     .encode(x='site:O')
                     .add_selection(zoom_brush)
-                    .properties(width=width, height=15, title='site zoom bar')
+                    .properties(width=zoom_bar_width,
+                                height=15,
+                                title='site zoom bar',
+                                )
                     )
 
         site_selector = alt.selection(type='single',
@@ -673,6 +679,7 @@ class Polyclonal:
                            floor_color_at_zero=True,
                            share_heatmap_lims=True,
                            cell_size=13,
+                           zoom_bar_width=500,
                            ):
         r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -698,6 +705,8 @@ class Polyclonal:
             values for that epitope.
         cell_size : float
             Size of cells in heatmap.
+        zoom_bar_width : float
+            Width of zoom bar
 
         Returns
         -------
@@ -759,7 +768,10 @@ class Polyclonal:
                     .mark_rect(color='gray')
                     .encode(x='site:O')
                     .add_selection(zoom_brush)
-                    .properties(width=800, height=15, title='site zoom bar')
+                    .properties(width=zoom_bar_width,
+                                height=15,
+                                title='site zoom bar',
+                                )
                     )
 
         # select cells
