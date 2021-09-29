@@ -1,0 +1,7 @@
+{
+    "path": "../notebooks/simulate_RBD.ipynb",
+    "extra-media": [
+        "../notebooks/RBD_mutation_escape_fractions.csv",
+        "../notebooks/RBD_variants_escape.csv"
+        ]
+}
