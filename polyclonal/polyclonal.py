@@ -102,14 +102,19 @@ class Polyclonal:
     Parameters
     ----------
     data_to_fit : pandas.DataFrame or None
-        **ADD THIS**
+        Should have columns named 'aa_substitutions', 'concentration', and
+        'prob_escape'. The 'aa_substitutions' column defines each variant
+        :math:`v` as a string of substitutions (e.g., 'M3A K5G'). The
+        'prob_escape' column gives the :math:`p_v\left(c\right)` value for
+        each variant at each concentration :math:`c`.
     activity_wt_df : pandas.DataFrame or None
         Should have columns named 'epitope' and 'activity', giving the names
         of the epitopes and the activity against epitope in the wildtype
         protein, :math:`a_{\rm{wt}, e}`.
     mut_escape_df : pandas.DataFrame or None
         Should have columns named 'mutation', 'epitope', and 'escape' that
-        give the :math:`\beta_{m,e}` values (in the 'escape' column).
+        give the :math:`\beta_{m,e}` values (in the 'escape' column), with
+        mutations written like "G7M".
     n_epitopes : int or None
         If initializing with ``activity_wt_df=None``, specifies number
         of epitopes.
@@ -246,18 +251,43 @@ class Polyclonal:
                                           rf"(?P<site>\d+)"
                                           rf"(?P<mut>{chars})")
 
-        if pd.isnull(activity_wt_df['epitope']).any():
-            raise ValueError('epitope name cannot be null')
-        self.epitopes = tuple(activity_wt_df['epitope'].unique())
-        if len(self.epitopes) != len(activity_wt_df):
-            raise ValueError('duplicate epitopes in `activity_wt_df`:\n' +
-                             str(activity_wt_df))
-        self._activity_wt = (activity_wt_df
-                             .set_index('epitope')
-                             ['activity']
-                             .astype(float)
-                             .to_dict()
-                             )
+        if (activity_wt_df is not None) and (mut_escape_df is not None):
+            if n_epitopes is not None:
+                raise ValueError('specify `activity_wt_df` or `n_epitopes`')
+
+            if pd.isnull(activity_wt_df['epitope']).any():
+                raise ValueError('epitope name cannot be null')
+            self.epitopes = tuple(activity_wt_df['epitope'].unique())
+            if len(self.epitopes) != len(activity_wt_df):
+                raise ValueError('duplicate epitopes in `activity_wt_df`')
+            self._activity_wt = (activity_wt_df
+                                 .set_index('epitope')
+                                 ['activity']
+                                 .astype(float)
+                                 .to_dict()
+                                 )
+
+        elif (activity_wt_df is None) and (mut_escape_df is None):
+            if not isinstance(n_epitopes, int) and n_epitopes > 0:
+                raise ValueError('`n_epitopes` must be int > 1 if no '
+                                 '`activity_wt_df`')
+            epitopes = tuple(f"epitope {i + 1}" for i in range(n_epitopes))
+
+            # initialize activities to all be zero
+            self._activity_wt = {epitope: 0.0 for epitope in epitopes}
+
+            if data_to_fit is None:
+                raise ValueError('specify `data_to_fit` or `mut_escape_df`')
+
+            raise NotImplementedError('not yet set up to handle `data_to_fit`')
+
+        else:
+            raise ValueError('initialize both or neither `activity_wt_df` '
+                             'and `mut_escape_df`')
+
+        if data_to_fit is not None:
+            raise NotImplementedError('not yet set up to handle `data_to_fit`')
+
         if isinstance(epitope_colors, dict):
             self.epitope_colors = {epitope_colors[e] for e in self.epitopes}
         elif len(epitope_colors) < len(self.epitopes):
@@ -360,38 +390,32 @@ class Polyclonal:
                     *,
                     variants_df,
                     concentrations,
-                    substitutions_col='aa_substitutions',
-                    concentration_col='concentration',
-                    prob_escape_col='prob_escape',
                     ):
         r"""Compute probability of escape :math:`p_v\left(c\right)`.
 
         Arguments
         ---------
         variants_df : pandas.DataFrame
-            Input data frame defining variants and concentrations.
+            Input data frame defining variants. Should have a column
+            named 'aa_substitutions' that definese variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T').
         concentrations : array-like
             Concentrations at which we compute probability of escape.
-        substitutions_col : str
-            Column in `variants_df` defining variants as space-delimited
-            strings of substitutions (e.g., 'M1A K3T').
-        concentration_col : str
-            Column in returned data frame with concentrations.
-        prob_escape_col : str
-            Column in returned data frame with :math:`p_v\left(c\right)`.
 
         Returns
         -------
         pandas.DataFrame
-            A copy of ``variants_df`` with `concentration_col` and
-            `prob_escape_col` added, giving the probability of escape
-            (:math:`p_v\left(c\right)`) values.
+            A copy of ``variants_df`` with new columns named 'concentration'
+            and 'prob_escape' giving probability of escape
+            :math:`p_v\left(c\right)` for each variant at each concentration.
 
         """
+        concentration_col = 'concentration'
+        prob_escape_col = 'prob_escape'
         for col in [concentration_col, prob_escape_col]:
             if col in variants_df.columns:
                 raise ValueError(f"`variants_df` already has column {col}")
-        self._set_binarymap(variants_df, substitutions_col)
+        self._set_binarymap(variants_df, substitutions_col='aa_substitutions')
         cs = numpy.array(concentrations, dtype='float')
         if not (cs > 0).all():
             raise ValueError('concentrations must be > 0')
