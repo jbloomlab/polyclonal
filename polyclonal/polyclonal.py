@@ -39,13 +39,12 @@ class Polyclonal:
 
     Note
     ----
-    At each of several concentrations :math:`c` of an antibody mixture, we
-    measure :math:`p_v\left(c\right)`, the probability that variant :math:`v`
-    that is **not** bound (or neutralized) that concentration. We assume
-    antibodies bind independently to one of :math:`E` epitopes, such that the
-    probability :math:`U_e\left(v, c\right)` that variant :math:`v` is unbound
-    at concentration :math:`c` is related to the probability that epitope
-    :math:`e` is unbound by
+    At several concentrations :math:`c` of an antibody mixture, we measure
+    :math:`p_v\left(c\right)`, the probability that variant :math:`v` is
+    **not** bound (or neutralized). We assume antibodies act independently on
+    one of :math:`E` epitopes, so the probability :math:`U_e\left(v, c\right)`
+    that :math:`v` is unbound at concentration :math:`c` is related to the
+    probability that epitope :math:`e` is unbound by
 
     .. math::
        :label: p_v
@@ -83,15 +82,44 @@ class Polyclonal:
     :math:`b\left(v\right)_m` is 1 if variant :math:`v` has mutation :math:`m`
     and 0 otherwise.
 
+    Note
+    ----
+    You can initialize a :class:`Polyclonal` object in three ways:
+
+    1. With known epitope activities :math:`a_{\rm{wt}, e}` and mutation-escape
+       values :math:`\beta_{m,e}`, and no data. Use this approach if you
+       already know these values and just want to visualize the polyclonal
+       antibody mixture properties or predict escape of variants. To do this,
+       initialize with ``activity_wt_df`` and ``mut_escape_df`` storing the
+       known values, and ``data_to_fit=None``.
+
+    2. With data to fit the epitope activities and mutation-escape values,
+       and initial guesses for the epitope activities and mutation-escape
+       values. To do this, initialize with ``data_to_fit`` holding the data,
+       and ``activity_wt_df`` and ``mut_escape_df`` holding initial guesses
+       for these values, ensuring guesses in ``mut_escape_df`` encompass
+       same mutations as ``data_to_fit``. Then call :meth:`Polyclonal.fit`.
+
+    3. With data to fit the epitope activities and mutation-escape values,
+       but no initial guesses. To do this, initialize with ``data_to_fit``
+       holding the data, ``activity_wt_df=None``, ``mut_escape_df=None``,
+       and ``n_epitopes`` holding the number of epitopes. Then call
+       :meth:`Polyclonal.fit`.
+
     Parameters
     ----------
-    activity_wt_df : pandas.DataFrame
+    data_to_fit : pandas.DataFrame or None
+        **ADD THIS**
+    activity_wt_df : pandas.DataFrame or None
         Should have columns named 'epitope' and 'activity', giving the names
         of the epitopes and the activity against epitope in the wildtype
         protein, :math:`a_{\rm{wt}, e}`.
-    mut_escape_df : pandas.DataFrame
+    mut_escape_df : pandas.DataFrame or None
         Should have columns named 'mutation', 'epitope', and 'escape' that
         give the :math:`\beta_{m,e}` values (in the 'escape' column).
+    n_epitopes : int or None
+        If initializing with ``activity_wt_df=None``, specifies number
+        of epitopes.
     alphabet : array-like
         Allowed characters in mutation strings.
     epitope_colors : array-like or dict
@@ -102,10 +130,9 @@ class Polyclonal:
     Attributes
     ----------
     epitopes : tuple
-        Names of all epitopes, in order provided in `activity_wt_df`.
+        Names of all epitopes.
     mutations : tuple
-        All mutations, sorted by site and then in the order of the alphabet
-        provided in `alphabet`.
+        All mutations for which we have escape values.
     alphabet : tuple
         Allowed characters in mutation strings.
     sites : tuple
@@ -116,9 +143,9 @@ class Polyclonal:
         Maps each epitope to its color.
 
     Example
-    --------
-    A simple example with two epitopes (`e1` and `e2`) and a small
-    number of mutations:
+    -------
+    Simple example with two epitopes (`e1` and `e2`) and a few mutations where
+    we know the activities and mutation-level escape values ahead of time:
 
     >>> activity_wt_df = pd.DataFrame({'epitope':  ['e1', 'e2'],
     ...                                'activity': [ 2.0,  1.0]})
@@ -202,8 +229,10 @@ class Polyclonal:
 
     def __init__(self,
                  *,
-                 activity_wt_df,
-                 mut_escape_df,
+                 activity_wt_df=None,
+                 mut_escape_df=None,
+                 data_to_fit=None,
+                 n_epitopes=None,
                  alphabet=AAS_NOSTOP,
                  epitope_colors=tuple(c for c in
                                       matplotlib.colors.TABLEAU_COLORS.values()
@@ -382,6 +411,10 @@ class Polyclonal:
                           ignore_index=True)
                 .assign(**{prob_escape_col: p_v_c.ravel(order='F')})
                 )
+
+    def fit(self):
+        """Not yet implemented."""
+        raise NotImplementedError
 
     def activity_wt_barplot(self,
                             *,
