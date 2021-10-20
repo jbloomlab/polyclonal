@@ -9,7 +9,7 @@ deep mutational scanning experiments.
 Importing this package imports the following objects
 into the package namespace:
 
- - :py:mod:`polyclonal.polyclonal.Polyclonal`
+ - :mod:`polyclonal.polyclonal.Polyclonal`
 
 """
 
