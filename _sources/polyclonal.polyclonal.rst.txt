@@ -1,0 +1,4 @@
+.. automodule:: polyclonal.polyclonal
+   :members:
+   :undoc-members:
+   :show-inheritance:

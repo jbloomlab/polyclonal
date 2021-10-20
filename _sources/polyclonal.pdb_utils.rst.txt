@@ -1,0 +1,4 @@
+.. automodule:: polyclonal.pdb_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

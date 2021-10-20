@@ -1,0 +1,430 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Biophysical model &#8212; polyclonal 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulate antibody mix" href="simulate_RBD.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Biophysical-model">
+<h1>Biophysical model<a class="headerlink" href="#Biophysical-model" title="Permalink to this headline">¶</a></h1>
+<p>Here we describe the biophysical model that motivates the modeling in this package.</p>
+<p>Consider a viral protein bound by polyclonal antibodies, such as might be found in sera. We want to determine the contribution of each mutation to escaping these polyclonal antibodies, being cognizant of the fact that different antibodies target different epitopes.</p>
+<p>The actual experimental measurable is as follows: at each concentration <span class="math notranslate nohighlight">\(c\)</span> of the antibody mixture, we measure <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, which is the fraction of all variants <span class="math notranslate nohighlight">\(v\)</span> of the viral protein that escape binding or neutralization (whichever is being experimentally measured) by all antibodies in the mix. For instance, <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> might be fraction of variants <span class="math notranslate nohighlight">\(v\)</span> that are not neutralized in a virus neutralization deep mutational scanning experiment as in
+<a class="reference external" href="https://elifesciences.org/articles/49324">Lee et al (2019)</a>.</p>
+<p>We assume that antibodies in the mix can bind to one of <span class="math notranslate nohighlight">\(E\)</span> epitopes on the protein. Let <span class="math notranslate nohighlight">\(U_e\left(v,c\right)\)</span> be the fraction of the time that epitope <span class="math notranslate nohighlight">\(e\)</span> is not bound on variant <span class="math notranslate nohighlight">\(v\)</span> when the mix is at concentration <span class="math notranslate nohighlight">\(c\)</span>. Then assuming antibodies bind independently without competition, the overall experimentally measured fraction of variants that escape binding at concentration <span class="math notranslate nohighlight">\(c\)</span> is simply:</p>
+<div class="math notranslate nohighlight">
+\[p_v\left(c\right) = \prod_{e=1}^E U_e\left(v, c\right),
+\label{pv} \tag{1}\]</div>
+<p>where <span class="math notranslate nohighlight">\(e\)</span> ranges over the <span class="math notranslate nohighlight">\(E\)</span> epitopes.</p>
+<p>We want to write <span class="math notranslate nohighlight">\(U_e\left(v,c\right)\)</span> in terms of underlying physical properties like the relative concentrations of antibodies targeting different epitopes, and the affinities of these antibodies. If we assume that there is no competition among antibodies binding to different epitopes, that all antibodies targeting a given epitope have same affinity, and that there is no cooperativity in antibody binding (Hill coefficient of antibody binding is one), then the fraction of all variants
+<span class="math notranslate nohighlight">\(v\)</span> that are not bound by an antibody targeting epitope <span class="math notranslate nohighlight">\(e\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span> is given by a Hill equation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{eqnarray}
+U_e\left(v, c\right) &amp;=&amp; \frac{1}{1 + \frac{c f_e}{K_{d,e}\left(v\right)}} \\
+&amp;=&amp; \frac{1}{1 + c f_e \exp \left(-\frac{\Delta G_e\left(v\right)}{RT}\right)} \\
+&amp;=&amp; \frac{1}{1 + c \exp \left(-\phi_e\left(v\right)\right)}, \\
+\label{Ue} \tag{2}
+\end{eqnarray}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> represents the total binding activity of antibodies to epitope <span class="math notranslate nohighlight">\(e\)</span> against variant <span class="math notranslate nohighlight">\(v\)</span>, and is related to the free energy of binding <span class="math notranslate nohighlight">\(\Delta G_e\left(v\right)\)</span> and the fraction of antibodies <span class="math notranslate nohighlight">\(f_e\)</span> targeting epitope <span class="math notranslate nohighlight">\(e\)</span> by <span class="math notranslate nohighlight">\(\phi_e\left(v\right) = \frac{\Delta G_e\left(v\right)}{RT} - \ln f_e\)</span>; note that <span class="math notranslate nohighlight">\(RT\)</span> is the product of the molar gas constant and the temperature and
+<span class="math notranslate nohighlight">\(K_{d,e}= \exp\left(\frac{\Delta G_e\left(v\right)}{RT}\right)\)</span> is the dissociation constant. The value of <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> depends both on the affinity of antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span> (via <span class="math notranslate nohighlight">\(\Delta G_e\left(v\right)\)</span>) and on the abundance of antibodies with this specificity in the overall mix (via <span class="math notranslate nohighlight">\(f_e\)</span>), and so is a measure of the overall importance of antibodies with this specificity in the polyclonal mix. Smaller (more negative) values of
+<span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> correspond to a higher overall contribution of antibodies with specificity for epitope <span class="math notranslate nohighlight">\(e\)</span> to the activity against variant <span class="math notranslate nohighlight">\(v\)</span>.</p>
+<p>Finally, we want to frame <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> in terms of the actual quantities of biological interest. There are two quantities of biological interest:</p>
+<ol class="arabic simple">
+<li><p>The activity of antibodies binding epitope <span class="math notranslate nohighlight">\(e\)</span> in the unmutated (“wildtype”) protein background, which will be denoted as <span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span>.</p></li>
+<li><p>The extent of escape mediated by each amino-acid mutation <span class="math notranslate nohighlight">\(m\)</span> on binding of antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span>, which will be denoted as <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>.</p></li>
+</ol>
+<p>In order to infer these quantities, we make the assumption that mutations have additive effects on the free energy of binding (and so <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span>) for antibodies targeting any given epitope <span class="math notranslate nohighlight">\(e\)</span>. Specifically, let <span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span> be the total activity against the “wildtype” protein of antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span>, with larger values of <span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span> indicating stronger antibody binding (or neutralization) at this epitope. Let <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> be
+the extent to which mutation <span class="math notranslate nohighlight">\(m\)</span> (where <span class="math notranslate nohighlight">\(1 \le m \le M\)</span>) reduces binding by antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span>, with larger values of <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> corresponding to more escape from binding (a value of 0 means the mutation has no effect on antibodies targeting this epitope). We can then write:</p>
+<div class="math notranslate nohighlight">
+\[\phi_e\left(v\right) = -a_{\rm{wt}, e} + \sum_{m=1}^M \beta_{m,e} b\left(v\right)_m
+\label{phie} \tag{3}\]</div>
+<p>where <span class="math notranslate nohighlight">\(b\left(v\right)_m\)</span> is one if variant <span class="math notranslate nohighlight">\(v\)</span> has mutation <span class="math notranslate nohighlight">\(m\)</span> and 0 otherwise.</p>
+<p>These equations relate the quantities of biological interest (<span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span> and <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>) to the experimental measurables (<span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/BloomLogo.jpg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">polyclonal</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Model mutational escape from polyclonal antibodies.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=jbloomlab&repo=polyclonal&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">polyclonal documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Biophysical model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="simulate_RBD.html" title="next chapter">Simulate antibody mix</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019--2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/biophysical_model.nblink.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/jbloomlab/polyclonal" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
