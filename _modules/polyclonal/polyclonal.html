@@ -74,13 +74,12 @@
 
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
-<span class="sd">    At each of several concentrations :math:`c` of an antibody mixture, we</span>
-<span class="sd">    measure :math:`p_v\left(c\right)`, the probability that variant :math:`v`</span>
-<span class="sd">    that is **not** bound (or neutralized) at that concentration. We assume</span>
-<span class="sd">    antibodies bind independently to one of :math:`E` epitopes, such that the</span>
-<span class="sd">    probability :math:`U_e\left(v, c\right)` that variant :math:`v` is unbound</span>
-<span class="sd">    at concentration :math:`c` is related to the probability that epitope</span>
-<span class="sd">    :math:`e` is unbound by</span>
+<span class="sd">    At several concentrations :math:`c` of an antibody mixture, we measure</span>
+<span class="sd">    :math:`p_v\left(c\right)`, the probability that variant :math:`v` is</span>
+<span class="sd">    **not** bound (or neutralized). We assume antibodies act independently on</span>
+<span class="sd">    one of :math:`E` epitopes, so the probability :math:`U_e\left(v, c\right)`</span>
+<span class="sd">    that :math:`v` is unbound at concentration :math:`c` is related to the </span>
+<span class="sd">    probability that epitope :math:`e` is unbound by</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">       :label: p_v</span>
@@ -118,8 +117,34 @@
 <span class="sd">    :math:`b\left(v\right)_m` is 1 if variant :math:`v` has mutation :math:`m`</span>
 <span class="sd">    and 0 otherwise.</span>
 
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    You can initialize a :class:`Polyclonal` object in three ways:</span>
+
+<span class="sd">    1. With known epitope activities :`a_{\rm{wt}, e}` and mutation-escape</span>
+<span class="sd">       values :math:`\beta_{m,e}`, and no data. Use this approach if you</span>
+<span class="sd">       already know these values and just want to visualize the polyclonal</span>
+<span class="sd">       antibody mixture properties or predict escape of variants. To do this,</span>
+<span class="sd">       initialize with ``activity_wt_df`` and ``mut_escape_df`` storing the</span>
+<span class="sd">       known values, and ``data_to_fit=None``.</span>
+
+<span class="sd">    2. With data to fit the epitope activities and mutation-escape values,</span>
+<span class="sd">       and initial guesses for the epitope activities and mutation-escape</span>
+<span class="sd">       values. To do this, initialize with ``data_to_fit`` holding the data,</span>
+<span class="sd">       and ``activity_wt_df`` and ``mut_escape_df`` holding initial guesses</span>
+<span class="sd">       for these values, ensuring guesses in ``mut_escape_df`` encompass</span>
+<span class="sd">       same mutations as ``data_to_fit``. Then call :meth:`Polyclonal.fit`.</span>
+
+<span class="sd">    3. With data to fit the epitope activities and mutation-escape values,</span>
+<span class="sd">       but no initial guesses. To do this, initialize with ``data_to_fit``</span>
+<span class="sd">       holding the data, ``activity_wt_df=None``, ``mut_escape_df=None``,</span>
+<span class="sd">       and `n_epitopes`` holding the number of epitopes. Then call</span>
+<span class="sd">       :math:`Polyclonal.fit`.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    data_to_fit : pandas.DataFrame or None</span>
+<span class="sd">        **ADD THIS**</span>
 <span class="sd">    activity_wt_df : pandas.DataFrame or None</span>
 <span class="sd">        Should have columns named &#39;epitope&#39; and &#39;activity&#39;, giving the names</span>
 <span class="sd">        of the epitopes and the activity against epitope in the wildtype</span>
@@ -127,6 +152,9 @@
 <span class="sd">    mut_escape_df : pandas.DataFrame or None</span>
 <span class="sd">        Should have columns named &#39;mutation&#39;, &#39;epitope&#39;, and &#39;escape&#39; that</span>
 <span class="sd">        give the :math:`\beta_{m,e}` values (in the &#39;escape&#39; column).</span>
+<span class="sd">    n_epitopes : int or None</span>
+<span class="sd">        If initializing with ``activity_wt_df=None``, specifies number</span>
+<span class="sd">        of epitopes.</span>
 <span class="sd">    alphabet : array-like</span>
 <span class="sd">        Allowed characters in mutation strings.</span>
 <span class="sd">    epitope_colors : array-like or dict</span>
@@ -137,10 +165,9 @@
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    epitopes : tuple</span>
-<span class="sd">        Names of all epitopes, in order provided in `activity_wt_df`.</span>
+<span class="sd">        Names of all epitopes.</span>
 <span class="sd">    mutations : tuple</span>
-<span class="sd">        All mutations, sorted by site and then in the order of the alphabet</span>
-<span class="sd">        provided in `alphabet`.</span>
+<span class="sd">        All mutations for which we have escape values.</span>
 <span class="sd">    alphabet : tuple</span>
 <span class="sd">        Allowed characters in mutation strings.</span>
 <span class="sd">    sites : tuple</span>
@@ -150,8 +177,8 @@
 <span class="sd">    epitope_colors : dict</span>
 <span class="sd">        Maps each epitope to its color.</span>
 
-<span class="sd">    Example</span>
-<span class="sd">    --------</span>
+<span class="sd">    Example with known epitope activities and mutation escape values</span>
+<span class="sd">    ----------------------------------------------------------------</span>
 <span class="sd">    A simple example with two epitopes (`e1` and `e2`) and a small</span>
 <span class="sd">    number of mutations:</span>
 
@@ -237,8 +264,10 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="o">*</span><span class="p">,</span>
-                 <span class="n">activity_wt_df</span><span class="p">,</span>
-                 <span class="n">mut_escape_df</span><span class="p">,</span>
+                 <span class="n">activity_wt_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">mut_escape_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">data_to_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">n_epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">alphabet</span><span class="o">=</span><span class="n">AAS_NOSTOP</span><span class="p">,</span>
                  <span class="n">epitope_colors</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span>
                                       <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">TABLEAU_COLORS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
@@ -417,6 +446,10 @@
                           <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">prob_escape_col</span><span class="p">:</span> <span class="n">p_v_c</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)})</span>
                 <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Polyclonal.fit"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Not yet implemented.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Polyclonal.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                             <span class="o">*</span><span class="p">,</span>

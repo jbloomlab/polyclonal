@@ -53,18 +53,17 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal.</span></span><span class="sig-name descname"><span class="pre">Polyclonal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_wt_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('#1f77b4',</span> <span class="pre">'#ff7f0e',</span> <span class="pre">'#2ca02c',</span> <span class="pre">'#d62728',</span> <span class="pre">'#9467bd',</span> <span class="pre">'#8c564b',</span> <span class="pre">'#e377c2',</span> <span class="pre">'#bcbd22',</span> <span class="pre">'#17becf')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal.</span></span><span class="sig-name descname"><span class="pre">Polyclonal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_wt_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_to_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_epitopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('#1f77b4',</span> <span class="pre">'#ff7f0e',</span> <span class="pre">'#2ca02c',</span> <span class="pre">'#d62728',</span> <span class="pre">'#9467bd',</span> <span class="pre">'#8c564b',</span> <span class="pre">'#e377c2',</span> <span class="pre">'#bcbd22',</span> <span class="pre">'#17becf')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represent polyclonal antibody mixtures targeting multiple epitopes.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>At each of several concentrations <span class="math notranslate nohighlight">\(c\)</span> of an antibody mixture, we
-measure <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, the probability that variant <span class="math notranslate nohighlight">\(v\)</span>
-that is <strong>not</strong> bound (or neutralized) at that concentration. We assume
-antibodies bind independently to one of <span class="math notranslate nohighlight">\(E\)</span> epitopes, such that the
-probability <span class="math notranslate nohighlight">\(U_e\left(v, c\right)\)</span> that variant <span class="math notranslate nohighlight">\(v\)</span> is unbound
-at concentration <span class="math notranslate nohighlight">\(c\)</span> is related to the probability that epitope
-<span class="math notranslate nohighlight">\(e\)</span> is unbound by</p>
+<p>At several concentrations <span class="math notranslate nohighlight">\(c\)</span> of an antibody mixture, we measure
+<span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, the probability that variant <span class="math notranslate nohighlight">\(v\)</span> is
+<strong>not</strong> bound (or neutralized). We assume antibodies act independently on
+one of <span class="math notranslate nohighlight">\(E\)</span> epitopes, so the probability <span class="math notranslate nohighlight">\(U_e\left(v, c\right)\)</span>
+that <span class="math notranslate nohighlight">\(v\)</span> is unbound at concentration <span class="math notranslate nohighlight">\(c\)</span> is related to the
+probability that epitope <span class="math notranslate nohighlight">\(e\)</span> is unbound by</p>
 <div class="math notranslate nohighlight" id="equation-p-v">
 <span class="eqno">(1)<a class="headerlink" href="#equation-p-v" title="Permalink to this equation">¶</a></span>\[p_v\left(c\right) = \prod_{e=1}^E U_e\left(v, c\right).\]</div>
 <p>We furthermore assume that <span class="math notranslate nohighlight">\(U_e\left(v, c\right)\)</span> is related to the
@@ -89,14 +88,40 @@ values indicate more escape by this mutation), and
 <span class="math notranslate nohighlight">\(b\left(v\right)_m\)</span> is 1 if variant <span class="math notranslate nohighlight">\(v\)</span> has mutation <span class="math notranslate nohighlight">\(m\)</span>
 and 0 otherwise.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can initialize a <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object in three ways:</p>
+<ol class="arabic simple">
+<li><p>With known epitope activities :<cite>a_{rm{wt}, e}</cite> and mutation-escape
+values <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, and no data. Use this approach if you
+already know these values and just want to visualize the polyclonal
+antibody mixture properties or predict escape of variants. To do this,
+initialize with <code class="docutils literal notranslate"><span class="pre">activity_wt_df</span></code> and <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> storing the
+known values, and <code class="docutils literal notranslate"><span class="pre">data_to_fit=None</span></code>.</p></li>
+<li><p>With data to fit the epitope activities and mutation-escape values,
+and initial guesses for the epitope activities and mutation-escape
+values. To do this, initialize with <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code> holding the data,
+and <code class="docutils literal notranslate"><span class="pre">activity_wt_df</span></code> and <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> holding initial guesses
+for these values, ensuring guesses in <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> encompass
+same mutations as <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code>. Then call <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.fit" title="polyclonal.polyclonal.Polyclonal.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.fit()</span></code></a>.</p></li>
+<li><p>With data to fit the epitope activities and mutation-escape values,
+but no initial guesses. To do this, initialize with <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code>
+holding the data, <code class="docutils literal notranslate"><span class="pre">activity_wt_df=None</span></code>, <code class="docutils literal notranslate"><span class="pre">mut_escape_df=None</span></code>,
+and <cite>n_epitopes`</cite> holding the number of epitopes. Then call
+<span class="math notranslate nohighlight">\(Polyclonal.fit\)</span>.</p></li>
+</ol>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>data_to_fit</strong> (<em>pandas.DataFrame</em><em> or </em><em>None</em>) – <strong>ADD THIS</strong></p></li>
 <li><p><strong>activity_wt_df</strong> (<em>pandas.DataFrame</em><em> or </em><em>None</em>) – Should have columns named ‘epitope’ and ‘activity’, giving the names
 of the epitopes and the activity against epitope in the wildtype
 protein, <span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span>.</p></li>
 <li><p><strong>mut_escape_df</strong> (<em>pandas.DataFrame</em><em> or </em><em>None</em>) – Should have columns named ‘mutation’, ‘epitope’, and ‘escape’ that
 give the <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> values (in the ‘escape’ column).</p></li>
+<li><p><strong>n_epitopes</strong> (<em>int</em><em> or </em><em>None</em>) – If initializing with <code class="docutils literal notranslate"><span class="pre">activity_wt_df=None</span></code>, specifies number
+of epitopes.</p></li>
 <li><p><strong>alphabet</strong> (<em>array-like</em>) – Allowed characters in mutation strings.</p></li>
 <li><p><strong>epitope_colors</strong> (<em>array-like</em><em> or </em><em>dict</em>) – Maps each epitope to the color used for plotting. Either a dict keyed
 by each epitope, or an array of colors that are sequentially assigned
@@ -107,7 +132,7 @@ to the epitopes.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.epitopes">
 <span class="sig-name descname"><span class="pre">epitopes</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.epitopes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Names of all epitopes, in order provided in <cite>activity_wt_df</cite>.</p>
+<dd><p>Names of all epitopes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>tuple</p>
@@ -118,8 +143,7 @@ to the epitopes.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mutations">
 <span class="sig-name descname"><span class="pre">mutations</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mutations" title="Permalink to this definition">¶</a></dt>
-<dd><p>All mutations, sorted by site and then in the order of the alphabet
-provided in <cite>alphabet</cite>.</p>
+<dd><p>All mutations for which we have escape values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>tuple</p>
@@ -171,88 +195,386 @@ provided in <cite>alphabet</cite>.</p>
 </dl>
 </dd></dl>
 
-<p class="rubric">Example</p>
-<p>A simple example with two epitopes (<cite>e1</cite> and <cite>e2</cite>) and a small
-number of mutations:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">activity_wt_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;epitope&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;e1&#39;</span><span class="p">,</span> <span class="s1">&#39;e2&#39;</span><span class="p">],</span>
-<span class="gp">... </span>                               <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="mf">2.0</span><span class="p">,</span>  <span class="mf">1.0</span><span class="p">]})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mut_escape_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-<span class="gp">... </span>     <span class="s1">&#39;mutation&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;M1C&#39;</span><span class="p">,</span> <span class="s1">&#39;M1A&#39;</span><span class="p">,</span> <span class="s1">&#39;M1A&#39;</span><span class="p">,</span> <span class="s1">&#39;M1C&#39;</span><span class="p">,</span> <span class="s1">&#39;A2K&#39;</span><span class="p">,</span> <span class="s1">&#39;A2K&#39;</span><span class="p">],</span>
-<span class="gp">... </span>     <span class="s1">&#39;epitope&#39;</span><span class="p">:</span>  <span class="p">[</span> <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">,</span>  <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">,</span>  <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">],</span>
-<span class="gp">... </span>     <span class="s1">&#39;escape&#39;</span><span class="p">:</span>   <span class="p">[</span>  <span class="mf">2.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">3.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">2.5</span><span class="p">]})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="p">,</span>
-<span class="gp">... </span>                        <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">mut_escape_df</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">epitopes</span>
-<span class="go">(&#39;e1&#39;, &#39;e2&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mutations</span>
-<span class="go">(&#39;M1A&#39;, &#39;M1C&#39;, &#39;A2K&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">sites</span>
-<span class="go">(1, 2)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">wts</span>
-<span class="go">{1: &#39;M&#39;, 2: &#39;A&#39;}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">activity_wt_df</span>
-<span class="go">  epitope  activity</span>
-<span class="go">0      e1       2.0</span>
-<span class="go">1      e2       1.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_df</span>
-<span class="go">  epitope  site wildtype mutant mutation  escape</span>
-<span class="go">0      e1     1        M      A      M1A     3.0</span>
-<span class="go">1      e1     1        M      C      M1C     2.0</span>
-<span class="go">2      e1     2        A      K      A2K     0.0</span>
-<span class="go">3      e2     1        M      A      M1A     0.0</span>
-<span class="go">4      e2     1        M      C      M1C     0.0</span>
-<span class="go">5      e2     2        A      K      A2K     2.5</span>
-</pre></div>
-</div>
-<p>We can also summarize the mutation-level escape at the site level:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span>
-<span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative</span>
-<span class="go">0      e1     1        M   2.5             5.0  3.0  2.0             0.0</span>
-<span class="go">1      e1     2        A   0.0             0.0  0.0  0.0             0.0</span>
-<span class="go">2      e2     1        M   0.0             0.0  0.0  0.0             0.0</span>
-<span class="go">3      e2     2        A   2.5             2.5  2.5  2.5             0.0</span>
-</pre></div>
-</div>
-<p>Note that we can <strong>not</strong> initialize a <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object if we are
-missing escape estimates for any mutations for any epitopes:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Polyclonal</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
-<span class="gt">Traceback (most recent call last):</span>
-  <span class="c">...</span>
-<span class="gr">ValueError</span>: <span class="n">not all expected mutations for e2</span>
-</pre></div>
-</div>
-<p>Now make a data frame with some variants:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">variants_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="p">[(</span><span class="s1">&#39;AA&#39;</span><span class="p">,</span> <span class="s1">&#39;A2K&#39;</span><span class="p">),</span>
-<span class="gp">... </span>         <span class="p">(</span><span class="s1">&#39;AC&#39;</span><span class="p">,</span> <span class="s1">&#39;M1A A2K&#39;</span><span class="p">),</span>
-<span class="gp">... </span>         <span class="p">(</span><span class="s1">&#39;AG&#39;</span><span class="p">,</span> <span class="s1">&#39;M1A&#39;</span><span class="p">),</span>
-<span class="gp">... </span>         <span class="p">(</span><span class="s1">&#39;AT&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
-<span class="gp">... </span>         <span class="p">(</span><span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="s1">&#39;A2K&#39;</span><span class="p">)],</span>
-<span class="gp">... </span>        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;barcode&#39;</span><span class="p">,</span> <span class="s1">&#39;aa_substitutions&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Get the escape probabilities:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">,</span>
-<span class="gp">... </span>                       <span class="n">concentrations</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="go">   barcode aa_substitutions  concentration  prob_escape</span>
-<span class="go">0       AA              A2K            1.0        0.097</span>
-<span class="go">1       AC          M1A A2K            1.0        0.598</span>
-<span class="go">2       AG              M1A            1.0        0.197</span>
-<span class="go">3       AT                             1.0        0.032</span>
-<span class="go">4       CA              A2K            1.0        0.097</span>
-<span class="go">5       AA              A2K            2.0        0.044</span>
-<span class="go">6       AC          M1A A2K            2.0        0.398</span>
-<span class="go">7       AG              M1A            2.0        0.090</span>
-<span class="go">8       AT                             2.0        0.010</span>
-<span class="go">9       CA              A2K            2.0        0.044</span>
-<span class="go">10      AA              A2K            4.0        0.017</span>
-<span class="go">11      AC          M1A A2K            4.0        0.214</span>
-<span class="go">12      AG              M1A            4.0        0.034</span>
-<span class="go">13      AT                             4.0        0.003</span>
-<span class="go">14      CA              A2K            4.0        0.017</span>
-</pre></div>
-</div>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Example</span> <span class="pre">with</span> <span class="pre">known</span> <span class="pre">epitope</span> <span class="pre">activities</span> <span class="pre">and</span> <span class="pre">mutation</span> <span class="pre">escape</span> <span class="pre">values</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">----------------------------------------------------------------</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">A</span> <span class="pre">simple</span> <span class="pre">example</span> <span class="pre">with</span> <span class="pre">two</span> <span class="pre">epitopes</span> <span class="pre">(`e1`</span> <span class="pre">and</span> <span class="pre">`e2`)</span> <span class="pre">and</span> <span class="pre">a</span> <span class="pre">small</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">number</span> <span class="pre">of</span> <span class="pre">mutations</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">activity_wt_df</span> <span class="pre">=</span> <span class="pre">pd.DataFrame({'epitope'</span></span></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[‘e1’, ‘e2’],</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">'activity'</span></span></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[ 2.0,  1.0]})</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">mut_escape_df</span> <span class="pre">=</span> <span class="pre">pd.DataFrame({</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">'mutation'</span></span></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[‘M1C’, ‘M1A’, ‘M1A’, ‘M1C’, ‘A2K’, ‘A2K’],</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">'epitope'</span></span></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[ ‘e1’,  ‘e2’,  ‘e1’,  ‘e2’,  ‘e1’,  ‘e2’],</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">'escape'</span></span></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>[  2.0,   0.0,   3.0,  0.0,   0.0,   2.5]})</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal</span> <span class="pre">=</span> <span class="pre">Polyclonal(activity_wt_df=activity_wt_df,</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">mut_escape_df=mut_escape_df)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.epitopes</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">('e1',</span> <span class="pre">'e2')</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.mutations</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">('M1A',</span> <span class="pre">'M1C',</span> <span class="pre">'A2K')</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.sites</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">(1,</span> <span class="pre">2)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.wts</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">{1</span></span></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>‘M’, 2: ‘A’}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.activity_wt_df</span></span></dt>
+<dd><p>epitope  activity</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">0</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e1</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">1</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e2</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.mut_escape_df</span></span></dt>
+<dd><p>epitope  site wildtype mutant mutation  escape</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">0</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e1</span>&#160;&#160;&#160;&#160; <span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">A</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span>&#160;&#160;&#160;&#160; <span class="pre">3.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">1</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e1</span>&#160;&#160;&#160;&#160; <span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">C</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">M1C</span>&#160;&#160;&#160;&#160; <span class="pre">2.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">2</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e1</span>&#160;&#160;&#160;&#160; <span class="pre">2</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">K</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">3</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e2</span>&#160;&#160;&#160;&#160; <span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">A</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span>&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">4</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e2</span>&#160;&#160;&#160;&#160; <span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">C</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">M1C</span>&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">5</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e2</span>&#160;&#160;&#160;&#160; <span class="pre">2</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">K</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160; <span class="pre">2.5</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">We</span> <span class="pre">can</span> <span class="pre">also</span> <span class="pre">summarize</span> <span class="pre">the</span> <span class="pre">mutation-level</span> <span class="pre">escape</span> <span class="pre">at</span> <span class="pre">the</span> <span class="pre">site</span> <span class="pre">level</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.mut_escape_site_summary_df</span></span></dt>
+<dd><p>epitope  site wildtype  mean  total positive  max  min  total negative</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">0</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e1</span>&#160;&#160;&#160;&#160; <span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M</span>&#160;&#160; <span class="pre">2.5</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">5.0</span>&#160; <span class="pre">3.0</span>&#160; <span class="pre">2.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">1</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e1</span>&#160;&#160;&#160;&#160; <span class="pre">2</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A</span>&#160;&#160; <span class="pre">0.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.0</span>&#160; <span class="pre">0.0</span>&#160; <span class="pre">0.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">2</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e2</span>&#160;&#160;&#160;&#160; <span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M</span>&#160;&#160; <span class="pre">0.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.0</span>&#160; <span class="pre">0.0</span>&#160; <span class="pre">0.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">3</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">e2</span>&#160;&#160;&#160;&#160; <span class="pre">2</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A</span>&#160;&#160; <span class="pre">2.5</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.5</span>&#160; <span class="pre">2.5</span>&#160; <span class="pre">2.5</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.0</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Note</span> <span class="pre">that</span> <span class="pre">we</span> <span class="pre">can</span> <span class="pre">**not**</span> <span class="pre">initialize</span> <span class="pre">a</span> <span class="pre">:class:`Polyclonal`</span> <span class="pre">object</span> <span class="pre">if</span> <span class="pre">we</span> <span class="pre">are</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">missing</span> <span class="pre">escape</span> <span class="pre">estimates</span> <span class="pre">for</span> <span class="pre">any</span> <span class="pre">mutations</span> <span class="pre">for</span> <span class="pre">any</span> <span class="pre">epitopes</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">Polyclonal(activity_wt_df=activity_wt_df,</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">mut_escape_df=mut_escape_df.head(n=5))</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.Traceback">
+<span class="sig-name descname"><span class="pre">Traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">most</span> <span class="pre">recent</span> <span class="pre">call</span> <span class="pre">last</span></em><span class="sig-paren">)</span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.Traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>…</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.ValueError">
+<span class="sig-name descname"><span class="pre">ValueError</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.ValueError" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>not all expected mutations for e2</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Now</span> <span class="pre">make</span> <span class="pre">a</span> <span class="pre">data</span> <span class="pre">frame</span> <span class="pre">with</span> <span class="pre">some</span> <span class="pre">variants</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">variants_df</span> <span class="pre">=</span> <span class="pre">pd.DataFrame.from_records(</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[('AA',</span> <span class="pre">'A2K'),</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">('AC',</span> <span class="pre">'M1A</span> <span class="pre">A2K'),</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">('AG',</span> <span class="pre">'M1A'),</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">('AT',</span> <span class="pre">''),</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">('CA',</span> <span class="pre">'A2K')],</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">columns=['barcode',</span> <span class="pre">'aa_substitutions'])</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Get</span> <span class="pre">the</span> <span class="pre">escape</span> <span class="pre">probabilities</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">&gt;&gt;&gt;</span> <span class="pre">polyclonal.prob_escape(variants_df=variants_df,</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">...</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">concentrations=[1,</span> <span class="pre">2,</span> <span class="pre">4]).round(3)</span></span></dt>
+<dd><p>barcode aa_substitutions  concentration  prob_escape</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">0</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AA</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.097</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">1</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AC</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span> <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.598</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">2</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AG</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.197</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">3</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AT</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.032</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">4</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">CA</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.097</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">5</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AA</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.044</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">6</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AC</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span> <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.398</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">7</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AG</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.090</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">8</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">AT</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.010</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">9</span>&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">CA</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">2.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.044</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">10</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">AA</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">4.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.017</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">11</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">AC</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span> <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">4.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.214</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">12</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">AG</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">M1A</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">4.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.034</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">13</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">AT</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">4.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.003</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">14</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">CA</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">A2K</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">4.0</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">0.017</span></span></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.activity_wt_barplot">
 <span class="sig-name descname"><span class="pre">activity_wt_barplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">110</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_per_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.activity_wt_barplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.activity_wt_barplot" title="Permalink to this definition">¶</a></dt>
@@ -283,6 +605,12 @@ missing escape estimates for any mutations for any epitopes:</p>
 <dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not yet implemented.</p>
 </dd></dl>
 
 <dl class="py property">
