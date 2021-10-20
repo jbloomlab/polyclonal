@@ -9,24 +9,17 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 
 import collections
-import itertools
 import os
 import re
 
-import altair as alt
-
 import binarymap
-
-import matplotlib.colors
 
 import numpy
 
 import pandas as pd
 
 import polyclonal.pdb_utils
-import polyclonal.utils
-
-alt.data_transformers.disable_max_rows()
+import polyclonal.plot
 
 
 AAS_NOSTOP = ('A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
@@ -234,9 +227,7 @@ class Polyclonal:
                  data_to_fit=None,
                  n_epitopes=None,
                  alphabet=AAS_NOSTOP,
-                 epitope_colors=tuple(c for c in
-                                      matplotlib.colors.TABLEAU_COLORS.values()
-                                      if c != '#7f7f7f'),
+                 epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
                  ):
         """See main class docstring."""
         if len(set(alphabet)) != len(alphabet):
@@ -359,7 +350,9 @@ class Polyclonal:
             .assign(escape_gt_0=lambda x: x['escape'].clip(lower=0),
                     escape_lt_0=lambda x: x['escape'].clip(upper=0),
                     )
-            .groupby(['epitope', 'site', 'wildtype'], as_index=False)
+            .groupby(['epitope', 'site', 'wildtype'],
+                     as_index=False,
+                     sort=False)
             .aggregate(**escape_metrics)
             )
 
@@ -390,9 +383,9 @@ class Polyclonal:
         Returns
         -------
         pandas.DataFrame
-            A copy of `variants_df` with `concentration_col` and
+            A copy of ``variants_df`` with `concentration_col` and
             `prob_escape_col` added, giving the probability of escape
-            (:math:`_v\left(c\right)`) values.
+            (:math:`p_v\left(c\right)`) values.
 
         """
         for col in [concentration_col, prob_escape_col]:
@@ -416,22 +409,13 @@ class Polyclonal:
         """Not yet implemented."""
         raise NotImplementedError
 
-    def activity_wt_barplot(self,
-                            *,
-                            epitopes=None,
-                            width=110,
-                            height_per_bar=25,
-                            ):
+    def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
 
         Parameters
         ----------
-        epitopes : array-like or None
-            Include these epitopes in this order. If `None`, use all epitopes.
-        width : float
-            Width of plot.
-        height_per_bar : float
-            Height of plot for each bar (epitope).
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.activity_wt_barplot`.
 
         Returns
         -------
@@ -439,40 +423,10 @@ class Polyclonal:
             Interactive plot.
 
         """
-        if epitopes is None:
-            epitopes = self.epitopes
-        elif not set(epitopes).issubset(set(self.epitopes)):
-            raise ValueError('invalid entries in `epitopes`')
-        df = (self.activity_wt_df
-              .query('epitope in @epitopes')
-              .assign(epitope=lambda x: pd.Categorical(x['epitope'],
-                                                       epitopes,
-                                                       ordered=True)
-                      )
-              .sort_values('epitope')
-              )
-
-        barplot = (
-            alt.Chart(df)
-            .encode(x='activity:Q',
-                    y='epitope:N',
-                    color=alt.Color(
-                       'epitope:N',
-                       scale=alt.Scale(domain=epitopes,
-                                       range=[self.epitope_colors[e]
-                                              for e in epitopes]),
-                       legend=None,
-                       ),
-                    tooltip=[alt.Tooltip('epitope:N'),
-                             alt.Tooltip('activity:Q', format='.3g')],
-                    )
-            .mark_bar(size=0.75 * height_per_bar)
-            .properties(width=width,
-                        height={'step': height_per_bar})
-            .configure_axis(grid=False)
-            )
-
-        return barplot
+        kwargs['activity_wt_df'] = self.activity_wt_df
+        if 'epitope_colors' not in kwargs:
+            kwargs['epitope_colors'] = self.epitope_colors
+        return polyclonal.plot.activity_wt_barplot(**kwargs)
 
     def mut_escape_pdb_b_factor(self,
                                 *,
@@ -540,36 +494,13 @@ class Polyclonal:
                         )
         return pd.DataFrame(result_files, columns=['epitope', 'PDB file'])
 
-    def mut_escape_lineplot(self,
-                            *,
-                            epitopes=None,
-                            all_sites=True,
-                            share_ylims=True,
-                            height=100,
-                            width=900,
-                            init_metric='mean',
-                            zoom_bar_width=500,
-                            ):
+    def mut_escape_lineplot(self, **kwargs):
         r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
 
         Parameters
-        -----------
-        epitopes : array-like or None
-            Make plots for these epitopes. If `None`, use all epitopes.
-        all_sites : bool
-            Plot all sites in range from first to last site even if some
-            have no data.
-        share_ylims : bool
-            Should plots for all epitopes share same y-limits?
-        height : float
-            Height per facet.
-        width : float
-            Width of plot.
-        init_metric : str
-            Metric to show initially (others can be selected by dropdown).
-            One of metrics in :attr:`Polyclonal.site_summary_df`.
-        zoom_bar_width : float
-            Width of zoom bar
+        ----------
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`.
 
         Returns
         -------
@@ -577,170 +508,18 @@ class Polyclonal:
             Interactive plot.
 
         """
-        if epitopes is None:
-            epitopes = self.epitopes
-        elif not set(epitopes).issubset(set(self.epitopes)):
-            raise ValueError('invalid entries in `epitopes`')
+        kwargs['mut_escape_site_summary_df'] = self.mut_escape_site_summary_df
+        if 'epitope_colors' not in kwargs:
+            kwargs['epitope_colors'] = self.epitope_colors
+        return polyclonal.plot.mut_escape_lineplot(**kwargs)
 
-        df = self.mut_escape_site_summary_df.query('epitope in @epitopes')
-        escape_metrics = [m for m in df.columns
-                          if m not in {'epitope', 'site', 'wildtype'}]
-
-        if all_sites:
-            sites = list(range(min(self.sites), max(self.sites) + 1))
-        else:
-            sites = self.sites
-            assert set(sites) == set(df['site'])
-
-        df = (df
-              .merge(pd.DataFrame(itertools.product(sites, epitopes),
-                                  columns=['site', 'epitope']),
-                     on=['site', 'epitope'], how='right')
-              .sort_values('site')
-              .melt(id_vars=['epitope', 'site', 'wildtype'],
-                    var_name='metric',
-                    value_name='escape'
-                    )
-              .pivot_table(index=['site', 'wildtype', 'metric'],
-                           values='escape',
-                           columns='epitope',
-                           dropna=False)
-              .reset_index()
-              )
-
-        y_axis_dropdown = alt.binding_select(options=escape_metrics)
-        y_axis_selection = alt.selection_single(fields=['metric'],
-                                                bind=y_axis_dropdown,
-                                                name='escape',
-                                                init={'metric': init_metric})
-
-        zoom_brush = alt.selection_interval(encodings=['x'],
-                                            mark=alt.BrushConfig(
-                                                stroke='black',
-                                                strokeWidth=2),
-                                            )
-        zoom_bar = (alt.Chart(df)
-                    .mark_rect(color='gray')
-                    .encode(x='site:O')
-                    .add_selection(zoom_brush)
-                    .properties(width=zoom_bar_width,
-                                height=15,
-                                title='site zoom bar',
-                                )
-                    )
-
-        site_selector = alt.selection(type='single',
-                                      on='mouseover',
-                                      fields=['site'],
-                                      empty='none')
-
-        charts = []
-        for epitope in epitopes:
-            base = (
-                alt.Chart(df)
-                .encode(x=alt.X('site:O',
-                                title=('site' if epitope == epitopes[-1]
-                                       else None),
-                                axis=(alt.Axis() if epitope == epitopes[-1]
-                                      else None),
-                                ),
-                        y=alt.Y(epitope,
-                                type='quantitative',
-                                title='escape',
-                                scale=alt.Scale(),
-                                ),
-                        tooltip=[alt.Tooltip('site:O'),
-                                 alt.Tooltip('wildtype:N'),
-                                 *[alt.Tooltip(f"{epitope}:Q", format='.3g')
-                                   for epitope in epitopes]
-                                 ]
-                        )
-                )
-            # in case some sites missing values, background thin transparent
-            # over which we put darker foreground for measured points
-            background = (
-                base
-                .transform_filter(f"isValid(datum['{epitope}'])")
-                .mark_line(opacity=0.5, size=1,
-                           color=self.epitope_colors[epitope])
-                )
-            foreground = (
-                base
-                .mark_line(opacity=1, size=1.5,
-                           color=self.epitope_colors[epitope])
-                )
-            foreground_circles = (
-                base
-                .mark_circle(opacity=1,
-                             color=self.epitope_colors[epitope])
-                .encode(size=alt.condition(site_selector,
-                                           alt.value(75),
-                                           alt.value(25)),
-                        stroke=alt.condition(site_selector,
-                                             alt.value('black'),
-                                             alt.value(None)),
-                        )
-                .add_selection(site_selector)
-                )
-            charts.append((background + foreground + foreground_circles)
-                          .add_selection(y_axis_selection)
-                          .transform_filter(y_axis_selection)
-                          .transform_filter(zoom_brush)
-                          .properties(
-                                title=alt.TitleParams(
-                                          f"{epitope} epitope",
-                                          color=self.epitope_colors[epitope]),
-                                width=width,
-                                height=height)
-                          )
-
-        return (alt.vconcat(zoom_bar,
-                            (alt.vconcat(*charts, spacing=10)
-                             .resolve_scale(y='shared' if share_ylims
-                                            else 'independent')
-                             ),
-                            spacing=10)
-                .configure_axis(grid=False)
-                .configure_title(anchor='start', fontSize=14)
-                )
-
-    def mut_escape_heatmap(self,
-                           *,
-                           epitopes=None,
-                           alphabet=None,
-                           all_sites=True,
-                           all_alphabet=True,
-                           floor_color_at_zero=True,
-                           share_heatmap_lims=True,
-                           cell_size=13,
-                           zoom_bar_width=500,
-                           ):
+    def mut_escape_heatmap(self, **kwargs):
         r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
         Parameters
         ----------
-        epitopes : array-like or None
-            Make plots for these epitopes. If `None`, use all epitopes.
-        alphabet : array-like or None
-            Order to plot alphabet letters (e.g., amino acids). If `None`, same
-            order as `alphabet` used to initialize this `Polyclonal` object.
-        all_sites : bool
-            Plot all sites in range from first to last site even if some
-            have no data.
-        all_alphabet : bool
-            Plot all letters in the alphabet (e.g., amino acids) even if some
-            have no data.
-        floor_color_at_zero : bool
-            Set lower limit to color scale as zero, even if there are negative
-            values or if minimum is >0.
-        share_heatmap_lims : bool
-            If `True`, let all epitopes share the same limits in color scale.
-            If `False`, scale each epitopes colors to the min and max escape
-            values for that epitope.
-        cell_size : float
-            Size of cells in heatmap.
-        zoom_bar_width : float
-            Width of zoom bar
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`.
 
         Returns
         -------
@@ -748,157 +527,12 @@ class Polyclonal:
             Interactive heat maps.
 
         """
-        if epitopes is None:
-            epitopes = self.epitopes
-        elif not set(epitopes).issubset(set(self.epitopes)):
-            raise ValueError('invalid entries in `epitopes`')
-        df = self.mut_escape_df.query('epitope in @epitopes')
-
-        # get alphabet and sites, expanding to all if needed
-        if alphabet is None:
-            alphabet = self.alphabet
-        elif set(alphabet) != set(self.alphabet):
-            raise ValueError('`alphabet` and `Polyclonal.alphabet` do not '
-                             'have same characters')
-        if not all_alphabet:
-            alphabet = [c for c in alphabet if c in set(df['mutant']) +
-                        set(df['wildtype'])]
-        if all_sites:
-            sites = list(range(min(self.sites), max(self.sites) + 1))
-        else:
-            sites = self.sites
-            assert set(sites) == set(df['site'])
-        df = (df
-              [['epitope', 'site', 'mutant', 'escape']]
-              .pivot_table(index=['site', 'mutant'],
-                           values='escape',
-                           columns='epitope')
-              .reset_index()
-              .merge(pd.DataFrame(itertools.product(sites, alphabet),
-                                  columns=['site', 'mutant']),
-                     how='right')
-              .assign(wildtype=lambda x: x['site'].map(self.wts),
-                      mutation=lambda x: (x['wildtype'].fillna('') +
-                                          x['site'].astype(str) + x['mutant']),
-                      mutant=lambda x: pd.Categorical(x['mutant'], alphabet,
-                                                      ordered=True),
-                      # mark wildtype cells with a `x`
-                      wildtype_char=lambda x: (x['mutant'] == x['wildtype']
-                                               ).map({True: 'x', False: ''}),
-                      )
-              .sort_values(['site', 'mutant'])
-              )
-        # wildtype has escape of 0 by definition
-        for epitope in epitopes:
-            df[epitope] = df[epitope].where(df['mutant'] != df['wildtype'], 0)
-
-        # zoom bar to put at top
-        zoom_brush = alt.selection_interval(encodings=['x'],
-                                            mark=alt.BrushConfig(
-                                                        stroke='black',
-                                                        strokeWidth=2)
-                                            )
-        zoom_bar = (alt.Chart(df)
-                    .mark_rect(color='gray')
-                    .encode(x='site:O')
-                    .add_selection(zoom_brush)
-                    .properties(width=zoom_bar_width,
-                                height=15,
-                                title='site zoom bar',
-                                )
-                    )
-
-        # select cells
-        cell_selector = alt.selection_single(on='mouseover',
-                                             empty='none')
-
-        # make list of heatmaps for each epitope
-        charts = [zoom_bar]
-        for epitope in epitopes:
-            # base chart
-            base = (alt.Chart(df)
-                    .encode(x=alt.X('site:O'),
-                            y=alt.Y('mutant:O',
-                                    sort=alt.EncodingSortField(
-                                                'y',
-                                                order='ascending')
-                                    ),
-                            )
-                    )
-            # heatmap for cells with data
-            if share_heatmap_lims:
-                vals = df[list(epitopes)].values
-            else:
-                vals = df[epitope].values
-            escape_max = numpy.nanmax(vals)
-            if floor_color_at_zero:
-                escape_min = 0
-            else:
-                escape_min = numpy.nanmin(vals)
-            if not (escape_min < escape_max):
-                raise ValueError('escape min / max do not span a valid range')
-            heatmap = (base
-                       .mark_rect()
-                       .encode(
-                           color=alt.Color(
-                                epitope,
-                                type='quantitative',
-                                scale=alt.Scale(
-                                   range=polyclonal.utils.color_gradient_hex(
-                                    'white', self.epitope_colors[epitope], 10),
-                                   type='linear',
-                                   domain=(escape_min, escape_max),
-                                   clamp=True,
-                                   ),
-                                legend=alt.Legend(orient='left',
-                                                  title='gray is n.d.',
-                                                  titleFontWeight='normal',
-                                                  gradientLength=100,
-                                                  gradientStrokeColor='black',
-                                                  gradientStrokeWidth=0.5)
-                                ),
-                           stroke=alt.value('black'),
-                           strokeWidth=alt.condition(cell_selector,
-                                                     alt.value(2.5),
-                                                     alt.value(0.2)),
-                           tooltip=[alt.Tooltip('mutation:N')] +
-                                   [alt.Tooltip(f"{epitope}:Q", format='.3g')
-                                    for epitope in epitopes],
-                           )
-                       )
-            # nulls for cells with missing data
-            nulls = (base
-                     .mark_rect()
-                     .transform_filter(f"!isValid(datum['{epitope}'])")
-                     .mark_rect(opacity=0.25)
-                     .encode(alt.Color('escape:N',
-                                       scale=alt.Scale(scheme='greys'),
-                                       legend=None),
-                             )
-                     )
-            # mark wildtype cells
-            wildtype = (base
-                        .mark_text(color='black')
-                        .encode(text=alt.Text('wildtype_char:N'))
-                        )
-            # combine the elements
-            charts.append((heatmap + nulls + wildtype)
-                          .interactive()
-                          .add_selection(cell_selector)
-                          .transform_filter(zoom_brush)
-                          .properties(
-                                title=alt.TitleParams(
-                                        f"{epitope} epitope",
-                                        color=self.epitope_colors[epitope]),
-                                width={'step': cell_size},
-                                height={'step': cell_size})
-                          )
-
-        return (alt.vconcat(*charts,
-                            spacing=0,
-                            )
-                .configure_title(anchor='start', fontSize=14)
-                )
+        kwargs['mut_escape_df'] = self.mut_escape_df
+        if 'epitope_colors' not in kwargs:
+            kwargs['epitope_colors'] = self.epitope_colors
+        if 'alphabet' not in kwargs:
+            kwargs['alphabet'] = self.alphabet
+        return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
     def _compute_pv(self, cs):
         r"""Compute :math:`p_v\left(c\right)`. Call `_set_binarymap` first."""
