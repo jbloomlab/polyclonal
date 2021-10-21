@@ -295,18 +295,12 @@ class Polyclonal:
         else:
             self.epitope_colors = dict(zip(self.epitopes, epitope_colors))
 
-        # get sites, wts, mutations
-        self.wts = {}
-        mutations = collections.defaultdict(list)
-        for mutation in mut_escape_df['mutation'].unique():
-            wt, site, mut = self._parse_mutation(mutation)
-            if site not in self.wts:
-                self.wts[site] = wt
-            elif self.wts[site] != wt:
-                raise ValueError(f"inconsistent wildtype for site {site}")
-            mutations[site].append(mutation)
-        self.sites = tuple(sorted(self.wts.keys()))
-        self.wts = dict(sorted(self.wts.items()))
+        # get wildtype, sites, and mutations
+        if mut_escape_df is not None:
+            self.wts, self.sites, mutations = (
+                    self._mutations_from_mut_escape_df(mut_escape_df))
+        if data_to_fit is not None:
+            raise NotImplementedError
         assert set(mutations.keys()) == set(self.sites) == set(self.wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         self.mutations = tuple(mut for site in self.sites for mut in
@@ -335,6 +329,31 @@ class Polyclonal:
         self._binarymap = None
         self._beta = None  # M by E matrix of betas
         self._a = None  # length E vector of activities
+
+    def _mutations_from_mut_escape_df(self, mut_escape_df):
+        """Get wildtypes, sites, and mutations from ``mut_escape_df``.
+
+        Parameters
+        ----------
+        mut_escape_df : pandas.DataFrame
+
+        Returns
+        -------
+        (wts, sites, mutations)
+
+        """
+        wts = {}
+        mutations = collections.defaultdict(list)
+        for mutation in mut_escape_df['mutation'].unique():
+            wt, site, mut = self._parse_mutation(mutation)
+            if site not in wts:
+                wts[site] = wt
+            elif wts[site] != wt:
+                raise ValueError(f"inconsistent wildtype for site {site}")
+            mutations[site].append(mutation)
+        sites = tuple(sorted(wts.keys()))
+        wts = dict(sorted(wts.items()))
+        return (wts, sites, mutations)
 
     @property
     def activity_wt_df(self):
