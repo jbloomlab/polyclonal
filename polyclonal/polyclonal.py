@@ -271,22 +271,19 @@ class Polyclonal:
             if not isinstance(n_epitopes, int) and n_epitopes > 0:
                 raise ValueError('`n_epitopes` must be int > 1 if no '
                                  '`activity_wt_df`')
-            epitopes = tuple(f"epitope {i + 1}" for i in range(n_epitopes))
+            self.epitopes = tuple(f"epitope {i + 1}" for
+                                  i in range(n_epitopes))
 
             # initialize activities to all be zero
-            self._activity_wt = {epitope: 0.0 for epitope in epitopes}
+            self._activity_wt = {epitope: 0.0 for epitope in self.epitopes}
 
             if data_to_fit is None:
-                raise ValueError('specify `data_to_fit` or `mut_escape_df`')
-
-            raise NotImplementedError('not yet set up to handle `data_to_fit`')
+                raise ValueError('specify `data_to_fit` if `activity_wt_df` '
+                                 'and `mut_escape_df` are `None`')
 
         else:
             raise ValueError('initialize both or neither `activity_wt_df` '
                              'and `mut_escape_df`')
-
-        if data_to_fit is not None:
-            raise NotImplementedError('not yet set up to handle `data_to_fit`')
 
         if isinstance(epitope_colors, dict):
             self.epitope_colors = {epitope_colors[e] for e in self.epitopes}
@@ -297,10 +294,17 @@ class Polyclonal:
 
         # get wildtype, sites, and mutations
         if mut_escape_df is not None:
-            self.wts, self.sites, mutations = (
-                    self._mutations_from_mut_escape_df(mut_escape_df))
+            wts, sites, muts = self._muts_from_mut_escape_df(mut_escape_df)
         if data_to_fit is not None:
-            raise NotImplementedError
+            wts2, sites2, muts2 = self._muts_from_data_to_fit(data_to_fit)
+        if mut_escape_df is data_to_fit is None:
+            raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
+        elif mut_escape_df is None:
+            self.wts, self.sites, mutations = wts2, sites2, muts2
+        elif data_to_fit is None:
+            self.wts, self.sites, mutations = wts, sites, muts
+        else:
+            raise NotImplementedError('check compatibility')
         assert set(mutations.keys()) == set(self.sites) == set(self.wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         self.mutations = tuple(mut for site in self.sites for mut in
@@ -330,18 +334,12 @@ class Polyclonal:
         self._beta = None  # M by E matrix of betas
         self._a = None  # length E vector of activities
 
-    def _mutations_from_mut_escape_df(self, mut_escape_df):
-        """Get wildtypes, sites, and mutations from ``mut_escape_df``.
+    def _muts_from_data_to_fit(self, data_to_fit):
+        """Get wildtypes, sites, and mutations from ``data_to_fit``."""
+        raise NotImplementedError
 
-        Parameters
-        ----------
-        mut_escape_df : pandas.DataFrame
-
-        Returns
-        -------
-        (wts, sites, mutations)
-
-        """
+    def _muts_from_mut_escape_df(self, mut_escape_df):
+        """Get wildtypes, sites, and mutations from ``mut_escape_df``."""
         wts = {}
         mutations = collections.defaultdict(list)
         for mutation in mut_escape_df['mutation'].unique():
