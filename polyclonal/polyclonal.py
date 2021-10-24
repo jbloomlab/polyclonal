@@ -301,6 +301,12 @@ class Polyclonal:
             raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
         elif mut_escape_df is None:
             self.wts, self.sites, mutations = wts2, sites2, muts2
+            # initialize values to all zero
+            mut_escape_df = pd.DataFrame(
+                    {'epitope': list(self.epitopes) * len(mutations),
+                     'mutation': mutations * len(self.epitopes),
+                     'escape': 0.0
+                     })
         elif data_to_fit is None:
             self.wts, self.sites, mutations = wts, sites, muts
         else:
@@ -311,7 +317,7 @@ class Polyclonal:
                                sorted(mutations[site],
                                       key=lambda m: char_order[m[-1]]))
 
-        # get mutation escape values
+        # get mutation escape values into `self._mut_escape`
         if set(mut_escape_df['epitope']) != set(self.epitopes):
             raise ValueError('`mut_escape_df` does not have same epitopes as '
                              '`activity_wt_df`')
@@ -325,6 +331,7 @@ class Polyclonal:
                                          .astype(float)
                                          .to_dict()
                                          )
+
         assert set(self.epitopes) == set(self._activity_wt)
         assert set(self.epitopes) == set(self._mut_escape)
 
