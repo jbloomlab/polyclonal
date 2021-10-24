@@ -124,6 +124,11 @@ class Polyclonal:
         Maps each epitope to the color used for plotting. Either a dict keyed
         by each epitope, or an array of colors that are sequentially assigned
         to the epitopes.
+    init_missing : 'zero' or int
+        How to to initialize any activities or mutation-escape values not
+        specified in ``activity_wt_df`` or ``mut_escape_df``. If 'zero',
+        set to zero. Otherwise draw uniformly from between 0 and 1 using
+        specified random number seed.
 
     Attributes
     ----------
@@ -233,8 +238,14 @@ class Polyclonal:
                  n_epitopes=None,
                  alphabet=AAS_NOSTOP,
                  epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
+                 init_missing='zero',
                  ):
         """See main class docstring."""
+        if isinstance(init_missing, int):
+            numpy.random.seed(init_missing)
+        elif init_missing != 'zero':
+            raise ValueError(f"invalid {init_missing=}")
+
         if len(set(alphabet)) != len(alphabet):
             raise ValueError('duplicate letters in `alphabet`')
         self.alphabet = tuple(alphabet)
@@ -274,8 +285,14 @@ class Polyclonal:
             self.epitopes = tuple(f"epitope {i + 1}" for
                                   i in range(n_epitopes))
 
-            # initialize activities to all be zero
-            self._activity_wt = {epitope: 0.0 for epitope in self.epitopes}
+            # initialize activities
+            if init_missing == 'zero':
+                self._activity_wt = {epitope: 0.0 for epitope in self.epitopes}
+            else:
+                self._activity_wt = {epitope: init for epitope, init in
+                                     zip(self.epitopes,
+                                         numpy.random.rand(len(self.epitopes)))
+                                     }
 
             if data_to_fit is None:
                 raise ValueError('specify `data_to_fit` if `activity_wt_df` '
@@ -301,11 +318,15 @@ class Polyclonal:
             raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
         elif mut_escape_df is None:
             self.wts, self.sites, mutations = wts2, sites2, muts2
-            # initialize values to all zero
+            # initialize mutation escape values
+            if init_missing == 'zero':
+                init = 0.0
+            else:
+                init = numpy.random.rand(len(self.epitopes) * len(mutations))
             mut_escape_df = pd.DataFrame(
                     {'epitope': list(self.epitopes) * len(mutations),
                      'mutation': mutations * len(self.epitopes),
-                     'escape': 0.0
+                     'escape': init
                      })
         elif data_to_fit is None:
             self.wts, self.sites, mutations = wts, sites, muts
