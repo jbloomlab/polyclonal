@@ -129,6 +129,14 @@ class Polyclonal:
         specified in ``activity_wt_df`` or ``mut_escape_df``. If 'zero',
         set to zero. Otherwise draw uniformly from between 0 and 1 using
         specified random number seed.
+    data_mut_escape_overlap : {'exact_match', 'fill_to_data'}
+        If ``data_to_fit`` and ``mut_escape_df`` are both specified,
+        what to do if they don't specify same sites / wildtypes / mutations.
+        If 'exact_match', raise error. If 'fill_to_data', then take
+        sites / wildtypes / mutations from ``data_to_fit`` and fill init
+        values from any not specified in ``mut_escape_df`` as indicated by
+        ``init_missing``--still raise error if values in ``mut_escape_df``
+        are not in ``data_to_fit``.
 
     Attributes
     ----------
@@ -239,6 +247,7 @@ class Polyclonal:
                  alphabet=AAS_NOSTOP,
                  epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
                  init_missing='zero',
+                 data_mut_escape_overlap='exact_match',
                  ):
         """See main class docstring."""
         if isinstance(init_missing, int):
@@ -309,6 +318,18 @@ class Polyclonal:
         else:
             self.epitope_colors = dict(zip(self.epitopes, epitope_colors))
 
+        def _init_mut_escape_df(mutations):
+            # initialize mutation escape values
+            if init_missing == 'zero':
+                init = 0.0
+            else:
+                init = numpy.random.rand(len(self.epitopes) * len(mutations))
+            return pd.DataFrame(
+                    {'epitope': list(self.epitopes) * len(mutations),
+                     'mutation': mutations * len(self.epitopes),
+                     'escape': init
+                     })
+
         # get wildtype, sites, and mutations
         if mut_escape_df is not None:
             wts, sites, muts = self._muts_from_mut_escape_df(mut_escape_df)
@@ -318,20 +339,47 @@ class Polyclonal:
             raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
         elif mut_escape_df is None:
             self.wts, self.sites, mutations = wts2, sites2, muts2
-            # initialize mutation escape values
-            if init_missing == 'zero':
-                init = 0.0
-            else:
-                init = numpy.random.rand(len(self.epitopes) * len(mutations))
-            mut_escape_df = pd.DataFrame(
-                    {'epitope': list(self.epitopes) * len(mutations),
-                     'mutation': mutations * len(self.epitopes),
-                     'escape': init
-                     })
+            mut_escape_df = _init_mut_escape_df(mutations)
         elif data_to_fit is None:
             self.wts, self.sites, mutations = wts, sites, muts
         else:
-            raise NotImplementedError('check compatibility')
+            if data_mut_escape_overlap == 'exact_overlap':
+                if sites == sites2 and wts == wts2 and muts == muts2:
+                    self.wts, self.sites, mutations = wts, sites, muts
+                else:
+                    raise ValueError('`data_to_fit` and `mut_escape_df` give '
+                                     'different mutations. Fix or set '
+                                     'data_mut_escape_overlap="fill_to_data"')
+            elif data_mut_escape_overlap == 'fill_to_data':
+                if set(sites).issubset(sites2):
+                    self.sites = sites2
+                else:
+                    raise ValueError('`mut_escape_df` has more sites than '
+                                     '`data_to_fit`')
+                if wts.items() < wts2.items():
+                    self.wts = wts2
+                else:
+                    raise ValueError('`mut_escape_df` has different wts than '
+                                     '`data_to_fit`')
+                mutations = {}
+                for site in self.sites:
+                    mutations[site] = muts2[site]
+                    if (site in muts) and (muts[site] > muts2[site]):
+                        raise ValueError('`mut_escape_df` has more mutations '
+                                         f"than `data_to_fit` at {site=}")
+                # take values from `mut_escape_df` and fill missing from
+                # init_mut_escape_df
+                mut_escape_df = (
+                    mut_escape_df
+                    .set_index(['epitope', 'mutation'])
+                    ['escape']
+                    .combine_first(_init_mut_escape_df(mutations)
+                                   ['epitope', 'mutation']
+                                   ['escape'])
+                    .reset_index()
+                    )
+            else:
+                raise ValueError(f"invalid {data_mut_escape_overlap=}")
         assert set(mutations.keys()) == set(self.sites) == set(self.wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         self.mutations = tuple(mut for site in self.sites for mut in
@@ -369,14 +417,14 @@ class Polyclonal:
     def _muts_from_mut_escape_df(self, mut_escape_df):
         """Get wildtypes, sites, and mutations from ``mut_escape_df``."""
         wts = {}
-        mutations = collections.defaultdict(list)
+        mutations = collections.defaultdict(set)
         for mutation in mut_escape_df['mutation'].unique():
-            wt, site, mut = self._parse_mutation(mutation)
+            wt, site, _ = self._parse_mutation(mutation)
             if site not in wts:
                 wts[site] = wt
             elif wts[site] != wt:
                 raise ValueError(f"inconsistent wildtype for site {site}")
-            mutations[site].append(mutation)
+            mutations[site].add(mutation)
         sites = tuple(sorted(wts.keys()))
         wts = dict(sorted(wts.items()))
         return (wts, sites, mutations)
