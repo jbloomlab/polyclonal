@@ -203,7 +203,7 @@ class Polyclonal:
     ...            mut_escape_df=mut_escape_df.head(n=5))
     Traceback (most recent call last):
       ...
-    ValueError: not all expected mutations for e2
+    ValueError: missing mutations for epitope='e2'
 
     Now make a data frame with some variants:
 
@@ -217,8 +217,9 @@ class Polyclonal:
 
     Get the escape probabilities:
 
-    >>> polyclonal.prob_escape(variants_df=variants_df,
-    ...                        concentrations=[1, 2, 4]).round(3)
+    >>> escape_probs = polyclonal.prob_escape(variants_df=variants_df,
+    ...                                       concentrations=[1, 2, 4])
+    >>> escape_probs.round(3)
        barcode aa_substitutions  concentration  prob_escape
     0       AA              A2K            1.0        0.097
     1       AC          M1A A2K            1.0        0.598
@@ -235,6 +236,42 @@ class Polyclonal:
     12      AG              M1A            4.0        0.034
     13      AT                             4.0        0.003
     14      CA              A2K            4.0        0.017
+
+    Example
+    -------
+    Initialize with ``escape_probs`` created above as data to fit:
+
+    >>> polyclonal_data = Polyclonal(data_to_fit=variants_df,
+    ...                              n_epitopes=2)
+
+    The mutations are those in ``escape_probs``:
+
+    >>> polyclonal_data.mutations
+    ('M1A', 'A2K')
+
+    The activities and mutation escapes are all initialized to zero:
+
+    >>> polyclonal_data.activity_wt_df
+         epitope  activity
+    0  epitope 1       0.0
+    1  epitope 2       0.0
+
+    >>> polyclonal_data.mut_escape_df
+         epitope  site wildtype mutant mutation  escape
+    0  epitope 1     1        M      A      M1A     0.0
+    1  epitope 1     2        A      K      A2K     0.0
+    2  epitope 2     1        M      A      M1A     0.0
+    3  epitope 2     2        A      K      A2K     0.0
+
+    You can initialize to random numbers by setting ``init_missing`` to seed:
+
+    >>> Polyclonal(data_to_fit=variants_df,
+    ...            n_epitopes=2,
+    ...            init_missing=1,
+    ...            ).activity_wt_df.round(3)
+         epitope  activity
+    0  epitope 1     0.417
+    1  epitope 2     0.720
 
     """
 
@@ -326,7 +363,7 @@ class Polyclonal:
                 init = numpy.random.rand(len(self.epitopes) * len(mutations))
             return pd.DataFrame(
                     {'epitope': list(self.epitopes) * len(mutations),
-                     'mutation': mutations * len(self.epitopes),
+                     'mutation': [m for m in mutations for _ in self.epitopes],
                      'escape': init
                      })
 
@@ -338,20 +375,20 @@ class Polyclonal:
         if mut_escape_df is data_to_fit is None:
             raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
         elif mut_escape_df is None:
-            self.wts, self.sites, mutations = wts2, sites2, muts2
-            mut_escape_df = _init_mut_escape_df(mutations)
+            self.wts, self.sites, self.mutations = wts2, sites2, muts2
+            mut_escape_df = _init_mut_escape_df(self.mutations)
         elif data_to_fit is None:
-            self.wts, self.sites, mutations = wts, sites, muts
+            self.wts, self.sites, self.mutations = wts, sites, muts
         else:
             if data_mut_escape_overlap == 'exact_overlap':
                 if sites == sites2 and wts == wts2 and muts == muts2:
-                    self.wts, self.sites, mutations = wts, sites, muts
+                    self.wts, self.sites, self.mutations = wts, sites, muts
                 else:
                     raise ValueError('`data_to_fit` and `mut_escape_df` give '
                                      'different mutations. Fix or set '
                                      'data_mut_escape_overlap="fill_to_data"')
             elif data_mut_escape_overlap == 'fill_to_data':
-                if set(sites).issubset(sites2):
+                if set(sites) < set(sites2):
                     self.sites = sites2
                 else:
                     raise ValueError('`mut_escape_df` has more sites than '
@@ -359,32 +396,25 @@ class Polyclonal:
                 if wts.items() < wts2.items():
                     self.wts = wts2
                 else:
-                    raise ValueError('`mut_escape_df` has different wts than '
+                    raise ValueError('`mut_escape_df` has wts not in '
                                      '`data_to_fit`')
-                mutations = {}
-                for site in self.sites:
-                    mutations[site] = muts2[site]
-                    if (site in muts) and (muts[site] > muts2[site]):
-                        raise ValueError('`mut_escape_df` has more mutations '
-                                         f"than `data_to_fit` at {site=}")
-                # take values from `mut_escape_df` and fill missing from
-                # init_mut_escape_df
+                if set(muts) < set(muts2):
+                    self.mutations = muts2
+                else:
+                    raise ValueError('`mut_escape_df` has mutations not in '
+                                     '`data_to_fit`')
+                # take values from `mut_escape_df` and fill missing
                 mut_escape_df = (
                     mut_escape_df
                     .set_index(['epitope', 'mutation'])
                     ['escape']
-                    .combine_first(_init_mut_escape_df(mutations)
+                    .combine_first(_init_mut_escape_df(self.mutations)
                                    ['epitope', 'mutation']
                                    ['escape'])
                     .reset_index()
                     )
             else:
                 raise ValueError(f"invalid {data_mut_escape_overlap=}")
-        assert set(mutations.keys()) == set(self.sites) == set(self.wts)
-        char_order = {c: i for i, c in enumerate(self.alphabet)}
-        self.mutations = tuple(mut for site in self.sites for mut in
-                               sorted(mutations[site],
-                                      key=lambda m: char_order[m[-1]]))
 
         # get mutation escape values into `self._mut_escape`
         if set(mut_escape_df['epitope']) != set(self.epitopes):
@@ -393,7 +423,7 @@ class Polyclonal:
         self._mut_escape = {}
         for epitope, df in mut_escape_df.groupby('epitope'):
             if set(df['mutation']) != set(self.mutations):
-                raise ValueError(f"not all expected mutations for {epitope}")
+                raise ValueError(f"missing mutations for {epitope=}")
             self._mut_escape[epitope] = (df
                                          .set_index('mutation')
                                          ['escape']
@@ -424,6 +454,11 @@ class Polyclonal:
                 mutations[site].add(mutation)
         sites = tuple(sorted(wts.keys()))
         wts = dict(sorted(wts.items()))
+        assert set(mutations.keys()) == set(sites) == set(wts)
+        char_order = {c: i for i, c in enumerate(self.alphabet)}
+        mutations = tuple(mut for site in sites for mut in
+                          sorted(mutations[site],
+                                 key=lambda m: char_order[m[-1]]))
         return (wts, sites, mutations)
 
     def _muts_from_mut_escape_df(self, mut_escape_df):
@@ -439,6 +474,11 @@ class Polyclonal:
             mutations[site].add(mutation)
         sites = tuple(sorted(wts.keys()))
         wts = dict(sorted(wts.items()))
+        assert set(mutations.keys()) == set(sites) == set(wts)
+        char_order = {c: i for i, c in enumerate(self.alphabet)}
+        mutations = tuple(mut for site in sites for mut in
+                          sorted(mutations[site],
+                                 key=lambda m: char_order[m[-1]]))
         return (wts, sites, mutations)
 
     @property
