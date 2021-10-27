@@ -412,7 +412,19 @@ class Polyclonal:
 
     def _muts_from_data_to_fit(self, data_to_fit):
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
-        raise NotImplementedError
+        wts = {}
+        mutations = collections.defaultdict(set)
+        for variant in data_to_fit['aa_substitutions'].values:
+            for mutation in variant.split():
+                wt, site, _ = self._parse_mutation(mutation)
+                if site not in wts:
+                    wts[site] = wt
+                elif wts[site] != wt:
+                    raise ValueError(f"inconsistent wildtype for site {site}")
+                mutations[site].add(mutation)
+        sites = tuple(sorted(wts.keys()))
+        wts = dict(sorted(wts.items()))
+        return (wts, sites, mutations)
 
     def _muts_from_mut_escape_df(self, mut_escape_df):
         """Get wildtypes, sites, and mutations from ``mut_escape_df``."""
