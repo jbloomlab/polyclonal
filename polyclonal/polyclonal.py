@@ -273,6 +273,24 @@ class Polyclonal:
     0  epitope 1     0.417
     1  epitope 2     0.720
 
+    You set some or all mutation escapes to initial values:
+
+    >>> polyclonal_data2 = Polyclonal(
+    ...            data_to_fit=variants_df,
+    ...            activity_wt_df=activity_wt_df,
+    ...            mut_escape_df=pd.DataFrame({'epitope': ['e1'],
+    ...                                        'mutation': ['M1A'],
+    ...                                        'escape': [4]}),
+    ...            data_mut_escape_overlap='fill_to_data',
+    ...            )
+
+    >>> polyclonal_data2.mut_escape_df
+      epitope  site wildtype mutant mutation  escape
+    0      e1     1        M      A      M1A     4.0
+    1      e1     2        A      K      A2K     0.0
+    2      e2     1        M      A      M1A     0.0
+    3      e2     2        A      K      A2K     0.0
+
     """
 
     def __init__(self,
@@ -380,7 +398,7 @@ class Polyclonal:
         elif data_to_fit is None:
             self.wts, self.sites, self.mutations = wts, sites, muts
         else:
-            if data_mut_escape_overlap == 'exact_overlap':
+            if data_mut_escape_overlap == 'exact_match':
                 if sites == sites2 and wts == wts2 and muts == muts2:
                     self.wts, self.sites, self.mutations = wts, sites, muts
                 else:
@@ -409,7 +427,7 @@ class Polyclonal:
                     .set_index(['epitope', 'mutation'])
                     ['escape']
                     .combine_first(_init_mut_escape_df(self.mutations)
-                                   ['epitope', 'mutation']
+                                   .set_index(['epitope', 'mutation'])
                                    ['escape'])
                     .reset_index()
                     )
