@@ -10,8 +10,6 @@ Miscellaneous utility functions.
 
 import re
 
-import matplotlib.colors
-
 
 def shift_mut_site(mut_str, shift):
     """Shift site in string of mutations.
@@ -44,36 +42,6 @@ def shift_mut_site(mut_str, shift):
         new_site = int(m.group('site')) + shift
         new_mut_str.append(f"{m.group('wt')}{new_site}{m.group('mut')}")
     return ' '.join(new_mut_str)
-
-
-def color_gradient_hex(start, end, n):
-    """Get a list of colors linearly spanning a range.
-
-    Parameters
-    -----------
-    start : str
-        Starting color.
-    end : str
-        Ending color.
-    n : int
-        Number of colors in list.
-
-    Returns
-    -------
-    list
-        List of hex codes for colors spanning `start` to `end`.
-
-    Example
-    -------
-    >>> color_gradient_hex('white', 'red', n=5)
-    ['#ffffff', '#ffbfbf', '#ff8080', '#ff4040', '#ff0000']
-
-    """
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-                    name='_',
-                    colors=[start, end],
-                    N=n)
-    return [matplotlib.colors.rgb2hex(tup) for tup in cmap(list(range(0, n)))]
 
 
 if __name__ == '__main__':
