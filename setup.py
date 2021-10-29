@@ -45,7 +45,7 @@ setup(
     license='GPLv3',
     install_requires=[
             'altair>=4.1',
-            'binarymap>=0.1',
+            'binarymap>=0.2',
             'biopython>=1.79',
             'matplotlib>=3.1',
             'numpy>=1.17',
