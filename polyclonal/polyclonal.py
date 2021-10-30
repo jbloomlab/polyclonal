@@ -152,6 +152,8 @@ class Polyclonal:
         Keyed by site, value is wildtype at that site.
     epitope_colors : dict
         Maps each epitope to its color.
+    data_to_fit : pandas.DataFrame or None
+        Data to fit as passed when initializing this :class:`BinaryMap`.
 
     Example
     -------
@@ -436,6 +438,32 @@ class Polyclonal:
         # set internal params with activities and escapes
         self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
+        self.data_to_fit = data_to_fit
+        if data_to_fit is None:
+            if any(data_to_fit
+                   [['concentration', 'aa_substitutions', 'prob_escape']]
+                   .isnull().any().any()
+                   ):
+                raise ValueError('`data_to_fit` has null (NaN) entries')
+        if data_to_fit is None:
+            # Store data to fit in _cs, _binarymaps, _pvs.
+            # We have a different entry in _binarymaps and _pvs
+            # for each concentration in order to accommodate possible
+            # different variants at different concentrations.
+            self._cs = (data_to_fit
+                        ['concentration']
+                        .unique()
+                        .sort_values()
+                        .to_numpy(dtype=float)
+                        )
+            self._binarymaps = []
+            self._pvs = []
+            for i, (c, df) in enumerate(data_to_fit.groupby('concentration',
+                                                            sort=True)):
+                assert c == self._cs[i]
+                self._binarymaps._get_binarymap(df)
+                self._pvs.append(df['prob_escape'].to_numpy(dtype=float))
+
     def _params_from_dfs(self, activity_wt_df, mut_escape_df):
         """Params vector from data frames of activities and escapes."""
         # first E entries are activities
@@ -491,7 +519,7 @@ class Polyclonal:
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
         wts = {}
         mutations = collections.defaultdict(set)
-        for variant in data_to_fit['aa_substitutions'].values:
+        for variant in data_to_fit['aa_substitutions']:
             for mutation in variant.split():
                 wt, site, _ = self._parse_mutation(mutation)
                 if site not in wts:
