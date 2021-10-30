@@ -203,7 +203,7 @@ class Polyclonal:
     ...            mut_escape_df=mut_escape_df.head(n=5))
     Traceback (most recent call last):
       ...
-    ValueError: missing mutations for epitope='e2'
+    ValueError: invalid set of mutations for epitope='e2'
 
     Now make a data frame with some variants:
 
@@ -335,12 +335,6 @@ class Polyclonal:
             self.epitopes = tuple(activity_wt_df['epitope'].unique())
             if len(self.epitopes) != len(activity_wt_df):
                 raise ValueError('duplicate epitopes in `activity_wt_df`')
-            self._activity_wt = (activity_wt_df
-                                 .set_index('epitope')
-                                 ['activity']
-                                 .astype(float)
-                                 .to_dict()
-                                 )
 
         elif (activity_wt_df is None) and (mut_escape_df is None):
             if not isinstance(n_epitopes, int) and n_epitopes > 0:
@@ -350,13 +344,11 @@ class Polyclonal:
                                   i in range(n_epitopes))
 
             # initialize activities
-            if init_missing == 'zero':
-                self._activity_wt = {epitope: 0.0 for epitope in self.epitopes}
-            else:
-                self._activity_wt = {epitope: init for epitope, init in
-                                     zip(self.epitopes,
-                                         numpy.random.rand(len(self.epitopes)))
-                                     }
+            activity_wt_df = pd.DataFrame({
+                    'epitope': self.epitopes,
+                    'activity': (0.0 if init_missing == 'zero' else
+                                 numpy.random.rand(len(self.epitopes)))
+                    })
 
             if data_to_fit is None:
                 raise ValueError('specify `data_to_fit` if `activity_wt_df` '
@@ -434,29 +426,66 @@ class Polyclonal:
             else:
                 raise ValueError(f"invalid {data_mut_escape_overlap=}")
 
-        # get mutation escape values into `self._mut_escape`
         if set(mut_escape_df['epitope']) != set(self.epitopes):
             raise ValueError('`mut_escape_df` does not have same epitopes as '
                              '`activity_wt_df`')
-        self._mut_escape = {}
         for epitope, df in mut_escape_df.groupby('epitope'):
-            if set(df['mutation']) != set(self.mutations):
-                raise ValueError(f"missing mutations for {epitope=}")
-            self._mut_escape[epitope] = (df
-                                         .set_index('mutation')
-                                         ['escape']
-                                         .astype(float)
-                                         .to_dict()
-                                         )
+            if sorted(df['mutation']) != sorted(self.mutations):
+                raise ValueError(f"invalid set of mutations for {epitope=}")
 
-        assert set(self.epitopes) == set(self._activity_wt)
-        assert set(self.epitopes) == set(self._mut_escape)
+        # set internal params with activities and escapes
+        self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
-        # below are set to non-null values in `_set_binarymap` when
-        # specific variants provided
-        self._binarymap = None
-        self._beta = None  # M by E matrix of betas
-        self._a = None  # length E vector of activities
+    def _params_from_dfs(self, activity_wt_df, mut_escape_df):
+        """Params vector from data frames of activities and escapes."""
+        # first E entries are activities
+        assert len(activity_wt_df) == len(self.epitopes)
+        assert len(self.epitopes) == activity_wt_df['epitope'].nunique()
+        assert set(self.epitopes) == set(activity_wt_df['epitope'])
+        params = (
+            activity_wt_df
+            .assign(epitope=lambda x: pd.Categorical(x['epitope'],
+                                                     self.epitopes,
+                                                     ordered=True)
+                    )
+            .sort_values('epitope')
+            ['activity']
+            .tolist()
+            )
+
+        # Remaining MxE entries are beta values
+        assert len(mut_escape_df) == len(self.epitopes) * len(self.mutations)
+        assert len(mut_escape_df) == len(mut_escape_df
+                                         .groupby(['mutation', 'epitope']))
+        assert set(self.epitopes) == set(mut_escape_df['epitope'])
+        assert set(self.mutations) == set(mut_escape_df['mutation'])
+        params.extend(
+            mut_escape_df
+            .assign(epitope=lambda x: pd.Categorical(x['epitope'],
+                                                     self.epitopes,
+                                                     ordered=True),
+                    mutation=lambda x: pd.Categorical(x['mutation'],
+                                                      self.mutations,
+                                                      ordered=True),
+                    )
+            .sort_values(['mutation', 'epitope'])
+            ['escape']
+            .tolist()
+            )
+
+        return numpy.array(params).astype(float)
+
+    def _a_beta_from_params(self, params):
+        """Vector of activities and MxE matrix of betas from params vector."""
+        params_len = len(self.epitopes) * (1 + len(self.mutations))
+        if params.shape != (params_len,):
+            raise ValueError(f"invalid {params.shape=}")
+        a = params[: len(self.epitopes)]
+        beta = params[len(self.epitopes):].reshape(len(self.mutations),
+                                                   len(self.epitopes))
+        assert a.shape == (len(self.epitopes),)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        return (a, beta)
 
     def _muts_from_data_to_fit(self, data_to_fit):
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
@@ -502,20 +531,22 @@ class Polyclonal:
     @property
     def activity_wt_df(self):
         r"""pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes."""
+        a, _ = self._a_beta_from_params(self._params)
+        assert a.shape == (len(self.epitopes),)
         return pd.DataFrame({'epitope': self.epitopes,
-                             'activity': [self._activity_wt[e]
-                                          for e in self.epitopes],
+                             'activity': a,
                              })
 
     @property
     def mut_escape_df(self):
         r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation."""
+        _, beta = self._a_beta_from_params(self._params)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
         return (pd.concat([pd.DataFrame({'mutation': self.mutations,
-                                         'escape': [self._mut_escape[e][m]
-                                                    for m in self.mutations],
+                                         'escape': b,
+                                         'epitope': e,
                                          })
-                           .assign(epitope=e)
-                           for e in self.epitopes],
+                           for e, b in zip(self.epitopes, beta.transpose())],
                           ignore_index=True)
                 .assign(
                     site=lambda x: x['mutation'].map(
@@ -723,11 +754,16 @@ class Polyclonal:
 
     def _compute_pv(self, cs):
         r"""Compute :math:`p_v\left(c\right)`. Call `_set_binarymap` first."""
-        if self._binarymap is None or self._a is None or self._beta is None:
+        if self._binarymap is None:
             raise ValueError('call `_set_binarymap` first')
+        a, beta = self._a_beta_from_params(self._params)
+        assert a.shape == (len(self.epitopes),)
+        assert beta.shape == (self._binarymap.binarylength,
+                              len(self.epitopes))
+        assert beta.shape[0] == self._binarymap.binary_variants.shape[1]
         assert (cs > 0).all()
         assert cs.ndim == 1
-        phi_e_v = self._binarymap.binary_variants.dot(self._beta) - self._a
+        phi_e_v = self._binarymap.binary_variants.dot(beta) - a
         assert phi_e_v.shape == (self._binarymap.nvariants, len(self.epitopes))
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
         U_e_v_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
@@ -742,28 +778,17 @@ class Polyclonal:
                        variants_df,
                        substitutions_col,
                        ):
-        """Set `_binarymap`, `_beta`, `_a` attributes."""
+        """Set `_binarymap` attribute."""
         self._binarymap = binarymap.BinaryMap(
                 variants_df,
                 substitutions_col=substitutions_col,
+                allowed_subs=self.mutations,
                 )
         extra_muts = set(self._binarymap.all_subs) - set(self.mutations)
         if extra_muts:
             raise ValueError('variants contain mutations for which no '
                              'escape value initialized:\n'
                              '\n'.join(extra_muts))
-
-        self._a = numpy.array([self._activity_wt[e] for e in self.epitopes],
-                              dtype='float')
-        assert self._a.shape == (len(self.epitopes),)
-
-        self._beta = numpy.array(
-                        [[self._mut_escape[e][m] for e in self.epitopes]
-                         for m in self._binarymap.all_subs],
-                        dtype='float')
-        assert self._beta.shape == (self._binarymap.binarylength,
-                                    len(self.epitopes))
-        assert self._beta.shape[0] == self._binarymap.binary_variants.shape[1]
 
     def _parse_mutation(self, mutation):
         """Return `(wt, site, mut)`."""
