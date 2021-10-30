@@ -609,14 +609,14 @@ class Polyclonal:
         for col in [concentration_col, prob_escape_col]:
             if col in variants_df.columns:
                 raise ValueError(f"`variants_df` already has column {col}")
-        self._set_binarymap(variants_df, substitutions_col='aa_substitutions')
+        bmap = self._get_binarymap(variants_df)
         cs = numpy.array(concentrations, dtype='float')
         if not (cs > 0).all():
             raise ValueError('concentrations must be > 0')
         if cs.ndim != 1:
             raise ValueError('concentrations must be 1-dimensional')
-        p_v_c = self._compute_pv(cs)
-        assert p_v_c.shape == (self._binarymap.nvariants, len(cs))
+        p_v_c = self._compute_pv(bmap, cs)
+        assert p_v_c.shape == (bmap.nvariants, len(cs))
         return (pd.concat([variants_df.assign(**{concentration_col: c})
                            for c in cs],
                           ignore_index=True)
@@ -752,43 +752,34 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def _compute_pv(self, cs):
-        r"""Compute :math:`p_v\left(c\right)`. Call `_set_binarymap` first."""
-        if self._binarymap is None:
-            raise ValueError('call `_set_binarymap` first')
+    def _compute_pv(self, bmap, cs):
+        r"""Compute :math:`p_v\left(c\right)` for a binary map."""
         a, beta = self._a_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
-        assert beta.shape == (self._binarymap.binarylength,
-                              len(self.epitopes))
-        assert beta.shape[0] == self._binarymap.binary_variants.shape[1]
+        assert beta.shape == (bmap.binarylength, len(self.epitopes))
+        assert beta.shape[0] == bmap.binary_variants.shape[1]
         assert (cs > 0).all()
         assert cs.ndim == 1
-        phi_e_v = self._binarymap.binary_variants.dot(beta) - a
-        assert phi_e_v.shape == (self._binarymap.nvariants, len(self.epitopes))
+        phi_e_v = bmap.binary_variants.dot(beta) - a
+        assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
         U_e_v_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
-        assert U_e_v_c.shape == (self._binarymap.nvariants,
-                                 len(self.epitopes),
-                                 len(cs))
+        assert U_e_v_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
         p_v_c = U_e_v_c.prod(axis=1)
-        assert p_v_c.shape == (self._binarymap.nvariants, len(cs))
+        assert p_v_c.shape == (bmap.nvariants, len(cs))
         return p_v_c
 
-    def _set_binarymap(self,
+    def _get_binarymap(self,
                        variants_df,
-                       substitutions_col,
                        ):
-        """Set `_binarymap` attribute."""
-        self._binarymap = binarymap.BinaryMap(
+        """Get ``BinaryMap`` appropriate for use."""
+        bmap = binarymap.BinaryMap(
                 variants_df,
-                substitutions_col=substitutions_col,
+                substitutions_col='aa_substitutions',
                 allowed_subs=self.mutations,
                 )
-        extra_muts = set(self._binarymap.all_subs) - set(self.mutations)
-        if extra_muts:
-            raise ValueError('variants contain mutations for which no '
-                             'escape value initialized:\n'
-                             '\n'.join(extra_muts))
+        assert tuple(bmap.all_subs) == self.mutations
+        return bmap
 
     def _parse_mutation(self, mutation):
         """Return `(wt, site, mut)`."""
