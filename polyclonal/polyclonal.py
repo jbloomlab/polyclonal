@@ -243,7 +243,7 @@ class Polyclonal:
     -------
     Initialize with ``escape_probs`` created above as data to fit:
 
-    >>> polyclonal_data = Polyclonal(data_to_fit=variants_df,
+    >>> polyclonal_data = Polyclonal(data_to_fit=escape_probs,
     ...                              n_epitopes=2)
 
     The mutations are those in ``escape_probs``:
@@ -267,7 +267,7 @@ class Polyclonal:
 
     You can initialize to random numbers by setting ``init_missing`` to seed:
 
-    >>> Polyclonal(data_to_fit=variants_df,
+    >>> Polyclonal(data_to_fit=escape_probs,
     ...            n_epitopes=2,
     ...            init_missing=1,
     ...            ).activity_wt_df.round(3)
@@ -278,7 +278,7 @@ class Polyclonal:
     You set some or all mutation escapes to initial values:
 
     >>> polyclonal_data2 = Polyclonal(
-    ...            data_to_fit=variants_df,
+    ...            data_to_fit=escape_probs,
     ...            activity_wt_df=activity_wt_df,
     ...            mut_escape_df=pd.DataFrame({'epitope': ['e1'],
     ...                                        'mutation': ['M1A'],
@@ -439,29 +439,28 @@ class Polyclonal:
         self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
         self.data_to_fit = data_to_fit
-        if data_to_fit is None:
-            if any(data_to_fit
-                   [['concentration', 'aa_substitutions', 'prob_escape']]
-                   .isnull().any().any()
-                   ):
-                raise ValueError('`data_to_fit` has null (NaN) entries')
-        if data_to_fit is None:
+        if data_to_fit is not None:
+            if not (data_to_fit
+                    [['concentration', 'aa_substitutions', 'prob_escape']]
+                    .notnull().all().all()
+                    ):
+                raise ValueError(f"null entries in data_to_fit\n{data_to_fit}")
             # Store data to fit in _cs, _binarymaps, _pvs.
             # We have a different entry in _binarymaps and _pvs
             # for each concentration in order to accommodate possible
             # different variants at different concentrations.
             self._cs = (data_to_fit
                         ['concentration']
-                        .unique()
+                        .astype(float)
                         .sort_values()
-                        .to_numpy(dtype=float)
+                        .unique()
                         )
             self._binarymaps = []
             self._pvs = []
             for i, (c, df) in enumerate(data_to_fit.groupby('concentration',
                                                             sort=True)):
                 assert c == self._cs[i]
-                self._binarymaps._get_binarymap(df)
+                self._binarymaps.append(self._get_binarymap(df))
                 self._pvs.append(df['prob_escape'].to_numpy(dtype=float))
 
     def _params_from_dfs(self, activity_wt_df, mut_escape_df):
@@ -501,7 +500,10 @@ class Polyclonal:
             .tolist()
             )
 
-        return numpy.array(params).astype(float)
+        params = numpy.array(params).astype(float)
+        if numpy.isnan(params).any():
+            raise ValueError('some parameters are NaN')
+        return params
 
     def _a_beta_from_params(self, params):
         """Vector of activities and MxE matrix of betas from params vector."""
@@ -513,6 +515,7 @@ class Polyclonal:
                                                    len(self.epitopes))
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
+        assert (not numpy.isnan(a).any()) and (not numpy.isnan(beta).any())
         return (a, beta)
 
     def _muts_from_data_to_fit(self, data_to_fit):
