@@ -458,6 +458,8 @@ class Polyclonal:
                         .sort_values()
                         .unique()
                         )
+            if not (self._cs > 0).all():
+                raise ValueError('concentrations in `data_to_fit` must be > 0')
             self._binarymaps = []
             self._pvs = []
             self._one_binarymap = True
@@ -661,7 +663,7 @@ class Polyclonal:
             raise ValueError('concentrations must be > 0')
         if cs.ndim != 1:
             raise ValueError('concentrations must be 1-dimensional')
-        p_v_c = self._compute_pv(bmap, cs)
+        p_v_c = self._compute_pv(self._params, bmap, cs)
         assert p_v_c.shape == (bmap.nvariants, len(cs))
         return (pd.concat([variants_df.assign(**{concentration_col: c})
                            for c in cs],
@@ -798,9 +800,14 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def _compute_pv(self, bmap, cs):
-        r"""Compute :math:`p_v\left(c\right)` for a binary map."""
-        a, beta = self._a_beta_from_params(self._params)
+    def _compute_pv(self, params, bmap, cs):
+        r"""Compute :math:`p_v\left(c\right)`.
+
+        Takes set of params, a single BinaryMap, and array of concentrations,
+        and returns nvariants X nconcentrations array of the p_v values.
+
+        """
+        a, beta = self._a_beta_from_params(params)
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (bmap.binarylength, len(self.epitopes))
         assert beta.shape[0] == bmap.binary_variants.shape[1]
