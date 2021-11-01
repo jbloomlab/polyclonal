@@ -5,6 +5,8 @@
 These are tested against their current results using [nbval](https://nbval.readthedocs.io), and incorporated into the documentation using [nbsphinx](https://nbsphinx.readthedocs.io/).
 
 ## SARS-CoV-2 RBD data
+These data are used for plausible simulated escape data against the RBD.
+
 Data for antibodies targeting four "epitopes" on the SARS-CoV-2 RBD using the classification scheme of [Barnes et al (2020)](https://www.nature.com/articles/s41586-020-2852-1):
  - *LY-CoV016*: a "class 1" epitope
  - *LY-CoV555*: a "class 2" epitope
@@ -15,6 +17,10 @@ The file [RBD_mutation_escape_fractions.csv](RBD_mutation_escape_fractions.csv) 
   - *LY-CoV016* and *REGN10987*: [Starr et al (2021), Science](https://science.sciencemag.org/content/371/6531/850)
   - *LY-CoV555*: [Starr et al (2021), Cell Reports Medicine](https://doi.org/10.1016/j.xcrm.2021.100255)
   - *CR3022*: [Greaney et al (2021), Cell Host & Microbe](https://www.sciencedirect.com/science/article/pii/S1931312820306247), but re-analyzed with the same expression and ACE2-binding cutoffs in [Starr et al (2021), Science](https://science.sciencemag.org/content/371/6531/850).
+
+The file [RBD_mut_escape_df.csv](RBD_mut_escape_df.csv) contains mutation escape values (the "beta" values for the ``polyclonal`` package) generated from the mutation-level escape fractions using the script [RBD_mut_escape_df.py](RBD_mut_escape_df.py).
+
+The file [RBD_activity_wt_df.csv](RBD_activity_wt_df.csv) contains the activity values for each epitope used in the simulations.
 
 The file [RBD_seq.fasta](RBD_seq.fasta) is the coding sequence of the RBD used in the Bloom lab deep mutational scanning (optimized for yeast display).
 
