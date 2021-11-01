@@ -445,10 +445,13 @@ class Polyclonal:
                     .notnull().all().all()
                     ):
                 raise ValueError(f"null entries in data_to_fit\n{data_to_fit}")
-            # Store data to fit in _cs, _binarymaps, _pvs.
-            # We have a different entry in _binarymaps and _pvs
-            # for each concentration in order to accommodate possible
-            # different variants at different concentrations.
+            # Store data to fit. If the the same set of variants for all
+            # concentrations, then _one_binarymap is True, and _binarymaps is
+            # a single BinaryMap. Otherwise, _binarymaps lists the BinaryMap
+            # for each concentration. In either case, _cs is an array of the
+            # concentrations, and _pvs is a list of the _pv values for each
+            # concentration. We keep track of cases separately as computation
+            # more efficient if all concentrations have the same BinaryMap.
             self._cs = (data_to_fit
                         ['concentration']
                         .astype(float)
@@ -457,11 +460,23 @@ class Polyclonal:
                         )
             self._binarymaps = []
             self._pvs = []
-            for i, (c, df) in enumerate(data_to_fit.groupby('concentration',
-                                                            sort=True)):
+            self._one_binarymap = True
+            for i, (c, df) in enumerate(data_to_fit
+                                        .sort_values('aa_substitutions')
+                                        .groupby('concentration', sort=True)
+                                        ):
                 assert c == self._cs[i]
+                if i == 0:
+                    first_variants = df['aa_substitutions']
+                elif self._one_binarymap:
+                    self._one_binarymap = first_variants.equals(
+                                                df['aa_substitutions'])
                 self._binarymaps.append(self._get_binarymap(df))
                 self._pvs.append(df['prob_escape'].to_numpy(dtype=float))
+            if self._one_binarymap:
+                self._binarymaps = self._binarymaps[0]
+                assert all(self._binarymaps.n_variants == len(pv)
+                           for pv in self._pvs)
 
     def _params_from_dfs(self, activity_wt_df, mut_escape_df):
         """Params vector from data frames of activities and escapes."""
