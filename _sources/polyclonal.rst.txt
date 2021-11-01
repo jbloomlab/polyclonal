@@ -14,5 +14,6 @@ Submodules
 
    polyclonal.fit
    polyclonal.pdb_utils
+   polyclonal.plot
    polyclonal.polyclonal
    polyclonal.utils

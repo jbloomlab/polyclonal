@@ -39,32 +39,6 @@
 <h1>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h1>
 <p>Miscellaneous utility functions.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="polyclonal.utils.color_gradient_hex">
-<span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">color_gradient_hex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#color_gradient_hex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.color_gradient_hex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a list of colors linearly spanning a range.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>start</strong> (<em>str</em>) – Starting color.</p></li>
-<li><p><strong>end</strong> (<em>str</em>) – Ending color.</p></li>
-<li><p><strong>n</strong> (<em>int</em>) – Number of colors in list.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of hex codes for colors spanning <cite>start</cite> to <cite>end</cite>.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">color_gradient_hex</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="go">[&#39;#ffffff&#39;, &#39;#ffbfbf&#39;, &#39;#ff8080&#39;, &#39;#ff4040&#39;, &#39;#ff0000&#39;]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="polyclonal.utils.shift_mut_site">
 <span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">shift_mut_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#shift_mut_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.shift_mut_site" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shift site in string of mutations.</p>

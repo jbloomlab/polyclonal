@@ -45,8 +45,6 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.colors</span>
-
 
 <div class="viewcode-block" id="shift_mut_site"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.shift_mut_site">[docs]</a><span class="k">def</span> <span class="nf">shift_mut_site</span><span class="p">(</span><span class="n">mut_str</span><span class="p">,</span> <span class="n">shift</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Shift site in string of mutations.</span>
@@ -79,36 +77,6 @@
         <span class="n">new_site</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">shift</span>
         <span class="n">new_mut_str</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;wt&#39;</span><span class="p">)</span><span class="si">}{</span><span class="n">new_site</span><span class="si">}{</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;mut&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_mut_str</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="color_gradient_hex"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.color_gradient_hex">[docs]</a><span class="k">def</span> <span class="nf">color_gradient_hex</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get a list of colors linearly spanning a range.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
-<span class="sd">    start : str</span>
-<span class="sd">        Starting color.</span>
-<span class="sd">    end : str</span>
-<span class="sd">        Ending color.</span>
-<span class="sd">    n : int</span>
-<span class="sd">        Number of colors in list.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    list</span>
-<span class="sd">        List of hex codes for colors spanning `start` to `end`.</span>
-
-<span class="sd">    Example</span>
-<span class="sd">    -------</span>
-<span class="sd">    &gt;&gt;&gt; color_gradient_hex(&#39;white&#39;, &#39;red&#39;, n=5)</span>
-<span class="sd">    [&#39;#ffffff&#39;, &#39;#ffbfbf&#39;, &#39;#ff8080&#39;, &#39;#ff4040&#39;, &#39;#ff0000&#39;]</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
-                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span>
-                    <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span>
-                    <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)))]</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
