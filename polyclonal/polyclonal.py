@@ -217,36 +217,45 @@ class Polyclonal:
     ...          ('CA', 'A2K')],
     ...         columns=['barcode', 'aa_substitutions'])
 
-    Get the escape probabilities:
+    Get the escape probabilities predicted on these variants from
+    the values in the :class:`Polyclonal` object:
 
     >>> escape_probs = polyclonal.prob_escape(variants_df=variants_df,
     ...                                       concentrations=[1, 2, 4])
     >>> escape_probs.round(3)
-       barcode aa_substitutions  concentration  prob_escape
-    0       AA              A2K            1.0        0.097
-    1       AC          M1A A2K            1.0        0.598
-    2       AG              M1A            1.0        0.197
-    3       AT                             1.0        0.032
-    4       CA              A2K            1.0        0.097
-    5       AA              A2K            2.0        0.044
-    6       AC          M1A A2K            2.0        0.398
-    7       AG              M1A            2.0        0.090
-    8       AT                             2.0        0.010
-    9       CA              A2K            2.0        0.044
-    10      AA              A2K            4.0        0.017
-    11      AC          M1A A2K            4.0        0.214
-    12      AG              M1A            4.0        0.034
-    13      AT                             4.0        0.003
-    14      CA              A2K            4.0        0.017
+       barcode aa_substitutions  concentration  predicted_prob_escape
+    0       AA              A2K            1.0                  0.097
+    1       AC          M1A A2K            1.0                  0.598
+    2       AG              M1A            1.0                  0.197
+    3       AT                             1.0                  0.032
+    4       CA              A2K            1.0                  0.097
+    5       AA              A2K            2.0                  0.044
+    6       AC          M1A A2K            2.0                  0.398
+    7       AG              M1A            2.0                  0.090
+    8       AT                             2.0                  0.010
+    9       CA              A2K            2.0                  0.044
+    10      AA              A2K            4.0                  0.017
+    11      AC          M1A A2K            4.0                  0.214
+    12      AG              M1A            4.0                  0.034
+    13      AT                             4.0                  0.003
+    14      CA              A2K            4.0                  0.017
 
     Example
     -------
-    Initialize with ``escape_probs`` created above as data to fit:
+    Initialize with ``escape_probs`` created above as data to fit. In order
+    to do this, we need to change the name of the column with the
+    predicted escape probs to just be escape probs as we are now assuming
+    these are the real values:
 
-    >>> polyclonal_data = Polyclonal(data_to_fit=escape_probs,
+    >>> data_to_fit = (
+    ...         escape_probs
+    ...         .rename(columns={'predicted_prob_escape': 'prob_escape'})
+    ...         )
+
+    >>> polyclonal_data = Polyclonal(data_to_fit=data_to_fit,
     ...                              n_epitopes=2)
 
-    The mutations are those in ``escape_probs``:
+    The mutations are those in ``data_to_fit``:
 
     >>> polyclonal_data.mutations
     ('M1A', 'A2K')
@@ -267,7 +276,7 @@ class Polyclonal:
 
     You can initialize to random numbers by setting ``init_missing`` to seed:
 
-    >>> Polyclonal(data_to_fit=escape_probs,
+    >>> Polyclonal(data_to_fit=data_to_fit,
     ...            n_epitopes=2,
     ...            init_missing=1,
     ...            ).activity_wt_df.round(3)
@@ -278,7 +287,7 @@ class Polyclonal:
     You set some or all mutation escapes to initial values:
 
     >>> polyclonal_data2 = Polyclonal(
-    ...            data_to_fit=escape_probs,
+    ...            data_to_fit=data_to_fit,
     ...            activity_wt_df=activity_wt_df,
     ...            mut_escape_df=pd.DataFrame({'epitope': ['e1'],
     ...                                        'mutation': ['M1A'],
@@ -633,7 +642,11 @@ class Polyclonal:
                     variants_df,
                     concentrations,
                     ):
-        r"""Compute probability of escape :math:`p_v\left(c\right)`.
+        r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
+
+        Computed using current mutation-escape values :math:`beta_{m,e}` and
+        epitope activities :math:`a_{\rm{wt},e}` stored in this
+        :class:`Polyclonal` object.
 
         Arguments
         ---------
@@ -648,12 +661,12 @@ class Polyclonal:
         -------
         pandas.DataFrame
             A copy of ``variants_df`` with new columns named 'concentration'
-            and 'prob_escape' giving probability of escape
+            and 'predicted_prob_escape' giving predicted probability of escape
             :math:`p_v\left(c\right)` for each variant at each concentration.
 
         """
         concentration_col = 'concentration'
-        prob_escape_col = 'prob_escape'
+        prob_escape_col = 'predicted_prob_escape'
         for col in [concentration_col, prob_escape_col]:
             if col in variants_df.columns:
                 raise ValueError(f"`variants_df` already has column {col}")
