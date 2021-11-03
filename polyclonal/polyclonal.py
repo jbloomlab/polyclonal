@@ -240,6 +240,28 @@ class Polyclonal:
     13      AG              M1A            4.0                  0.034
     14      AC          M1A A2K            4.0                  0.214
 
+    We can also get predicted escape probabilities by including concentrations
+    in the data frame passed to :meth:`Polyclonal.prob_escape`:
+
+    >>> df_with_conc = pd.concat([variants_df.assign(concentration=c)
+    ...                           for c in [1.0, 2.0, 4.0]]).head(14)
+    >>> polyclonal.prob_escape(variants_df=df_with_conc).round(3)
+       barcode aa_substitutions  concentration  predicted_prob_escape
+    0       AT                             1.0                  0.032
+    1       AA              A2K            1.0                  0.097
+    2       CA              A2K            1.0                  0.097
+    3       AG              M1A            1.0                  0.197
+    4       AC          M1A A2K            1.0                  0.598
+    5       AT                             2.0                  0.010
+    6       AA              A2K            2.0                  0.044
+    7       CA              A2K            2.0                  0.044
+    8       AG              M1A            2.0                  0.090
+    9       AC          M1A A2K            2.0                  0.398
+    10      AT                             4.0                  0.003
+    11      AA              A2K            4.0                  0.017
+    12      AG              M1A            4.0                  0.034
+    13      AC          M1A A2K            4.0                  0.214
+
     Example
     -------
     Initialize with ``escape_probs`` created above as data to fit. In order
@@ -488,11 +510,11 @@ class Polyclonal:
         for i, (c, i_df) in enumerate(sorted_df.groupby('concentration',
                                                         sort=False)):
             assert c == cs[i]
+            i_variants = i_df['aa_substitutions'].reset_index(drop=True)
             if i == 0:
-                first_variants = i_df['aa_substitutions']
+                first_variants = i_variants
             elif one_binarymap:
-                one_binarymap = (first_variants.values ==
-                                 i_df['aa_substitutions'].values).all()
+                one_binarymap = first_variants.equals(i_variants)
             binarymaps.append(self._get_binarymap(i_df))
             if get_pv:
                 pvs.append(i_df['prob_escape'].to_numpy(dtype=float))
@@ -653,7 +675,7 @@ class Polyclonal:
     def prob_escape(self,
                     *,
                     variants_df,
-                    concentrations,
+                    concentrations=None,
                     ):
         r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
 
@@ -700,7 +722,13 @@ class Polyclonal:
             assert p_v_c.shape == (binarymaps.nvariants, len(cs))
             variants_df[prob_escape_col] = p_v_c.ravel(order='F')
         else:
-            raise NotImplementedError
+            assert len(cs) == len(binarymaps)
+            p_v_c = numpy.concatenate(
+                    [self._compute_pv(self._params, bmap, numpy.array([c])
+                                      ).ravel()
+                     for c, bmap in zip(cs, binarymaps)])
+            assert p_v_c.shape == (len(variants_df),)
+            variants_df[prob_escape_col] = p_v_c
 
         return variants_df
 
