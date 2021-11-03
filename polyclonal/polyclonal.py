@@ -221,24 +221,24 @@ class Polyclonal:
     the values in the :class:`Polyclonal` object:
 
     >>> escape_probs = polyclonal.prob_escape(variants_df=variants_df,
-    ...                                       concentrations=[1, 2, 4])
+    ...                                       concentrations=[1.0, 2.0, 4.0])
     >>> escape_probs.round(3)
        barcode aa_substitutions  concentration  predicted_prob_escape
-    0       AA              A2K            1.0                  0.097
-    1       AC          M1A A2K            1.0                  0.598
-    2       AG              M1A            1.0                  0.197
-    3       AT                             1.0                  0.032
-    4       CA              A2K            1.0                  0.097
-    5       AA              A2K            2.0                  0.044
-    6       AC          M1A A2K            2.0                  0.398
-    7       AG              M1A            2.0                  0.090
-    8       AT                             2.0                  0.010
-    9       CA              A2K            2.0                  0.044
-    10      AA              A2K            4.0                  0.017
-    11      AC          M1A A2K            4.0                  0.214
-    12      AG              M1A            4.0                  0.034
-    13      AT                             4.0                  0.003
-    14      CA              A2K            4.0                  0.017
+    0       AT                             1.0                  0.032
+    1       AA              A2K            1.0                  0.097
+    2       CA              A2K            1.0                  0.097
+    3       AG              M1A            1.0                  0.197
+    4       AC          M1A A2K            1.0                  0.598
+    5       AT                             2.0                  0.010
+    6       AA              A2K            2.0                  0.044
+    7       CA              A2K            2.0                  0.044
+    8       AG              M1A            2.0                  0.090
+    9       AC          M1A A2K            2.0                  0.398
+    10      AT                             4.0                  0.003
+    11      AA              A2K            4.0                  0.017
+    12      CA              A2K            4.0                  0.017
+    13      AG              M1A            4.0                  0.034
+    14      AC          M1A A2K            4.0                  0.214
 
     Example
     -------
@@ -449,45 +449,58 @@ class Polyclonal:
 
         self.data_to_fit = data_to_fit
         if data_to_fit is not None:
-            if not (data_to_fit
-                    [['concentration', 'aa_substitutions', 'prob_escape']]
-                    .notnull().all().all()
-                    ):
-                raise ValueError(f"null entries in data_to_fit\n{data_to_fit}")
-            # Store data to fit. If the the same set of variants for all
-            # concentrations, then _one_binarymap is True, and _binarymaps is
-            # a single BinaryMap. Otherwise, _binarymaps lists the BinaryMap
-            # for each concentration. In either case, _cs is an array of the
-            # concentrations, and _pvs is a list of the _pv values for each
-            # concentration. We keep track of cases separately as computation
-            # more efficient if all concentrations have the same BinaryMap.
-            self._cs = (data_to_fit
-                        ['concentration']
-                        .astype(float)
-                        .sort_values()
-                        .unique()
-                        )
-            if not (self._cs > 0).all():
-                raise ValueError('concentrations in `data_to_fit` must be > 0')
-            self._binarymaps = []
-            self._pvs = []
-            self._one_binarymap = True
-            for i, (c, df) in enumerate(data_to_fit
-                                        .sort_values('aa_substitutions')
-                                        .groupby('concentration', sort=True)
-                                        ):
-                assert c == self._cs[i]
-                if i == 0:
-                    first_variants = df['aa_substitutions']
-                elif self._one_binarymap:
-                    self._one_binarymap = first_variants.equals(
-                                                df['aa_substitutions'])
-                self._binarymaps.append(self._get_binarymap(df))
-                self._pvs.append(df['prob_escape'].to_numpy(dtype=float))
-            if self._one_binarymap:
-                self._binarymaps = self._binarymaps[0]
-                assert all(self._binarymaps.n_variants == len(pv)
-                           for pv in self._pvs)
+            (self._one_binarymap, self._binarymaps, self._cs, self._pvs, _
+             ) = self._binarymaps_cs_pvs_from_df(data_to_fit, get_pv=True)
+
+    def _binarymaps_cs_pvs_from_df(self, df, get_pv):
+        """Get variants and concentrations from data frame.
+
+        Get `(one_binarymap, binarymaps, cs, pvs, sorted_df)`. If
+        `get_pv=False` then `pvs` is `None`. If same variants for all
+        concentrations, `binarymaps` is a BinaryMap and `one_binarymap` is
+        `True`. Otherwise, `binarymaps` lists BinaryMap for each concentration.
+        `sorted_df` is version of `df` with variants/concentrations in same
+        as `binarymaps`. We handle separately cases when BinaryMap same or
+        different for concentrations as more efficient if all concentrations
+        have same BinaryMap.
+
+        """
+        cols = ['concentration', 'aa_substitutions']
+        if get_pv:
+            cols.append('prob_escape')
+        if not df[cols].notnull().all().all():
+            raise ValueError(f"null entries in data frame of variants:\n{df}")
+        sorted_df = (df
+                     .sort_values(['concentration', 'aa_substitutions'])
+                     .reset_index(drop=True)
+                     )
+        cs = (sorted_df
+              ['concentration']
+              .astype(float)
+              .sort_values()
+              .unique()
+              )
+        if not (cs > 0).all():
+            raise ValueError('concentrations must be > 0')
+        binarymaps = []
+        pvs = [] if get_pv else None
+        one_binarymap = True
+        for i, (c, i_df) in enumerate(sorted_df.groupby('concentration',
+                                                        sort=False)):
+            assert c == cs[i]
+            if i == 0:
+                first_variants = i_df['aa_substitutions']
+            elif one_binarymap:
+                one_binarymap = (first_variants.values ==
+                                 i_df['aa_substitutions'].values).all()
+            binarymaps.append(self._get_binarymap(i_df))
+            if get_pv:
+                pvs.append(i_df['prob_escape'].to_numpy(dtype=float))
+        if one_binarymap:
+            binarymaps = binarymaps[0]
+            if get_pv:
+                assert all(binarymaps.nvariants == len(pv) for pv in pvs)
+        return (one_binarymap, binarymaps, cs, pvs, sorted_df)
 
     def _params_from_dfs(self, activity_wt_df, mut_escape_df):
         """Params vector from data frames of activities and escapes."""
@@ -652,37 +665,44 @@ class Polyclonal:
         ---------
         variants_df : pandas.DataFrame
             Input data frame defining variants. Should have a column
-            named 'aa_substitutions' that definese variants as space-delimited
-            strings of substitutions (e.g., 'M1A K3T').
-        concentrations : array-like
+            named 'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T'). Should also have a
+            column 'concentration' if ``concentrations=None``.
+        concentrations : array-like or None
             Concentrations at which we compute probability of escape.
 
         Returns
         -------
         pandas.DataFrame
-            A copy of ``variants_df`` with new columns named 'concentration'
+            Version of ``variants_df`` with columns named 'concentration'
             and 'predicted_prob_escape' giving predicted probability of escape
             :math:`p_v\left(c\right)` for each variant at each concentration.
 
         """
-        concentration_col = 'concentration'
         prob_escape_col = 'predicted_prob_escape'
-        for col in [concentration_col, prob_escape_col]:
-            if col in variants_df.columns:
-                raise ValueError(f"`variants_df` already has column {col}")
-        bmap = self._get_binarymap(variants_df)
-        cs = numpy.array(concentrations, dtype='float')
-        if not (cs > 0).all():
-            raise ValueError('concentrations must be > 0')
-        if cs.ndim != 1:
-            raise ValueError('concentrations must be 1-dimensional')
-        p_v_c = self._compute_pv(self._params, bmap, cs)
-        assert p_v_c.shape == (bmap.nvariants, len(cs))
-        return (pd.concat([variants_df.assign(**{concentration_col: c})
-                           for c in cs],
-                          ignore_index=True)
-                .assign(**{prob_escape_col: p_v_c.ravel(order='F')})
-                )
+        if prob_escape_col in variants_df.columns:
+            raise ValueError(f"`variants_df` has column {prob_escape_col}")
+
+        # add concentrations column to variants_df
+        if concentrations is not None:
+            if 'concentration' in variants_df.columns:
+                raise ValueError('`variants_df` has "concentration" column '
+                                 'and `concentrations` not `None`')
+            variants_df = pd.concat([variants_df.assign(concentration=c)
+                                     for c in concentrations],
+                                    ignore_index=True)
+
+        (one_binarymap, binarymaps, cs, _, variants_df
+         ) = self._binarymaps_cs_pvs_from_df(variants_df, get_pv=False)
+
+        if one_binarymap:
+            p_v_c = self._compute_pv(self._params, binarymaps, cs)
+            assert p_v_c.shape == (binarymaps.nvariants, len(cs))
+            variants_df[prob_escape_col] = p_v_c.ravel(order='F')
+        else:
+            raise NotImplementedError
+
+        return variants_df
 
     def fit(self):
         """Not yet implemented."""
