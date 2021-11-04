@@ -153,7 +153,8 @@ class Polyclonal:
     epitope_colors : dict
         Maps each epitope to its color.
     data_to_fit : pandas.DataFrame or None
-        Data to fit as passed when initializing this :class:`BinaryMap`.
+        Data to fit as passed when initializing this :class:`BinaryMap`,
+        although possibly in different row order.
 
     Example
     -------
@@ -469,10 +470,13 @@ class Polyclonal:
         # set internal params with activities and escapes
         self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
-        self.data_to_fit = data_to_fit
         if data_to_fit is not None:
-            (self._one_binarymap, self._binarymaps, self._cs, self._pvs, _
+            (self._one_binarymap, self._binarymaps,
+             self._cs, self._pvs, self.data_to_fit
              ) = self._binarymaps_cs_pvs_from_df(data_to_fit, get_pv=True)
+            assert len(self._pvs) == len(self.data_to_fit)
+        else:
+            self.data_to_fit = None
 
     def _binarymaps_cs_pvs_from_df(self, df, get_pv):
         """Get variants and concentrations from data frame.
@@ -482,7 +486,8 @@ class Polyclonal:
         concentrations, `binarymaps` is a BinaryMap and `one_binarymap` is
         `True`. Otherwise, `binarymaps` lists BinaryMap for each concentration.
         `sorted_df` is version of `df` with variants/concentrations in same
-        as `binarymaps`. We handle separately cases when BinaryMap same or
+        order as `binarymaps`, while `pvs` is 1D array with the prob escapes
+        for these variants. We handle separately cases when BinaryMap same or
         different for concentrations as more efficient if all concentrations
         have same BinaryMap.
 
@@ -522,6 +527,10 @@ class Polyclonal:
             binarymaps = binarymaps[0]
             if get_pv:
                 assert all(binarymaps.nvariants == len(pv) for pv in pvs)
+                pvs = numpy.concatenate(pvs)
+                assert len(pvs) == len(sorted_df)
+                if (pvs < 0).any() or (pvs > 1).any():
+                    raise ValueError('`prob_escape` must be between 0 and 1')
         return (one_binarymap, binarymaps, cs, pvs, sorted_df)
 
     def _params_from_dfs(self, activity_wt_df, mut_escape_df):
@@ -717,18 +726,10 @@ class Polyclonal:
         (one_binarymap, binarymaps, cs, _, variants_df
          ) = self._binarymaps_cs_pvs_from_df(variants_df, get_pv=False)
 
-        if one_binarymap:
-            p_v_c = self._compute_pv(self._params, binarymaps, cs)
-            assert p_v_c.shape == (binarymaps.nvariants, len(cs))
-            variants_df[prob_escape_col] = p_v_c.ravel(order='F')
-        else:
-            assert len(cs) == len(binarymaps)
-            p_v_c = numpy.concatenate(
-                    [self._compute_pv(self._params, bmap, numpy.array([c])
-                                      ).ravel()
-                     for c, bmap in zip(cs, binarymaps)])
-            assert p_v_c.shape == (len(variants_df),)
-            variants_df[prob_escape_col] = p_v_c
+        p_v_c = self._compute_1d_pvs(self._params, one_binarymap,
+                                     binarymaps, cs)
+        assert p_v_c.shape == (len(variants_df),)
+        variants_df[prob_escape_col] = p_v_c
 
         return variants_df
 
@@ -860,6 +861,23 @@ class Polyclonal:
         if 'alphabet' not in kwargs:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
+
+    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs):
+        r"""Get 1D raveled array of :math:`p_v\left(c\right)` values.
+
+        Differs from :meth:`Polyclonal._compute_pv` in that it works if just
+        one or multiple BinaryMap objects.
+
+        """
+        if one_binarymap:
+            p_v_c = self._compute_pv(params, binarymaps, cs)
+            assert p_v_c.shape == (binarymaps.nvariants, len(cs))
+            return p_v_c.ravel(order='F')
+        else:
+            assert len(cs) == len(binarymaps)
+            return numpy.concatenate(
+                    [self._compute_pv(params, bmap, numpy.array([c])).ravel()
+                     for c, bmap in zip(cs, binarymaps)])
 
     def _compute_pv(self, params, bmap, cs):
         r"""Compute :math:`p_v\left(c\right)`.
