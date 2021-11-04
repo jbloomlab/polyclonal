@@ -51,6 +51,7 @@ setup(
             'numpy>=1.17',
             'pandas>=1.2',
             'requests',
+            'scipy>=1.7.1',
             ],
     platforms='Linux and Mac OS X.',
     packages=['polyclonal'],

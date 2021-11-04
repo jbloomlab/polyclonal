@@ -18,6 +18,8 @@ import numpy
 
 import pandas as pd
 
+import scipy.optimize
+
 import polyclonal.pdb_utils
 import polyclonal.plot
 
@@ -289,7 +291,6 @@ class Polyclonal:
          epitope  activity
     0  epitope 1       0.0
     1  epitope 2       0.0
-
     >>> polyclonal_data.mut_escape_df
          epitope  site wildtype mutant mutation  escape
     0  epitope 1     1        M      A      M1A     0.0
@@ -317,13 +318,17 @@ class Polyclonal:
     ...                                        'escape': [4]}),
     ...            data_mut_escape_overlap='fill_to_data',
     ...            )
-
     >>> polyclonal_data2.mut_escape_df
       epitope  site wildtype mutant mutation  escape
     0      e1     1        M      A      M1A     4.0
     1      e1     2        A      K      A2K     0.0
     2      e2     1        M      A      M1A     0.0
     3      e2     2        A      K      A2K     0.0
+
+    Fit the values:
+
+    >>> opt_res = polyclonal_data.fit()
+    >>> opt_res
 
     """
 
@@ -733,9 +738,62 @@ class Polyclonal:
 
         return variants_df
 
-    def fit(self):
-        """Not yet implemented."""
-        raise NotImplementedError
+    def fit(self,
+            *,
+            loss_type='L1',
+            method='scipy_minimize',
+            scipy_solver='L-BFGS-B',
+            ):
+        r"""Fit parameters (activities and mutation escapes) to the data.
+
+        Requires :attr:`Polyclonal.data_to_fit` be set at initialization of
+        this :class:`Polyclonal` object. After calling this method, the
+        :math:`a_{\rm{wt},e}` and :math:`\beta_{m,e}` have been optimized, and
+        can be accessed using other methods of the :class:`Polyclonal` object.
+
+        Parameters
+        ----------
+        loss_type : {'L1', 'L2'}
+            Minimize difference between actual and model-predicted
+            :math:`p_v\left(c\right)` using L1 or L2 loss function.
+        method : {'scipy_minimize'}
+            Approach used for fitting.
+        scipy_solver : str
+            If ``method='scipy_minimize'``, what solver to use.
+
+        Return
+        ------
+        scipy.optimize.OptimizeResult
+            Return value depends on ``method``.
+
+        """
+        if self.data_to_fit is None:
+            raise ValueError('cannot fit if `data_to_fit` not set')
+
+        def _loss_func(params):
+            pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
+                                            self._binarymaps, self._cs)
+            assert pred_pvs.shape == self._pvs.shape
+            if loss_type == 'L1':
+                loss = numpy.absolute(self._pvs - pred_pvs).sum()
+            elif loss_type == 'L2':
+                loss = numpy.sum((self._pvs - pred_pvs)**2)
+            else:
+                raise ValueError(f"invalid {loss_type=}")
+            return loss
+
+        if method == 'scipy_minimize':
+            opt_res = scipy.optimize.minimize(fun=_loss_func,
+                                              x0=self._params,
+                                              method=scipy_solver,
+                                              )
+            self._params = opt_res.x
+            if not opt_res.success:
+                raise RuntimeError(f"optimization failed:\n{opt_res}")
+            return opt_res
+
+        else:
+            raise ValueError(f"invalid {method=}")
 
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
