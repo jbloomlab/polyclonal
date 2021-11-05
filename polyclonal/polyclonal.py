@@ -129,7 +129,8 @@ class Polyclonal:
     init_missing : 'zero' or int
         How to to initialize any activities or mutation-escape values not
         specified in ``activity_wt_df`` or ``mut_escape_df``. If 'zero',
-        set to zero. Otherwise draw uniformly from between 0 and 1 using
+        set mutation-escape values to zero and activities uniformly spaced
+        from 1 to 0. Otherwise draw uniformly from between 0 and 1 using
         specified random number seed.
     data_mut_escape_overlap : {'exact_match', 'fill_to_data'}
         If ``data_to_fit`` and ``mut_escape_df`` are both specified,
@@ -166,7 +167,7 @@ class Polyclonal:
     >>> activity_wt_df = pd.DataFrame({'epitope':  ['e1', 'e2'],
     ...                                'activity': [ 2.0,  1.0]})
     >>> mut_escape_df = pd.DataFrame({
-    ...      'mutation': ['M1C', 'M1A', 'M1A', 'M1C', 'A2K', 'A2K'],
+    ...      'mutation': ['M1C', 'M1C', 'G2A', 'G2A', 'A4K', 'A4K'],
     ...      'epitope':  [ 'e1',  'e2',  'e1',  'e2',  'e1',  'e2'],
     ...      'escape':   [  2.0,   0.0,   3.0,  0.0,   0.0,   2.5]})
     >>> polyclonal = Polyclonal(activity_wt_df=activity_wt_df,
@@ -174,32 +175,34 @@ class Polyclonal:
     >>> polyclonal.epitopes
     ('e1', 'e2')
     >>> polyclonal.mutations
-    ('M1A', 'M1C', 'A2K')
+    ('M1C', 'G2A', 'A4K')
     >>> polyclonal.sites
-    (1, 2)
+    (1, 2, 4)
     >>> polyclonal.wts
-    {1: 'M', 2: 'A'}
+    {1: 'M', 2: 'G', 4: 'A'}
     >>> polyclonal.activity_wt_df
       epitope  activity
     0      e1       2.0
     1      e2       1.0
     >>> polyclonal.mut_escape_df
       epitope  site wildtype mutant mutation  escape
-    0      e1     1        M      A      M1A     3.0
-    1      e1     1        M      C      M1C     2.0
-    2      e1     2        A      K      A2K     0.0
-    3      e2     1        M      A      M1A     0.0
-    4      e2     1        M      C      M1C     0.0
-    5      e2     2        A      K      A2K     2.5
+    0      e1     1        M      C      M1C     2.0
+    1      e1     2        G      A      G2A     3.0
+    2      e1     4        A      K      A4K     0.0
+    3      e2     1        M      C      M1C     0.0
+    4      e2     2        G      A      G2A     0.0
+    5      e2     4        A      K      A4K     2.5
 
     We can also summarize the mutation-level escape at the site level:
 
     >>> polyclonal.mut_escape_site_summary_df
       epitope  site wildtype  mean  total positive  max  min  total negative
-    0      e1     1        M   2.5             5.0  3.0  2.0             0.0
-    1      e1     2        A   0.0             0.0  0.0  0.0             0.0
-    2      e2     1        M   0.0             0.0  0.0  0.0             0.0
-    3      e2     2        A   2.5             2.5  2.5  2.5             0.0
+    0      e1     1        M   2.0             2.0  2.0  2.0             0.0
+    1      e1     2        G   3.0             3.0  3.0  3.0             0.0
+    2      e1     4        A   0.0             0.0  0.0  0.0             0.0
+    3      e2     1        M   0.0             0.0  0.0  0.0             0.0
+    4      e2     2        G   0.0             0.0  0.0  0.0             0.0
+    5      e2     4        A   2.5             2.5  2.5  2.5             0.0
 
     Note that we can **not** initialize a :class:`Polyclonal` object if we are
     missing escape estimates for any mutations for any epitopes:
@@ -213,11 +216,16 @@ class Polyclonal:
     Now make a data frame with some variants:
 
     >>> variants_df = pd.DataFrame.from_records(
-    ...         [('AA', 'A2K'),
-    ...          ('AC', 'M1A A2K'),
-    ...          ('AG', 'M1A'),
-    ...          ('AT', ''),
-    ...          ('CA', 'A2K')],
+    ...         [('AA', ''),
+    ...          ('AC', 'M1C'),
+    ...          ('AG', 'G2A'),
+    ...          ('AT', 'A4K'),
+    ...          ('CA', 'M1C G2A'),
+    ...          ('CG', 'M1C A4K'),
+    ...          ('CC', 'G2A A4K'),
+    ...          ('CT', 'M1C G2A A4K'),
+    ...          ('GA', 'M1C'),
+    ...          ],
     ...         columns=['barcode', 'aa_substitutions'])
 
     Get the escape probabilities predicted on these variants from
@@ -227,43 +235,42 @@ class Polyclonal:
     ...                                       concentrations=[1.0, 2.0, 4.0])
     >>> escape_probs.round(3)
        barcode aa_substitutions  concentration  predicted_prob_escape
-    0       AT                             1.0                  0.032
-    1       AA              A2K            1.0                  0.097
-    2       CA              A2K            1.0                  0.097
-    3       AG              M1A            1.0                  0.197
-    4       AC          M1A A2K            1.0                  0.598
-    5       AT                             2.0                  0.010
-    6       AA              A2K            2.0                  0.044
-    7       CA              A2K            2.0                  0.044
-    8       AG              M1A            2.0                  0.090
-    9       AC          M1A A2K            2.0                  0.398
-    10      AT                             4.0                  0.003
-    11      AA              A2K            4.0                  0.017
-    12      CA              A2K            4.0                  0.017
-    13      AG              M1A            4.0                  0.034
-    14      AC          M1A A2K            4.0                  0.214
+    0       AA                             1.0                  0.032
+    1       AT              A4K            1.0                  0.097
+    2       AG              G2A            1.0                  0.197
+    3       CC          G2A A4K            1.0                  0.598
+    4       AC              M1C            1.0                  0.134
+    5       GA              M1C            1.0                  0.134
+    6       CG          M1C A4K            1.0                  0.409
+    7       CA          M1C G2A            1.0                  0.256
+    8       CT      M1C G2A A4K            1.0                  0.779
+    9       AA                             2.0                  0.010
+    10      AT              A4K            2.0                  0.044
+    11      AG              G2A            2.0                  0.090
+    12      CC          G2A A4K            2.0                  0.398
+    13      AC              M1C            2.0                  0.052
+    14      GA              M1C            2.0                  0.052
+    15      CG          M1C A4K            2.0                  0.230
+    16      CA          M1C G2A            2.0                  0.141
+    17      CT      M1C G2A A4K            2.0                  0.629
+    18      AA                             4.0                  0.003
+    19      AT              A4K            4.0                  0.017
+    20      AG              G2A            4.0                  0.034
+    21      CC          G2A A4K            4.0                  0.214
+    22      AC              M1C            4.0                  0.017
+    23      GA              M1C            4.0                  0.017
+    24      CG          M1C A4K            4.0                  0.106
+    25      CA          M1C G2A            4.0                  0.070
+    26      CT      M1C G2A A4K            4.0                  0.441
 
     We can also get predicted escape probabilities by including concentrations
     in the data frame passed to :meth:`Polyclonal.prob_escape`:
 
-    >>> df_with_conc = pd.concat([variants_df.assign(concentration=c)
-    ...                           for c in [1.0, 2.0, 4.0]]).head(14)
-    >>> polyclonal.prob_escape(variants_df=df_with_conc).round(3)
-       barcode aa_substitutions  concentration  predicted_prob_escape
-    0       AT                             1.0                  0.032
-    1       AA              A2K            1.0                  0.097
-    2       CA              A2K            1.0                  0.097
-    3       AG              M1A            1.0                  0.197
-    4       AC          M1A A2K            1.0                  0.598
-    5       AT                             2.0                  0.010
-    6       AA              A2K            2.0                  0.044
-    7       CA              A2K            2.0                  0.044
-    8       AG              M1A            2.0                  0.090
-    9       AC          M1A A2K            2.0                  0.398
-    10      AT                             4.0                  0.003
-    11      AA              A2K            4.0                  0.017
-    12      AG              M1A            4.0                  0.034
-    13      AC          M1A A2K            4.0                  0.214
+    >>> polyclonal.prob_escape(
+    ...         variants_df=pd.concat([variants_df.assign(concentration=c)
+    ...                                for c in [1.0, 2.0, 4.0]])
+    ...         ).equals(escape_probs)
+    True
 
     Example
     -------
@@ -283,52 +290,76 @@ class Polyclonal:
     The mutations are those in ``data_to_fit``:
 
     >>> polyclonal_data.mutations
-    ('M1A', 'A2K')
+    ('M1C', 'G2A', 'A4K')
 
-    The activities and mutation escapes are all initialized to zero:
+    The activities are evenly spaced from 1 to 0, while the mutation escapes
+    are all initialized to zero:
 
     >>> polyclonal_data.activity_wt_df
          epitope  activity
-    0  epitope 1       0.0
+    0  epitope 1       1.0
     1  epitope 2       0.0
     >>> polyclonal_data.mut_escape_df
          epitope  site wildtype mutant mutation  escape
-    0  epitope 1     1        M      A      M1A     0.0
-    1  epitope 1     2        A      K      A2K     0.0
-    2  epitope 2     1        M      A      M1A     0.0
-    3  epitope 2     2        A      K      A2K     0.0
+    0  epitope 1     1        M      C      M1C     0.0
+    1  epitope 1     2        G      A      G2A     0.0
+    2  epitope 1     4        A      K      A4K     0.0
+    3  epitope 2     1        M      C      M1C     0.0
+    4  epitope 2     2        G      A      G2A     0.0
+    5  epitope 2     4        A      K      A4K     0.0
 
     You can initialize to random numbers by setting ``init_missing`` to seed:
 
-    >>> Polyclonal(data_to_fit=data_to_fit,
-    ...            n_epitopes=2,
-    ...            init_missing=1,
-    ...            ).activity_wt_df.round(3)
+    >>> polyclonal_data2 = Polyclonal(data_to_fit=data_to_fit,
+    ...                               n_epitopes=2,
+    ...                               init_missing=1,
+    ...                               )
+    >>> polyclonal_data2.activity_wt_df.round(3)
          epitope  activity
     0  epitope 1     0.417
     1  epitope 2     0.720
 
     You set some or all mutation escapes to initial values:
 
-    >>> polyclonal_data2 = Polyclonal(
+    >>> polyclonal_data3 = Polyclonal(
     ...            data_to_fit=data_to_fit,
     ...            activity_wt_df=activity_wt_df,
     ...            mut_escape_df=pd.DataFrame({'epitope': ['e1'],
-    ...                                        'mutation': ['M1A'],
+    ...                                        'mutation': ['M1C'],
     ...                                        'escape': [4]}),
     ...            data_mut_escape_overlap='fill_to_data',
     ...            )
-    >>> polyclonal_data2.mut_escape_df
+    >>> polyclonal_data3.mut_escape_df
       epitope  site wildtype mutant mutation  escape
-    0      e1     1        M      A      M1A     4.0
-    1      e1     2        A      K      A2K     0.0
-    2      e2     1        M      A      M1A     0.0
-    3      e2     2        A      K      A2K     0.0
+    0      e1     1        M      C      M1C     4.0
+    1      e1     2        G      A      G2A     0.0
+    2      e1     4        A      K      A4K     0.0
+    3      e2     1        M      C      M1C     0.0
+    4      e2     2        G      A      G2A     0.0
+    5      e2     4        A      K      A4K     0.0
 
-    Fit the values:
+    Fit the data using :meth:`Polyclonal.fit`, and make sure the new
+    predicted escape probabilities are close to the real ones being fit:
 
-    >>> opt_res = polyclonal_data.fit()
-    >>> opt_res
+    >>> for model in [polyclonal_data, polyclonal_data2, polyclonal_data3]:
+    ...     opt_res = model.fit(loss_type='L2')
+    ...     pred_df = model.prob_escape(variants_df=data_to_fit)
+    ...     if not numpy.allclose(pred_df['prob_escape'],
+    ...                           pred_df['predicted_prob_escape'],
+    ...                           atol=0.01):
+    ...          raise ValueError(f"wrong predictions\n{pred_df}")
+    ...     if not numpy.allclose(
+    ...              activity_wt_df['activity'].sort_values(),
+    ...              model.activity_wt_df['activity'].sort_values(),
+    ...              atol=0.001,
+    ...              ):
+    ...          raise ValueError(f"wrong activities\n{model.activity_wt_df}")
+    ...     if not numpy.allclose(
+    ...              mut_escape_df['escape'].sort_values(),
+    ...              model.mut_escape_df['escape'].sort_values(),
+    ...              atol=0.001,
+    ...              ):
+    ...          raise ValueError(f"wrong escapes\n{model.mut_escape_df}")
 
     """
 
@@ -385,7 +416,8 @@ class Polyclonal:
             # initialize activities
             activity_wt_df = pd.DataFrame({
                     'epitope': self.epitopes,
-                    'activity': (0.0 if init_missing == 'zero' else
+                    'activity': (numpy.linspace(1, 0, len(self.epitopes))
+                                 if init_missing == 'zero' else
                                  numpy.random.rand(len(self.epitopes)))
                     })
 
@@ -738,9 +770,19 @@ class Polyclonal:
 
         return variants_df
 
+    def _check_close_activities(self):
+        """Check that no two epitopes have near-identical activities."""
+        a, _ = self._a_beta_from_params(self._params)
+        a_sorted = numpy.sort(a)
+        for a1, a2 in zip(a_sorted, a_sorted[1:]):
+            if numpy.allclose(a1, a2):
+                raise ValueError('Near-identical activities for two epitopes, '
+                                 'will cause problems in fitting. Reinitialize'
+                                 f" with more distinct activities:\n{a}")
+
     def fit(self,
             *,
-            loss_type='L1',
+            loss_type,
             method='scipy_minimize',
             scipy_solver='L-BFGS-B',
             ):
@@ -769,6 +811,8 @@ class Polyclonal:
         """
         if self.data_to_fit is None:
             raise ValueError('cannot fit if `data_to_fit` not set')
+
+        self._check_close_activities()
 
         def _loss_func(params):
             pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
