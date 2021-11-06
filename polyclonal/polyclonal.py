@@ -86,9 +86,10 @@ class Polyclonal:
     2. With data to fit the epitope activities and mutation-escape values,
        and initial guesses for the epitope activities and mutation-escape
        values. To do this, initialize with ``data_to_fit`` holding the data,
-       and ``activity_wt_df`` and ``mut_escape_df`` holding initial guesses
-       for these values, ensuring guesses in ``mut_escape_df`` encompass
-       same mutations as ``data_to_fit``. Then call :meth:`Polyclonal.fit`.
+       ``activity_wt_df`` holding initial guesses of activities, and
+       ``mut_escape_df`` or ``site_escape_df`` holding initial guesses for
+       mutation escapes (see also ``init_missing`` and
+       ``data_mut_escape_overlap``). Then call :meth:`Polyclonal.fit`.
 
     3. With data to fit the epitope activities and mutation-escape values,
        but no initial guesses. To do this, initialize with ``data_to_fit``
@@ -112,6 +113,12 @@ class Polyclonal:
         Should have columns named 'mutation', 'epitope', and 'escape' that
         give the :math:`\beta_{m,e}` values (in the 'escape' column), with
         mutations written like "G7M".
+    site_escape_df : pandas.DataFrame or None
+        Use if you want to initialize all mutations at a given site to have
+        the same :math:`beta_{m,e}` values. In this case, columns should be
+        'site', 'epitope', and 'escape'. This option is mutually exclusive
+        with ``mut_escape_df``.
+
     n_epitopes : int or None
         If initializing with ``activity_wt_df=None``, specifies number
         of epitopes.
@@ -122,14 +129,14 @@ class Polyclonal:
         by each epitope, or an array of colors that are sequentially assigned
         to the epitopes.
     init_missing : 'zero' or int
-        How to to initialize any activities or mutation-escape values not
-        specified in ``activity_wt_df`` or ``mut_escape_df``. If 'zero',
-        set mutation-escape values to zero and activities uniformly spaced
+        How to initialize activities or mutation-escape values not specified in
+        ``activity_wt_df`` or ``mut_escape_df`` / ``site_escape_df``. If
+        'zero', set mutation-escapes to zero and activities uniformly spaced
         from 1 to 0. Otherwise draw uniformly from between 0 and 1 using
         specified random number seed.
     data_mut_escape_overlap : {'exact_match', 'fill_to_data'}
-        If ``data_to_fit`` and ``mut_escape_df`` are both specified,
-        what to do if they don't specify same sites / wildtypes / mutations.
+        If ``data_to_fit`` and ``mut_escape_df`` (or ``site_escape_df``) both
+        specificied, what if they don't specify same mutations.
         If 'exact_match', raise error. If 'fill_to_data', then take
         sites / wildtypes / mutations from ``data_to_fit`` and fill init
         values from any not specified in ``mut_escape_df`` as indicated by
@@ -382,6 +389,7 @@ class Polyclonal:
                  activity_wt_df=None,
                  mut_escape_df=None,
                  data_to_fit=None,
+                 site_escape_df=None,
                  n_epitopes=None,
                  alphabet=binarymap.binarymap.AAS_NOSTOP,
                  epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
@@ -399,7 +407,18 @@ class Polyclonal:
         self.alphabet = tuple(alphabet)
         self._mutparser = polyclonal.utils.MutationParser(alphabet)
 
-        if (activity_wt_df is not None) and (mut_escape_df is not None):
+        if site_escape_df is not None:
+            if mut_escape_df is not None:
+                raise ValueError('cannot set both `site_escape_df` and '
+                                 '`mut_escape_df`')
+            if activity_wt_df is None:
+                raise ValueError('cannot set `site_escape_df` without '
+                                 'setting `activity_wt_df`')
+            if data_to_fit is None:
+                raise ValueError('cannot set `site_escape_df` without '
+                                 'setting `data_to_fit`')
+        if (activity_wt_df is not None) and ((mut_escape_df is not None) or
+                                             (site_escape_df is not None)):
             if n_epitopes is not None:
                 raise ValueError('specify `activity_wt_df` or `n_epitopes`')
 
@@ -430,7 +449,7 @@ class Polyclonal:
 
         else:
             raise ValueError('initialize both or neither `activity_wt_df` '
-                             'and `mut_escape_df`')
+                             'and `mut_escape_df` or `site_escape_df`')
 
         if isinstance(epitope_colors, dict):
             self.epitope_colors = {epitope_colors[e] for e in self.epitopes}
@@ -452,10 +471,42 @@ class Polyclonal:
                      })
 
         # get wildtype, sites, and mutations
-        if mut_escape_df is not None:
-            wts, sites, muts = self._muts_from_mut_escape_df(mut_escape_df)
         if data_to_fit is not None:
             wts2, sites2, muts2 = self._muts_from_data_to_fit(data_to_fit)
+        if site_escape_df is not None:
+            # construct mut_escape_df from site_escape_df and mutations
+            # from data_to_fit
+            req_cols = {'epitope', 'site', 'escape'}
+            if not req_cols.issubset(site_escape_df.columns):
+                raise ValueError(f"`site_escape_df` lacks columns {req_cols}")
+            assert (data_to_fit is not None) and (mut_escape_df is None)
+            site_wts = site_escape_df.set_index('site')['wildtype'].to_dict()
+            if len(site_wts) != len(site_escape_df
+                                    [['site', 'wildtype']]
+                                    .drop_duplicates()):
+                raise ValueError('`site_escape_df` does not have unique '
+                                 f"wildtypes/sites:\n{site_escape_df}")
+            if not (site_wts <= wts2):
+                raise ValueError('`site_escape_df` has sites/wildtypes not in '
+                                 '`data_to_fit`')
+            mut_records = []
+            for epitope in self.epitopes:
+                site_escape = (site_escape_df
+                               .query('epitope == @epitope')
+                               .set_index('site')
+                               ['escape']
+                               .to_dict()
+                               )
+                for mut in muts2:
+                    (wt, site, _) = self._mutparser.parse_mut(mut)
+                    assert wt == site_wts[site] == wts2[site]
+                    mut_records.append((epitope, mut, site_escape[site]))
+            mut_escape_df = pd.DataFrame.from_records(
+                                    mut_records,
+                                    columns=['epitope', 'mutation', 'escape'])
+
+        if mut_escape_df is not None:
+            wts, sites, muts = self._muts_from_mut_escape_df(mut_escape_df)
         if mut_escape_df is data_to_fit is None:
             raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
         elif mut_escape_df is None:
@@ -477,7 +528,7 @@ class Polyclonal:
                 else:
                     raise ValueError('`mut_escape_df` has more sites than '
                                      '`data_to_fit`')
-                if wts.items() < wts2.items():
+                if wts.items() <= wts2.items():
                     self.wts = wts2
                 else:
                     raise ValueError('`mut_escape_df` has wts not in '
