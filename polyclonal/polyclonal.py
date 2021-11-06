@@ -9,9 +9,12 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 
 import collections
+import inspect
 import os
 
 import binarymap
+
+import frozendict
 
 import numpy
 
@@ -394,7 +397,7 @@ class Polyclonal:
     ...     if not numpy.allclose(
     ...              activity_wt_df['activity'].sort_values(),
     ...              model.activity_wt_df['activity'].sort_values(),
-    ...              atol=0.01,
+    ...              atol=0.05,
     ...              ):
     ...          raise ValueError(f"wrong activities\n{model.activity_wt_df}")
     ...     if not numpy.allclose(
@@ -924,15 +927,20 @@ class Polyclonal:
                           epitope_colors=self.epitope_colors,
                           )
 
+    _DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
+            {'method': 'L-BFGS-B',
+             'options': {'maxfun': 1e6},
+             })
+    """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
+
     def fit(self,
             *,
             loss_type,
+            fit_site_level_first=True,
             regL1_mut_escape=0,
             regL2_mut_escape=0,
             method='scipy_minimize',
-            scipy_minimize_kwargs={'method': 'L-BFGS-B',
-                                   'options': {'maxfun': 1e6},
-                                   }
+            scipy_minimize_kwargs=_DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -946,6 +954,9 @@ class Polyclonal:
         loss_type : {'L1', 'L2'}
             Minimize difference between actual and model-predicted
             :math:`p_v\left(c\right)` using L1 or L2 loss function.
+        fit_site_level_first : bool
+            First fit a site-level model, then use those activities /
+            escapes to initialize fit of this model. Generally works better.
         method : {'scipy_minimize'}
             Approach used for fitting.
         scipy_minimize_kwargs : dict
@@ -957,6 +968,27 @@ class Polyclonal:
             Return value depends on ``method``.
 
         """
+        if fit_site_level_first:
+            # get arg passed to fit: https://stackoverflow.com/a/65927265
+            myframe = inspect.currentframe()
+            keys, _, _, values = inspect.getargvalues(myframe)
+            fit_kwargs = {key: values[key] for key in keys if key != 'self'}
+            fit_kwargs['fit_site_level_first'] = False
+            site_model = self.site_level_model()
+            site_model.fit(**fit_kwargs)
+            self._params = self._params_from_dfs(
+                    activity_wt_df=site_model.activity_wt_df,
+                    mut_escape_df=(
+                            site_model.mut_escape_df
+                            [['epitope', 'site', 'escape']]
+                            .merge(self.mut_escape_df.drop(columns='escape'),
+                                   on=['epitope', 'site'],
+                                   how='right',
+                                   validate='one_to_many',
+                                   )
+                            ),
+                    )
+
         if self.data_to_fit is None:
             raise ValueError('cannot fit if `data_to_fit` not set')
 
