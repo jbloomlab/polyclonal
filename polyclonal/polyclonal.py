@@ -10,7 +10,6 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 import collections
 import os
-import re
 
 import binarymap
 
@@ -22,11 +21,7 @@ import scipy.optimize
 
 import polyclonal.pdb_utils
 import polyclonal.plot
-
-
-AAS_NOSTOP = ('A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L',
-              'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y')
-"""tuple: Amino-acid one-letter codes alphabetized, doesn't include stop."""
+import polyclonal.utils
 
 
 class Polyclonal:
@@ -369,7 +364,7 @@ class Polyclonal:
                  mut_escape_df=None,
                  data_to_fit=None,
                  n_epitopes=None,
-                 alphabet=AAS_NOSTOP,
+                 alphabet=binarymap.binarymap.AAS_NOSTOP,
                  epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
                  init_missing='zero',
                  data_mut_escape_overlap='exact_match',
@@ -383,18 +378,7 @@ class Polyclonal:
         if len(set(alphabet)) != len(alphabet):
             raise ValueError('duplicate letters in `alphabet`')
         self.alphabet = tuple(alphabet)
-        chars = []
-        for char in self.alphabet:
-            if char.isalpha():
-                chars.append(char)
-            elif char == '*':
-                chars.append(r'\*')
-            else:
-                raise ValueError(f"invalid alphabet character: {char}")
-        chars = '|'.join(chars)
-        self._mutation_regex = re.compile(rf"(?P<wt>{chars})"
-                                          rf"(?P<site>\d+)"
-                                          rf"(?P<mut>{chars})")
+        self._mutparser = polyclonal.utils.MutationParser(alphabet)
 
         if (activity_wt_df is not None) and (mut_escape_df is not None):
             if n_epitopes is not None:
@@ -631,7 +615,7 @@ class Polyclonal:
         mutations = collections.defaultdict(set)
         for variant in data_to_fit['aa_substitutions']:
             for mutation in variant.split():
-                wt, site, _ = self._parse_mutation(mutation)
+                wt, site, _ = self._mutparser.parse_mut(mutation)
                 if site not in wts:
                     wts[site] = wt
                 elif wts[site] != wt:
@@ -651,7 +635,7 @@ class Polyclonal:
         wts = {}
         mutations = collections.defaultdict(set)
         for mutation in mut_escape_df['mutation'].unique():
-            wt, site, _ = self._parse_mutation(mutation)
+            wt, site, _ = self._mutparser.parse_mut(mutation)
             if site not in wts:
                 wts[site] = wt
             elif wts[site] != wt:
@@ -688,9 +672,9 @@ class Polyclonal:
                           ignore_index=True)
                 .assign(
                     site=lambda x: x['mutation'].map(
-                                        lambda m: self._parse_mutation(m)[1]),
+                                    lambda m: self._mutparser.parse_mut(m)[1]),
                     mutant=lambda x: x['mutation'].map(
-                                        lambda m: self._parse_mutation(m)[2]),
+                                    lambda m: self._mutparser.parse_mut(m)[2]),
                     wildtype=lambda x: x['site'].map(self.wts),
                     )
                 [['epitope', 'site', 'wildtype', 'mutant',
@@ -1023,14 +1007,6 @@ class Polyclonal:
                 )
         assert tuple(bmap.all_subs) == self.mutations
         return bmap
-
-    def _parse_mutation(self, mutation):
-        """Return `(wt, site, mut)`."""
-        m = self._mutation_regex.fullmatch(mutation)
-        if not m:
-            raise ValueError(f"invalid mutation {mutation}")
-        else:
-            return (m.group('wt'), int(m.group('site')), m.group('mut'))
 
 
 if __name__ == '__main__':
