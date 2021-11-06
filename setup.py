@@ -47,6 +47,7 @@ setup(
             'altair>=4.1',
             'binarymap>=0.2',
             'biopython>=1.79',
+            'frozendict>=2.0.7',
             'matplotlib>=3.1',
             'numpy>=1.17',
             'pandas>=1.2',
