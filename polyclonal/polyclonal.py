@@ -162,15 +162,16 @@ class Polyclonal:
     >>> activity_wt_df = pd.DataFrame({'epitope':  ['e1', 'e2'],
     ...                                'activity': [ 2.0,  1.0]})
     >>> mut_escape_df = pd.DataFrame({
-    ...      'mutation': ['M1C', 'M1C', 'G2A', 'G2A', 'A4K', 'A4K'],
-    ...      'epitope':  [ 'e1',  'e2',  'e1',  'e2',  'e1',  'e2'],
-    ...      'escape':   [  2.0,   0.0,   3.0,  0.0,   0.0,   2.5]})
+    ...   'mutation': ['M1C', 'M1C', 'G2A', 'G2A', 'A4K', 'A4K', 'A4L', 'A4L'],
+    ...   'epitope':  [ 'e1',  'e2',  'e1',  'e2',  'e1',  'e2',  'e1',  'e2'],
+    ...   'escape':   [  2.0,   0.0,   3.0,   0.0,  0.0,    2.5,   0.0,   1.5],
+    ...   })
     >>> polyclonal = Polyclonal(activity_wt_df=activity_wt_df,
     ...                         mut_escape_df=mut_escape_df)
     >>> polyclonal.epitopes
     ('e1', 'e2')
     >>> polyclonal.mutations
-    ('M1C', 'G2A', 'A4K')
+    ('M1C', 'G2A', 'A4K', 'A4L')
     >>> polyclonal.sites
     (1, 2, 4)
     >>> polyclonal.wts
@@ -184,9 +185,11 @@ class Polyclonal:
     0      e1     1        M      C      M1C     2.0
     1      e1     2        G      A      G2A     3.0
     2      e1     4        A      K      A4K     0.0
-    3      e2     1        M      C      M1C     0.0
-    4      e2     2        G      A      G2A     0.0
-    5      e2     4        A      K      A4K     2.5
+    3      e1     4        A      L      A4L     0.0
+    4      e2     1        M      C      M1C     0.0
+    5      e2     2        G      A      G2A     0.0
+    6      e2     4        A      K      A4K     2.5
+    7      e2     4        A      L      A4L     1.5
 
     We can also summarize the mutation-level escape at the site level:
 
@@ -197,7 +200,7 @@ class Polyclonal:
     2      e1     4        A   0.0             0.0  0.0  0.0             0.0
     3      e2     1        M   0.0             0.0  0.0  0.0             0.0
     4      e2     2        G   0.0             0.0  0.0  0.0             0.0
-    5      e2     4        A   2.5             2.5  2.5  2.5             0.0
+    5      e2     4        A   2.0             4.0  2.5  1.5             0.0
 
     Note that we can **not** initialize a :class:`Polyclonal` object if we are
     missing escape estimates for any mutations for any epitopes:
@@ -215,10 +218,13 @@ class Polyclonal:
     ...          ('AC', 'M1C'),
     ...          ('AG', 'G2A'),
     ...          ('AT', 'A4K'),
+    ...          ('TA', 'A4L'),
     ...          ('CA', 'M1C G2A'),
     ...          ('CG', 'M1C A4K'),
     ...          ('CC', 'G2A A4K'),
+    ...          ('TC', 'G2A A4L'),
     ...          ('CT', 'M1C G2A A4K'),
+    ...          ('TG', 'M1C G2A A4L'),
     ...          ('GA', 'M1C'),
     ...          ],
     ...         columns=['barcode', 'aa_substitutions'])
@@ -232,31 +238,40 @@ class Polyclonal:
        barcode aa_substitutions  concentration  predicted_prob_escape
     0       AA                             1.0                  0.032
     1       AT              A4K            1.0                  0.097
-    2       AG              G2A            1.0                  0.197
-    3       CC          G2A A4K            1.0                  0.598
-    4       AC              M1C            1.0                  0.134
-    5       GA              M1C            1.0                  0.134
-    6       CG          M1C A4K            1.0                  0.409
-    7       CA          M1C G2A            1.0                  0.256
-    8       CT      M1C G2A A4K            1.0                  0.779
-    9       AA                             2.0                  0.010
-    10      AT              A4K            2.0                  0.044
-    11      AG              G2A            2.0                  0.090
-    12      CC          G2A A4K            2.0                  0.398
-    13      AC              M1C            2.0                  0.052
-    14      GA              M1C            2.0                  0.052
-    15      CG          M1C A4K            2.0                  0.230
-    16      CA          M1C G2A            2.0                  0.141
-    17      CT      M1C G2A A4K            2.0                  0.629
-    18      AA                             4.0                  0.003
-    19      AT              A4K            4.0                  0.017
-    20      AG              G2A            4.0                  0.034
-    21      CC          G2A A4K            4.0                  0.214
-    22      AC              M1C            4.0                  0.017
-    23      GA              M1C            4.0                  0.017
-    24      CG          M1C A4K            4.0                  0.106
-    25      CA          M1C G2A            4.0                  0.070
-    26      CT      M1C G2A A4K            4.0                  0.441
+    2       TA              A4L            1.0                  0.074
+    3       AG              G2A            1.0                  0.197
+    4       CC          G2A A4K            1.0                  0.598
+    5       TC          G2A A4L            1.0                  0.455
+    6       AC              M1C            1.0                  0.134
+    7       GA              M1C            1.0                  0.134
+    8       CG          M1C A4K            1.0                  0.409
+    9       CA          M1C G2A            1.0                  0.256
+    10      CT      M1C G2A A4K            1.0                  0.779
+    11      TG      M1C G2A A4L            1.0                  0.593
+    12      AA                             2.0                  0.010
+    13      AT              A4K            2.0                  0.044
+    14      TA              A4L            2.0                  0.029
+    15      AG              G2A            2.0                  0.090
+    16      CC          G2A A4K            2.0                  0.398
+    17      TC          G2A A4L            2.0                  0.260
+    18      AC              M1C            2.0                  0.052
+    19      GA              M1C            2.0                  0.052
+    20      CG          M1C A4K            2.0                  0.230
+    21      CA          M1C G2A            2.0                  0.141
+    22      CT      M1C G2A A4K            2.0                  0.629
+    23      TG      M1C G2A A4L            2.0                  0.411
+    24      AA                             4.0                  0.003
+    25      AT              A4K            4.0                  0.017
+    26      TA              A4L            4.0                  0.010
+    27      AG              G2A            4.0                  0.034
+    28      CC          G2A A4K            4.0                  0.214
+    29      TC          G2A A4L            4.0                  0.118
+    30      AC              M1C            4.0                  0.017
+    31      GA              M1C            4.0                  0.017
+    32      CG          M1C A4K            4.0                  0.106
+    33      CA          M1C G2A            4.0                  0.070
+    34      CT      M1C G2A A4K            4.0                  0.441
+    35      TG      M1C G2A A4L            4.0                  0.243
 
     We can also get predicted escape probabilities by including concentrations
     in the data frame passed to :meth:`Polyclonal.prob_escape`:
@@ -285,7 +300,7 @@ class Polyclonal:
     The mutations are those in ``data_to_fit``:
 
     >>> polyclonal_data.mutations
-    ('M1C', 'G2A', 'A4K')
+    ('M1C', 'G2A', 'A4K', 'A4L')
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
@@ -299,9 +314,11 @@ class Polyclonal:
     0  epitope 1     1        M      C      M1C     0.0
     1  epitope 1     2        G      A      G2A     0.0
     2  epitope 1     4        A      K      A4K     0.0
-    3  epitope 2     1        M      C      M1C     0.0
-    4  epitope 2     2        G      A      G2A     0.0
-    5  epitope 2     4        A      K      A4K     0.0
+    3  epitope 1     4        A      L      A4L     0.0
+    4  epitope 2     1        M      C      M1C     0.0
+    5  epitope 2     2        G      A      G2A     0.0
+    6  epitope 2     4        A      K      A4K     0.0
+    7  epitope 2     4        A      L      A4L     0.0
 
     You can initialize to random numbers by setting ``init_missing`` to seed:
 
@@ -314,7 +331,7 @@ class Polyclonal:
     0  epitope 1     0.417
     1  epitope 2     0.720
 
-    You set some or all mutation escapes to initial values:
+    You can set some or all mutation escapes to initial values:
 
     >>> polyclonal_data3 = Polyclonal(
     ...            data_to_fit=data_to_fit,
@@ -329,9 +346,11 @@ class Polyclonal:
     0      e1     1        M      C      M1C     4.0
     1      e1     2        G      A      G2A     0.0
     2      e1     4        A      K      A4K     0.0
-    3      e2     1        M      C      M1C     0.0
-    4      e2     2        G      A      G2A     0.0
-    5      e2     4        A      K      A4K     0.0
+    3      e1     4        A      L      A4L     0.0
+    4      e2     1        M      C      M1C     0.0
+    5      e2     2        G      A      G2A     0.0
+    6      e2     4        A      K      A4K     0.0
+    7      e2     4        A      L      A4L     0.0
 
     Fit the data using :meth:`Polyclonal.fit`, and make sure the new
     predicted escape probabilities are close to the real ones being fit:
@@ -346,13 +365,13 @@ class Polyclonal:
     ...     if not numpy.allclose(
     ...              activity_wt_df['activity'].sort_values(),
     ...              model.activity_wt_df['activity'].sort_values(),
-    ...              atol=0.001,
+    ...              atol=0.01,
     ...              ):
     ...          raise ValueError(f"wrong activities\n{model.activity_wt_df}")
     ...     if not numpy.allclose(
     ...              mut_escape_df['escape'].sort_values(),
     ...              model.mut_escape_df['escape'].sort_values(),
-    ...              atol=0.001,
+    ...              atol=0.01,
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{model.mut_escape_df}")
 
