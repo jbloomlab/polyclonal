@@ -783,8 +783,12 @@ class Polyclonal:
     def fit(self,
             *,
             loss_type,
+            regL1_mut_escape=0,
+            regL2_mut_escape=0,
             method='scipy_minimize',
-            scipy_solver='L-BFGS-B',
+            scipy_minimize_kwargs={'method': 'L-BFGS-B',
+                                   'options': {'maxfun': 1e6},
+                                   }
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -800,8 +804,8 @@ class Polyclonal:
             :math:`p_v\left(c\right)` using L1 or L2 loss function.
         method : {'scipy_minimize'}
             Approach used for fitting.
-        scipy_solver : str
-            If ``method='scipy_minimize'``, what solver to use.
+        scipy_minimize_kwargs : dict
+            Keyword arguments passed to ``scipy.optimize.minimize``.
 
         Return
         ------
@@ -821,15 +825,20 @@ class Polyclonal:
             if loss_type == 'L1':
                 loss = numpy.absolute(self._pvs - pred_pvs).sum()
             elif loss_type == 'L2':
-                loss = numpy.sum((self._pvs - pred_pvs)**2)
+                loss = ((self._pvs - pred_pvs)**2).sum()
             else:
                 raise ValueError(f"invalid {loss_type=}")
+            a, beta = self._a_beta_from_params(params)
+            if regL1_mut_escape:
+                loss += regL1_mut_escape * numpy.absolute(beta).sum()
+            if regL2_mut_escape:
+                loss += regL2_mut_escape * (beta**2).sum()
             return loss
 
         if method == 'scipy_minimize':
             opt_res = scipy.optimize.minimize(fun=_loss_func,
                                               x0=self._params,
-                                              method=scipy_solver,
+                                              **scipy_minimize_kwargs,
                                               )
             self._params = opt_res.x
             if not opt_res.success:
