@@ -118,7 +118,6 @@ class Polyclonal:
         the same :math:`beta_{m,e}` values. In this case, columns should be
         'site', 'epitope', and 'escape'. This option is mutually exclusive
         with ``mut_escape_df``.
-
     n_epitopes : int or None
         If initializing with ``activity_wt_df=None``, specifies number
         of epitopes.
@@ -359,10 +358,33 @@ class Polyclonal:
     6      e2     4        A      K      A4K     0.0
     7      e2     4        A      L      A4L     0.0
 
+    You can initialize **sites** to escape values via ``site_activity_df``:
+
+    >>> polyclonal_data4 = Polyclonal(
+    ...        data_to_fit=data_to_fit,
+    ...        activity_wt_df=activity_wt_df,
+    ...        site_escape_df=pd.DataFrame.from_records(
+    ...                [('e1', 1, 1.0), ('e1', 4, 0.0),
+    ...                 ('e2', 1, 0.0), ('e2', 4, 2.0)],
+    ...                columns=['epitope', 'site', 'escape']),
+    ...        data_mut_escape_overlap='fill_to_data',
+    ...        )
+    >>> polyclonal_data4.mut_escape_df
+      epitope  site wildtype mutant mutation  escape
+    0      e1     1        M      C      M1C     1.0
+    1      e1     2        G      A      G2A     0.0
+    2      e1     4        A      K      A4K     0.0
+    3      e1     4        A      L      A4L     0.0
+    4      e2     1        M      C      M1C     0.0
+    5      e2     2        G      A      G2A     0.0
+    6      e2     4        A      K      A4K     2.0
+    7      e2     4        A      L      A4L     2.0
+
     Fit the data using :meth:`Polyclonal.fit`, and make sure the new
     predicted escape probabilities are close to the real ones being fit:
 
-    >>> for model in [polyclonal_data, polyclonal_data2, polyclonal_data3]:
+    >>> for model in [polyclonal_data, polyclonal_data2,
+    ...               polyclonal_data3, polyclonal_data4]:
     ...     opt_res = model.fit(loss_type='L2')
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
@@ -480,15 +502,15 @@ class Polyclonal:
             if not req_cols.issubset(site_escape_df.columns):
                 raise ValueError(f"`site_escape_df` lacks columns {req_cols}")
             assert (data_to_fit is not None) and (mut_escape_df is None)
-            site_wts = site_escape_df.set_index('site')['wildtype'].to_dict()
-            if len(site_wts) != len(site_escape_df
-                                    [['site', 'wildtype']]
-                                    .drop_duplicates()):
-                raise ValueError('`site_escape_df` does not have unique '
-                                 f"wildtypes/sites:\n{site_escape_df}")
-            if not (site_wts <= wts2):
-                raise ValueError('`site_escape_df` has sites/wildtypes not in '
-                                 '`data_to_fit`')
+            if not set(site_escape_df['epitope']).issubset(self.epitopes):
+                raise ValueError('`site_escape_df` has unrecognized epitopes')
+            if not set(site_escape_df['site']).issubset(sites2):
+                raise ValueError('site_escape_df has sites not in data_to_fit')
+            if len(site_escape_df) != len(site_escape_df
+                                          [['site', 'epitope']]
+                                          .drop_duplicates()):
+                raise ValueError('`site_escape_df` rows do not each represent '
+                                 f"unique epitope / site:\n{site_escape_df}")
             mut_records = []
             for epitope in self.epitopes:
                 site_escape = (site_escape_df
@@ -498,9 +520,9 @@ class Polyclonal:
                                .to_dict()
                                )
                 for mut in muts2:
-                    (wt, site, _) = self._mutparser.parse_mut(mut)
-                    assert wt == site_wts[site] == wts2[site]
-                    mut_records.append((epitope, mut, site_escape[site]))
+                    (_, site, _) = self._mutparser.parse_mut(mut)
+                    if site in site_escape:
+                        mut_records.append((epitope, mut, site_escape[site]))
             mut_escape_df = pd.DataFrame.from_records(
                                     mut_records,
                                     columns=['epitope', 'mutation', 'escape'])
