@@ -59,8 +59,73 @@ def site_level_variants(df,
                         wt_char='w',
                         mut_char='m',
                         ):
-    """Re-define variants simply in terms of which sites are mutated."""
-    raise NotImplementedError
+    """Re-define variants simply in terms of which sites are mutated.
+
+    This function is useful if you have a data frame of variants and you
+    want to simplify them from full mutations to just indicating whether
+    sites are mutated.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must include a column named 'aa_substitutions'.
+    original_alphabet : array-like
+        Valid single-letter characters in the original (mutation-level)
+        alphabet.
+    wt_char : str
+        Single letter used to represent wildtype identity at all sites.
+    mut_char : str
+        Single letter used to represent mutant identity at all sites.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Copy of ``df`` with 'aa_substitutions' in site-level encoding.
+
+    Example
+    -------
+    >>> import pandas as pd
+    >>> df = pd.DataFrame.from_records(
+    ...         [('AA', 'M1A', 1.0),
+    ...          ('AC', '', 0.0),
+    ...          ('AG', 'M1A C53T', 1.0),
+    ...          ],
+    ...        columns=['barcode', 'aa_substitutions', 'escape'],
+    ...        )
+    >>> site_level_variants(df)
+      barcode aa_substitutions  escape
+    0      AA              w1m     1.0
+    1      AC                      0.0
+    2      AG         w1m w53m     1.0
+
+    """
+    subs_col = 'aa_substitutions'
+    if subs_col not in df.columns:
+        raise ValueError(f"`df` lacks column {subs_col}")
+    if isinstance(wt_char, str) and len(wt_char) != 1:
+        raise ValueError(f"{wt_char=} should be single letter")
+    if isinstance(mut_char, str) and len(mut_char) != 1:
+        raise ValueError(f"{mut_char=} should be single letter")
+    mutparser = MutationParser(original_alphabet)
+
+    site_subs_mapping = {}
+    wts = {}
+    for subs in df[subs_col]:
+        if subs not in site_subs_mapping:
+            site_subs = []
+            for sub in subs.split():
+                wt, site, _ = mutparser.parse_mut(sub)
+                if site in wts and wts[site] != wt:
+                    raise ValueError(f"inconsistent wildtype at {site}: "
+                                     f"{wt} versus {wts[site]}")
+                else:
+                    wts[site] = wt
+                site_subs.append(f"{wt_char}{site}{mut_char}")
+            site_subs_mapping[subs] = ' '.join(site_subs)
+
+    df = df.copy()
+    df[subs_col] = df[subs_col].map(site_subs_mapping)
+    return df
 
 
 def shift_mut_site(mut_str, shift):
