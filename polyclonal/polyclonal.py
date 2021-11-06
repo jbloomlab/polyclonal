@@ -404,6 +404,34 @@ class Polyclonal:
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{model.mut_escape_df}")
 
+    Example
+    -------
+    You can convert a :class:`Polyclonal` model into a site-level model via
+    the transformation of :func:`polyclonal.utils.site_level_variants`. The
+    site-level model is another :class:`Polyclonal` model that just keeps
+    track of whether or not sites are mutated using a 2-letter wildtype/mutant
+    alphabet, and is generated using :meth:`Polyclonal.site_level_model`:
+
+    >>> polyclonal_site = polyclonal_data4.site_level_model()
+    >>> polyclonal_site.alphabet
+    ('w', 'm')
+    >>> (polyclonal_site.mut_escape_df
+    ...  .assign(escape=lambda x: x['escape'].abs()).round(1))
+      epitope  site wildtype mutant mutation  escape
+    0      e1     1        w      m      w1m     2.0
+    1      e1     2        w      m      w2m     3.0
+    2      e1     4        w      m      w4m     0.0
+    3      e2     1        w      m      w1m     0.0
+    4      e2     2        w      m      w2m     0.0
+    5      e2     4        w      m      w4m     2.0
+    >>> polyclonal_site.data_to_fit.head().round(3)
+      barcode aa_substitutions  concentration  prob_escape
+    0      AA                             1.0        0.032
+    1      AC              w1m            1.0        0.134
+    2      GA              w1m            1.0        0.134
+    3      CA          w1m w2m            1.0        0.256
+    4      CT      w1m w2m w4m            1.0        0.779
+
     """
 
     def __init__(self,
@@ -855,6 +883,46 @@ class Polyclonal:
                 raise ValueError('Near-identical activities for two epitopes, '
                                  'will cause problems in fitting. Reinitialize'
                                  f" with more distinct activities:\n{a}")
+
+    def site_level_model(self,
+                         *,
+                         aggregate_mut_escapes='mean',
+                         ):
+        """Model with mutations collapsed at site level.
+
+        Parameters
+        ----------
+        aggregate_mut_escapes : {'mean'}
+            How to aggregate mutation-level escape values to site-level
+            ones in ``mut_effects_df``.
+
+        Returns
+        -------
+        :class:`Polyclonal`
+
+        """
+        if self.data_to_fit is None:
+            site_data_to_fit = None
+        else:
+            site_data_to_fit = polyclonal.utils.site_level_variants(
+                                    self.data_to_fit,
+                                    original_alphabet=self.alphabet,
+                                    )
+        site_escape_df = (
+            polyclonal.utils.site_level_variants(
+                    self.mut_escape_df
+                    .rename(columns={'mutation': 'aa_substitutions'})
+                    )
+            .rename(columns={'aa_substitutions': 'mutation'})
+            .groupby(['epitope', 'mutation'], as_index=False)
+            .aggregate({'escape': aggregate_mut_escapes})
+            )
+        return Polyclonal(activity_wt_df=self.activity_wt_df,
+                          mut_escape_df=site_escape_df,
+                          data_to_fit=site_data_to_fit,
+                          alphabet=('w', 'm'),
+                          epitope_colors=self.epitope_colors,
+                          )
 
     def fit(self,
             *,
