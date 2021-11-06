@@ -1004,6 +1004,7 @@ class Polyclonal:
                 variants_df,
                 substitutions_col='aa_substitutions',
                 allowed_subs=self.mutations,
+                alphabet=self.alphabet,
                 )
         assert tuple(bmap.all_subs) == self.mutations
         return bmap
