@@ -125,6 +125,11 @@ class Polyclonal:
     n_epitopes : int or None
         If initializing with ``activity_wt_df=None``, specifies number
         of epitopes.
+    collapse_identical_variants : {'mean', 'median', False}
+        If identical variants in ``data_to_fit`` (same 'aa_substitutions'),
+        collapse them and make weight proportional to number of collapsed
+        variants. Collapse by taking mean or median of 'prob_escape', or
+        do not collapse at all.
     alphabet : array-like
         Allowed characters in mutation strings.
     epitope_colors : array-like or dict
@@ -161,8 +166,11 @@ class Polyclonal:
     epitope_colors : dict
         Maps each epitope to its color.
     data_to_fit : pandas.DataFrame or None
-        Data to fit as passed when initializing this :class:`BinaryMap`,
-        although possibly in different row order.
+        Data to fit as passed when initializing this :class:`BinaryMap`.
+        If using ``collapse_identical_variants``, then identical variants
+        are collapsed on columns 'concentration', 'aa_substitutions',
+        and 'prob_escape', and a column 'weight' is added to represent number
+        of collapsed variants. Also, row-order may be changed.
 
     Example
     -------
@@ -404,7 +412,7 @@ class Polyclonal:
     ...     if not numpy.allclose(
     ...              mut_escape_df['escape'].sort_values(),
     ...              model.mut_escape_df['escape'].sort_values(),
-    ...              atol=0.01,
+    ...              atol=0.05,
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{model.mut_escape_df}")
 
@@ -428,13 +436,13 @@ class Polyclonal:
     3      e2     1        w      m      w1m     0.0
     4      e2     2        w      m      w2m     0.0
     5      e2     4        w      m      w4m     2.0
-    >>> polyclonal_site.data_to_fit.head().round(3)
-      barcode aa_substitutions  concentration  prob_escape
-    0      AA                             1.0        0.032
-    1      AC              w1m            1.0        0.134
-    2      GA              w1m            1.0        0.134
-    3      CA          w1m w2m            1.0        0.256
-    4      CT      w1m w2m w4m            1.0        0.779
+    >>> polyclonal_site.data_to_fit.head(n=5).round(3)
+       concentration aa_substitutions  weight  prob_escape
+    0            1.0                        1        0.032
+    1            1.0              w1m       1        0.134
+    2            1.0          w1m w2m       1        0.256
+    3            1.0      w1m w2m w4m       2        0.686
+    4            1.0          w1m w4m       1        0.409
 
     """
 
@@ -445,6 +453,7 @@ class Polyclonal:
                  data_to_fit=None,
                  site_escape_df=None,
                  n_epitopes=None,
+                 collapse_identical_variants='mean',
                  alphabet=binarymap.binarymap.AAS_NOSTOP,
                  epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
                  init_missing='zero',
@@ -617,17 +626,24 @@ class Polyclonal:
 
         if data_to_fit is not None:
             (self._one_binarymap, self._binarymaps,
-             self._cs, self._pvs, self.data_to_fit
-             ) = self._binarymaps_cs_pvs_from_df(data_to_fit, get_pv=True)
+             self._cs, self._pvs, self._weights, self.data_to_fit
+             ) = self._binarymaps_from_df(data_to_fit,
+                                          True,
+                                          collapse_identical_variants)
             assert len(self._pvs) == len(self.data_to_fit)
         else:
             self.data_to_fit = None
 
-    def _binarymaps_cs_pvs_from_df(self, df, get_pv):
-        """Get variants and concentrations from data frame.
+    def _binarymaps_from_df(self,
+                            df,
+                            get_pv,
+                            collapse_identical_variants,
+                            ):
+        """Get variants and and other information from data frame.
 
-        Get `(one_binarymap, binarymaps, cs, pvs, sorted_df)`. If
-        `get_pv=False` then `pvs` is `None`. If same variants for all
+        Get `(one_binarymap, binarymaps, cs, pvs, weights, sorted_df)`. If
+        `get_pv=False` then `pvs` is `None`. If `collapse_identical_variants`
+        is `False` then `weights` is `None`. If same variants for all
         concentrations, `binarymaps` is a BinaryMap and `one_binarymap` is
         `True`. Otherwise, `binarymaps` lists BinaryMap for each concentration.
         `sorted_df` is version of `df` with variants/concentrations in same
@@ -642,6 +658,17 @@ class Polyclonal:
             cols.append('prob_escape')
         if not df[cols].notnull().all().all():
             raise ValueError(f"null entries in data frame of variants:\n{df}")
+        if collapse_identical_variants:
+            agg_dict = {'weight': 'sum'}
+            if get_pv:
+                agg_dict['prob_escape'] = collapse_identical_variants
+            df = (df
+                  [cols]
+                  .assign(weight=1)
+                  .groupby(['concentration', 'aa_substitutions'],
+                           as_index=False)
+                  .aggregate(agg_dict)
+                  )
         sorted_df = (df
                      .sort_values(['concentration', 'aa_substitutions'])
                      .reset_index(drop=True)
@@ -656,6 +683,7 @@ class Polyclonal:
             raise ValueError('concentrations must be > 0')
         binarymaps = []
         pvs = [] if get_pv else None
+        weights = [] if collapse_identical_variants else None
         one_binarymap = True
         for i, (c, i_df) in enumerate(sorted_df.groupby('concentration',
                                                         sort=False)):
@@ -668,15 +696,21 @@ class Polyclonal:
             binarymaps.append(self._get_binarymap(i_df))
             if get_pv:
                 pvs.append(i_df['prob_escape'].to_numpy(dtype=float))
+            if collapse_identical_variants:
+                weights.append(i_df['weight'].to_numpy(dtype=int))
         if one_binarymap:
             binarymaps = binarymaps[0]
-            if get_pv:
-                assert all(binarymaps.nvariants == len(pv) for pv in pvs)
-                pvs = numpy.concatenate(pvs)
-                assert len(pvs) == len(sorted_df)
-                if (pvs < 0).any() or (pvs > 1).any():
-                    raise ValueError('`prob_escape` must be between 0 and 1')
-        return (one_binarymap, binarymaps, cs, pvs, sorted_df)
+        if get_pv:
+            pvs = numpy.concatenate(pvs)
+            assert len(pvs) == len(sorted_df)
+            if (pvs < 0).any() or (pvs > 1).any():
+                raise ValueError('`prob_escape` must be between 0 and 1')
+        if collapse_identical_variants:
+            weights = numpy.concatenate(weights)
+            assert len(weights) == len(sorted_df)
+            assert (weights >= 1).all()
+
+        return (one_binarymap, binarymaps, cs, pvs, weights, sorted_df)
 
     def _params_from_dfs(self, activity_wt_df, mut_escape_df):
         """Params vector from data frames of activities and escapes."""
@@ -868,8 +902,8 @@ class Polyclonal:
                                      for c in concentrations],
                                     ignore_index=True)
 
-        (one_binarymap, binarymaps, cs, _, variants_df
-         ) = self._binarymaps_cs_pvs_from_df(variants_df, get_pv=False)
+        (one_binarymap, binarymaps, cs, _, _, variants_df
+         ) = self._binarymaps_from_df(variants_df, False, False)
 
         p_v_c = self._compute_1d_pvs(self._params, one_binarymap,
                                      binarymaps, cs)
@@ -931,7 +965,7 @@ class Polyclonal:
     _DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
              'options': {'maxfun': 1e7,
-                         'ftol': 1e-7,
+                         'ftol': 1e-8,
                          },
              })
     """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
@@ -1007,11 +1041,16 @@ class Polyclonal:
                                             self._binarymaps, self._cs)
             assert pred_pvs.shape == self._pvs.shape
             if loss_type == 'L1':
-                loss = numpy.absolute(self._pvs - pred_pvs).sum()
+                loss = numpy.absolute(self._pvs - pred_pvs)
             elif loss_type == 'L2':
-                loss = ((self._pvs - pred_pvs)**2).sum()
+                loss = (self._pvs - pred_pvs)**2
             else:
                 raise ValueError(f"invalid {loss_type=}")
+            if self._weights is None:
+                loss = loss.sum()
+            else:
+                assert loss.shape == self._weights.shape
+                loss = (self._weights * loss).sum()
             a, beta = self._a_beta_from_params(params)
             if regL1_mut_escape:
                 loss += regL1_mut_escape * numpy.absolute(beta).sum()
