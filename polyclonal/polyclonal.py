@@ -11,6 +11,7 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 import collections
 import inspect
 import os
+import time
 
 import binarymap
 
@@ -941,6 +942,7 @@ class Polyclonal:
             regL2_mut_escape=0,
             method='scipy_minimize',
             scipy_minimize_kwargs=_DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
+            verbosity=0,
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -961,6 +963,8 @@ class Polyclonal:
             Approach used for fitting.
         scipy_minimize_kwargs : dict
             Keyword arguments passed to ``scipy.optimize.minimize``.
+        verbosity : {0, 1}
+            How much information to print to standard output.
 
         Return
         ------
@@ -969,6 +973,8 @@ class Polyclonal:
 
         """
         if fit_site_level_first:
+            if verbosity:
+                print('First fitting site-level model.')  # noqa: T001
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
             keys, _, _, values = inspect.getargvalues(myframe)
@@ -1012,13 +1018,20 @@ class Polyclonal:
             return loss
 
         if method == 'scipy_minimize':
+            if verbosity:
+                print('Starting scipy optimization '  # noqa: T001
+                      f"{len(self._params)} parameters at {time.asctime()}. "
+                      f"Initial loss function: {_loss_func(self._params):.4g}")
             opt_res = scipy.optimize.minimize(fun=_loss_func,
                                               x0=self._params,
                                               **scipy_minimize_kwargs,
                                               )
             self._params = opt_res.x
+            if verbosity:
+                print(f"Optimization done at {time.asctime()}. "  # noqa: T001
+                      f"Loss function is {_loss_func(self._params):.4g}")
             if not opt_res.success:
-                raise RuntimeError(f"optimization failed:\n{opt_res}")
+                raise RuntimeError(f"Optimization failed:\n{opt_res}")
             return opt_res
 
         else:
