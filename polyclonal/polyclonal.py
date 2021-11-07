@@ -930,7 +930,9 @@ class Polyclonal:
 
     _DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
-             'options': {'maxfun': 1e6},
+             'options': {'maxfun': 1e7,
+                         'ftol': 1e-7,
+                         },
              })
     """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
 
