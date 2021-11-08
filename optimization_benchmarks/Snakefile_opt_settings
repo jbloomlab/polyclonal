@@ -1,0 +1,67 @@
+"""Test different optimization settingss."""
+
+
+import sys
+
+import pandas as pd
+
+import polyclonal
+
+
+wildcard_constraints:
+    noise='noisy|exact'
+
+rule all:
+    input:
+        expand("results/opt_settings/{noise}_{regL2_mut}_{collapse}.csv",
+               noise=['exact', 'noisy'],
+               regL2_mut=[0, 0.1],
+               collapse=['collapsed', 'uncollapsed'],
+               )
+
+rule prep_variants_df:
+    input: csv="../notebooks/RBD_variants_escape_{noise}.csv"
+    output: csv="results/opt_settings/variants_{noise}.csv"
+    run:
+        (pd.read_csv(input.csv, na_filter=None)
+         .query('library == "avg2muts"')
+         .query('concentration in [0.25, 1, 4]')
+         .to_csv(output.csv, index=False)
+         )
+
+rule optimize:
+    input: variants_df_csv=rules.prep_variants_df.output.csv
+    output: csv="results/opt_settings/{noise}_{regL2_mut}_{collapse}.csv"
+    log: log="results/opt_settings/{noise}_{regL2_mut}_{collapse}_log.txt"
+    run:
+        with open(log.log, 'w') as f:
+            #sys.stdout = sys.stderr = f
+            variants_df = pd.read_csv(input.variants_df_csv, na_filter=None)
+            poly_abs = polyclonal.Polyclonal(
+                    data_to_fit=variants_df,
+                    activity_wt_df=pd.DataFrame.from_records(
+                            [('epitope 1', 3.0),
+                             ('epitope 2', 2.0),
+                             ('epitope 3', 1.0),
+                             ],
+                            columns=['epitope', 'activity'],
+                            ),
+                    site_escape_df=pd.DataFrame.from_records(
+                            [('epitope 1', 484, 10.0),
+                             ('epitope 2', 446, 10.0),
+                             ('epitope 3', 417, 10.0),
+                             ],
+                            columns=['epitope', 'site', 'escape'],
+                            ),
+                    data_mut_escape_overlap='fill_to_data',
+                    collapse_identical_variants='mean' if wildcards.collapse == 'collapsed' else False,
+                    )
+            opt_res = poly_abs.fit(
+                    loss_type='L2',
+                    regL2_mut_escape=float(wildcards.regL2_mut),
+                    verbosity=1,
+                    )
+            print(opt_res)
+            print(f"Writing results to {output_csv}")
+            with open(output.csv, 'w') as f:
+                f.write(f"loss,time\n{opt_res.fun:.5g},{elapsed_time:.5g}\n")
