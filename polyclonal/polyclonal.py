@@ -962,10 +962,10 @@ class Polyclonal:
                           epitope_colors=self.epitope_colors,
                           )
 
-    _DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
+    DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
              'options': {'maxfun': 1e7,
-                         'ftol': 1e-8,
+                         'ftol': 1e-7,
                          },
              })
     """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
@@ -977,7 +977,7 @@ class Polyclonal:
             regL1_mut_escape=0,
             regL2_mut_escape=0,
             method='scipy_minimize',
-            scipy_minimize_kwargs=_DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
+            scipy_minimize_kwargs=DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
             verbosity=0,
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
@@ -999,7 +999,7 @@ class Polyclonal:
             Approach used for fitting.
         scipy_minimize_kwargs : dict
             Keyword arguments passed to ``scipy.optimize.minimize``.
-        verbosity : {0, 1}
+        verbosity : {0, 1, 2}
             How much information to print to standard output.
 
         Return
@@ -1036,40 +1036,55 @@ class Polyclonal:
 
         self._check_close_activities()
 
-        def _loss_func(params):
-            pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
-                                            self._binarymaps, self._cs)
-            assert pred_pvs.shape == self._pvs.shape
-            if loss_type == 'L1':
-                loss = numpy.absolute(self._pvs - pred_pvs)
-            elif loss_type == 'L2':
-                loss = (self._pvs - pred_pvs)**2
-            else:
-                raise ValueError(f"invalid {loss_type=}")
-            if self._weights is None:
-                loss = loss.sum()
-            else:
-                assert loss.shape == self._weights.shape
-                loss = (self._weights * loss).sum()
-            a, beta = self._a_beta_from_params(params)
-            if regL1_mut_escape:
-                loss += regL1_mut_escape * numpy.absolute(beta).sum()
-            if regL2_mut_escape:
-                loss += regL2_mut_escape * (beta**2).sum()
-            return loss
-
         if method == 'scipy_minimize':
+            def _loss_func(params):
+                pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
+                                                self._binarymaps, self._cs)
+                assert pred_pvs.shape == self._pvs.shape
+                if loss_type == 'L1':
+                    loss = numpy.absolute(self._pvs - pred_pvs)
+                elif loss_type == 'L2':
+                    loss = (self._pvs - pred_pvs)**2
+                else:
+                    raise ValueError(f"invalid {loss_type=}")
+                if self._weights is None:
+                    loss = loss.sum()
+                else:
+                    assert loss.shape == self._weights.shape
+                    loss = (self._weights * loss).sum()
+                a, beta = self._a_beta_from_params(params)
+                if regL1_mut_escape:
+                    loss += regL1_mut_escape * numpy.absolute(beta).sum()
+                if regL2_mut_escape:
+                    loss += regL2_mut_escape * (beta**2).sum()
+                return loss
+
             if verbosity:
-                print('Starting scipy optimization '  # noqa: T001
-                      f"{len(self._params)} parameters at {time.asctime()}. "
+                print('Starting scipy optimization of '  # noqa: T001
+                      f"{len(self._params)} parameters at {time.asctime()}.\n"
                       f"Initial loss function: {_loss_func(self._params):.4g}")
+
+                class Callback:
+                    def __init__(self, interval=5):
+                        self.interval = interval
+                        self.i = 0
+                    def callback(self, params):
+                        if self.i % self.interval == 0:
+                            print(f"Step {self.i + 1}: loss="  # noqa: T001
+                                  f"{_loss_func(params):.7g} at "
+                                  f"{time.asctime()}")
+                        self.i += 1
+                scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
+                interval = 1 if verbosity > 1 else 5
+                scipy_minimize_kwargs['callback'] = Callback(interval).callback
+
             opt_res = scipy.optimize.minimize(fun=_loss_func,
                                               x0=self._params,
                                               **scipy_minimize_kwargs,
                                               )
             self._params = opt_res.x
             if verbosity:
-                print(f"Optimization done at {time.asctime()}. "  # noqa: T001
+                print(f"Optimization done at {time.asctime()}.\n"  # noqa: T001
                       f"Loss function is {_loss_func(self._params):.4g}")
             if not opt_res.success:
                 raise RuntimeError(f"Optimization failed:\n{opt_res}")
