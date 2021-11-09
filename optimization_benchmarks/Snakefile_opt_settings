@@ -35,7 +35,7 @@ rule optimize:
     log: log="results/opt_settings/{noise}_{regL2_mut}_{collapse}_log.txt"
     run:
         with open(log.log, 'w') as f:
-            #sys.stdout = sys.stderr = f
+            sys.stdout = sys.stderr = f
             variants_df = pd.read_csv(input.variants_df_csv, na_filter=None)
             poly_abs = polyclonal.Polyclonal(
                     data_to_fit=variants_df,
@@ -62,6 +62,6 @@ rule optimize:
                     verbosity=1,
                     )
             print(opt_res)
-            print(f"Writing results to {output_csv}")
+            print(f"Writing results to {output.csv}")
             with open(output.csv, 'w') as f:
                 f.write(f"loss,time\n{opt_res.fun:.5g},{elapsed_time:.5g}\n")
