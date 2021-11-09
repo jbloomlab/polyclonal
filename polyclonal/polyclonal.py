@@ -394,11 +394,13 @@ class Polyclonal:
     7      e2     4        A      L      A4L     2.0
 
     Fit the data using :meth:`Polyclonal.fit`, and make sure the new
-    predicted escape probabilities are close to the real ones being fit:
+    predicted escape probabilities are close to the real ones being fit.
+    Reduce weight on regularization since there is so little data in this
+    toy example:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(reg_siteavg=None)
+    ...     opt_res = model.fit(reg_siteavg=(0.001, 'PseudoHuber', 1))
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -632,6 +634,16 @@ class Polyclonal:
                                           True,
                                           collapse_identical_variants)
             assert len(self._pvs) == len(self.data_to_fit)
+            # for each site get mask of indices in the binary map
+            # that correspond to that site
+            if self._one_binarymap:
+                binary_sites = self._binarymaps.binary_sites
+            else:
+                binary_sites = self._binarymaps[0].binary_sites
+                assert all((binary_sites == bmap.binary_sites).all()
+                           for bmap in self._binarymaps)
+            self._binary_sites = {site: (binary_sites) == site for
+                                  site in numpy.unique(binary_sites)}
         else:
             self.data_to_fit = None
 
@@ -974,7 +986,7 @@ class Polyclonal:
     def fit(self,
             *,
             loss_type=('PseudoHuber', 0.1),
-            reg_siteavg=(0.5, 'PseudoHuber', 1),
+            reg_siteavg=(0.25, 'PseudoHuber', 1),
             fit_site_level_first=True,
             method='scipy_minimize',
             scipy_minimize_kwargs=DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
@@ -1068,12 +1080,17 @@ class Polyclonal:
                 reg_siteavg_lambda = 0 if not reg_siteavg else reg_siteavg[0]
                 if reg_siteavg_lambda > 0:
                     if reg_siteavg[1] == 'L2' and len(reg_siteavg) == 2:
-                        loss += reg_siteavg_lambda * (beta**2).sum()
+                        mut_terms = beta**2
                     elif reg_siteavg[1] == 'PseudoHuber' and (len(reg_siteavg)
                                                               == 3):
+                        mut_terms = scaled_pseudo_huber(reg_siteavg[2], beta)
+                    else:
+                        raise ValueError(f"invalid {reg_siteavg=}")
+                    for sitemask in self._binary_sites.values():
+                        # get terms for each site with mask, take mean within
+                        # epitopes, then sum across epitopes
                         loss += (reg_siteavg_lambda *
-                                 scaled_pseudo_huber(reg_siteavg[2],
-                                                     beta).sum())
+                                 mut_terms[sitemask].mean(axis=0).sum())
                 elif reg_siteavg_lambda != 0:
                     raise ValueError(f"invalid {reg_siteavg=}")
                 return loss
