@@ -11,6 +11,7 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 import collections
 import inspect
 import os
+import sys
 import time
 
 import binarymap
@@ -1031,6 +1032,7 @@ class Polyclonal:
         if fit_site_level_first:
             if verbosity:
                 print('First fitting site-level model.')  # noqa: T001
+                sys.stdout.flush()
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
             keys, _, _, values = inspect.getargvalues(myframe)
@@ -1122,6 +1124,7 @@ class Polyclonal:
                 print('Starting scipy optimization of '  # noqa: T001
                       f"{len(self._params)} parameters at {time.asctime()}.\n"
                       f"Initial loss function: {_loss_func(self._params):.4g}")
+                sys.stdout.flush()
 
                 class Callback:
                     def __init__(self, interval=5):
@@ -1133,6 +1136,7 @@ class Polyclonal:
                             print(f"Step {self.i + 1}: loss="  # noqa: T001
                                   f"{_loss_func(params):.7g} at "
                                   f"{time.asctime()}")
+                            sys.stdout.flush()
                         self.i += 1
 
                 scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
@@ -1147,6 +1151,7 @@ class Polyclonal:
             if verbosity:
                 print(f"Optimization done at {time.asctime()}.\n"  # noqa: T001
                       f"Loss function is {_loss_func(self._params):.4g}")
+                sys.stdout.flush()
             if not opt_res.success:
                 raise RuntimeError(f"Optimization failed:\n{opt_res}")
             return opt_res
