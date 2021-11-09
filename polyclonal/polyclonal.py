@@ -400,7 +400,8 @@ class Polyclonal:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(reg_siteavg=(0.001, 'PseudoHuber', 1))
+    ...     opt_res = model.fit(reg_siteavg=(0.001, 'PseudoHuber', 1),
+    ...                         reg_sitespread=(0.01, 'PseudoHuber', 1))
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -987,6 +988,7 @@ class Polyclonal:
             *,
             loss_type=('PseudoHuber', 0.1),
             reg_siteavg=(0.25, 'PseudoHuber', 1),
+            reg_sitespread=(1, 'PseudoHuber', 1),
             fit_site_level_first=True,
             method='scipy_minimize',
             scipy_minimize_kwargs=DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
@@ -1007,6 +1009,9 @@ class Polyclonal:
         reg_siteavg : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
             Regularize with strength `lambda` the mean of PseudoHuber, or L2
             of :math:`\beta_{m,e}` escape values at each site.
+        reg_sitespread : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
+            Regularize with strength `lambda` the standard deviation of the
+            :math:`\beta_{m,e}` escape values at each site.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
@@ -1075,9 +1080,9 @@ class Polyclonal:
                 else:
                     assert loss.shape == self._weights.shape
                     loss = (self._weights * loss).sum()
-                # loss on mean site betas
+                # regularize mean site betas for each epitope
                 a, beta = self._a_beta_from_params(params)
-                reg_siteavg_lambda = 0 if not reg_siteavg else reg_siteavg[0]
+                reg_siteavg_lambda = reg_siteavg[0]
                 if reg_siteavg_lambda > 0:
                     if reg_siteavg[1] == 'L2' and len(reg_siteavg) == 2:
                         mut_terms = beta**2
@@ -1093,6 +1098,24 @@ class Polyclonal:
                                  mut_terms[sitemask].mean(axis=0).sum())
                 elif reg_siteavg_lambda != 0:
                     raise ValueError(f"invalid {reg_siteavg=}")
+                # regularize spread (std dev) of betas at each site / epitope
+                reg_sitespread_lambda = reg_sitespread[0]
+                if reg_sitespread_lambda > 0:
+                    sds = []
+                    for sitemask in self._binary_sites.values():
+                        sds.append(numpy.std(beta[sitemask], axis=0))
+                    sds = numpy.concatenate(sds)
+                    if reg_sitespread[1] == 'L2' and len(reg_sitespread) == 2:
+                        loss += reg_sitespread_lambda * (sds**2).sum()
+                    elif reg_sitespread[1] == 'PseudoHuber':
+                        if len(reg_sitespread) != 3:
+                            raise ValueError(f"invalid {reg_sitespread=}")
+                        loss += reg_sitespread_lambda * scaled_pseudo_huber(
+                                                reg_sitespread[2], sds).sum()
+                    else:
+                        raise ValueError(f"invalid {reg_sitespread=}")
+                elif reg_sitespread_lambda != 0:
+                    raise ValueError(f"invalid {reg_sitespread=}")
                 return loss
 
             if verbosity:
