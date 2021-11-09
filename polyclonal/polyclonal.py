@@ -22,6 +22,7 @@ import numpy
 import pandas as pd
 
 import scipy.optimize
+import scipy.special
 
 import polyclonal.pdb_utils
 import polyclonal.plot
@@ -397,7 +398,7 @@ class Polyclonal:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(loss_type='L2')
+    ...     opt_res = model.fit(reg_siteavg=None)
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -406,7 +407,7 @@ class Polyclonal:
     ...     if not numpy.allclose(
     ...              activity_wt_df['activity'].sort_values(),
     ...              model.activity_wt_df['activity'].sort_values(),
-    ...              atol=0.05,
+    ...              atol=0.1,
     ...              ):
     ...          raise ValueError(f"wrong activities\n{model.activity_wt_df}")
     ...     if not numpy.allclose(
@@ -972,10 +973,9 @@ class Polyclonal:
 
     def fit(self,
             *,
-            loss_type,
+            loss_type=('PseudoHuber', 0.1),
+            reg_siteavg=(0.5, 'PseudoHuber', 1),
             fit_site_level_first=True,
-            regL1_mut_escape=0,
-            regL2_mut_escape=0,
             method='scipy_minimize',
             scipy_minimize_kwargs=DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
             verbosity=0,
@@ -989,9 +989,12 @@ class Polyclonal:
 
         Parameters
         ----------
-        loss_type : {'L1', 'L2'}
+        loss_type : {('PseudoHuber', delta), 'L2'}
             Minimize difference between actual and model-predicted
-            :math:`p_v\left(c\right)` using L1 or L2 loss function.
+            :math:`p_v\left(c\right)` using PseudoHuber or L2 loss.
+        reg_siteavg : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
+            Regularize with strength `lambda` the mean of PseudoHuber, or L2
+            of :math:`\beta_{m,e}` escape values at each site.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
@@ -1037,14 +1040,22 @@ class Polyclonal:
         self._check_close_activities()
 
         if method == 'scipy_minimize':
+            def scaled_pseudo_huber(delta, r):
+                # scale PseudoHuber so slope is one
+                if delta <= 0:
+                    raise ValueError('PseudoHuber delta must be > 0')
+                return scipy.special.pseudo_huber(delta, r) / delta
+
             def _loss_func(params):
+                # loss on pvs
                 pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
                                                 self._binarymaps, self._cs)
                 assert pred_pvs.shape == self._pvs.shape
-                if loss_type == 'L1':
-                    loss = numpy.absolute(self._pvs - pred_pvs)
-                elif loss_type == 'L2':
-                    loss = (self._pvs - pred_pvs)**2
+                pvs_residuals = self._pvs - pred_pvs
+                if loss_type == 'L2':
+                    loss = (pvs_residuals)**2
+                elif loss_type[0] == 'PseudoHuber' and len(loss_type) == 2:
+                    loss = scaled_pseudo_huber(loss_type[1], pvs_residuals)
                 else:
                     raise ValueError(f"invalid {loss_type=}")
                 if self._weights is None:
@@ -1052,11 +1063,19 @@ class Polyclonal:
                 else:
                     assert loss.shape == self._weights.shape
                     loss = (self._weights * loss).sum()
+                # loss on mean site betas
                 a, beta = self._a_beta_from_params(params)
-                if regL1_mut_escape:
-                    loss += regL1_mut_escape * numpy.absolute(beta).sum()
-                if regL2_mut_escape:
-                    loss += regL2_mut_escape * (beta**2).sum()
+                reg_siteavg_lambda = 0 if not reg_siteavg else reg_siteavg[0]
+                if reg_siteavg_lambda > 0:
+                    if reg_siteavg[1] == 'L2' and len(reg_siteavg) == 2:
+                        loss += reg_siteavg_lambda * (beta**2).sum()
+                    elif reg_siteavg[1] == 'PseudoHuber' and (len(reg_siteavg)
+                                                              == 3):
+                        loss += (reg_siteavg_lambda *
+                                 scaled_pseudo_huber(reg_siteavg[2],
+                                                     beta).sum())
+                elif reg_siteavg_lambda != 0:
+                    raise ValueError(f"invalid {reg_siteavg=}")
                 return loss
 
             if verbosity:
@@ -1068,12 +1087,14 @@ class Polyclonal:
                     def __init__(self, interval=5):
                         self.interval = interval
                         self.i = 0
+
                     def callback(self, params):
                         if self.i % self.interval == 0:
                             print(f"Step {self.i + 1}: loss="  # noqa: T001
                                   f"{_loss_func(params):.7g} at "
                                   f"{time.asctime()}")
                         self.i += 1
+
                 scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
                 interval = 1 if verbosity > 1 else 5
                 scipy_minimize_kwargs['callback'] = Callback(interval).callback
