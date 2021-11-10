@@ -20,6 +20,7 @@ Contents
    installation
    biophysical_model
    visualize_RBD
+   simulate_RBD
    polyclonal
    package_index
    acknowledgments
