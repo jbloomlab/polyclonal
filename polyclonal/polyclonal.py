@@ -1123,7 +1123,7 @@ class Polyclonal:
             if verbosity:
                 print('Starting scipy optimization of '  # noqa: T001
                       f"{len(self._params)} parameters at {time.asctime()}.\n"
-                      f"Initial loss function: {_loss_func(self._params):.4g}")
+                      f"Initial loss function: {_loss_func(self._params):.7g}")
                 sys.stdout.flush()
 
                 class Callback:
@@ -1150,7 +1150,7 @@ class Polyclonal:
             self._params = opt_res.x
             if verbosity:
                 print(f"Optimization done at {time.asctime()}.\n"  # noqa: T001
-                      f"Loss function is {_loss_func(self._params):.4g}")
+                      f"Loss function is {_loss_func(self._params):.7g}")
                 sys.stdout.flush()
             if not opt_res.success:
                 raise RuntimeError(f"Optimization failed:\n{opt_res}")
