@@ -38,6 +38,30 @@
   <span class="target" id="module-polyclonal.utils"></span><section id="utils">
 <h1>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h1>
 <p>Miscellaneous utility functions.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="polyclonal.utils.MutationParser">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">MutationParser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#MutationParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.MutationParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parse mutation strings like ‘A5G’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alphabet</strong> (<em>array-like</em>) – Valid single-character letters in alphabet.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span><span class="n">AAS_NOSTOP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s1">&#39;A5G&#39;</span><span class="p">)</span>
+<span class="go">(&#39;A&#39;, 5, &#39;G&#39;)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.utils.MutationParser.parse_mut">
+<span class="sig-name descname"><span class="pre">parse_mut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#MutationParser.parse_mut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.MutationParser.parse_mut" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple: <cite>(wildtype, site, mutation)</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="polyclonal.utils.shift_mut_site">
 <span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">shift_mut_site</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#shift_mut_site"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.shift_mut_site" title="Permalink to this definition">¶</a></dt>
@@ -59,6 +83,48 @@
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shift_mut_site</span><span class="p">(</span><span class="s1">&#39;A1G K7A&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="go">&#39;A3G K9A&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="polyclonal.utils.site_level_variants">
+<span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">site_level_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wt_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'w'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'m'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#site_level_variants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.site_level_variants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Re-define variants simply in terms of which sites are mutated.</p>
+<p>This function is useful if you have a data frame of variants and you
+want to simplify them from full mutations to just indicating whether
+sites are mutated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Must include a column named ‘aa_substitutions’.</p></li>
+<li><p><strong>original_alphabet</strong> (<em>array-like</em>) – Valid single-letter characters in the original (mutation-level)
+alphabet.</p></li>
+<li><p><strong>wt_char</strong> (<em>str</em>) – Single letter used to represent wildtype identity at all sites.</p></li>
+<li><p><strong>mut_char</strong> (<em>str</em>) – Single letter used to represent mutant identity at all sites.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Copy of <code class="docutils literal notranslate"><span class="pre">df</span></code> with ‘aa_substitutions’ in site-level encoding.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="p">[(</span><span class="s1">&#39;AA&#39;</span><span class="p">,</span> <span class="s1">&#39;M1A&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>         <span class="p">(</span><span class="s1">&#39;AC&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span>         <span class="p">(</span><span class="s1">&#39;AG&#39;</span><span class="p">,</span> <span class="s1">&#39;M1A C53T&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>         <span class="p">],</span>
+<span class="gp">... </span>       <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;barcode&#39;</span><span class="p">,</span> <span class="s1">&#39;aa_substitutions&#39;</span><span class="p">,</span> <span class="s1">&#39;escape&#39;</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">site_level_variants</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="go">  barcode aa_substitutions  escape</span>
+<span class="go">0      AA              w1m     1.0</span>
+<span class="go">1      AC                      0.0</span>
+<span class="go">2      AG         w1m w53m     1.0</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -104,7 +170,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="biophysical_model.html">Biophysical model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>

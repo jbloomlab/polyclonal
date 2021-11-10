@@ -45,6 +45,123 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 
+<span class="kn">from</span> <span class="nn">binarymap.binarymap</span> <span class="kn">import</span> <span class="n">AAS_NOSTOP</span>
+
+
+<div class="viewcode-block" id="MutationParser"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.MutationParser">[docs]</a><span class="k">class</span> <span class="nc">MutationParser</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Parse mutation strings like &#39;A5G&#39;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    alphabet : array-like</span>
+<span class="sd">        Valid single-character letters in alphabet.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; mutparser = MutationParser(AAS_NOSTOP)</span>
+<span class="sd">    &gt;&gt;&gt; mutparser.parse_mut(&#39;A5G&#39;)</span>
+<span class="sd">    (&#39;A&#39;, 5, &#39;G&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">alphabet</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\*&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid alphabet character: </span><span class="si">{</span><span class="n">char</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mutation_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;(?P&lt;wt&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span>
+                                          <span class="sa">rf</span><span class="s2">&quot;(?P&lt;site&gt;\d+)&quot;</span>
+                                          <span class="sa">rf</span><span class="s2">&quot;(?P&lt;mut&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MutationParser.parse_mut"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.MutationParser.parse_mut">[docs]</a>    <span class="k">def</span> <span class="nf">parse_mut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mutation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;tuple: `(wildtype, site, mutation)`.&quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mutation_regex</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">mutation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid mutation </span><span class="si">{</span><span class="n">mutation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;wt&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">)),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;mut&#39;</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="site_level_variants"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.site_level_variants">[docs]</a><span class="k">def</span> <span class="nf">site_level_variants</span><span class="p">(</span><span class="n">df</span><span class="p">,</span>
+                        <span class="o">*</span><span class="p">,</span>
+                        <span class="n">original_alphabet</span><span class="o">=</span><span class="n">AAS_NOSTOP</span><span class="p">,</span>
+                        <span class="n">wt_char</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span>
+                        <span class="n">mut_char</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                        <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Re-define variants simply in terms of which sites are mutated.</span>
+
+<span class="sd">    This function is useful if you have a data frame of variants and you</span>
+<span class="sd">    want to simplify them from full mutations to just indicating whether</span>
+<span class="sd">    sites are mutated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        Must include a column named &#39;aa_substitutions&#39;.</span>
+<span class="sd">    original_alphabet : array-like</span>
+<span class="sd">        Valid single-letter characters in the original (mutation-level)</span>
+<span class="sd">        alphabet.</span>
+<span class="sd">    wt_char : str</span>
+<span class="sd">        Single letter used to represent wildtype identity at all sites.</span>
+<span class="sd">    mut_char : str</span>
+<span class="sd">        Single letter used to represent mutant identity at all sites.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas.DataFrame</span>
+<span class="sd">        Copy of ``df`` with &#39;aa_substitutions&#39; in site-level encoding.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; df = pd.DataFrame.from_records(</span>
+<span class="sd">    ...         [(&#39;AA&#39;, &#39;M1A&#39;, 1.0),</span>
+<span class="sd">    ...          (&#39;AC&#39;, &#39;&#39;, 0.0),</span>
+<span class="sd">    ...          (&#39;AG&#39;, &#39;M1A C53T&#39;, 1.0),</span>
+<span class="sd">    ...          ],</span>
+<span class="sd">    ...        columns=[&#39;barcode&#39;, &#39;aa_substitutions&#39;, &#39;escape&#39;],</span>
+<span class="sd">    ...        )</span>
+<span class="sd">    &gt;&gt;&gt; site_level_variants(df)</span>
+<span class="sd">      barcode aa_substitutions  escape</span>
+<span class="sd">    0      AA              w1m     1.0</span>
+<span class="sd">    1      AC                      0.0</span>
+<span class="sd">    2      AG         w1m w53m     1.0</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">subs_col</span> <span class="o">=</span> <span class="s1">&#39;aa_substitutions&#39;</span>
+    <span class="k">if</span> <span class="n">subs_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`df` lacks column </span><span class="si">{</span><span class="n">subs_col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wt_char</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">wt_char</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt_char</span><span class="si">=}</span><span class="s2"> should be single letter&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mut_char</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mut_char</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mut_char</span><span class="si">=}</span><span class="s2"> should be single letter&quot;</span><span class="p">)</span>
+    <span class="n">mutparser</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span><span class="n">original_alphabet</span><span class="p">)</span>
+
+    <span class="n">site_subs_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">wts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">subs</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">subs</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">site_subs_mapping</span><span class="p">:</span>
+            <span class="n">site_subs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+                <span class="n">wt</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">wts</span> <span class="ow">and</span> <span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wt</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inconsistent wildtype at </span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">: &quot;</span>
+                                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt</span><span class="si">}</span><span class="s2"> versus </span><span class="si">{</span><span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">=</span> <span class="n">wt</span>
+                <span class="n">site_subs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt_char</span><span class="si">}{</span><span class="n">site</span><span class="si">}{</span><span class="n">mut_char</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">site_subs_mapping</span><span class="p">[</span><span class="n">subs</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">site_subs</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">site_subs_mapping</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
 
 <div class="viewcode-block" id="shift_mut_site"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.shift_mut_site">[docs]</a><span class="k">def</span> <span class="nf">shift_mut_site</span><span class="p">(</span><span class="n">mut_str</span><span class="p">,</span> <span class="n">shift</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Shift site in string of mutations.</span>
@@ -122,7 +239,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../biophysical_model.html">Biophysical model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>
