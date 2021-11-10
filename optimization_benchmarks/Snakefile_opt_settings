@@ -1,0 +1,76 @@
+"""Test different optimization settingss."""
+
+
+import pickle
+import sys
+import time
+
+import pandas as pd
+
+import polyclonal
+
+
+rule all:
+    input:
+        expand("results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.csv",
+               noise=['exact', 'noisy'],
+               sitefirst=['sitefirst', 'nosite'],
+               collapse=['collapsed', 'uncollapsed'],
+               reg_siteavg=[0, 0.25, 0.5],
+               reg_sitespread=[0, 1, 2],
+               )
+
+rule prep_variants_df:
+    input: csv="../notebooks/RBD_variants_escape_{noise}.csv"
+    output: csv="results/opt_settings/variants_{noise}.csv"
+    run:
+        (pd.read_csv(input.csv, na_filter=None)
+         .query('library == "avg2muts"')
+         .query('concentration in [0.25, 1, 4]')
+         .to_csv(output.csv, index=False)
+         )
+
+rule optimize:
+    input: variants_df_csv=rules.prep_variants_df.output.csv
+    output:
+        csv="results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.csv",
+        pickle="results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.pickle",
+    log: log="results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.log",
+    run:
+        with open(log.log, 'w') as f:
+            sys.stdout = f
+            variants_df = pd.read_csv(input.variants_df_csv, na_filter=None)
+            poly_abs = polyclonal.Polyclonal(
+                    data_to_fit=variants_df,
+                    activity_wt_df=pd.DataFrame.from_records(
+                            [('epitope 1', 3.0),
+                             ('epitope 2', 2.0),
+                             ('epitope 3', 1.0),
+                             ],
+                            columns=['epitope', 'activity'],
+                            ),
+                    site_escape_df=pd.DataFrame.from_records(
+                            [('epitope 1', 484, 10.0),
+                             ('epitope 2', 446, 10.0),
+                             ('epitope 3', 417, 10.0),
+                             ],
+                            columns=['epitope', 'site', 'escape'],
+                            ),
+                    data_mut_escape_overlap='fill_to_data',
+                    collapse_identical_variants='mean' if wildcards.collapse == 'collapsed' else False,
+                    )
+            start_time = time.time()
+            opt_res = poly_abs.fit(
+                    reg_siteavg=(float(wildcards.reg_siteavg), 'PseudoHuber', 1),
+                    reg_sitespread=(float(wildcards.reg_sitespread), 'PseudoHuber', 1),
+                    verbosity=1,
+                    fit_site_level_first=True if wildcards.sitefirst == 'sitefirst' else False,
+                    )
+            elapsed_time = time.time() - start_time
+            print(opt_res)
+            print(f"Writing results to {output.csv}")
+            with open(output.csv, 'w') as f:
+                f.write(f"loss,time\n{opt_res.fun:.5g},{elapsed_time:.5g}\n")
+            print(f"Writing model to {output.pickle}")
+            with open(output.pickle, 'wb') as f:
+                pickle.dump(poly_abs, f)
