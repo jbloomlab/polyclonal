@@ -1140,7 +1140,7 @@ class Polyclonal:
                         self.i += 1
 
                 scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
-                interval = 1 if verbosity > 1 else 5
+                interval = 1 if verbosity > 1 else 10
                 scipy_minimize_kwargs['callback'] = Callback(interval).callback
 
             opt_res = scipy.optimize.minimize(fun=_loss_func,
