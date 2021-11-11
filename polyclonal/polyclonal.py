@@ -1333,35 +1333,63 @@ class Polyclonal:
         """
         if one_binarymap:
             p_v_c = self._compute_pv(params, binarymaps, cs)
-            assert p_v_c.shape == (binarymaps.nvariants, len(cs))
-            return p_v_c.ravel(order='F')
+            assert p_v_c.shape == (binarymaps.nvariants * len(cs),)
+            return p_v_c
         else:
             assert len(cs) == len(binarymaps)
             return numpy.concatenate(
-                    [self._compute_pv(params, bmap, numpy.array([c])).ravel()
+                    [self._compute_pv(params, bmap, numpy.array([c]))
                      for c, bmap in zip(cs, binarymaps)])
 
-    def _compute_pv(self, params, bmap, cs):
-        r"""Compute :math:`p_v\left(c\right)`.
+    def _compute_pv(self, params, bmap, cs, calc_grad=False):
+        r"""Compute :math:`p_v\left(c\right)` and its derivative.
 
-        Takes set of params, a single BinaryMap, and array of concentrations,
-        and returns nvariants X nconcentrations array of the p_v values.
+        Parameters
+        ----------
+        params : numpy.ndarray
+        bmap : binarymap.BinaryMap
+        cs : numpy.ndarray
+        calc_grad : bool
+
+        Returns
+        -------
+        p_vc, dpvc_dparams
+            ``p_vc`` is 1D array ordered by concentration and then variant
+            variant. So elements are `ivariant + iconcentration * nvariants`,
+            and length is nconcentrations * nvariants.
+            If ``calc_grad=True`` then ``dpv_dparams`` is a 2D array of shape
+            (nconcentrations * nvariants, len(params)). Note that
+            len(params) is nepitopes * (1 + binarylength).
+            ??
 
         """
         a, beta = self._a_beta_from_params(params)
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (bmap.binarylength, len(self.epitopes))
         assert beta.shape[0] == bmap.binary_variants.shape[1]
+        assert bmap.binary_variants.shape == (bmap.nvariants,
+                                              bmap.binarylength)
         assert (cs > 0).all()
         assert cs.ndim == 1
         phi_e_v = bmap.binary_variants.dot(beta) - a
         assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
-        U_e_v_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
-        assert U_e_v_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
-        p_v_c = U_e_v_c.prod(axis=1)
-        assert p_v_c.shape == (bmap.nvariants, len(cs))
-        return p_v_c
+        U_v_e_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
+        assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
+        U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
+                    bmap.nvariants * len(cs), len(self.epitopes), order='F')
+        assert U_vc_e.shape == (bmap.nvariants * len(cs), len(self.epitopes))
+        p_vc = U_vc_e.prod(axis=1)
+        assert p_vc.shape == (bmap.nvariants * len(cs),)
+        #if calc_grad:
+        if False: # debugging
+            # p_v_c is shape V, C and U_e_v_c is shape V, E, C.
+            # swap axes to make shapes C, V and E, C, V, then multiply
+            # to generate shape E, C, V product
+            dp_da = numpy.swapaxes(p_v_c, 0, 1) * numpy.moveaxis(U_e_v_c, 0, 2)
+            assert dp_da.shape == (len(self.epitopes), len(cs), bmap.nvariants)
+            # bmap.binary_variants is of shape (V, M)
+        return p_vc
 
     def _get_binarymap(self,
                        variants_df,
