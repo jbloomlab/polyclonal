@@ -977,6 +977,46 @@ class Polyclonal:
                           epitope_colors=self.epitope_colors,
                           )
 
+    @staticmethod
+    def _scaled_pseudo_huber(delta, r, calc_grad):
+        r"""Compute scaled Pseudo-Huber loss (and potentially its gradient).
+
+        :math:`h = \delta \left(\sqrt{1+\left(r/\delta\right)^2} - 1\right)`;
+        this is actually :math:`1/\delta` times ``scipy.special.pseudo_huber``,
+        and so has slope of one in the linear range.
+
+        Parameters
+        ----------
+        delta : float
+        r : numpy.ndarray
+        calc_grad : bool
+
+        Returns
+        -------
+        (h, dh)
+            Arrays of same length as ``r``, if ``calc_grad=False`` then
+            ``dh`` is None.
+
+        >>> h, _ = Polyclonal._scaled_pseudo_huber(2, [1, 2, 4, 8], True)
+        >>> h.round(2)
+        array([0.24, 0.83, 2.47, 6.25])
+        >>> err = scipy.optimize.check_grad(
+        ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, False)[0],
+        ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, True)[1],
+        ...       [2])
+        >>> err < 1e-7
+        True
+
+        """
+        if delta <= 0:
+            raise ValueError('PseudoHuber delta must be > 0')
+        h = scipy.special.pseudo_huber(delta, r) / delta
+        if calc_grad:
+            dh = r / (h + delta)
+        else:
+            dh = None
+        return h, dh
+
     DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
              'options': {'maxfun': 1e7,
