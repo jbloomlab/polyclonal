@@ -1402,8 +1402,15 @@ class Polyclonal:
             dpvc_dbetaparams = dpevc_dbeta.reshape(
                                     bmap.binarylength * len(self.epitopes),
                                     n_vc)
-            print(type(dpvc_dbetaparams))
-            return p_vc, dpvc_da, dpvc_dbetaparams
+            assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
+            # combine to make dpvc_dparams, noting activities before betas
+            # in params
+            dpvc_dparams = scipy.sparse.vstack(
+                    [scipy.sparse.csr_matrix(dpvc_da),
+                     dpvc_dbetaparams.tocsr()])
+            assert type(dpvc_dparams) == scipy.sparse.csr_matrix
+            assert dpvc_dparams.shape == (len(params), n_vc)
+            return p_vc, dpvc_dparams
         return p_vc
 
     def _get_binarymap(self,
