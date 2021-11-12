@@ -1356,11 +1356,10 @@ class Polyclonal:
         p_vc, dpvc_dparams
             ``p_vc`` is 1D array ordered by concentration and then variant
             variant. So elements are `ivariant + iconcentration * nvariants`,
-            and length is nconcentrations * nvariants.
-            If ``calc_grad=True`` then ``dpv_dparams`` is a 2D array of shape
-            (nconcentrations * nvariants, len(params)). Note that
+            and length is nconcentrations * nvariants. If ``calc_grad=True``,
+            then ``dpvc_dparams`` is `scipy.sparse.csr_matrix` of shape
+            (len(params), nconcentrations * nvariants). Note that
             len(params) is nepitopes * (1 + binarylength).
-            ??
 
         """
         a, beta = self._a_beta_from_params(params)
@@ -1376,19 +1375,35 @@ class Polyclonal:
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
         U_v_e_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
         assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
+        n_vc = bmap.nvariants * len(cs)
         U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
-                    bmap.nvariants * len(cs), len(self.epitopes), order='F')
-        assert U_vc_e.shape == (bmap.nvariants * len(cs), len(self.epitopes))
+                    n_vc, len(self.epitopes), order='F')
+        assert U_vc_e.shape == (n_vc, len(self.epitopes))
         p_vc = U_vc_e.prod(axis=1)
-        assert p_vc.shape == (bmap.nvariants * len(cs),)
-        #if calc_grad:
-        if False: # debugging
-            # p_v_c is shape V, C and U_e_v_c is shape V, E, C.
-            # swap axes to make shapes C, V and E, C, V, then multiply
-            # to generate shape E, C, V product
-            dp_da = numpy.swapaxes(p_v_c, 0, 1) * numpy.moveaxis(U_e_v_c, 0, 2)
-            assert dp_da.shape == (len(self.epitopes), len(cs), bmap.nvariants)
-            # bmap.binary_variants is of shape (V, M)
+        assert p_vc.shape == (n_vc,)
+        if calc_grad:
+            dpvc_da = p_vc * (numpy.swapaxes(U_vc_e, 0, 1) - 1)
+            assert dpvc_da.shape == (len(self.epitopes), n_vc)
+            dpevc = -dpvc_da.ravel(order='C')
+            n_vce = n_vc * len(self.epitopes)
+            assert dpevc.shape == (n_vce,)
+            # Stack then transpose C X E binary_variants to multiply dpvce
+            # Stacking should be fast: https://stackoverflow.com/a/45990096
+            # Note after transpose this yields CSC matrix
+            stacked_binary_variants = scipy.sparse.vstack(
+                    [bmap.binary_variants] * len(cs) * len(self.epitopes)
+                    ).transpose()
+            assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
+            dpevc_dbeta = stacked_binary_variants.multiply(
+                        numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce)))
+            assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
+            # in params, betas sorted first by mutation, then by epitope;
+            # dpevc_dbeta sorted by concentration, then variant, then epitope
+            dpvc_dbetaparams = dpevc_dbeta.reshape(
+                                    bmap.binarylength * len(self.epitopes),
+                                    n_vc)
+            print(type(dpvc_dbetaparams))
+            return p_vc, dpvc_da, dpvc_dbetaparams
         return p_vc
 
     def _get_binarymap(self,
