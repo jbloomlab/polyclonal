@@ -402,8 +402,8 @@ class Polyclonal:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(reg_siteavg=(0.001, 'PseudoHuber', 1),
-    ...                         reg_sitespread=(0.01, 'PseudoHuber', 1))
+    ...     opt_res = model.fit(reg_siteavg_weight=0,
+    ...                         reg_sitespread_weight=0)
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -979,7 +979,7 @@ class Polyclonal:
                           )
 
     @staticmethod
-    def _scaled_pseudo_huber(delta, r, calc_grad):
+    def _scaled_pseudo_huber(delta, r, calc_grad=False):
         r"""Compute scaled Pseudo-Huber loss (and potentially its gradient).
 
         :math:`h = \delta \left(\sqrt{1+\left(r/\delta\right)^2} - 1\right)`;
@@ -1018,7 +1018,7 @@ class Polyclonal:
             dh = None
         return h, dh
 
-    DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
+    DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
              'options': {'maxfun': 1e7,
                          'ftol': 1e-7,
@@ -1028,12 +1028,14 @@ class Polyclonal:
 
     def fit(self,
             *,
-            loss_type=('PseudoHuber', 0.1),
-            reg_siteavg=(0.25, 'PseudoHuber', 1),
-            reg_sitespread=(1, 'PseudoHuber', 1),
+            loss_delta=0.1,
+            reg_siteavg_weight=0.25,
+            reg_siteavg_delta=1,
+            reg_sitespread_weight=1,
+            reg_sitespread_delta=1,
             fit_site_level_first=True,
-            method='scipy_minimize',
-            scipy_minimize_kwargs=DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
+            scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
+            log=None,
             verbosity=0,
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
@@ -1045,35 +1047,47 @@ class Polyclonal:
 
         Parameters
         ----------
-        loss_type : {('PseudoHuber', delta), 'L2'}
-            Minimize difference between actual and model-predicted
-            :math:`p_v\left(c\right)` using PseudoHuber or L2 loss.
-        reg_siteavg : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
-            Regularize with strength `lambda` the mean of PseudoHuber, or L2
-            of :math:`\beta_{m,e}` escape values at each site.
-        reg_sitespread : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
-            Regularize with strength `lambda` the standard deviation of the
+        loss_delta : float
+            Pseudo-Huber :math:`\delta` parameter for loss on
+            :math:`p_v\left(c\right)` fitting.
+        reg_siteavg_weight : float
+            Strength of regularization on mean of Pseudo-Huber
             :math:`\beta_{m,e}` escape values at each site.
+        reg_siteavg_delta : float
+            Pseudo-Huber :math:`\delta` for mean escape at each site.
+        reg_sitespread_weight : float
+            Strength of regularization on Pseudo-Huber of standard deviation of
+            :math:`\beta_{m,e}` escape values at each site.
+        reg_sitespread_delta : float
+            Pseudo-Huber :math:`\delta` for escape spread at each site.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
-        method : {'scipy_minimize'}
-            Approach used for fitting.
         scipy_minimize_kwargs : dict
             Keyword arguments passed to ``scipy.optimize.minimize``.
+        log : None or writable file-like object
+            Where to log output if ``verbosity > 0``. If ``None``, use
+            ``sys.stdout``.
         verbosity : {0, 1, 2}
-            How much information to print to standard output.
+            How much information to write to ``log``.
 
         Return
         ------
         scipy.optimize.OptimizeResult
-            Return value depends on ``method``.
 
         """
+        if self.data_to_fit is None:
+            raise ValueError('cannot fit if `data_to_fit` not set')
+
+        if log is None:
+            log = sys.stdout
+
+        self._check_close_activities()
+
         if fit_site_level_first:
             if verbosity:
-                print('First fitting site-level model.')  # noqa: T001
-                sys.stdout.flush()
+                log.write('First fitting site-level model.')
+                log.flush()
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
             keys, _, _, values = inspect.getargvalues(myframe)
@@ -1094,111 +1108,79 @@ class Polyclonal:
                             ),
                     )
 
-        if self.data_to_fit is None:
-            raise ValueError('cannot fit if `data_to_fit` not set')
+        def _loss_func(params):
+            # loss on pvs
+            pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
+                                            self._binarymaps, self._cs)
+            assert pred_pvs.shape == self._pvs.shape
+            pvs_residuals = self._pvs - pred_pvs
+            loss = self._scaled_pseudo_huber(loss_delta, pvs_residuals)[0]
+            if self._weights is None:
+                loss = loss.sum()
+            else:
+                assert loss.shape == self._weights.shape
+                loss = (self._weights * loss).sum()
+            # regularize mean site betas for each epitope
+            a, beta = self._a_beta_from_params(params)
+            if reg_siteavg_weight > 0:
+                mut_terms = self._scaled_pseudo_huber(reg_siteavg_delta,
+                                                      beta)[0]
+                for sitemask in self._binary_sites.values():
+                    # get terms for each site with mask, take mean within
+                    # epitopes, then sum across epitopes
+                    loss += (reg_siteavg_weight *
+                             mut_terms[sitemask].mean(axis=0).sum())
+            elif reg_siteavg_weight < 0:
+                raise ValueError('`reg_sitespread_weight` must be >= 0')
+            # regularize spread (std dev) of betas at each site / epitope
+            if reg_sitespread_weight > 0:
+                sds = []
+                for sitemask in self._binary_sites.values():
+                    sds.append(numpy.std(beta[sitemask], axis=0))
+                sds = numpy.concatenate(sds)
+                loss += reg_sitespread_weight * self._scaled_pseudo_huber(
+                                            reg_sitespread_delta, sds)[0].sum()
+            elif reg_sitespread_weight < 0:
+                raise ValueError('`reg_sitespread_weight` must be >= 0')
+            # return final loss
+            return loss
 
-        self._check_close_activities()
+        if verbosity:
+            log.write(f"Starting optimization of {len(self._params)} "
+                      f"parameters at {time.asctime()}.\n"
+                      f"Initial loss: {_loss_func(self._params):.7g}")
+            log.flush()
 
-        if method == 'scipy_minimize':
-            def scaled_pseudo_huber(delta, r):
-                # scale PseudoHuber so slope is one
-                if delta <= 0:
-                    raise ValueError('PseudoHuber delta must be > 0')
-                return scipy.special.pseudo_huber(delta, r) / delta
+            class Callback:
+                # to log minimization
+                def __init__(self, interval=5):
+                    self.interval = interval
+                    self.i = 0
 
-            def _loss_func(params):
-                # loss on pvs
-                pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
-                                                self._binarymaps, self._cs)
-                assert pred_pvs.shape == self._pvs.shape
-                pvs_residuals = self._pvs - pred_pvs
-                if loss_type == 'L2':
-                    loss = (pvs_residuals)**2
-                elif loss_type[0] == 'PseudoHuber' and len(loss_type) == 2:
-                    loss = scaled_pseudo_huber(loss_type[1], pvs_residuals)
-                else:
-                    raise ValueError(f"invalid {loss_type=}")
-                if self._weights is None:
-                    loss = loss.sum()
-                else:
-                    assert loss.shape == self._weights.shape
-                    loss = (self._weights * loss).sum()
-                # regularize mean site betas for each epitope
-                a, beta = self._a_beta_from_params(params)
-                reg_siteavg_lambda = reg_siteavg[0]
-                if reg_siteavg_lambda > 0:
-                    if reg_siteavg[1] == 'L2' and len(reg_siteavg) == 2:
-                        mut_terms = beta**2
-                    elif reg_siteavg[1] == 'PseudoHuber' and (len(reg_siteavg)
-                                                              == 3):
-                        mut_terms = scaled_pseudo_huber(reg_siteavg[2], beta)
-                    else:
-                        raise ValueError(f"invalid {reg_siteavg=}")
-                    for sitemask in self._binary_sites.values():
-                        # get terms for each site with mask, take mean within
-                        # epitopes, then sum across epitopes
-                        loss += (reg_siteavg_lambda *
-                                 mut_terms[sitemask].mean(axis=0).sum())
-                elif reg_siteavg_lambda != 0:
-                    raise ValueError(f"invalid {reg_siteavg=}")
-                # regularize spread (std dev) of betas at each site / epitope
-                reg_sitespread_lambda = reg_sitespread[0]
-                if reg_sitespread_lambda > 0:
-                    sds = []
-                    for sitemask in self._binary_sites.values():
-                        sds.append(numpy.std(beta[sitemask], axis=0))
-                    sds = numpy.concatenate(sds)
-                    if reg_sitespread[1] == 'L2' and len(reg_sitespread) == 2:
-                        loss += reg_sitespread_lambda * (sds**2).sum()
-                    elif reg_sitespread[1] == 'PseudoHuber':
-                        if len(reg_sitespread) != 3:
-                            raise ValueError(f"invalid {reg_sitespread=}")
-                        loss += reg_sitespread_lambda * scaled_pseudo_huber(
-                                                reg_sitespread[2], sds).sum()
-                    else:
-                        raise ValueError(f"invalid {reg_sitespread=}")
-                elif reg_sitespread_lambda != 0:
-                    raise ValueError(f"invalid {reg_sitespread=}")
-                return loss
-
-            if verbosity:
-                print('Starting scipy optimization of '  # noqa: T001
-                      f"{len(self._params)} parameters at {time.asctime()}.\n"
-                      f"Initial loss function: {_loss_func(self._params):.7g}")
-                sys.stdout.flush()
-
-                class Callback:
-                    def __init__(self, interval=5):
-                        self.interval = interval
-                        self.i = 0
-
-                    def callback(self, params):
-                        if self.i % self.interval == 0:
-                            print(f"Step {self.i + 1}: loss="  # noqa: T001
+                def callback(self, params):
+                    if self.i % self.interval == 0:
+                        log.write(f"Step {self.i + 1}: loss="
                                   f"{_loss_func(params):.7g} at "
                                   f"{time.asctime()}")
-                            sys.stdout.flush()
-                        self.i += 1
+                        log.flush()
+                    self.i += 1
 
-                scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
-                interval = 1 if verbosity > 1 else 10
-                scipy_minimize_kwargs['callback'] = Callback(interval).callback
+            scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
+            interval = 1 if verbosity > 1 else 10
+            scipy_minimize_kwargs['callback'] = Callback(interval).callback
 
-            opt_res = scipy.optimize.minimize(fun=_loss_func,
-                                              x0=self._params,
-                                              **scipy_minimize_kwargs,
-                                              )
-            self._params = opt_res.x
-            if verbosity:
-                print(f"Optimization done at {time.asctime()}.\n"  # noqa: T001
-                      f"Loss function is {_loss_func(self._params):.7g}")
-                sys.stdout.flush()
-            if not opt_res.success:
-                raise RuntimeError(f"Optimization failed:\n{opt_res}")
-            return opt_res
-
-        else:
-            raise ValueError(f"invalid {method=}")
+        opt_res = scipy.optimize.minimize(fun=_loss_func,
+                                          x0=self._params,
+                                          **scipy_minimize_kwargs,
+                                          )
+        self._params = opt_res.x
+        if verbosity:
+            log.write(f"Optimization done at {time.asctime()}.\n"
+                      f"Loss is {_loss_func(self._params):.7g}")
+            log.flush()
+        if not opt_res.success:
+            raise RuntimeError(f"Optimization failed:\n{opt_res}")
+        return opt_res
 
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
