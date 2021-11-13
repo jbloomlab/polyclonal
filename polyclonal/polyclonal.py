@@ -1018,9 +1018,31 @@ class Polyclonal:
             dh = None
         return h, dh
 
+    def _loss_dloss(self, params, delta):
+        r"""Loss on :math:`p_v\left(c\right)` and derivative wrt params."""
+        pred_pvs, dpred_pvs_dparams = self._compute_1d_pvs(
+                        params, self._one_binarymap, self._binarymaps,
+                        self._cs, calc_grad=True)
+        assert pred_pvs.shape == self._pvs.shape
+        assert dpred_pvs_dparams.shape == (len(params), len(self._pvs))
+        assert type(dpred_pvs_dparams) == scipy.sparse.csr_matrix
+        residuals = pred_pvs - self._pvs
+        loss, dloss_dr = self._scaled_pseudo_huber(delta, residuals, True)
+        assert loss.shape == dloss_dr.shape == self._pvs.shape
+        if self._weights is None:
+            loss = loss.sum()
+        else:
+            assert loss.shape == self._weights.shape == dloss_dr.shape
+            loss = (self._weights * loss).sum()
+            dloss_dr = dloss_dr * self._weights
+        dloss_dparams = dpred_pvs_dparams.dot(dloss_dr)
+        assert dloss_dparams.shape == params.shape
+        assert type(dloss_dparams) == numpy.ndarray
+        return (loss, dloss_dparams)
+
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
-             'options': {'maxfun': 1e7,
+             'options': {'maxfun': 1e6,
                          'ftol': 1e-7,
                          },
              })
@@ -1108,21 +1130,13 @@ class Polyclonal:
                             ),
                     )
 
-        def _loss_func(params):
+        def _loss_reg_and_grad(params):
             # loss on pvs
-            pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
-                                            self._binarymaps, self._cs)
-            assert pred_pvs.shape == self._pvs.shape
-            pvs_residuals = self._pvs - pred_pvs
-            loss = self._scaled_pseudo_huber(loss_delta, pvs_residuals)[0]
-            if self._weights is None:
-                loss = loss.sum()
-            else:
-                assert loss.shape == self._weights.shape
-                loss = (self._weights * loss).sum()
+            loss, dloss = self._loss_dloss(params, loss_delta)
             # regularize mean site betas for each epitope
             a, beta = self._a_beta_from_params(params)
             if reg_siteavg_weight > 0:
+                raise NotImplementedError
                 mut_terms = self._scaled_pseudo_huber(reg_siteavg_delta,
                                                       beta)[0]
                 for sitemask in self._binary_sites.values():
@@ -1134,6 +1148,7 @@ class Polyclonal:
                 raise ValueError('`reg_sitespread_weight` must be >= 0')
             # regularize spread (std dev) of betas at each site / epitope
             if reg_sitespread_weight > 0:
+                raise NotImplementedError
                 sds = []
                 for sitemask in self._binary_sites.values():
                     sds.append(numpy.std(beta[sitemask], axis=0))
@@ -1142,13 +1157,13 @@ class Polyclonal:
                                             reg_sitespread_delta, sds)[0].sum()
             elif reg_sitespread_weight < 0:
                 raise ValueError('`reg_sitespread_weight` must be >= 0')
-            # return final loss
-            return loss
+            # return final loss and gradient
+            return (loss, dloss)
 
         if verbosity:
             log.write(f"Starting optimization of {len(self._params)} "
-                      f"parameters at {time.asctime()}.\n"
-                      f"Initial loss: {_loss_func(self._params):.7g}")
+                      f"parameters at {time.asctime()}.\n Initial "
+                      f"loss: {_loss_reg_and_grad(self._params)[0]:.7g}")
             log.flush()
 
             class Callback:
@@ -1160,7 +1175,7 @@ class Polyclonal:
                 def callback(self, params):
                     if self.i % self.interval == 0:
                         log.write(f"Step {self.i + 1}: loss="
-                                  f"{_loss_func(params):.7g} at "
+                                  f"{_loss_reg_and_grad(params):.7g} at "
                                   f"{time.asctime()}")
                         log.flush()
                     self.i += 1
@@ -1169,14 +1184,15 @@ class Polyclonal:
             interval = 1 if verbosity > 1 else 10
             scipy_minimize_kwargs['callback'] = Callback(interval).callback
 
-        opt_res = scipy.optimize.minimize(fun=_loss_func,
+        opt_res = scipy.optimize.minimize(fun=_loss_reg_and_grad,
                                           x0=self._params,
+                                          jac=True,
                                           **scipy_minimize_kwargs,
                                           )
         self._params = opt_res.x
         if verbosity:
             log.write(f"Optimization done at {time.asctime()}.\n"
-                      f"Loss is {_loss_func(self._params):.7g}")
+                      f"Loss is {_loss_reg_and_grad(self._params):.7g}")
             log.flush()
         if not opt_res.success:
             raise RuntimeError(f"Optimization failed:\n{opt_res}")
