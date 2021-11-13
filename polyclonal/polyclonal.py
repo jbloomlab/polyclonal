@@ -1108,7 +1108,7 @@ class Polyclonal:
 
         if fit_site_level_first:
             if verbosity:
-                log.write('First fitting site-level model.')
+                log.write('First fitting site-level model.\n')
                 log.flush()
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
@@ -1130,7 +1130,11 @@ class Polyclonal:
                             ),
                     )
 
-        def _loss_reg_and_grad(params):
+        last_loss_reg = last_params = None  # cache last call for callback
+
+        def _loss_reg(params):
+            if (last_params is not None) and (params == last_params).all():
+                return last_loss_reg  # noqa: F823
             # loss on pvs
             loss, dloss = self._loss_dloss(params, loss_delta)
             # regularize mean site betas for each epitope
@@ -1158,12 +1162,13 @@ class Polyclonal:
             elif reg_sitespread_weight < 0:
                 raise ValueError('`reg_sitespread_weight` must be >= 0')
             # return final loss and gradient
-            return (loss, dloss)
+            last_loss_reg = (loss, dloss)
+            return last_loss_reg
 
         if verbosity:
             log.write(f"Starting optimization of {len(self._params)} "
                       f"parameters at {time.asctime()}.\n Initial "
-                      f"loss: {_loss_reg_and_grad(self._params)[0]:.7g}")
+                      f"loss: {_loss_reg(self._params)[0]:.7g}\n")
             log.flush()
 
             class Callback:
@@ -1175,8 +1180,8 @@ class Polyclonal:
                 def callback(self, params):
                     if self.i % self.interval == 0:
                         log.write(f"Step {self.i + 1}: loss="
-                                  f"{_loss_reg_and_grad(params):.7g} at "
-                                  f"{time.asctime()}")
+                                  f"{_loss_reg(params)[0]:.7g} at "
+                                  f"{time.asctime()}\n")
                         log.flush()
                     self.i += 1
 
@@ -1184,7 +1189,7 @@ class Polyclonal:
             interval = 1 if verbosity > 1 else 10
             scipy_minimize_kwargs['callback'] = Callback(interval).callback
 
-        opt_res = scipy.optimize.minimize(fun=_loss_reg_and_grad,
+        opt_res = scipy.optimize.minimize(fun=_loss_reg,
                                           x0=self._params,
                                           jac=True,
                                           **scipy_minimize_kwargs,
@@ -1192,7 +1197,7 @@ class Polyclonal:
         self._params = opt_res.x
         if verbosity:
             log.write(f"Optimization done at {time.asctime()}.\n"
-                      f"Loss is {_loss_reg_and_grad(self._params):.7g}")
+                      f"Loss is {_loss_reg(self._params)[0]:.7g}\n")
             log.flush()
         if not opt_res.success:
             raise RuntimeError(f"Optimization failed:\n{opt_res}")
