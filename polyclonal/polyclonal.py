@@ -340,9 +340,10 @@ class Polyclonal:
     6  epitope 2     4        A      K      A4K     0.0
     7  epitope 2     4        A      L      A4L     0.0
 
-    You can initialize to random numbers by setting ``init_missing`` to seed:
+    You can initialize to random numbers by setting ``init_missing`` to seed
+    (in this example we also don't include all variants for one concentration):
 
-    >>> polyclonal_data2 = Polyclonal(data_to_fit=data_to_fit,
+    >>> polyclonal_data2 = Polyclonal(data_to_fit=data_to_fit.head(30),
     ...                               n_epitopes=2,
     ...                               init_missing=1,
     ...                               )
@@ -1324,22 +1325,48 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs):
+    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs,
+                        calc_grad=False):
         r"""Get 1D raveled array of :math:`p_v\left(c\right)` values.
 
         Differs from :meth:`Polyclonal._compute_pv` in that it works if just
         one or multiple BinaryMap objects.
 
+        If `calc_grad` is `True`, also returns `scipy.sparse.csr_matrix`
+        of gradient as described in :meth:`Polyclonal._compute_pv`.
+
         """
         if one_binarymap:
-            p_v_c = self._compute_pv(params, binarymaps, cs)
-            assert p_v_c.shape == (binarymaps.nvariants * len(cs),)
-            return p_v_c
+            tup = self._compute_pv(params, binarymaps, cs, calc_grad=calc_grad)
+            p_vc = tup[0] if calc_grad else tup
+            n_vc = binarymaps.nvariants * len(cs)
+            assert p_vc.shape == (n_vc,), f"{p_vc.shape=}, {n_vc=}"
+            if calc_grad:
+                dpvc_dparams = tup[1]
+                assert dpvc_dparams.shape == (len(params), n_vc)
+                return (p_vc, dpvc_dparams)
+            else:
+                return p_vc
         else:
             assert len(cs) == len(binarymaps)
-            return numpy.concatenate(
-                    [self._compute_pv(params, bmap, numpy.array([c]))
-                     for c, bmap in zip(cs, binarymaps)])
+            p_vc = []
+            dpvc_dparams = []
+            n_vc = 0
+            for c, bmap in zip(cs, binarymaps):
+                n_vc += bmap.nvariants
+                tup = self._compute_pv(params, bmap, numpy.array([c]),
+                                       calc_grad=calc_grad)
+                p_vc.append(tup[0] if calc_grad else tup)
+                if calc_grad:
+                    dpvc_dparams.append(tup[1])
+            p_vc = numpy.concatenate(p_vc)
+            assert p_vc.shape == (n_vc,)
+            if calc_grad:
+                dpvc_dparams = scipy.sparse.hstack(dpvc_dparams).tocsr()
+                assert dpvc_dparams.shape == (len(params), n_vc)
+                return (p_vc, dpvc_dparams)
+            else:
+                return p_vc
 
     def _compute_pv(self, params, bmap, cs, calc_grad=False):
         r"""Compute :math:`p_v\left(c\right)` and its derivative.
