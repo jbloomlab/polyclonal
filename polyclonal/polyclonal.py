@@ -403,7 +403,7 @@ class Polyclonal:
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
     ...     opt_res = model.fit(reg_escape_weight=0.001,
-    ...                         reg_sitespread_weight=0)
+    ...                         reg_spread_weight=0.001)
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -645,8 +645,8 @@ class Polyclonal:
                 binary_sites = self._binarymaps[0].binary_sites
                 assert all((binary_sites == bmap.binary_sites).all()
                            for bmap in self._binarymaps)
-            self._binary_sites = {site: (binary_sites) == site for
-                                  site in numpy.unique(binary_sites)}
+            self._binary_sites = {site: numpy.where(binary_sites == site)
+                                  for site in numpy.unique(binary_sites)}
         else:
             self.data_to_fit = None
 
@@ -1041,7 +1041,7 @@ class Polyclonal:
         return (loss, dloss_dparams)
 
     def _reg_escape(self, params, weight, delta):
-        """Regularization on site escape and its derivative."""
+        """Regularization on escape and its gradient."""
         if weight == 0:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
@@ -1055,6 +1055,34 @@ class Polyclonal:
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         assert reg >= 0
+        return reg, dreg
+
+    def _reg_spread(self, params, weight):
+        """Regularization on spread of escape at each site and its gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for spread regularization not >= 0")
+        _, beta = self._a_beta_from_params(params)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        reg = 0
+        dreg = numpy.zeros(beta.shape)
+        for siteindex in self._binary_sites.values():
+            sitebetas = beta[siteindex]
+            mi = sitebetas.shape[0]
+            assert sitebetas.shape == (mi, len(self.epitopes))
+            sitemeans = sitebetas.mean(axis=0)
+            assert sitemeans.shape == (len(self.epitopes),)
+            beta_minus_mean = sitebetas - sitemeans
+            reg += weight * (beta_minus_mean**2).mean(axis=0).sum()
+            dreg_site = 2 * weight * (mi - 1) / (mi**2) * beta_minus_mean
+            assert dreg_site.shape == (mi, len(self.epitopes))
+            dreg[siteindex] += dreg_site
+        assert reg >= 0
+        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)),
+                                  dreg.ravel()])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
         return reg, dreg
 
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
@@ -1071,8 +1099,7 @@ class Polyclonal:
             loss_delta=0.1,
             reg_escape_weight=0.05,
             reg_escape_delta=0.5,
-            reg_sitespread_weight=0,
-            reg_sitespread_delta=1,
+            reg_spread_weight=0.05,
             fit_site_level_first=True,
             scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
             log=None,
@@ -1094,11 +1121,9 @@ class Polyclonal:
             Strength of Pseudo-Huber regularization on :math:`\beta_{m,e}`.
         reg_escape_delta : float
             Pseudo-Huber :math:`\delta` for regularizing :math:`\beta_{m,e}`.
-        reg_sitespread_weight : float
-            Strength of regularization on Pseudo-Huber of standard deviation of
-            :math:`\beta_{m,e}` escape values at each site.
-        reg_sitespread_delta : float
-            Pseudo-Huber :math:`\delta` for escape spread at each site.
+        reg_spread_weight : float
+            Strength of regularization on variance of :math:`\beta_{m,e}`
+            values at each site.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
@@ -1158,18 +1183,8 @@ class Polyclonal:
                                                        reg_escape_delta)
             loss += reg_escape
             dloss += dreg_escape
-            # regularize spread (std dev) of betas at each site / epitope
-            if reg_sitespread_weight > 0:
-                raise NotImplementedError
-                sds = []
-                for sitemask in self._binary_sites.values():
-                    sds.append(numpy.std(beta[sitemask], axis=0))
-                sds = numpy.concatenate(sds)
-                loss += reg_sitespread_weight * self._scaled_pseudo_huber(
-                                            reg_sitespread_delta, sds)[0].sum()
-            elif reg_sitespread_weight < 0:
-                raise ValueError('`reg_sitespread_weight` must be >= 0')
-            # return final loss and gradient
+            reg_spread, dreg_spread = self._reg_spread(params,
+                                                       reg_spread_weight)
             last_loss_reg = (loss, dloss)
             return last_loss_reg
 
