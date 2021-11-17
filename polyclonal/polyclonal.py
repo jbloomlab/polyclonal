@@ -402,7 +402,7 @@ class Polyclonal:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(reg_siteavg_weight=0,
+    ...     opt_res = model.fit(reg_escape_weight=0.001,
     ...                         reg_sitespread_weight=0)
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
@@ -1040,6 +1040,23 @@ class Polyclonal:
         assert type(dloss_dparams) == numpy.ndarray
         return (loss, dloss_dparams)
 
+    def _reg_escape(self, params, weight, delta):
+        """Regularization on site escape and its derivative."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for escape regularization not >= 0")
+        _, beta = self._a_beta_from_params(params)
+        h, dh = self._scaled_pseudo_huber(delta, beta, True)
+        reg = h.sum() * weight
+        assert dh.shape == beta.shape
+        dreg = weight * numpy.concatenate([numpy.zeros(len(self.epitopes)),
+                                           dh.ravel()])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        assert reg >= 0
+        return reg, dreg
+
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
              'options': {'maxfun': 1e7,
@@ -1052,9 +1069,9 @@ class Polyclonal:
     def fit(self,
             *,
             loss_delta=0.1,
-            reg_siteavg_weight=0.25,
-            reg_siteavg_delta=1,
-            reg_sitespread_weight=1,
+            reg_escape_weight=0.05,
+            reg_escape_delta=0.5,
+            reg_sitespread_weight=0,
             reg_sitespread_delta=1,
             fit_site_level_first=True,
             scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
@@ -1073,11 +1090,10 @@ class Polyclonal:
         loss_delta : float
             Pseudo-Huber :math:`\delta` parameter for loss on
             :math:`p_v\left(c\right)` fitting.
-        reg_siteavg_weight : float
-            Strength of regularization on mean of Pseudo-Huber
-            :math:`\beta_{m,e}` escape values at each site.
-        reg_siteavg_delta : float
-            Pseudo-Huber :math:`\delta` for mean escape at each site.
+        reg_escape_weight : float
+            Strength of Pseudo-Huber regularization on :math:`\beta_{m,e}`.
+        reg_escape_delta : float
+            Pseudo-Huber :math:`\delta` for regularizing :math:`\beta_{m,e}`.
         reg_sitespread_weight : float
             Strength of regularization on Pseudo-Huber of standard deviation of
             :math:`\beta_{m,e}` escape values at each site.
@@ -1136,21 +1152,12 @@ class Polyclonal:
         def _loss_reg(params):
             if (last_params is not None) and (params == last_params).all():
                 return last_loss_reg  # noqa: F823
-            # loss on pvs
             loss, dloss = self._loss_dloss(params, loss_delta)
-            # regularize mean site betas for each epitope
-            a, beta = self._a_beta_from_params(params)
-            if reg_siteavg_weight > 0:
-                raise NotImplementedError
-                mut_terms = self._scaled_pseudo_huber(reg_siteavg_delta,
-                                                      beta)[0]
-                for sitemask in self._binary_sites.values():
-                    # get terms for each site with mask, take mean within
-                    # epitopes, then sum across epitopes
-                    loss += (reg_siteavg_weight *
-                             mut_terms[sitemask].mean(axis=0).sum())
-            elif reg_siteavg_weight < 0:
-                raise ValueError('`reg_sitespread_weight` must be >= 0')
+            reg_escape, dreg_escape = self._reg_escape(params,
+                                                       reg_escape_weight,
+                                                       reg_escape_delta)
+            loss += reg_escape
+            dloss += dreg_escape
             # regularize spread (std dev) of betas at each site / epitope
             if reg_sitespread_weight > 0:
                 raise NotImplementedError
