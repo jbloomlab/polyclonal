@@ -1103,7 +1103,7 @@ class Polyclonal:
             fit_site_level_first=True,
             scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
             log=None,
-            verbosity=0,
+            logfreq=None,
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -1132,8 +1132,8 @@ class Polyclonal:
         log : None or writable file-like object
             Where to log output if ``verbosity > 0``. If ``None``, use
             ``sys.stdout``.
-        verbosity : {0, 1, 2}
-            How much information to write to ``log``.
+        logfreq : None or int
+            How frequently to write updates on fitting to ``log``.
 
         Return
         ------
@@ -1145,13 +1145,14 @@ class Polyclonal:
 
         if log is None:
             log = sys.stdout
+        if not (logfreq is None or (isinstance(logfreq, int) and logfreq > 0)):
+            raise ValueError(f"{logfreq=} not an integer > 0")
 
         self._check_close_activities()
 
         if fit_site_level_first:
-            if verbosity:
-                log.write('First fitting site-level model.\n')
-                log.flush()
+            if logfreq:
+                log.write('# First fitting site-level model.\n')
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
             keys, _, _, values = inspect.getargvalues(myframe)
@@ -1172,56 +1173,71 @@ class Polyclonal:
                             ),
                     )
 
-        last_loss_reg = last_params = None  # cache last call for callback
+        class LossReg:
+            # compute loss in class to remember last call
+            def __init__(self_):
+                self_.last_loss = None
+                self_.last_params = None
 
-        def _loss_reg(params):
-            if (last_params is not None) and (params == last_params).all():
-                return last_loss_reg  # noqa: F823
-            loss, dloss = self._loss_dloss(params, loss_delta)
-            reg_escape, dreg_escape = self._reg_escape(params,
-                                                       reg_escape_weight,
-                                                       reg_escape_delta)
-            loss += reg_escape
-            dloss += dreg_escape
-            reg_spread, dreg_spread = self._reg_spread(params,
-                                                       reg_spread_weight)
-            last_loss_reg = (loss, dloss)
-            return last_loss_reg
+            def loss_reg(self_, params, breakdown=False):
+                if (self_.last_params is None) or (params !=
+                                                   self_.last_params).any():
+                    fitloss, dfitloss = self._loss_dloss(params, loss_delta)
+                    regescape, dregescape = self._reg_escape(params,
+                                                             reg_escape_weight,
+                                                             reg_escape_delta)
+                    regspread, dregspread = self._reg_spread(params,
+                                                             reg_spread_weight)
+                    loss = fitloss + regescape + regspread
+                    dloss = dfitloss + dregescape + dregspread
+                    self_.last_params = params
+                    self_.last_loss = (loss, dloss, {'fit_loss': fitloss,
+                                                     'reg_escape': regescape,
+                                                     'regspread': regspread,
+                                                     })
+                return self_.last_loss if breakdown else self_.last_loss[: 2]
 
-        if verbosity:
-            log.write(f"Starting optimization of {len(self._params)} "
-                      f"parameters at {time.asctime()}.\n Initial "
-                      f"loss: {_loss_reg(self._params)[0]:.7g}\n")
-            log.flush()
+        lossreg = LossReg()
+
+        if logfreq:
+            log.write(f"# Starting optimization of {len(self._params)} "
+                      f"parameters at {time.asctime()}.\n")
 
             class Callback:
                 # to log minimization
-                def __init__(self, interval=5):
-                    self.interval = interval
-                    self.i = 0
+                def __init__(self_, interval, start):
+                    self_.interval = interval
+                    self_.i = 0
+                    self_.start = start
 
-                def callback(self, params):
-                    if self.i % self.interval == 0:
-                        log.write(f"Step {self.i + 1}: loss="
-                                  f"{_loss_reg(params)[0]:.7g} at "
-                                  f"{time.asctime()}\n")
+                def callback(self_, params, header=False):
+                    if self_.i % self_.interval == 0:
+                        loss, _, breakdown = lossreg.loss_reg(params, True)
+                        if header:
+                            cols = ['step', 'time_sec', 'loss', 'fit_loss',
+                                    *breakdown.keys()]
+                            log.write('\t'.join(cols) + '\n')
+                        sec = time.time() - self_.start
+                        log.write(f"{self_.i}\t{sec:.1f}\t{loss:.3f}\t" +
+                                  '\t'.join(f"{x:.3f}" for x
+                                            in breakdown.values()) +
+                                  '\n')
                         log.flush()
-                    self.i += 1
+                    self_.i += 1
 
             scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
-            interval = 1 if verbosity > 1 else 10
-            scipy_minimize_kwargs['callback'] = Callback(interval).callback
+            callback_logger = Callback(logfreq, time.time())
+            callback_logger.callback(self._params, header=True)
+            scipy_minimize_kwargs['callback'] = callback_logger.callback
 
-        opt_res = scipy.optimize.minimize(fun=_loss_reg,
+        opt_res = scipy.optimize.minimize(fun=lossreg.loss_reg,
                                           x0=self._params,
                                           jac=True,
                                           **scipy_minimize_kwargs,
                                           )
         self._params = opt_res.x
-        if verbosity:
-            log.write(f"Optimization done at {time.asctime()}.\n"
-                      f"Loss is {_loss_reg(self._params)[0]:.7g}\n")
-            log.flush()
+        if logfreq:
+            callback_logger.callback(self._params)
         if not opt_res.success:
             raise RuntimeError(f"Optimization failed:\n{opt_res}")
         return opt_res
