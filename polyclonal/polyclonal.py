@@ -326,19 +326,19 @@ class Polyclonal:
     are all initialized to zero:
 
     >>> polyclonal_data.activity_wt_df
-         epitope  activity
-    0  epitope 1       1.0
-    1  epitope 2       0.0
+      epitope  activity
+    0       1       1.0
+    1       2       0.0
     >>> polyclonal_data.mut_escape_df
-         epitope  site wildtype mutant mutation  escape
-    0  epitope 1     1        M      C      M1C     0.0
-    1  epitope 1     2        G      A      G2A     0.0
-    2  epitope 1     4        A      K      A4K     0.0
-    3  epitope 1     4        A      L      A4L     0.0
-    4  epitope 2     1        M      C      M1C     0.0
-    5  epitope 2     2        G      A      G2A     0.0
-    6  epitope 2     4        A      K      A4K     0.0
-    7  epitope 2     4        A      L      A4L     0.0
+      epitope  site wildtype mutant mutation  escape
+    0       1     1        M      C      M1C     0.0
+    1       1     2        G      A      G2A     0.0
+    2       1     4        A      K      A4K     0.0
+    3       1     4        A      L      A4L     0.0
+    4       2     1        M      C      M1C     0.0
+    5       2     2        G      A      G2A     0.0
+    6       2     4        A      K      A4K     0.0
+    7       2     4        A      L      A4L     0.0
 
     You can initialize to random numbers by setting ``init_missing`` to seed
     (in this example we also don't include all variants for one concentration):
@@ -348,9 +348,9 @@ class Polyclonal:
     ...                               init_missing=1,
     ...                               )
     >>> polyclonal_data2.activity_wt_df.round(3)
-         epitope  activity
-    0  epitope 1     0.417
-    1  epitope 2     0.720
+      epitope  activity
+    0       1     0.417
+    1       2     0.720
 
     You can set some or all mutation escapes to initial values:
 
@@ -501,7 +501,7 @@ class Polyclonal:
             if not isinstance(n_epitopes, int) and n_epitopes > 0:
                 raise ValueError('`n_epitopes` must be int > 1 if no '
                                  '`activity_wt_df`')
-            self.epitopes = tuple(f"epitope {i + 1}" for
+            self.epitopes = tuple(f"{i + 1}" for
                                   i in range(n_epitopes))
 
             # initialize activities
@@ -1210,24 +1210,25 @@ class Polyclonal:
                     self_.i = 0
                     self_.start = start
 
-                def callback(self_, params, header=False):
-                    if self_.i % self_.interval == 0:
+                def callback(self_, params, header=False, force_output=False):
+                    if force_output or (self_.i % self_.interval == 0):
                         loss, _, breakdown = lossreg.loss_reg(params, True)
                         if header:
-                            cols = ['step', 'time_sec', 'loss', 'fit_loss',
+                            cols = ['step', 'time_sec', 'loss',
                                     *breakdown.keys()]
-                            log.write('\t'.join(cols) + '\n')
+                            log.write(''.join('{:>11}'.format(x) for x in cols)
+                                      + '\n')
                         sec = time.time() - self_.start
-                        log.write(f"{self_.i}\t{sec:.1f}\t{loss:.3f}\t" +
-                                  '\t'.join(f"{x:.3f}" for x
-                                            in breakdown.values()) +
-                                  '\n')
+                        log.write(''.join('{:>11.5g}'.format(x) for x in
+                                  [self_.i, sec, loss, *breakdown.values()])
+                                  + '\n')
                         log.flush()
                     self_.i += 1
 
             scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
             callback_logger = Callback(logfreq, time.time())
-            callback_logger.callback(self._params, header=True)
+            callback_logger.callback(self._params, header=True,
+                                     force_output=True)
             scipy_minimize_kwargs['callback'] = callback_logger.callback
 
         opt_res = scipy.optimize.minimize(fun=lossreg.loss_reg,
@@ -1237,8 +1238,10 @@ class Polyclonal:
                                           )
         self._params = opt_res.x
         if logfreq:
-            callback_logger.callback(self._params)
+            callback_logger.callback(self._params, force_output=True)
+            log.write(f"# Successfully finished at {time.asctime()}.\n")
         if not opt_res.success:
+            log.write(f"# Optimization FAILED at {time.asctime()}.\n")
             raise RuntimeError(f"Optimization failed:\n{opt_res}")
         return opt_res
 
