@@ -1,6 +1,7 @@
 """Test different optimization settingss."""
 
 
+import itertools
 import pickle
 import sys
 import time
@@ -10,15 +11,24 @@ import pandas as pd
 import polyclonal
 
 
+# define parameters to explore
+params_to_test = {
+    'noise': ['exact', 'noisy'],
+    'sitefirst': ['sitefirst', 'nosite'],
+    'collapse': ['collapsed', 'uncollapsed'],
+    'reg_escape_weight': [0, 0.01, 0.05, 0.25, 1],
+    'reg_spread_weight': [0, 0.01, 0.05, 0.25, 1],
+    }
+params_to_test_df = pd.DataFrame.from_records(
+                            list(itertools.product(*params_to_test.values())),
+                            columns=params_to_test,
+                            )
+paramspace = snakemake.utils.Paramspace(params_to_test_df)
+
+
 rule all:
     input:
-        expand("results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.csv",
-               noise=['exact', 'noisy'],
-               sitefirst=['sitefirst', 'nosite'],
-               collapse=['collapsed', 'uncollapsed'],
-               reg_siteavg=[0, 0.25, 0.5],
-               reg_sitespread=[0, 1, 2],
-               )
+        expand("results/opt_settings/{params}.csv", params=paramspace.instance_patterns)
 
 rule prep_variants_df:
     input: csv="../notebooks/RBD_variants_escape_{noise}.csv"
@@ -33,12 +43,11 @@ rule prep_variants_df:
 rule optimize:
     input: variants_df_csv=rules.prep_variants_df.output.csv
     output:
-        csv="results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.csv",
-        pickle="results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.pickle",
-    log: log="results/opt_settings/{noise}_{sitefirst}_{collapse}_regavg{reg_siteavg}_regspread{reg_sitespread}.log",
+        csv=f"results/opt_settings/{paramspace.wildcard_pattern}.csv",
+        pickle=f"results/opt_settings/{paramspace.wildcard_pattern}.pickle",
+    log: log=f"results/opt_settings/{paramspace.wildcard_pattern}.log",
     run:
         with open(log.log, 'w') as f:
-            sys.stdout = f
             variants_df = pd.read_csv(input.variants_df_csv, na_filter=None)
             poly_abs = polyclonal.Polyclonal(
                     data_to_fit=variants_df,
@@ -61,9 +70,10 @@ rule optimize:
                     )
             start_time = time.time()
             opt_res = poly_abs.fit(
-                    reg_siteavg=(float(wildcards.reg_siteavg), 'PseudoHuber', 1),
-                    reg_sitespread=(float(wildcards.reg_sitespread), 'PseudoHuber', 1),
-                    verbosity=1,
+                    reg_escape_weight=float(wildcards.reg_escape_weight),
+                    reg_spread_weight=float(wildcards.reg_spread_weight),
+                    log=f,
+                    logfreq=5,
                     fit_site_level_first=True if wildcards.sitefirst == 'sitefirst' else False,
                     )
             elapsed_time = time.time() - start_time
