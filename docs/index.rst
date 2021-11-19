@@ -21,6 +21,7 @@ Contents
    biophysical_model
    visualize_RBD
    simulate_RBD
+   fit_RBD
    polyclonal
    package_index
    acknowledgments
