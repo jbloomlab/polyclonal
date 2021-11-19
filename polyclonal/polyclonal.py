@@ -326,30 +326,31 @@ class Polyclonal:
     are all initialized to zero:
 
     >>> polyclonal_data.activity_wt_df
-         epitope  activity
-    0  epitope 1       1.0
-    1  epitope 2       0.0
+      epitope  activity
+    0       1       1.0
+    1       2       0.0
     >>> polyclonal_data.mut_escape_df
-         epitope  site wildtype mutant mutation  escape
-    0  epitope 1     1        M      C      M1C     0.0
-    1  epitope 1     2        G      A      G2A     0.0
-    2  epitope 1     4        A      K      A4K     0.0
-    3  epitope 1     4        A      L      A4L     0.0
-    4  epitope 2     1        M      C      M1C     0.0
-    5  epitope 2     2        G      A      G2A     0.0
-    6  epitope 2     4        A      K      A4K     0.0
-    7  epitope 2     4        A      L      A4L     0.0
+      epitope  site wildtype mutant mutation  escape
+    0       1     1        M      C      M1C     0.0
+    1       1     2        G      A      G2A     0.0
+    2       1     4        A      K      A4K     0.0
+    3       1     4        A      L      A4L     0.0
+    4       2     1        M      C      M1C     0.0
+    5       2     2        G      A      G2A     0.0
+    6       2     4        A      K      A4K     0.0
+    7       2     4        A      L      A4L     0.0
 
-    You can initialize to random numbers by setting ``init_missing`` to seed:
+    You can initialize to random numbers by setting ``init_missing`` to seed
+    (in this example we also don't include all variants for one concentration):
 
-    >>> polyclonal_data2 = Polyclonal(data_to_fit=data_to_fit,
+    >>> polyclonal_data2 = Polyclonal(data_to_fit=data_to_fit.head(30),
     ...                               n_epitopes=2,
     ...                               init_missing=1,
     ...                               )
     >>> polyclonal_data2.activity_wt_df.round(3)
-         epitope  activity
-    0  epitope 1     0.417
-    1  epitope 2     0.720
+      epitope  activity
+    0       1     0.417
+    1       2     0.720
 
     You can set some or all mutation escapes to initial values:
 
@@ -401,8 +402,8 @@ class Polyclonal:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(reg_siteavg=(0.001, 'PseudoHuber', 1),
-    ...                         reg_sitespread=(0.01, 'PseudoHuber', 1))
+    ...     opt_res = model.fit(reg_escape_weight=0.001,
+    ...                         reg_spread_weight=0.001)
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -500,7 +501,7 @@ class Polyclonal:
             if not isinstance(n_epitopes, int) and n_epitopes > 0:
                 raise ValueError('`n_epitopes` must be int > 1 if no '
                                  '`activity_wt_df`')
-            self.epitopes = tuple(f"epitope {i + 1}" for
+            self.epitopes = tuple(f"{i + 1}" for
                                   i in range(n_epitopes))
 
             # initialize activities
@@ -644,8 +645,8 @@ class Polyclonal:
                 binary_sites = self._binarymaps[0].binary_sites
                 assert all((binary_sites == bmap.binary_sites).all()
                            for bmap in self._binarymaps)
-            self._binary_sites = {site: (binary_sites) == site for
-                                  site in numpy.unique(binary_sites)}
+            self._binary_sites = {site: numpy.where(binary_sites == site)
+                                  for site in numpy.unique(binary_sites)}
         else:
             self.data_to_fit = None
 
@@ -977,9 +978,117 @@ class Polyclonal:
                           epitope_colors=self.epitope_colors,
                           )
 
-    DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
+    @staticmethod
+    def _scaled_pseudo_huber(delta, r, calc_grad=False):
+        r"""Compute scaled Pseudo-Huber loss (and potentially its gradient).
+
+        :math:`h = \delta \left(\sqrt{1+\left(r/\delta\right)^2} - 1\right)`;
+        this is actually :math:`1/\delta` times ``scipy.special.pseudo_huber``,
+        and so has slope of one in the linear range.
+
+        Parameters
+        ----------
+        delta : float
+        r : numpy.ndarray
+        calc_grad : bool
+
+        Returns
+        -------
+        (h, dh)
+            Arrays of same length as ``r``, if ``calc_grad=False`` then
+            ``dh`` is None.
+
+        >>> h, _ = Polyclonal._scaled_pseudo_huber(2, [1, 2, 4, 8], True)
+        >>> h.round(2)
+        array([0.24, 0.83, 2.47, 6.25])
+        >>> err = scipy.optimize.check_grad(
+        ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, False)[0],
+        ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, True)[1],
+        ...       [2])
+        >>> err < 1e-7
+        True
+
+        """
+        if delta <= 0:
+            raise ValueError('PseudoHuber delta must be > 0')
+        h = scipy.special.pseudo_huber(delta, r) / delta
+        if calc_grad:
+            dh = r / (h + delta)
+        else:
+            dh = None
+        return h, dh
+
+    def _loss_dloss(self, params, delta):
+        r"""Loss on :math:`p_v\left(c\right)` and derivative wrt params."""
+        pred_pvs, dpred_pvs_dparams = self._compute_1d_pvs(
+                        params, self._one_binarymap, self._binarymaps,
+                        self._cs, calc_grad=True)
+        assert pred_pvs.shape == self._pvs.shape
+        assert dpred_pvs_dparams.shape == (len(params), len(self._pvs))
+        assert type(dpred_pvs_dparams) == scipy.sparse.csr_matrix
+        residuals = pred_pvs - self._pvs
+        loss, dloss_dr = self._scaled_pseudo_huber(delta, residuals, True)
+        assert loss.shape == dloss_dr.shape == self._pvs.shape
+        if self._weights is None:
+            loss = loss.sum()
+        else:
+            assert loss.shape == self._weights.shape == dloss_dr.shape
+            loss = (self._weights * loss).sum()
+            dloss_dr = dloss_dr * self._weights
+        dloss_dparams = dpred_pvs_dparams.dot(dloss_dr)
+        assert dloss_dparams.shape == params.shape
+        assert type(dloss_dparams) == numpy.ndarray
+        return (loss, dloss_dparams)
+
+    def _reg_escape(self, params, weight, delta):
+        """Regularization on escape and its gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for escape regularization not >= 0")
+        _, beta = self._a_beta_from_params(params)
+        h, dh = self._scaled_pseudo_huber(delta, beta, True)
+        reg = h.sum() * weight
+        assert dh.shape == beta.shape
+        dreg = weight * numpy.concatenate([numpy.zeros(len(self.epitopes)),
+                                           dh.ravel()])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        assert reg >= 0
+        return reg, dreg
+
+    def _reg_spread(self, params, weight):
+        """Regularization on spread of escape at each site and its gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for spread regularization not >= 0")
+        _, beta = self._a_beta_from_params(params)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        reg = 0
+        dreg = numpy.zeros(beta.shape)
+        for siteindex in self._binary_sites.values():
+            sitebetas = beta[siteindex]
+            mi = sitebetas.shape[0]
+            assert sitebetas.shape == (mi, len(self.epitopes))
+            sitemeans = sitebetas.mean(axis=0)
+            assert sitemeans.shape == (len(self.epitopes),)
+            beta_minus_mean = sitebetas - sitemeans
+            reg += weight * (beta_minus_mean**2).mean(axis=0).sum()
+            dreg_site = 2 * weight * (mi - 1) / (mi**2) * beta_minus_mean
+            assert dreg_site.shape == (mi, len(self.epitopes))
+            dreg[siteindex] += dreg_site
+        assert reg >= 0
+        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)),
+                                  dreg.ravel()])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        return reg, dreg
+
+    DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
             {'method': 'L-BFGS-B',
              'options': {'maxfun': 1e7,
+                         'maxiter': 1e6,
                          'ftol': 1e-7,
                          },
              })
@@ -987,13 +1096,14 @@ class Polyclonal:
 
     def fit(self,
             *,
-            loss_type=('PseudoHuber', 0.1),
-            reg_siteavg=(0.25, 'PseudoHuber', 1),
-            reg_sitespread=(1, 'PseudoHuber', 1),
+            loss_delta=0.1,
+            reg_escape_weight=0.01,
+            reg_escape_delta=0.1,
+            reg_spread_weight=0.25,
             fit_site_level_first=True,
-            method='scipy_minimize',
-            scipy_minimize_kwargs=DEFAULT_FIT_SCIPY_MINIMIZE_KWARGS,
-            verbosity=0,
+            scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
+            log=None,
+            logfreq=None,
             ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -1004,35 +1114,45 @@ class Polyclonal:
 
         Parameters
         ----------
-        loss_type : {('PseudoHuber', delta), 'L2'}
-            Minimize difference between actual and model-predicted
-            :math:`p_v\left(c\right)` using PseudoHuber or L2 loss.
-        reg_siteavg : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
-            Regularize with strength `lambda` the mean of PseudoHuber, or L2
-            of :math:`\beta_{m,e}` escape values at each site.
-        reg_sitespread : {(lambda, 'PseudeHuber', delta), (lambda, 'L2'), None}
-            Regularize with strength `lambda` the standard deviation of the
-            :math:`\beta_{m,e}` escape values at each site.
+        loss_delta : float
+            Pseudo-Huber :math:`\delta` parameter for loss on
+            :math:`p_v\left(c\right)` fitting.
+        reg_escape_weight : float
+            Strength of Pseudo-Huber regularization on :math:`\beta_{m,e}`.
+        reg_escape_delta : float
+            Pseudo-Huber :math:`\delta` for regularizing :math:`\beta_{m,e}`.
+        reg_spread_weight : float
+            Strength of regularization on variance of :math:`\beta_{m,e}`
+            values at each site.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
-        method : {'scipy_minimize'}
-            Approach used for fitting.
         scipy_minimize_kwargs : dict
             Keyword arguments passed to ``scipy.optimize.minimize``.
-        verbosity : {0, 1, 2}
-            How much information to print to standard output.
+        log : None or writable file-like object
+            Where to log output if ``verbosity > 0``. If ``None``, use
+            ``sys.stdout``.
+        logfreq : None or int
+            How frequently to write updates on fitting to ``log``.
 
         Return
         ------
         scipy.optimize.OptimizeResult
-            Return value depends on ``method``.
 
         """
+        if self.data_to_fit is None:
+            raise ValueError('cannot fit if `data_to_fit` not set')
+
+        if log is None:
+            log = sys.stdout
+        if not (logfreq is None or (isinstance(logfreq, int) and logfreq > 0)):
+            raise ValueError(f"{logfreq=} not an integer > 0")
+
+        self._check_close_activities()
+
         if fit_site_level_first:
-            if verbosity:
-                print('First fitting site-level model.')  # noqa: T001
-                sys.stdout.flush()
+            if logfreq:
+                log.write('# First fitting site-level model.\n')
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
             keys, _, _, values = inspect.getargvalues(myframe)
@@ -1053,111 +1173,77 @@ class Polyclonal:
                             ),
                     )
 
-        if self.data_to_fit is None:
-            raise ValueError('cannot fit if `data_to_fit` not set')
+        class LossReg:
+            # compute loss in class to remember last call
+            def __init__(self_):
+                self_.last_loss = None
+                self_.last_params = None
 
-        self._check_close_activities()
+            def loss_reg(self_, params, breakdown=False):
+                if (self_.last_params is None) or (params !=
+                                                   self_.last_params).any():
+                    fitloss, dfitloss = self._loss_dloss(params, loss_delta)
+                    regescape, dregescape = self._reg_escape(params,
+                                                             reg_escape_weight,
+                                                             reg_escape_delta)
+                    regspread, dregspread = self._reg_spread(params,
+                                                             reg_spread_weight)
+                    loss = fitloss + regescape + regspread
+                    dloss = dfitloss + dregescape + dregspread
+                    self_.last_params = params
+                    self_.last_loss = (loss, dloss, {'fit_loss': fitloss,
+                                                     'reg_escape': regescape,
+                                                     'regspread': regspread,
+                                                     })
+                return self_.last_loss if breakdown else self_.last_loss[: 2]
 
-        if method == 'scipy_minimize':
-            def scaled_pseudo_huber(delta, r):
-                # scale PseudoHuber so slope is one
-                if delta <= 0:
-                    raise ValueError('PseudoHuber delta must be > 0')
-                return scipy.special.pseudo_huber(delta, r) / delta
+        lossreg = LossReg()
 
-            def _loss_func(params):
-                # loss on pvs
-                pred_pvs = self._compute_1d_pvs(params, self._one_binarymap,
-                                                self._binarymaps, self._cs)
-                assert pred_pvs.shape == self._pvs.shape
-                pvs_residuals = self._pvs - pred_pvs
-                if loss_type == 'L2':
-                    loss = (pvs_residuals)**2
-                elif loss_type[0] == 'PseudoHuber' and len(loss_type) == 2:
-                    loss = scaled_pseudo_huber(loss_type[1], pvs_residuals)
-                else:
-                    raise ValueError(f"invalid {loss_type=}")
-                if self._weights is None:
-                    loss = loss.sum()
-                else:
-                    assert loss.shape == self._weights.shape
-                    loss = (self._weights * loss).sum()
-                # regularize mean site betas for each epitope
-                a, beta = self._a_beta_from_params(params)
-                reg_siteavg_lambda = reg_siteavg[0]
-                if reg_siteavg_lambda > 0:
-                    if reg_siteavg[1] == 'L2' and len(reg_siteavg) == 2:
-                        mut_terms = beta**2
-                    elif reg_siteavg[1] == 'PseudoHuber' and (len(reg_siteavg)
-                                                              == 3):
-                        mut_terms = scaled_pseudo_huber(reg_siteavg[2], beta)
-                    else:
-                        raise ValueError(f"invalid {reg_siteavg=}")
-                    for sitemask in self._binary_sites.values():
-                        # get terms for each site with mask, take mean within
-                        # epitopes, then sum across epitopes
-                        loss += (reg_siteavg_lambda *
-                                 mut_terms[sitemask].mean(axis=0).sum())
-                elif reg_siteavg_lambda != 0:
-                    raise ValueError(f"invalid {reg_siteavg=}")
-                # regularize spread (std dev) of betas at each site / epitope
-                reg_sitespread_lambda = reg_sitespread[0]
-                if reg_sitespread_lambda > 0:
-                    sds = []
-                    for sitemask in self._binary_sites.values():
-                        sds.append(numpy.std(beta[sitemask], axis=0))
-                    sds = numpy.concatenate(sds)
-                    if reg_sitespread[1] == 'L2' and len(reg_sitespread) == 2:
-                        loss += reg_sitespread_lambda * (sds**2).sum()
-                    elif reg_sitespread[1] == 'PseudoHuber':
-                        if len(reg_sitespread) != 3:
-                            raise ValueError(f"invalid {reg_sitespread=}")
-                        loss += reg_sitespread_lambda * scaled_pseudo_huber(
-                                                reg_sitespread[2], sds).sum()
-                    else:
-                        raise ValueError(f"invalid {reg_sitespread=}")
-                elif reg_sitespread_lambda != 0:
-                    raise ValueError(f"invalid {reg_sitespread=}")
-                return loss
+        if logfreq:
+            log.write(f"# Starting optimization of {len(self._params)} "
+                      f"parameters at {time.asctime()}.\n")
 
-            if verbosity:
-                print('Starting scipy optimization of '  # noqa: T001
-                      f"{len(self._params)} parameters at {time.asctime()}.\n"
-                      f"Initial loss function: {_loss_func(self._params):.7g}")
-                sys.stdout.flush()
+            class Callback:
+                # to log minimization
+                def __init__(self_, interval, start):
+                    self_.interval = interval
+                    self_.i = 0
+                    self_.start = start
 
-                class Callback:
-                    def __init__(self, interval=5):
-                        self.interval = interval
-                        self.i = 0
+                def callback(self_, params, header=False, force_output=False):
+                    if force_output or (self_.i % self_.interval == 0):
+                        loss, _, breakdown = lossreg.loss_reg(params, True)
+                        if header:
+                            cols = ['step', 'time_sec', 'loss',
+                                    *breakdown.keys()]
+                            log.write(''.join('{:>11}'.format(x) for x in cols)
+                                      + '\n')
+                        sec = time.time() - self_.start
+                        log.write(''.join('{:>11.5g}'.format(x) for x in
+                                  [self_.i, sec, loss, *breakdown.values()])
+                                  + '\n')
+                        log.flush()
+                    self_.i += 1
 
-                    def callback(self, params):
-                        if self.i % self.interval == 0:
-                            print(f"Step {self.i + 1}: loss="  # noqa: T001
-                                  f"{_loss_func(params):.7g} at "
-                                  f"{time.asctime()}")
-                            sys.stdout.flush()
-                        self.i += 1
+            scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
+            callback_logger = Callback(logfreq, time.time())
+            callback_logger.callback(self._params, header=True,
+                                     force_output=True)
+            scipy_minimize_kwargs['callback'] = callback_logger.callback
 
-                scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
-                interval = 1 if verbosity > 1 else 10
-                scipy_minimize_kwargs['callback'] = Callback(interval).callback
-
-            opt_res = scipy.optimize.minimize(fun=_loss_func,
-                                              x0=self._params,
-                                              **scipy_minimize_kwargs,
-                                              )
-            self._params = opt_res.x
-            if verbosity:
-                print(f"Optimization done at {time.asctime()}.\n"  # noqa: T001
-                      f"Loss function is {_loss_func(self._params):.7g}")
-                sys.stdout.flush()
-            if not opt_res.success:
-                raise RuntimeError(f"Optimization failed:\n{opt_res}")
-            return opt_res
-
-        else:
-            raise ValueError(f"invalid {method=}")
+        opt_res = scipy.optimize.minimize(fun=lossreg.loss_reg,
+                                          x0=self._params,
+                                          jac=True,
+                                          **scipy_minimize_kwargs,
+                                          )
+        self._params = opt_res.x
+        if logfreq:
+            callback_logger.callback(self._params, force_output=True)
+            log.write(f"# Successfully finished at {time.asctime()}.\n")
+        if not opt_res.success:
+            log.write(f"# Optimization FAILED at {time.asctime()}.\n")
+            raise RuntimeError(f"Optimization failed:\n{opt_res}")
+        return opt_res
 
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
@@ -1284,44 +1370,120 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs):
+    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs,
+                        calc_grad=False):
         r"""Get 1D raveled array of :math:`p_v\left(c\right)` values.
 
         Differs from :meth:`Polyclonal._compute_pv` in that it works if just
         one or multiple BinaryMap objects.
 
+        If `calc_grad` is `True`, also returns `scipy.sparse.csr_matrix`
+        of gradient as described in :meth:`Polyclonal._compute_pv`.
+
         """
         if one_binarymap:
-            p_v_c = self._compute_pv(params, binarymaps, cs)
-            assert p_v_c.shape == (binarymaps.nvariants, len(cs))
-            return p_v_c.ravel(order='F')
+            tup = self._compute_pv(params, binarymaps, cs, calc_grad=calc_grad)
+            p_vc = tup[0] if calc_grad else tup
+            n_vc = binarymaps.nvariants * len(cs)
+            assert p_vc.shape == (n_vc,), f"{p_vc.shape=}, {n_vc=}"
+            if calc_grad:
+                dpvc_dparams = tup[1]
+                assert dpvc_dparams.shape == (len(params), n_vc)
+                return (p_vc, dpvc_dparams)
+            else:
+                return p_vc
         else:
             assert len(cs) == len(binarymaps)
-            return numpy.concatenate(
-                    [self._compute_pv(params, bmap, numpy.array([c])).ravel()
-                     for c, bmap in zip(cs, binarymaps)])
+            p_vc = []
+            dpvc_dparams = []
+            n_vc = 0
+            for c, bmap in zip(cs, binarymaps):
+                n_vc += bmap.nvariants
+                tup = self._compute_pv(params, bmap, numpy.array([c]),
+                                       calc_grad=calc_grad)
+                p_vc.append(tup[0] if calc_grad else tup)
+                if calc_grad:
+                    dpvc_dparams.append(tup[1])
+            p_vc = numpy.concatenate(p_vc)
+            assert p_vc.shape == (n_vc,)
+            if calc_grad:
+                dpvc_dparams = scipy.sparse.hstack(dpvc_dparams).tocsr()
+                assert dpvc_dparams.shape == (len(params), n_vc)
+                return (p_vc, dpvc_dparams)
+            else:
+                return p_vc
 
-    def _compute_pv(self, params, bmap, cs):
-        r"""Compute :math:`p_v\left(c\right)`.
+    def _compute_pv(self, params, bmap, cs, calc_grad=False):
+        r"""Compute :math:`p_v\left(c\right)` and its derivative.
 
-        Takes set of params, a single BinaryMap, and array of concentrations,
-        and returns nvariants X nconcentrations array of the p_v values.
+        Parameters
+        ----------
+        params : numpy.ndarray
+        bmap : binarymap.BinaryMap
+        cs : numpy.ndarray
+        calc_grad : bool
+
+        Returns
+        -------
+        p_vc, dpvc_dparams
+            ``p_vc`` is 1D array ordered by concentration and then variant
+            variant. So elements are `ivariant + iconcentration * nvariants`,
+            and length is nconcentrations * nvariants. If ``calc_grad=True``,
+            then ``dpvc_dparams`` is `scipy.sparse.csr_matrix` of shape
+            (len(params), nconcentrations * nvariants). Note that
+            len(params) is nepitopes * (1 + binarylength).
 
         """
         a, beta = self._a_beta_from_params(params)
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (bmap.binarylength, len(self.epitopes))
         assert beta.shape[0] == bmap.binary_variants.shape[1]
+        assert bmap.binary_variants.shape == (bmap.nvariants,
+                                              bmap.binarylength)
         assert (cs > 0).all()
         assert cs.ndim == 1
         phi_e_v = bmap.binary_variants.dot(beta) - a
         assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
-        U_e_v_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
-        assert U_e_v_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
-        p_v_c = U_e_v_c.prod(axis=1)
-        assert p_v_c.shape == (bmap.nvariants, len(cs))
-        return p_v_c
+        U_v_e_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
+        assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
+        n_vc = bmap.nvariants * len(cs)
+        U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
+                    n_vc, len(self.epitopes), order='F')
+        assert U_vc_e.shape == (n_vc, len(self.epitopes))
+        p_vc = U_vc_e.prod(axis=1)
+        assert p_vc.shape == (n_vc,)
+        if calc_grad:
+            dpvc_da = p_vc * (numpy.swapaxes(U_vc_e, 0, 1) - 1)
+            assert dpvc_da.shape == (len(self.epitopes), n_vc)
+            dpevc = -dpvc_da.ravel(order='C')
+            n_vce = n_vc * len(self.epitopes)
+            assert dpevc.shape == (n_vce,)
+            # Stack then transpose C X E binary_variants to multiply dpvce
+            # Stacking should be fast: https://stackoverflow.com/a/45990096
+            # Note after transpose this yields CSC matrix
+            stacked_binary_variants = scipy.sparse.vstack(
+                    [bmap.binary_variants] * len(cs) * len(self.epitopes)
+                    ).transpose()
+            assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
+            dpevc_dbeta = stacked_binary_variants.multiply(
+                        numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce)))
+            assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
+            # in params, betas sorted first by mutation, then by epitope;
+            # dpevc_dbeta sorted by concentration, then variant, then epitope
+            dpvc_dbetaparams = dpevc_dbeta.reshape(
+                                    bmap.binarylength * len(self.epitopes),
+                                    n_vc)
+            assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
+            # combine to make dpvc_dparams, noting activities before betas
+            # in params
+            dpvc_dparams = scipy.sparse.vstack(
+                    [scipy.sparse.csr_matrix(dpvc_da),
+                     dpvc_dbetaparams.tocsr()])
+            assert type(dpvc_dparams) == scipy.sparse.csr_matrix
+            assert dpvc_dparams.shape == (len(params), n_vc)
+            return p_vc, dpvc_dparams
+        return p_vc
 
     def _get_binarymap(self,
                        variants_df,

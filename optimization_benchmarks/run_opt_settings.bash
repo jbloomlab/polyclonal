@@ -6,7 +6,7 @@ set -euo pipefail
 printf "Running snakemake...\n"
 snakemake \
     -s Snakefile_opt_settings \
-    -j 100 \
+    -j 36 \
     --latency-wait 60 \
     --keep-going
 printf "Run of snakemake complete.\n"
