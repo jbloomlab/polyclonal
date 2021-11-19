@@ -307,15 +307,15 @@ class Polyclonal:
     >>> polyclonal.icXX(variants_df).round(3)
        barcode aa_substitutions   IC50
     0       AA                   0.085
-    1       AT              A4K  0.128
-    2       TA              A4L  0.117
+    1       AC              M1C  0.230
+    2       GA              M1C  0.230
     3       AG              G2A  0.296
-    4       CC          G2A A4K  1.414
-    5       TC          G2A A4L  0.858
-    6       AC              M1C  0.230
-    7       GA              M1C  0.230
-    8       CG          M1C A4K  0.722
-    9       CA          M1C G2A  0.355
+    4       AT              A4K  0.128
+    5       TA              A4L  0.117
+    6       CA          M1C G2A  0.355
+    7       CG          M1C A4K  0.722
+    8       CC          G2A A4K  1.414
+    9       TC          G2A A4L  0.858
     10      CT      M1C G2A A4K  3.237
     11      TG      M1C G2A A4L  1.430
 
@@ -324,15 +324,15 @@ class Polyclonal:
     >>> polyclonal.icXX(variants_df, x=0.9, col='IC90').round(3)
        barcode aa_substitutions    IC90
     0       AA                    0.464
-    1       AT              A4K   0.976
-    2       TA              A4L   0.782
+    1       AC              M1C   1.260
+    2       GA              M1C   1.260
     3       AG              G2A   1.831
-    4       CC          G2A A4K   7.473
-    5       TC          G2A A4L   4.532
-    6       AC              M1C   1.260
-    7       GA              M1C   1.260
-    8       CG          M1C A4K   4.176
-    9       CA          M1C G2A   2.853
+    4       AT              A4K   0.976
+    5       TA              A4L   0.782
+    6       CA          M1C G2A   2.853
+    7       CG          M1C A4K   4.176
+    8       CC          G2A A4K   7.473
+    9       TC          G2A A4L   4.532
     10      CT      M1C G2A A4K  18.717
     11      TG      M1C G2A A4L   9.532
 
@@ -1404,7 +1404,8 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def icXX(self, variants_df, x=0.5, col='IC50'):
+    def icXX(self, variants_df, *, x=0.5, col='IC50',
+             min_c=1e-5, max_c=1e5):
         """Concentration at which a given fraction is neutralized (eg, IC50).
 
         Parameters
@@ -1418,45 +1419,59 @@ class Polyclonal:
             each variant. So set to 0.5 for IC50, and 0.9 for IC90.
         col : str
             Name of column in returned data frame with the ICXX value.
+        min_c : float
+            Minimum allowed icXX, truncate values < this at this.
+        max_c : float
+            Maximum allowed icXX, truncate values > this at this.
 
         Returns
         -------
         pandas.DataFrame
-            Copy of ``variants_df`` with added column ``col`` containing
-            ICXX values, and order of rows potentially changed.
+            Copy of ``variants_df`` with added column ``col`` containing icXX.
 
         """
         if not (0 < x < 1):
             raise ValueError(f"{x=} not >0 and <1")
-
-        if 'concentration' in variants_df.columns:
-            raise ValueError('`variants_df` has column "concentration"')
-        variants_df = variants_df.assign(concentration=1)
-
         if col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have {col=}")
 
-        new_dfs = []
-        for _, ivariant_df in variants_df.groupby('aa_substitutions'):
+        reduced_df = variants_df[['aa_substitutions']].drop_duplicates()
+        bmap = self._get_binarymap(reduced_df)
+        a, beta = self._a_beta_from_params(self._params)
+        exp_phi_e_v = numpy.exp(-bmap.binary_variants.dot(beta) + a)
+        assert exp_phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
+        variants = reduced_df['aa_substitutions'].tolist()
+        assert len(variants) == exp_phi_e_v.shape[0]
 
-            bmap = self._binarymaps_from_df(ivariant_df, False, True)[1]
-            assert bmap.nvariants == 1
+        records = []
+        for variant, exp_phi_e in zip(variants, exp_phi_e_v):
+            assert exp_phi_e.shape == (len(self.epitopes),)
 
             def _func(c):
-                pv = self._compute_pv(self._params, bmap, numpy.array([c]))
-                return 1 - x - pv.item()
+                pv = numpy.prod(1.0 / (1.0 + c * exp_phi_e))
+                return 1 - x - pv
 
-            sol = scipy.optimize.root_scalar(_func, x0=1, bracket=(1e-5, 1000),
-                                             method='brenth')
+            if _func(min_c) > 0:
+                ic = min_c
+            elif _func(max_c) < 0:
+                ic = max_c
+            else:
+                sol = scipy.optimize.root_scalar(_func, x0=1,
+                                                 bracket=(min_c, max_c),
+                                                 method='brenth')
+                ic = sol.root
             if not sol.converged:
                 raise ValueError(f"root finding failed:\n{sol}")
-            new_dfs.append(ivariant_df.assign(**{col: sol.root}))
+            records.append((variant, ic))
 
-        new_df = (pd.concat(new_dfs, ignore_index=True)
-                  .drop(columns='concentration')
-                  )
-        assert len(new_df) == len(variants_df)
-        return new_df
+        ic_df = pd.DataFrame.from_records(records,
+                                          columns=['aa_substitutions', col])
+
+        return_df = variants_df.merge(ic_df,
+                                      on='aa_substitutions',
+                                      validate='many_to_one')
+        assert len(return_df) == len(variants_df)
+        return return_df
 
     def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs,
                         calc_grad=False):
