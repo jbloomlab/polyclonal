@@ -3,6 +3,7 @@
 
 import itertools
 import pickle
+import re
 import sys
 import time
 
@@ -16,8 +17,8 @@ params_to_test = {
     'noise': ['exact', 'noisy'],
     'sitefirst': ['sitefirst', 'nosite'],
     'collapse': ['collapsed', 'uncollapsed'],
-    'reg_escape_weight': [0, 0.01, 0.05, 0.25, 1],
-    'reg_spread_weight': [0, 0.01, 0.05, 0.25, 1],
+    'reg_escape_weight': [0, 0.001, 0.005, 0.01, 0.05, 0.1],
+    'reg_spread_weight': [0, 0.05, 0.25, 0.5, 1],
     }
 params_to_test_df = pd.DataFrame.from_records(
                             list(itertools.product(*params_to_test.values())),
@@ -28,7 +29,7 @@ paramspace = snakemake.utils.Paramspace(params_to_test_df)
 
 rule all:
     input:
-        expand("results/opt_settings/{params}.csv", params=paramspace.instance_patterns)
+        'results/opt_settings/aggregated_fit_results.csv'
 
 rule prep_variants_df:
     """Data used to fit model."""
@@ -52,7 +53,7 @@ rule prep_test_variants:
          .to_csv(output.csv, index=False)
          )
 
-rule optimize:
+rule fit_model:
     """Fit a model."""
     input:
         data_csv=rules.prep_variants_df.output.csv,
@@ -133,3 +134,19 @@ rule optimize:
         print(f"Writing model to {output.pickle}")
         with open(output.pickle, 'wb') as f:
             pickle.dump(poly_abs, f)
+
+rule aggregate_fit_results:
+    """Aggregate single CSV of fitting results."""
+    input: 
+        csvs=expand("results/opt_settings/{params}.csv",
+                    params=paramspace.instance_patterns)
+    output: csv='results/opt_settings/aggregated_fit_results.csv'
+    params: wc_values=paramspace.instance
+    run:
+        dfs = []
+        for csv_file in input.csvs:
+            csv_params = {param: re.search(f"{param}~([^/]+)(/|\.csv)",
+                                           csv_file).group(1)
+                          for param in params_to_test}
+            dfs.append(pd.read_csv(csv_file).assign(**csv_params))
+        pd.concat(dfs).to_csv(output.csv, index=False)
