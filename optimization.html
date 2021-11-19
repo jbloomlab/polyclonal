@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Details on fitting &#8212; polyclonal 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="polyclonal package" href="polyclonal.html" />
+    <link rel="prev" title="Fit model to data" href="fit_RBD.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="Details-on-fitting">
+<h1>Details on fitting<a class="headerlink" href="#Details-on-fitting" title="Permalink to this headline">¶</a></h1>
+<p>Here we describe how the <code class="docutils literal notranslate"><span class="pre">polyclonal</span></code> package actually fits the models.</p>
+<p>The basic idea is to minimize the difference between the predicted and measured variant-level escape probabilities, <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, using a loss function that is not overly sensitive to outliers. In addition, by default there is regularization:</p>
+<ol class="arabic simple">
+<li><p>The mutation escape values <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> to capture the idea that most mutations should not mediate escape at most sites.</p></li>
+<li><p>The spread on mutation escape values at each site to capture the idea that different mutations at the same site should have similar-ish effects on escape.</p></li>
+</ol>
+<section id="Implementation">
+<h2>Implementation<a class="headerlink" href="#Implementation" title="Permalink to this headline">¶</a></h2>
+<p>The fitting is implemented in the <code class="docutils literal notranslate"><span class="pre">Polyclonal.fit</span></code> function, which allows adjustment of the weights for the regularization. By default the optimization uses the gradient-based L-BFGS-B method implemented in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">scipy.optimize.minimize</a> and simply continues optimization until the minimization converges.</p>
+<p>Two key details about the fitting are as follows:</p>
+<ol class="arabic simple">
+<li><p>By default, the fitting first fits a “site-level” model in which all mutations are lumped together so there are just two characters (wildtype and mutant). The escape values from this initial site-level fitting are then used to initialize the full mutation-level escape values which are then further optimized. The idea is that first fitting a simpler model with less parameters helps get the parameters into a “reasonable” space before full model optimization. This option is implemented via the
+<code class="docutils literal notranslate"><span class="pre">fit_site_level_first</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">Polyclonal.fit</span></code>, and it is recommended to use this approach as testing indicates it helps.</p></li>
+<li><p>By default, if there are multiple variants with the same mutations, they are “collapsed” to a single variant that is then given a weight proportional to the number of constituent variants that is used when calculating the loss. This option is implemented by default via <code class="docutils literal notranslate"><span class="pre">collapse_identical_variants</span></code> during the initialization of a <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> object, and is probably useful as it seems to speed up fitting without (usually) substantially changing the fitting results.</p></li>
+</ol>
+<p>The <code class="docutils literal notranslate"><span class="pre">Polyclonal.fit</span></code> also allows you to adjust the weights on the regularizations. The default should be sensible, but you may want to try adjusting them about. You can also adjust the <span class="math notranslate nohighlight">\(\delta\)</span> values for the <a class="reference external" href="https://en.wikipedia.org/wiki/Huber_loss#Pseudo-Huber_loss_function">Pseudo-Huber</a> loss / regularization terms (see below), although the defaults are probably pretty good for these as they are chosen to be L1-like on most the range that values are expected to span.</p>
+</section>
+<section id="Loss-function">
+<h2>Loss function<a class="headerlink" href="#Loss-function" title="Permalink to this headline">¶</a></h2>
+<p>We use a scaled <a class="reference external" href="https://en.wikipedia.org/wiki/Huber_loss#Pseudo-Huber_loss_function">Pseudo-Huber</a> loss function on the difference between the predicted and measure escape proabilities. Note that the Pseudo-Huber function is defined as <span class="math notranslate nohighlight">\(\hat{h}_{\delta}\left(x\right) = \delta^2 \left(\sqrt{1 + \left(x/\delta\right)^2} - 1\right)\)</span> where <span class="math notranslate nohighlight">\(\delta\)</span> is a parameter that indicates when the loss transitions from being quadratic (L2-like) to linear (L1-like) in <span class="math notranslate nohighlight">\(a\)</span>. Note that we
+will actually use a scaled Pseudo-Huber function of <span class="math notranslate nohighlight">\(h_{\delta}\left(x\right) = \hat{h}_{\delta}\left(x\right)/\delta\)</span> so the slope of the loss is one in the linear range. The rationale for a Pseudo-Huber loss is to be robust to outliers (L1-like for large residuals).</p>
+<p>Specifically, let <span class="math notranslate nohighlight">\(r_v\left(c\right) = p_v\left(c\right) - y_{v,c}\)</span> be the residual for the predicted of the escape probability of variant <span class="math notranslate nohighlight">\(v\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span>, where we are using <span class="math notranslate nohighlight">\(y_{v,c}\)</span> to denote the measured value. Then the loss for variant <span class="math notranslate nohighlight">\(v\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span> is <span class="math notranslate nohighlight">\(L_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right) = h_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right)\)</span>, and the overall loss is:</p>
+<div class="math notranslate nohighlight">
+\[L = \sum_{v,c} h_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right).\]</div>
+</section>
+<section id="Regularization">
+<h2>Regularization<a class="headerlink" href="#Regularization" title="Permalink to this headline">¶</a></h2>
+<p>We also regularize the <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> values based on the notions:</p>
+<ol class="arabic simple">
+<li><p>Most mutations should not mediate escape,</p></li>
+<li><p>When a site is involved in escape for a given epitope, most mutations at a site will have similar-ish effects.</p></li>
+</ol>
+<section id="Regularization-of-escape-values">
+<h3>Regularization of escape values<a class="headerlink" href="#Regularization-of-escape-values" title="Permalink to this headline">¶</a></h3>
+<p>We regularize the escape values <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> using a simple Pseudo-Huber function, so that</p>
+<div class="math notranslate nohighlight">
+\[R_{\rm{escape}} = \lambda_{\rm{escape}} \sum_{m,e} h_{\delta_{\rm{escape}}}\left(\beta_{m,e}\right)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda_{\rm{escape}}\)</span> is the strength of the regularization and <span class="math notranslate nohighlight">\(\delta_{\rm{escape}}\)</span> is the Psdeuo-Huber delta parameter.</p>
+</section>
+<section id="Regularization-of-spread-of-escape-values-at-each-site-and-epitope">
+<h3>Regularization of spread of escape values at each site and epitope<a class="headerlink" href="#Regularization-of-spread-of-escape-values-at-each-site-and-epitope" title="Permalink to this headline">¶</a></h3>
+<p>We regularize the variance of the escape values at each site, so that</p>
+<div class="math notranslate nohighlight">
+\[R_{\rm{spread}} = \lambda_{\rm{spread}} \sum_{e,i} \frac{1}{M_i}\sum_{m \in i}\left(\beta_{m,e} - \frac{1}{M_i} \sum_{m' \in i} \beta_{m',e}\right)^2\]</div>
+<p>where <span class="math notranslate nohighlight">\(i\)</span> ranges over all sites, <span class="math notranslate nohighlight">\(M_i\)</span> is the number of mutations at site <span class="math notranslate nohighlight">\(i\)</span>, and <span class="math notranslate nohighlight">\(m \in i\)</span> indicates all mutations at site <span class="math notranslate nohighlight">\(i\)</span>.</p>
+</section>
+</section>
+<section id="Gradients-used-for-optimization">
+<h2>Gradients used for optimization<a class="headerlink" href="#Gradients-used-for-optimization" title="Permalink to this headline">¶</a></h2>
+<p>Here are the formulas used to calculate the gradients in the optimization.</p>
+<section id="Gradient-of-loss-function">
+<h3>Gradient of loss function<a class="headerlink" href="#Gradient-of-loss-function" title="Permalink to this headline">¶</a></h3>
+<p>For the loss function, the gradients are as follows:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial L}{\partial \beta_{m,e}} =
+\sum_{v,c}
+\frac{r_v\left(c\right)}{h_{\delta}\left(r_v\left(c\right)\right) + \delta}
+p_v\left(c\right) \left[1 - U_e\left(v, c\right)\right] b\left(v\right)_m\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{\partial L}{\partial a_{\rm{wt},e}} =
+-\sum_{v,c}
+\frac{r_v\left(c\right)}{h_{\delta}\left(r_v\left(c\right)\right) + \delta}
+p_v\left(c\right) \left[1 - U_e\left(v, c\right)\right]\]</div>
+<p>See below for how the sub-components that lead to these were calculated.</p>
+<section id="Calculating-\frac{\partial-\left[h_{\delta}\left(r\right)\right]}{\partial-r}">
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial \left[h_{\delta}\left(r\right)\right]}{\partial r}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-\left[h_{\delta}\left(r\right)\right]}{\partial-r}" title="Permalink to this headline">¶</a></h4>
+<p>We have</p>
+<div class="math notranslate nohighlight">
+\[ \frac{\partial \left[h_{\delta}\left(r\right)\right]}{\partial r}
+= \delta \frac{\partial \left(\sqrt{1 + \left(r/\delta\right)^2} - 1\right)}{\partial r}
+= \frac{\delta}{2 \sqrt{1 + \left(r/\delta\right)^2}} \frac{2r}{\delta^2}
+= \frac{r}{h_{\delta}\left(r\right) + \delta}\]</div>
+</section>
+<section id="Calculating-\frac{\partial-p_v\left(c\right)}{\partial-\beta_{m,e}}">
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial p_v\left(c\right)}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-p_v\left(c\right)}{\partial-\beta_{m,e}}" title="Permalink to this headline">¶</a></h4>
+<p>First, note</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial p_v\left(c\right)}{\partial \beta_{m,e}} = \frac{\partial U_e\left(v, c\right)}{\partial \beta_{m,e}} \frac{p_v\left(c\right)}{U_e\left(v, c\right)}.\]</div>
+<p>Next, note</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial U_e\left(v, c\right)}{\partial \beta_{m,e}} = \frac{\partial \phi_e\left(v\right)}{\partial \beta_{m,e}}\frac{c \exp\left(-\phi_e\left(v\right)\right) }{\left[1 + c \exp\left(-\phi_e\left(v\right)\right)\right]^2} = \frac{\partial \phi_e\left(v\right)}{\partial \beta_{m,e}} U_e\left(v, c\right) \left[1 - U_e\left(v, c\right)\right]\]</div>
+<p>where the last step uses the simplification <a class="reference external" href="https://math.stackexchange.com/a/1225116">here</a>.</p>
+<p>Finally, note</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \phi_e\left(v\right)}{\partial \beta_{m,e}} = b\left(v\right)_m.\]</div>
+<p>Putting it all together, we have:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial p_v\left(c\right)}{\partial \beta_{m,e}} = p_v\left(c\right) \left[1 - U_e\left(v, c\right)\right] b\left(v\right)_m.\]</div>
+</section>
+<section id="Calculating-\frac{\partial-p_v\left(c\right)}{\partial-a_{\rm{wt},e}}">
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial p_v\left(c\right)}{\partial a_{\rm{wt},e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-p_v\left(c\right)}{\partial-a_{\rm{wt},e}}" title="Permalink to this headline">¶</a></h4>
+<p>The only difference from above is the sign, so:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial p_v\left(c\right)}{\partial a_{\rm{wt},e}} = -p_v\left(c\right) \left[1 - U_e\left(v, c\right)\right].\]</div>
+</section>
+</section>
+<section id="Gradients-of-regularizations">
+<h3>Gradients of regularizations<a class="headerlink" href="#Gradients-of-regularizations" title="Permalink to this headline">¶</a></h3>
+<section id="Calculating-\frac{\partial-R_{\rm{site\,-escape}}}{\partial-\beta_{m,e}}">
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{site\, escape}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{site\,-escape}}}{\partial-\beta_{m,e}}" title="Permalink to this headline">¶</a></h4>
+<div class="math notranslate nohighlight">
+\[\frac{\partial R_{\rm{site\, escape}}}{\partial \beta_{m,e}} = \frac{\lambda_{\rm{escape}}\beta_{m,e}}{h_{\delta_{\rm{escape}}}\left(\beta_{m,e}\right) + \delta_{\rm{escape}}}\]</div>
+</section>
+<section id="Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}">
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{spread}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}" title="Permalink to this headline">¶</a></h4>
+<div class="math notranslate nohighlight">
+\[\frac{\partial R_{\rm{spread}}}{\partial \beta_{m,e}} = \frac{2\lambda_{\rm{spread}}}{M_i} \left(\beta_{m,e} - \frac{1}{M_i} \sum_{m' \in i} \beta_{m',e}\right)\frac{M_i - 1}{M_i}\]</div>
+</section>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/BloomLogo.jpg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">polyclonal</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Model mutational escape from polyclonal antibodies.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=jbloomlab&repo=polyclonal&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">polyclonal documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="biophysical_model.html">Biophysical model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fit_RBD.html" title="previous chapter">Fit model to data</a></li>
+      <li>Next: <a href="polyclonal.html" title="next chapter">polyclonal package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019--2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/optimization.nblink.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/jbloomlab/polyclonal" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
