@@ -302,6 +302,40 @@ class Polyclonal:
     ...         ).equals(escape_probs)
     True
 
+    We can also compute the IC50s:
+
+    >>> polyclonal.icXX(variants_df).round(3)
+       barcode aa_substitutions   IC50
+    0       AA                   0.085
+    1       AT              A4K  0.128
+    2       TA              A4L  0.117
+    3       AG              G2A  0.296
+    4       CC          G2A A4K  1.414
+    5       TC          G2A A4L  0.858
+    6       AC              M1C  0.230
+    7       GA              M1C  0.230
+    8       CG          M1C A4K  0.722
+    9       CA          M1C G2A  0.355
+    10      CT      M1C G2A A4K  3.237
+    11      TG      M1C G2A A4L  1.430
+
+    Or the IC90s:
+
+    >>> polyclonal.icXX(variants_df, x=0.9, col='IC90').round(3)
+       barcode aa_substitutions    IC90
+    0       AA                    0.464
+    1       AT              A4K   0.976
+    2       TA              A4L   0.782
+    3       AG              G2A   1.831
+    4       CC          G2A A4K   7.473
+    5       TC          G2A A4L   4.532
+    6       AC              M1C   1.260
+    7       GA              M1C   1.260
+    8       CG          M1C A4K   4.176
+    9       CA          M1C G2A   2.853
+    10      CT      M1C G2A A4K  18.717
+    11      TG      M1C G2A A4L   9.532
+
     Example
     -------
     Initialize with ``escape_probs`` created above as data to fit. In order
@@ -1369,6 +1403,60 @@ class Polyclonal:
         if 'alphabet' not in kwargs:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
+
+    def icXX(self, variants_df, x=0.5, col='IC50'):
+        """Concentration at which a given fraction is neutralized (eg, IC50).
+
+        Parameters
+        ----------
+        variants_df : pandas.DataFrame
+            Data frame defining variants. Should have column named
+            'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T').
+        x : float
+            Compute concentration at which this fraction is neutralized for
+            each variant. So set to 0.5 for IC50, and 0.9 for IC90.
+        col : str
+            Name of column in returned data frame with the ICXX value.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Copy of ``variants_df`` with added column ``col`` containing
+            ICXX values, and order of rows potentially changed.
+
+        """
+        if not (0 < x < 1):
+            raise ValueError(f"{x=} not >0 and <1")
+
+        if 'concentration' in variants_df.columns:
+            raise ValueError('`variants_df` has column "concentration"')
+        variants_df = variants_df.assign(concentration=1)
+
+        if col in variants_df.columns:
+            raise ValueError(f"`variants_df` cannot have {col=}")
+
+        new_dfs = []
+        for _, ivariant_df in variants_df.groupby('aa_substitutions'):
+
+            bmap = self._binarymaps_from_df(ivariant_df, False, True)[1]
+            assert bmap.nvariants == 1
+
+            def _func(c):
+                pv = self._compute_pv(self._params, bmap, numpy.array([c]))
+                return 1 - x - pv.item()
+
+            sol = scipy.optimize.root_scalar(_func, x0=1, bracket=(1e-5, 1000),
+                                             method='brenth')
+            if not sol.converged:
+                raise ValueError(f"root finding failed:\n{sol}")
+            new_dfs.append(ivariant_df.assign(**{col: sol.root}))
+
+        new_df = (pd.concat(new_dfs, ignore_index=True)
+                  .drop(columns='concentration')
+                  )
+        assert len(new_df) == len(variants_df)
+        return new_df
 
     def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs,
                         calc_grad=False):
