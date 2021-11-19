@@ -337,6 +337,40 @@
 <span class="sd">    ...         ).equals(escape_probs)</span>
 <span class="sd">    True</span>
 
+<span class="sd">    We can also compute the IC50s:</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal.icXX(variants_df).round(3)</span>
+<span class="sd">       barcode aa_substitutions   IC50</span>
+<span class="sd">    0       AA                   0.085</span>
+<span class="sd">    1       AC              M1C  0.230</span>
+<span class="sd">    2       GA              M1C  0.230</span>
+<span class="sd">    3       AG              G2A  0.296</span>
+<span class="sd">    4       AT              A4K  0.128</span>
+<span class="sd">    5       TA              A4L  0.117</span>
+<span class="sd">    6       CA          M1C G2A  0.355</span>
+<span class="sd">    7       CG          M1C A4K  0.722</span>
+<span class="sd">    8       CC          G2A A4K  1.414</span>
+<span class="sd">    9       TC          G2A A4L  0.858</span>
+<span class="sd">    10      CT      M1C G2A A4K  3.237</span>
+<span class="sd">    11      TG      M1C G2A A4L  1.430</span>
+
+<span class="sd">    Or the IC90s:</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal.icXX(variants_df, x=0.9, col=&#39;IC90&#39;).round(3)</span>
+<span class="sd">       barcode aa_substitutions    IC90</span>
+<span class="sd">    0       AA                    0.464</span>
+<span class="sd">    1       AC              M1C   1.260</span>
+<span class="sd">    2       GA              M1C   1.260</span>
+<span class="sd">    3       AG              G2A   1.831</span>
+<span class="sd">    4       AT              A4K   0.976</span>
+<span class="sd">    5       TA              A4L   0.782</span>
+<span class="sd">    6       CA          M1C G2A   2.853</span>
+<span class="sd">    7       CG          M1C A4K   4.176</span>
+<span class="sd">    8       CC          G2A A4K   7.473</span>
+<span class="sd">    9       TC          G2A A4L   4.532</span>
+<span class="sd">    10      CT      M1C G2A A4K  18.717</span>
+<span class="sd">    11      TG      M1C G2A A4L   9.532</span>
+
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 <span class="sd">    Initialize with ``escape_probs`` created above as data to fit. In order</span>
@@ -1405,6 +1439,75 @@
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Polyclonal.icXX"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.icXX">[docs]</a>    <span class="k">def</span> <span class="nf">icXX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC50&#39;</span><span class="p">,</span>
+             <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Concentration at which a given fraction is neutralized (eg, IC50).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variants_df : pandas.DataFrame</span>
+<span class="sd">            Data frame defining variants. Should have column named</span>
+<span class="sd">            &#39;aa_substitutions&#39; that defines variants as space-delimited</span>
+<span class="sd">            strings of substitutions (e.g., &#39;M1A K3T&#39;).</span>
+<span class="sd">        x : float</span>
+<span class="sd">            Compute concentration at which this fraction is neutralized for</span>
+<span class="sd">            each variant. So set to 0.5 for IC50, and 0.9 for IC90.</span>
+<span class="sd">        col : str</span>
+<span class="sd">            Name of column in returned data frame with the ICXX value.</span>
+<span class="sd">        min_c : float</span>
+<span class="sd">            Minimum allowed icXX, truncate values &lt; this at this.</span>
+<span class="sd">        max_c : float</span>
+<span class="sd">            Maximum allowed icXX, truncate values &gt; this at this.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Copy of ``variants_df`` with added column ``col`` containing icXX.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">=}</span><span class="s2"> not &gt;0 and &lt;1&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`variants_df` cannot have </span><span class="si">{</span><span class="n">col</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">reduced_df</span> <span class="o">=</span> <span class="n">variants_df</span><span class="p">[[</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+        <span class="n">bmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_binarymap</span><span class="p">(</span><span class="n">reduced_df</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="n">exp_phi_e_v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">exp_phi_e_v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">nvariants</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="n">variants</span> <span class="o">=</span> <span class="n">reduced_df</span><span class="p">[</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">variants</span><span class="p">)</span> <span class="o">==</span> <span class="n">exp_phi_e_v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">variant</span><span class="p">,</span> <span class="n">exp_phi_e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">variants</span><span class="p">,</span> <span class="n">exp_phi_e_v</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">exp_phi_e</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+
+            <span class="k">def</span> <span class="nf">_func</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">exp_phi_e</span><span class="p">))</span>
+                <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">pv</span>
+
+            <span class="k">if</span> <span class="n">_func</span><span class="p">(</span><span class="n">min_c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ic</span> <span class="o">=</span> <span class="n">min_c</span>
+            <span class="k">elif</span> <span class="n">_func</span><span class="p">(</span><span class="n">max_c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ic</span> <span class="o">=</span> <span class="n">max_c</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sol</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">root_scalar</span><span class="p">(</span><span class="n">_func</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                                 <span class="n">bracket</span><span class="o">=</span><span class="p">(</span><span class="n">min_c</span><span class="p">,</span> <span class="n">max_c</span><span class="p">),</span>
+                                                 <span class="n">method</span><span class="o">=</span><span class="s1">&#39;brenth&#39;</span><span class="p">)</span>
+                <span class="n">ic</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">root</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sol</span><span class="o">.</span><span class="n">converged</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;root finding failed:</span><span class="se">\n</span><span class="si">{</span><span class="n">sol</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">variant</span><span class="p">,</span> <span class="n">ic</span><span class="p">))</span>
+
+        <span class="n">ic_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">records</span><span class="p">,</span>
+                                          <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+
+        <span class="n">return_df</span> <span class="o">=</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ic_df</span><span class="p">,</span>
+                                      <span class="n">on</span><span class="o">=</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">,</span>
+                                      <span class="n">validate</span><span class="o">=</span><span class="s1">&#39;many_to_one&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">return_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">return_df</span></div>
+
     <span class="k">def</span> <span class="nf">_compute_1d_pvs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">one_binarymap</span><span class="p">,</span> <span class="n">binarymaps</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span>
                         <span class="n">calc_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get 1D raveled array of :math:`p_v\left(c\right)` values.</span>
@@ -1580,6 +1683,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>

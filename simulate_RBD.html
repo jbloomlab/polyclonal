@@ -1030,6 +1030,144 @@ There are 1932 allowed amino-acid mutations.
 <p>720000 rows × 4 columns</p>
 </div></div>
 </div>
+<p>For both the exact and noisy data frames, we will also compute the IC90 for each variant based on the simulated antibody mix:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC90&#39;</span><span class="p">)</span>
+
+<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">noisy_variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC90&#39;</span><span class="p">)</span>
+
+<span class="n">noisy_variants_escape</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>library</th>
+      <th>aa_substitutions</th>
+      <th>concentration</th>
+      <th>prob_escape</th>
+      <th>IC90</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>avg1muts</td>
+      <td></td>
+      <td>0.125</td>
+      <td>0.166783</td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>avg1muts</td>
+      <td></td>
+      <td>0.125</td>
+      <td>0.054978</td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>avg1muts</td>
+      <td></td>
+      <td>0.125</td>
+      <td>0.059157</td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>avg1muts</td>
+      <td></td>
+      <td>0.125</td>
+      <td>0.031918</td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>avg1muts</td>
+      <td></td>
+      <td>0.125</td>
+      <td>0.128836</td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>719995</th>
+      <td>avg2muts</td>
+      <td>Y473E L518F D427L</td>
+      <td>4.000</td>
+      <td>0.002918</td>
+      <td>1.159910</td>
+    </tr>
+    <tr>
+      <th>719996</th>
+      <td>avg1muts</td>
+      <td>Y473S G413Q</td>
+      <td>4.000</td>
+      <td>0.000000</td>
+      <td>0.577999</td>
+    </tr>
+    <tr>
+      <th>719997</th>
+      <td>avg1muts</td>
+      <td>Y473V P479R F392W</td>
+      <td>4.000</td>
+      <td>0.160248</td>
+      <td>1.454528</td>
+    </tr>
+    <tr>
+      <th>719998</th>
+      <td>avg3muts</td>
+      <td>Y489Q N501Y</td>
+      <td>4.000</td>
+      <td>0.000000</td>
+      <td>0.588084</td>
+    </tr>
+    <tr>
+      <th>719999</th>
+      <td>avg2muts</td>
+      <td>Y505N H519T</td>
+      <td>4.000</td>
+      <td>0.000000</td>
+      <td>0.350485</td>
+    </tr>
+  </tbody>
+</table>
+<p>720000 rows × 5 columns</p>
+</div></div>
+</div>
 <p>We will write these data frames giving the variants <span class="math notranslate nohighlight">\(v\)</span> and their probabilities of escape <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> at each serum concentration <span class="math notranslate nohighlight">\(c\)</span> to CSV files:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="RBD_variants_escape_exact.csv">RBD_variants_escape_exact.csv</a> for the measurements without noise</p></li>
@@ -1037,12 +1175,13 @@ There are 1932 allowed amino-acid mutations.
 </ul>
 <p>The goal is to infer the properties of the escape mutations and the serum, <span class="math notranslate nohighlight">\(a_{\rm{wt},e}\)</span> and <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, from these data, which are what would be measured in a deep mutational scanning experiment.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">variants_escape</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;RBD_variants_escape_exact.csv&#39;</span><span class="p">,</span>
                        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.4g</span><span class="s1">&#39;</span><span class="p">)</span>
+
 <span class="n">noisy_variants_escape</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;RBD_variants_escape_noisy.csv&#39;</span><span class="p">,</span>
                              <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.4g</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>

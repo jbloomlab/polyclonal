@@ -39,7 +39,9 @@
             
   <section id="Biophysical-model">
 <h1>Biophysical model<a class="headerlink" href="#Biophysical-model" title="Permalink to this headline">¶</a></h1>
-<p>Here we describe the biophysical model that motivates the modeling in this package.</p>
+<p>Here we describe the biophysical model of polyclonal antibodies that motivates the approach in this package.</p>
+<section id="Model">
+<h2>Model<a class="headerlink" href="#Model" title="Permalink to this headline">¶</a></h2>
 <p>Consider a viral protein bound by polyclonal antibodies, such as might be found in sera. We want to determine the contribution of each mutation to escaping these polyclonal antibodies, being cognizant of the fact that different antibodies target different epitopes.</p>
 <p>The actual experimental measurable is as follows: at each concentration <span class="math notranslate nohighlight">\(c\)</span> of the antibody mixture, we measure <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, which is the fraction of all variants <span class="math notranslate nohighlight">\(v\)</span> of the viral protein that escape binding or neutralization (whichever is being experimentally measured) by all antibodies in the mix. For instance, <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> might be fraction of variants <span class="math notranslate nohighlight">\(v\)</span> that are not neutralized in a virus neutralization deep mutational scanning experiment as in
 <a class="reference external" href="https://elifesciences.org/articles/49324">Lee et al (2019)</a>.</p>
@@ -72,6 +74,12 @@ the extent to which mutation <span class="math notranslate nohighlight">\(m\)</s
 \label{phie} \tag{3}\]</div>
 <p>where <span class="math notranslate nohighlight">\(b\left(v\right)_m\)</span> is one if variant <span class="math notranslate nohighlight">\(v\)</span> has mutation <span class="math notranslate nohighlight">\(m\)</span> and 0 otherwise.</p>
 <p>These equations relate the quantities of biological interest (<span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span> and <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>) to the experimental measurables (<span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>).</p>
+</section>
+<section id="IC50s-from-the-model">
+<h2>IC50s from the model<a class="headerlink" href="#IC50s-from-the-model" title="Permalink to this headline">¶</a></h2>
+<p>After we have fit the model parameters (activities and mutation escape values) to the experimental measurables (variant-level escape probabilities at different concentrations), for each variant we can calculate a <span class="math notranslate nohighlight">\(IC_{50}\)</span> (or more generally, an <span class="math notranslate nohighlight">\(IC_x\)</span>), which is the concentration of the polyclonal antibody mix where 50% (or x%, in the more general case) of that particular variant is neutralized.</p>
+<p>To do this, we just solve for the <span class="math notranslate nohighlight">\(c\)</span> such that <span class="math notranslate nohighlight">\(p_v\left(c\right) = 1 - x\)</span> where <span class="math notranslate nohighlight">\(x\)</span> is the fraction neutralized, so <span class="math notranslate nohighlight">\(x = 0.5\)</span> for an <span class="math notranslate nohighlight">\(IC_{50}\)</span>. Because <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> is a monotonically increasing function of <span class="math notranslate nohighlight">\(c\)</span>, this will have a unique solution that we determine numerically.</p>
+</section>
 </section>
 
 

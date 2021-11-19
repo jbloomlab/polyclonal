@@ -352,6 +352,40 @@ in the data frame passed to <a class="reference internal" href="#polyclonal.poly
 <span class="go">True</span>
 </pre></div>
 </div>
+<p>We can also compute the IC50s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">   barcode aa_substitutions   IC50</span>
+<span class="go">0       AA                   0.085</span>
+<span class="go">1       AC              M1C  0.230</span>
+<span class="go">2       GA              M1C  0.230</span>
+<span class="go">3       AG              G2A  0.296</span>
+<span class="go">4       AT              A4K  0.128</span>
+<span class="go">5       TA              A4L  0.117</span>
+<span class="go">6       CA          M1C G2A  0.355</span>
+<span class="go">7       CG          M1C A4K  0.722</span>
+<span class="go">8       CC          G2A A4K  1.414</span>
+<span class="go">9       TC          G2A A4L  0.858</span>
+<span class="go">10      CT      M1C G2A A4K  3.237</span>
+<span class="go">11      TG      M1C G2A A4L  1.430</span>
+</pre></div>
+</div>
+<p>Or the IC90s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC90&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">   barcode aa_substitutions    IC90</span>
+<span class="go">0       AA                    0.464</span>
+<span class="go">1       AC              M1C   1.260</span>
+<span class="go">2       GA              M1C   1.260</span>
+<span class="go">3       AG              G2A   1.831</span>
+<span class="go">4       AT              A4K   0.976</span>
+<span class="go">5       TA              A4L   0.782</span>
+<span class="go">6       CA          M1C G2A   2.853</span>
+<span class="go">7       CG          M1C A4K   4.176</span>
+<span class="go">8       CC          G2A A4K   7.473</span>
+<span class="go">9       TC          G2A A4L   4.532</span>
+<span class="go">10      CT      M1C G2A A4K  18.717</span>
+<span class="go">11      TG      M1C G2A A4L   9.532</span>
+</pre></div>
+</div>
 <p class="rubric">Example</p>
 <p>Initialize with <code class="docutils literal notranslate"><span class="pre">escape_probs</span></code> created above as data to fit. In order
 to do this, we need to change the name of the column with the
@@ -568,6 +602,32 @@ escapes to initialize fit of this model. Generally works better.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>scipy.optimize.OptimizeResult</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.icXX">
+<span class="sig-name descname"><span class="pre">icXX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'IC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.icXX"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.icXX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concentration at which a given fraction is neutralized (eg, IC50).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Data frame defining variants. Should have column named
+‘aa_substitutions’ that defines variants as space-delimited
+strings of substitutions (e.g., ‘M1A K3T’).</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – Compute concentration at which this fraction is neutralized for
+each variant. So set to 0.5 for IC50, and 0.9 for IC90.</p></li>
+<li><p><strong>col</strong> (<em>str</em>) – Name of column in returned data frame with the ICXX value.</p></li>
+<li><p><strong>min_c</strong> (<em>float</em>) – Minimum allowed icXX, truncate values &lt; this at this.</p></li>
+<li><p><strong>max_c</strong> (<em>float</em>) – Maximum allowed icXX, truncate values &gt; this at this.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Copy of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> with added column <code class="docutils literal notranslate"><span class="pre">col</span></code> containing icXX.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
