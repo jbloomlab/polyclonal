@@ -1,0 +1,16 @@
+observed_quality,target,n_aa_substitutions,observed,predicted,abs_error,model,split_label,beta_l1_coefficients,data_path,seed,epochs,independent_starts,exp_target,model_string,patience,learning_rate,batch_size,prefix,loss_fn,include_details
+2,prob_escape,1,0.05614467,0.009966627,0.051873773,Escape,test,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,2,0.1346057,0.055596884,0.10915599,Escape,test,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,3,0.23108585,0.1549906,0.16136877,Escape,test,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,4,0.38040957,0.3494046,0.2129012,Escape,test,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,5,0.53333217,0.5565354,0.22465543,Escape,test,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,1,0.051694892,0.008457851,0.04829468,Escape,val,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,2,0.12014163,0.053242777,0.09796353,Escape,val,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,3,0.24809413,0.17015053,0.17102063,Escape,val,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,4,0.386545,0.3505513,0.21352845,Escape,val,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,5,0.54435694,0.56483674,0.22684355,Escape,val,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,1,0.054206144,0.009980496,0.050424058,Escape,train,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,2,0.12572849,0.052979544,0.10317331,Escape,train,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,3,0.23897599,0.16144702,0.1656378,Escape,train,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,4,0.3778758,0.33980054,0.2045571,Escape,train,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True
+2,prob_escape,5,0.5333629,0.54336894,0.20326354,Escape,train,0.0,prepped_avg2muts.pkl,0,50,0,1,Escape;3,10,0.01,500,run,l1,True

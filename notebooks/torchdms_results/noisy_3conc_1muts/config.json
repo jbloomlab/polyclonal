@@ -1,0 +1,17 @@
+{
+    "default": {
+        "beta_l1_coefficients": "0.0",
+        "data_path": "prepped_avg1muts.pkl",
+        "seed": 0,
+        "epochs": 50,
+        "independent_starts": 0,
+        "exp_target": 1,
+        "model_string": "Escape;3",
+        "patience": 10,
+        "learning_rate": 0.01,
+        "batch_size": 500,
+        "prefix": "run",
+       "loss_fn": "l1",
+        "include_details": true
+    }
+}
