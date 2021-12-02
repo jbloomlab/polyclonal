@@ -1435,6 +1435,7 @@ class Polyclonal:
         if col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have {col=}")
 
+        variants_df = self._remove_unseen_mutations(variants_df)
         reduced_df = variants_df[['aa_substitutions']].drop_duplicates()
         bmap = self._get_binarymap(reduced_df)
         a, beta = self._a_beta_from_params(self._params)
@@ -1600,6 +1601,33 @@ class Polyclonal:
                 )
         assert tuple(bmap.all_subs) == self.mutations
         return bmap
+
+    def _remove_unseen_mutations(self, variants_df):
+        r"""Remove mutations in a mutation escape dataframe that were 
+        not seen during model fitting. Useful before icXX prediction,
+        to ensure only mutations with fit beta coefficients are used.
+    
+        Parameters
+        ----------
+        variants_df : pandas.DataFrame
+            Must include a column named 'aa_substitutions'.
+    
+        Returns
+        -------
+        variants_df : pandas.DataFrame
+            Copy of input dataframe, with rows of variants
+            that have unseen mutations removed.
+        """
+        seen_muts = self._muts_from_data_to_fit(self.data_to_fit)[2]
+        all_muts = self._muts_from_data_to_fit(variants_df)[2]
+        unseen_muts = list(set(all_muts) - set(seen_muts))
+    
+        for row in variants_df.index:
+            if not set(
+                variants_df['aa_substitutions'][row].split()
+                ).isdisjoint(unseen_muts):
+                variants_df.drop(row, inplace=True)
+        return variants_df
 
 
 if __name__ == '__main__':
