@@ -1435,7 +1435,9 @@ class Polyclonal:
         if col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have {col=}")
 
-        variants_df = self._remove_unseen_mutations(variants_df)
+        if self.data_to_fit is not None:
+            variants_df = self._remove_unseen_mutations(variants_df)
+
         reduced_df = variants_df[['aa_substitutions']].drop_duplicates()
         bmap = self._get_binarymap(reduced_df)
         a, beta = self._a_beta_from_params(self._params)
