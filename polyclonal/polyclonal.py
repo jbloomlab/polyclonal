@@ -1405,13 +1405,13 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def filter_variants_by_seen_muts(self, 
-                                     df, 
-                                     n_occurrences, 
+    def filter_variants_by_seen_muts(self,
+                                     df,
+                                     n_occurrences,
                                      subs_col='aa_substitutions'):
-        r"""Remove variants in a `df` that contain mutations not seen 
-        during model fitting. Useful before icXX prediction, to ensure 
-        only mutations with fit betas are used. Also can be used to 
+        r"""Remove variants in a `df` that contain mutations not seen
+        during model fitting. Useful before icXX prediction, to ensure
+        only mutations with fit betas are used. Also can be used to
         filter for variants containing mutations seen in at least
         `n_occurrences` different backgrounds during fitting.
 
@@ -1423,7 +1423,7 @@ class Polyclonal:
         n_occurrences : int
             Variants must contain mutations seen in at least this
             many backgrounds during model fitting.
-        
+
         Returns
         -------
         df : pandas.DataFrame
@@ -1432,7 +1432,7 @@ class Polyclonal:
             less than `n_occurrences` times removed.
         """
         df = df.copy()
-        
+
         if subs_col not in df.columns:
             raise ValueError(f"`df` lacks column {subs_col}")
 
@@ -1450,19 +1450,15 @@ class Polyclonal:
                                                   )
         )
 
-        subs_valid = {s for s, n in seen_mut_counts.items() 
-                  if n >= n_occurrences}
-    
-        df[filter_col] = (df[subs_col]
-                             .map(lambda s: set(s.split())
-                             .issubset(subs_valid))
-        )
+        subs_valid = {s for s, n in seen_mut_counts.items()
+                     if n >= n_occurrences}
 
-        return (df
-            .query('_pass_filter == True')
-            .drop(columns='_pass_filter')
-            .reset_index(drop=True)
-        )
+        df[filter_col] = (df[subs_col].map(lambda s: set(s.split())
+                                           .issubset(subs_valid)))
+
+        return (df.query('_pass_filter == True')
+                  .drop(columns='_pass_filter')
+                  .reset_index(drop=True))
 
     def icXX(self, variants_df, *, x=0.5, col='IC50',
              min_c=1e-5, max_c=1e5):
