@@ -9,8 +9,8 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 
 import collections
-import itertools
 import inspect
+import itertools
 import os
 import sys
 import time
@@ -1451,7 +1451,7 @@ class Polyclonal:
         )
 
         subs_valid = {s for s, n in seen_mut_counts.items()
-                     if n >= n_occurrences}
+                      if n >= n_occurrences}
 
         df[filter_col] = (df[subs_col].map(lambda s: set(s.split())
                                            .issubset(subs_valid)))
