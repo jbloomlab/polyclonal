@@ -1405,36 +1405,37 @@ class Polyclonal:
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
     def filter_variants_by_seen_muts(self,
-                                     df,
+                                     variants_df,
                                      subs_col='aa_substitutions'):
         """Remove variants that contain mutations not seen during model fitting.
 
         Parameters
         ----------
-        df : pandas.DataFrame
+        variants_df : pandas.DataFrame
             Contains variants as rows.
 
         Returns
         -------
-        df : pandas.DataFrame
+        variants_df : pandas.DataFrame
             Copy of input dataframe, with rows of variants
             that have unseen mutations removed.
         """
-        df = df.copy()
+        variants_df = variants_df.copy()
 
-        if subs_col not in df.columns:
-            raise ValueError(f"`df` lacks column {subs_col}")
+        if subs_col not in variants_df.columns:
+            raise ValueError(f"`variants_df` lacks column {subs_col}")
 
         filter_col = "_pass_filter"
-        if filter_col in df.columns:
-            raise ValueError(f"`df` cannot have column {filter_col}")
+        if filter_col in variants_df.columns:
+            raise ValueError(f"`variants_df` cannot have column {filter_col}")
 
-        df[filter_col] = (df[subs_col].map(lambda s: set(s.split())
-                                           .issubset(self.mutations)))
+        variants_df[filter_col] = (variants_df[subs_col]
+                                   .map(lambda s: set(s.split())
+                                   .issubset(self.mutations)))
 
-        return (df.query('_pass_filter == True')
-                  .drop(columns='_pass_filter')
-                  .reset_index(drop=True))
+        return (variants_df.query('_pass_filter == True')
+                           .drop(columns='_pass_filter')
+                           .reset_index(drop=True))
 
     def icXX(self, variants_df, *, x=0.5, col='IC50',
              min_c=1e-5, max_c=1e5):
