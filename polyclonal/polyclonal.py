@@ -10,7 +10,6 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 import collections
 import inspect
-import itertools
 import os
 import sys
 import time
@@ -1407,29 +1406,19 @@ class Polyclonal:
 
     def filter_variants_by_seen_muts(self,
                                      df,
-                                     n_occurrences,
                                      subs_col='aa_substitutions'):
-        r"""Remove variants in a `df` that contain mutations not seen
-        during model fitting. Useful before icXX prediction, to ensure
-        only mutations with fit betas are used. Also can be used to
-        filter for variants containing mutations seen in at least
-        `n_occurrences` different backgrounds during fitting.
+        """Remove variants that contain mutations not seen during model fitting.
 
         Parameters
         ----------
         df : pandas.DataFrame
             Contains variants as rows.
 
-        n_occurrences : int
-            Variants must contain mutations seen in at least this
-            many backgrounds during model fitting.
-
         Returns
         -------
         df : pandas.DataFrame
             Copy of input dataframe, with rows of variants
-            that have unseen mutations and mutations seen
-            less than `n_occurrences` times removed.
+            that have unseen mutations removed.
         """
         df = df.copy()
 
@@ -1440,21 +1429,8 @@ class Polyclonal:
         if filter_col in df.columns:
             raise ValueError(f"`df` cannot have column {filter_col}")
 
-        if n_occurrences <= 0:
-            raise ValueError("`n_occurrences` cannot be 0 or negative.")
-
-        seen_mut_counts = collections.Counter(
-                    itertools.chain.from_iterable(self.data_to_fit[subs_col]
-                                                      .str
-                                                      .split()
-                                                  )
-        )
-
-        subs_valid = {s for s, n in seen_mut_counts.items()
-                      if n >= n_occurrences}
-
         df[filter_col] = (df[subs_col].map(lambda s: set(s.split())
-                                           .issubset(subs_valid)))
+                                           .issubset(self.mutations)))
 
         return (df.query('_pass_filter == True')
                   .drop(columns='_pass_filter')
