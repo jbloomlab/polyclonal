@@ -1404,6 +1404,39 @@ class Polyclonal:
             kwargs['alphabet'] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
+    def filter_variants_by_seen_muts(self,
+                                     variants_df,
+                                     subs_col='aa_substitutions'):
+        """Remove variants that contain mutations not seen during model fitting.
+
+        Parameters
+        ----------
+        variants_df : pandas.DataFrame
+            Contains variants as rows.
+
+        Returns
+        -------
+        variants_df : pandas.DataFrame
+            Copy of input dataframe, with rows of variants
+            that have unseen mutations removed.
+        """
+        variants_df = variants_df.copy()
+
+        if subs_col not in variants_df.columns:
+            raise ValueError(f"`variants_df` lacks column {subs_col}")
+
+        filter_col = "_pass_filter"
+        if filter_col in variants_df.columns:
+            raise ValueError(f"`variants_df` cannot have column {filter_col}")
+
+        variants_df[filter_col] = (variants_df[subs_col]
+                                   .map(lambda s: set(s.split())
+                                   .issubset(self.mutations)))
+
+        return (variants_df.query('_pass_filter == True')
+                           .drop(columns='_pass_filter')
+                           .reset_index(drop=True))
+
     def icXX(self, variants_df, *, x=0.5, col='IC50',
              min_c=1e-5, max_c=1e5):
         """Concentration at which a given fraction is neutralized (eg, IC50).
