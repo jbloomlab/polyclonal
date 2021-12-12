@@ -58,7 +58,7 @@
 </section>
 <section id="Loss-function">
 <h2>Loss function<a class="headerlink" href="#Loss-function" title="Permalink to this headline">¶</a></h2>
-<p>We use a scaled <a class="reference external" href="https://en.wikipedia.org/wiki/Huber_loss#Pseudo-Huber_loss_function">Pseudo-Huber</a> loss function on the difference between the predicted and measure escape proabilities. Note that the Pseudo-Huber function is defined as <span class="math notranslate nohighlight">\(\hat{h}_{\delta}\left(x\right) = \delta^2 \left(\sqrt{1 + \left(x/\delta\right)^2} - 1\right)\)</span> where <span class="math notranslate nohighlight">\(\delta\)</span> is a parameter that indicates when the loss transitions from being quadratic (L2-like) to linear (L1-like) in <span class="math notranslate nohighlight">\(a\)</span>. Note that we
+<p>We use a scaled <a class="reference external" href="https://en.wikipedia.org/wiki/Huber_loss#Pseudo-Huber_loss_function">Pseudo-Huber</a> loss function on the difference between the predicted and measure escape probabilities. Note that the Pseudo-Huber function is defined as <span class="math notranslate nohighlight">\(\hat{h}_{\delta}\left(x\right) = \delta^2 \left(\sqrt{1 + \left(x/\delta\right)^2} - 1\right)\)</span> where <span class="math notranslate nohighlight">\(\delta\)</span> is a parameter that indicates when the loss transitions from being quadratic (L2-like) to linear (L1-like) in <span class="math notranslate nohighlight">\(a\)</span>. Note that we
 will actually use a scaled Pseudo-Huber function of <span class="math notranslate nohighlight">\(h_{\delta}\left(x\right) = \hat{h}_{\delta}\left(x\right)/\delta\)</span> so the slope of the loss is one in the linear range. The rationale for a Pseudo-Huber loss is to be robust to outliers (L1-like for large residuals).</p>
 <p>Specifically, let <span class="math notranslate nohighlight">\(r_v\left(c\right) = p_v\left(c\right) - y_{v,c}\)</span> be the residual for the predicted of the escape probability of variant <span class="math notranslate nohighlight">\(v\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span>, where we are using <span class="math notranslate nohighlight">\(y_{v,c}\)</span> to denote the measured value. Then the loss for variant <span class="math notranslate nohighlight">\(v\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span> is <span class="math notranslate nohighlight">\(L_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right) = h_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right)\)</span>, and the overall loss is:</p>
 <div class="math notranslate nohighlight">
@@ -137,10 +137,10 @@ p_v\left(c\right) \left[1 - U_e\left(v, c\right)\right]\]</div>
 </section>
 <section id="Gradients-of-regularizations">
 <h3>Gradients of regularizations<a class="headerlink" href="#Gradients-of-regularizations" title="Permalink to this headline">¶</a></h3>
-<section id="Calculating-\frac{\partial-R_{\rm{site\,-escape}}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{site\, escape}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{site\,-escape}}}{\partial-\beta_{m,e}}" title="Permalink to this headline">¶</a></h4>
+<section id="Calculating-\frac{\partial-R_{\rm{escape}}}{\partial-\beta_{m,e}}">
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{escape}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{escape}}}{\partial-\beta_{m,e}}" title="Permalink to this headline">¶</a></h4>
 <div class="math notranslate nohighlight">
-\[\frac{\partial R_{\rm{site\, escape}}}{\partial \beta_{m,e}} = \frac{\lambda_{\rm{escape}}\beta_{m,e}}{h_{\delta_{\rm{escape}}}\left(\beta_{m,e}\right) + \delta_{\rm{escape}}}\]</div>
+\[\frac{\partial R_{\rm{escape}}}{\partial \beta_{m,e}} = \frac{\lambda_{\rm{escape}}\beta_{m,e}}{h_{\delta_{\rm{escape}}}\left(\beta_{m,e}\right) + \delta_{\rm{escape}}}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}">
 <h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{spread}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}" title="Permalink to this headline">¶</a></h4>

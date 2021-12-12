@@ -156,7 +156,7 @@
 <span class="sd">        mutations written like &quot;G7M&quot;.</span>
 <span class="sd">    site_escape_df : pandas.DataFrame or None</span>
 <span class="sd">        Use if you want to initialize all mutations at a given site to have</span>
-<span class="sd">        the same :math:`beta_{m,e}` values. In this case, columns should be</span>
+<span class="sd">        the same :math:`\beta_{m,e}` values. In this case, columns should be</span>
 <span class="sd">        &#39;site&#39;, &#39;epitope&#39;, and &#39;escape&#39;. This option is mutually exclusive</span>
 <span class="sd">        with ``mut_escape_df``.</span>
 <span class="sd">    n_epitopes : int or None</span>
@@ -1438,6 +1438,39 @@
         <span class="k">if</span> <span class="s1">&#39;alphabet&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Polyclonal.filter_variants_by_seen_muts"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts">[docs]</a>    <span class="k">def</span> <span class="nf">filter_variants_by_seen_muts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">variants_df</span><span class="p">,</span>
+                                     <span class="n">subs_col</span><span class="o">=</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove variants that contain mutations not seen during model fitting.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variants_df : pandas.DataFrame</span>
+<span class="sd">            Contains variants as rows.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        variants_df : pandas.DataFrame</span>
+<span class="sd">            Copy of input dataframe, with rows of variants</span>
+<span class="sd">            that have unseen mutations removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">variants_df</span> <span class="o">=</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">subs_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`variants_df` lacks column </span><span class="si">{</span><span class="n">subs_col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">filter_col</span> <span class="o">=</span> <span class="s2">&quot;_pass_filter&quot;</span>
+        <span class="k">if</span> <span class="n">filter_col</span> <span class="ow">in</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`variants_df` cannot have column </span><span class="si">{</span><span class="n">filter_col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">variants_df</span><span class="p">[</span><span class="n">filter_col</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">variants_df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]</span>
+                                   <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+                                   <span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">variants_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;_pass_filter == True&#39;</span><span class="p">)</span>
+                           <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s1">&#39;_pass_filter&#39;</span><span class="p">)</span>
+                           <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Polyclonal.icXX"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.icXX">[docs]</a>    <span class="k">def</span> <span class="nf">icXX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC50&#39;</span><span class="p">,</span>
              <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">):</span>
