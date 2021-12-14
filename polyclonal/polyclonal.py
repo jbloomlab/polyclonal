@@ -1277,7 +1277,7 @@ class Polyclonal:
         if not opt_res.success:
             log.write(f"# Optimization FAILED at {time.asctime()}.\n")
             raise RuntimeError(f"Optimization failed:\n{opt_res}")
-        return opt_res
+        return opt_res, lossreg
 
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
