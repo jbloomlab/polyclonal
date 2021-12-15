@@ -22,6 +22,7 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
+   library_size
    optimization
    polyclonal
    package_index
