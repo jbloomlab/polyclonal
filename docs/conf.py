@@ -132,6 +132,7 @@ html_theme_options = {
         'github_repo': 'polyclonal',
         'github_banner': 'true',
         'travis_button': 'false',
+        'page_width': '1300px',
         'sidebar_width': '250px',
         }
 
