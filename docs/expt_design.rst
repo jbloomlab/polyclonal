@@ -1,6 +1,6 @@
 Experimental design
 ---------------------
-Designing a deep mutational scanning experiment to be analyzed by ``polyclonal`` requires making a variety of choices, such as the library size, mutation rate, and set of concentrations to use.
+Designing a deep mutational scanning experiment to be analyzed by ``Polyclonal`` requires making a variety of choices, such as the library size, mutation rate, and set of concentrations to use.
 
 Here are some simulations that test how the overall accuracy of the inferences depend on these experimental choices.
 Note that the conclusions of these simulations are conditioned on the parameters used in the simulation: three epitopes with the chosen activities, and a relatively short protein.
