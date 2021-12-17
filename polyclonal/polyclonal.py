@@ -121,7 +121,7 @@ class Polyclonal:
         mutations written like "G7M".
     site_escape_df : pandas.DataFrame or None
         Use if you want to initialize all mutations at a given site to have
-        the same :math:`beta_{m,e}` values. In this case, columns should be
+        the same :math:`\beta_{m,e}` values. In this case, columns should be
         'site', 'epitope', and 'escape'. This option is mutually exclusive
         with ``mut_escape_df``.
     n_epitopes : int or None

@@ -23,6 +23,7 @@ Contents
    simulate_RBD
    fit_RBD
    mutation_rate
+   concentration_set
    optimization
    polyclonal
    package_index
