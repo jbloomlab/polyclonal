@@ -22,9 +22,7 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
-   library_size
-   mutation_rate
-   concentration_set
+   expt_design
    optimization
    polyclonal
    package_index
