@@ -4,8 +4,9 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Python Module Index &#8212; polyclonal 0.1 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Experimental design &#8212; polyclonal 0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -16,14 +17,13 @@
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-
+    <link rel="next" title="Library size" href="library_size.html" />
+    <link rel="prev" title="Fit model to data" href="fit_RBD.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-
 
   </head><body>
   
@@ -35,44 +35,29 @@
 
           <div class="body" role="main">
             
-
-   <h1>Python Module Index</h1>
-
-   <div class="modindex-jumpbox">
-   <a href="#cap-p"><strong>p</strong></a>
-   </div>
-
-   <table class="indextable modindextable">
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-p"><td></td><td>
-       <strong>p</strong></td><td></td></tr>
-     <tr>
-       <td><img src="_static/minus.png" class="toggler"
-              id="toggle-1" style="display: none" alt="-" /></td>
-       <td>
-       <a href="polyclonal.html#module-polyclonal"><code class="xref">polyclonal</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="polyclonal.pdb_utils.html#module-polyclonal.pdb_utils"><code class="xref">polyclonal.pdb_utils</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="polyclonal.plot.html#module-polyclonal.plot"><code class="xref">polyclonal.plot</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="polyclonal.polyclonal.html#module-polyclonal.polyclonal"><code class="xref">polyclonal.polyclonal</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="polyclonal.utils.html#module-polyclonal.utils"><code class="xref">polyclonal.utils</code></a></td><td>
-       <em></em></td></tr>
-   </table>
+  <section id="experimental-design">
+<h1>Experimental design<a class="headerlink" href="#experimental-design" title="Permalink to this headline">¶</a></h1>
+<p>Designing a deep mutational scanning experiment to be analyzed by <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> requires making a variety of choices, such as the library size, mutation rate, and set of concentrations to use.</p>
+<p>Here are some simulations that test how the overall accuracy of the inferences depend on these experimental choices.
+Note that the conclusions of these simulations are conditioned on the parameters used in the simulation: three epitopes with the chosen activities, and a relatively short protein.
+For instance, a larger library size could be helpful for a larger protein.</p>
+<p>Nonetheless, we come away with the following high-level suggestions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>For a library of 1,923 possible single amino-acid mutations, <em>at least</em> 10,000 variants in the library are needed, and performance is better when it’s in the range of 20,000 to 30,000 variants. Larger libraries might be useful when there are more possible mutations.</p></li>
+<li><p>The average per-variant mutation rate should be <em>at least</em> two mutations (assuming a Poisson distribution of mutations per variant), and performance may be slightly better if the mutation rate is closer to three.</p></li>
+<li><p>If you just use one concentration of serum, it should be around the IC99 to IC99.9. However, you will get better results if you use three sera concentrations, with one around the IC99 to IC99.9, one ~4-fold higher, and one ~4-fold lower.</p></li>
+</ul>
+</div></blockquote>
+<p>Here are notebooks that perform the analyses supporting these general recommendations:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_size.html">Library size</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutation_rate.html">Library mutation rate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concentration_set.html">Sera concentrations</a></li>
+</ul>
+</div>
+</section>
 
 
           </div>
@@ -110,13 +95,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html">polyclonal documentation</a></li>
 </ul>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="biophysical_model.html">Biophysical model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
-<li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
@@ -127,6 +112,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fit_RBD.html" title="previous chapter">Fit model to data</a></li>
+      <li>Next: <a href="library_size.html" title="next chapter">Library size</a></li>
   </ul></li>
 </ul>
 </div>
@@ -159,6 +146,9 @@
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
+      |
+      <a href="_sources/expt_design.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

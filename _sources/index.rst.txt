@@ -22,7 +22,7 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
-   concentration_set
+   expt_design
    optimization
    polyclonal
    package_index

@@ -1,0 +1,861 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Library size &#8212; polyclonal 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Library mutation rate" href="mutation_rate.html" />
+    <link rel="prev" title="Experimental design" href="expt_design.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Library-size">
+<h1>Library size<a class="headerlink" href="#Library-size" title="Permalink to this headline">¶</a></h1>
+<p>We’ll use simulated data to show how the number of variants in a DMS library affects the performance of <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> models.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">polyclonal</span>
+</pre></div>
+</div>
+</div>
+<p>First, we read in a simulated “noisy” dataset containing 30,000 variants measured at 3 different sera concentrations. The variants in this library were simulated to contain a Poisson-distributed number of mutations, with an average of three mutations per gene.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">noisy_data</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;RBD_variants_escape_noisy.csv&#39;</span><span class="p">,</span> <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;library == &#39;avg3muts&#39;&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;concentration in [0.25, 1, 4]&#39;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="n">noisy_data</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>library</th>
+      <th>aa_substitutions</th>
+      <th>concentration</th>
+      <th>prob_escape</th>
+      <th>IC90</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>avg3muts</td>
+      <td></td>
+      <td>0.25</td>
+      <td>0.00000</td>
+      <td>0.1128</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>avg3muts</td>
+      <td></td>
+      <td>0.25</td>
+      <td>0.01090</td>
+      <td>0.1128</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>avg3muts</td>
+      <td></td>
+      <td>0.25</td>
+      <td>0.01458</td>
+      <td>0.1128</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>avg3muts</td>
+      <td></td>
+      <td>0.25</td>
+      <td>0.09465</td>
+      <td>0.1128</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>avg3muts</td>
+      <td></td>
+      <td>0.25</td>
+      <td>0.03299</td>
+      <td>0.1128</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>89995</th>
+      <td>avg3muts</td>
+      <td>Y449I L518Y C525R L461I</td>
+      <td>4.00</td>
+      <td>0.02197</td>
+      <td>2.3100</td>
+    </tr>
+    <tr>
+      <th>89996</th>
+      <td>avg3muts</td>
+      <td>Y449V K529R N394R</td>
+      <td>4.00</td>
+      <td>0.04925</td>
+      <td>0.9473</td>
+    </tr>
+    <tr>
+      <th>89997</th>
+      <td>avg3muts</td>
+      <td>Y451L N481T F490V</td>
+      <td>4.00</td>
+      <td>0.02315</td>
+      <td>0.9301</td>
+    </tr>
+    <tr>
+      <th>89998</th>
+      <td>avg3muts</td>
+      <td>Y453R V483G L492V N501P I332P</td>
+      <td>4.00</td>
+      <td>0.00000</td>
+      <td>5.0120</td>
+    </tr>
+    <tr>
+      <th>89999</th>
+      <td>avg3muts</td>
+      <td>Y489Q N501Y</td>
+      <td>4.00</td>
+      <td>0.00000</td>
+      <td>0.5881</td>
+    </tr>
+  </tbody>
+</table>
+<p>90000 rows × 5 columns</p>
+</div></div>
+</div>
+<p>We’ll randomly subsample smaller fractions of variants in our library and fit a <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> model to each of the subsets.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">library_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2500</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">,</span> <span class="mi">20000</span><span class="p">,</span> <span class="mi">30000</span><span class="p">]</span>
+
+<span class="c1"># Make a directory to house pickled models</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;fit_polyclonal_models&#39;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">fit_polyclonal</span><span class="p">(</span><span class="n">n_variants</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fit `Polyclonal` model on n_variants variants randomly subsampled from a dataset.</span>
+<span class="sd">    Returns fit `Polyclonal` object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">poly_abs</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span><span class="n">data_to_fit</span><span class="o">=</span><span class="p">(</span><span class="n">noisy_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;concentration&#39;</span><span class="p">)</span>
+                                                            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n_variants</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">))</span>
+                                                            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)),</span>
+                                     <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
+                                         <span class="p">[(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+                                          <span class="p">],</span>
+                                         <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;activity&#39;</span><span class="p">],</span>
+                                         <span class="p">),</span>
+                                     <span class="n">site_escape_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
+                                         <span class="p">[(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="mi">417</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="mi">484</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+                                          <span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="mi">444</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+                                          <span class="p">],</span>
+                                         <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;escape&#39;</span><span class="p">],</span>
+                                         <span class="p">),</span>
+                                     <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s1">&#39;fill_to_data&#39;</span><span class="p">,</span>
+                                 <span class="p">)</span>
+    <span class="n">poly_abs</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">poly_abs</span>
+
+<span class="c1"># Store all fit models in a dictionary for future lookup</span>
+<span class="n">fit_models</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">library_sizes</span><span class="p">:</span>
+    <span class="c1"># These are the keys for fit models</span>
+    <span class="n">model_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">vars&#39;</span>
+
+    <span class="c1"># If the pickled model exists in fit_polyclonal_models directory,</span>
+    <span class="c1"># load it and update fit_models</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+        <span class="n">fit_models</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span> <span class="p">:</span> <span class="n">model</span><span class="p">})</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model with </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> variants was already fit.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Else, fit a model using fit_polyclonal(), save it to the</span>
+        <span class="c1"># fit_polyclonal_models directory, and update fit_models</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">fit_polyclonal</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">fit_models</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span> <span class="p">:</span> <span class="n">model</span><span class="p">})</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model with </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> variants fit and saved.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model with 1000 variants was already fit.
+Model with 2500 variants was already fit.
+Model with 5000 variants was already fit.
+Model with 10000 variants was already fit.
+Model with 20000 variants was already fit.
+Model with 30000 variants was already fit.
+</pre></div></div>
+</div>
+<p>We can look at the correlation between the “true” and inferred mutation-escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, for the fit models. These mutation-escape values represent the extent to which mutations mediate escape from specific epitopes.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;epitope&#39;</span> <span class="p">:</span> <span class="p">[],</span>
+                          <span class="s1">&#39;correlation (R^2)&#39;</span> <span class="p">:</span> <span class="p">[],</span>
+                          <span class="s1">&#39;num_variants&#39;</span> <span class="p">:</span> <span class="p">[]})</span>
+
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">library_sizes</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">vars&#39;</span><span class="p">]</span>
+
+    <span class="n">mut_escape_pred</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;RBD_mut_escape_df.csv&#39;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">merge</span><span class="p">((</span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span>
+                <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;class &#39;</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;escape&#39;</span><span class="p">:</span> <span class="s1">&#39;predicted escape&#39;</span><span class="p">})</span>
+                <span class="p">),</span>
+               <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mutation&#39;</span><span class="p">,</span> <span class="s1">&#39;epitope&#39;</span><span class="p">],</span>
+               <span class="n">validate</span><span class="o">=</span><span class="s1">&#39;one_to_one&#39;</span><span class="p">,</span>
+               <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span><span class="n">mut_escape_pred</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;epitope&#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;predicted escape&#39;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+            <span class="p">)</span>
+
+    <span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">all_corrs</span><span class="p">,</span>
+                    <span class="n">corr</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">num_variants</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span><span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+                        <span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">all_corrs</span><span class="p">)</span><span class="o">.</span><span class="n">mark_point</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;num_variants:Q&#39;</span><span class="p">),</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s1">&#39;correlation (R^2):Q&#39;</span><span class="p">),</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s1">&#39;epitope:N&#39;</span><span class="p">),</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3f&#39;</span><span class="p">),</span> <span class="s1">&#39;epitope&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">base</span> <span class="o">+</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_loess</span><span class="p">(</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span>
+                           <span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">2.5</span>
+                                      <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;inferred vs. true mutation escape values&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div id="altair-viz-ca9520cc511346d5977d27733300509b"></div>
+<script type="text/javascript">
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-ca9520cc511346d5977d27733300509b") {
+      outputDiv = document.getElementById("altair-viz-ca9520cc511346d5977d27733300509b");
+    }
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm//vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@4.17.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
+    };
+
+    function loadScript(lib) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = paths[lib];
+        s.async = true;
+        s.onload = () => resolve(paths[lib]);
+        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+        document.getElementsByTagName("head")[0].appendChild(s);
+      });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else if (typeof vegaEmbed === "function") {
+      displayChart(vegaEmbed);
+    } else {
+      loadScript("vega")
+        .then(() => loadScript("vega-lite"))
+        .then(() => loadScript("vega-embed"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "layer": [{"mark": "point", "encoding": {"color": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}, {"field": "epitope", "type": "nominal"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}}, {"mark": {"type": "line", "size": 2.5}, "encoding": {"color": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}, {"field": "epitope", "type": "nominal"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "title": "inferred vs. true mutation escape values", "transform": [{"loess": "correlation (R^2)", "on": "num_variants", "groupby": ["epitope"]}]}], "data": {"name": "data-407f08896ab392fd6cba7b78f38b9ca4"}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-407f08896ab392fd6cba7b78f38b9ca4": [{"epitope": "class 1", "correlation (R^2)": 0.0005833374527068625, "num_variants": "1000"}, {"epitope": "class 2", "correlation (R^2)": 0.3837377180727185, "num_variants": "1000"}, {"epitope": "class 3", "correlation (R^2)": 0.020187187339052344, "num_variants": "1000"}, {"epitope": "class 1", "correlation (R^2)": 0.007389692730778493, "num_variants": "2500"}, {"epitope": "class 2", "correlation (R^2)": 0.5881293887025464, "num_variants": "2500"}, {"epitope": "class 3", "correlation (R^2)": 0.3524713277073588, "num_variants": "2500"}, {"epitope": "class 1", "correlation (R^2)": 0.0536765335409406, "num_variants": "5000"}, {"epitope": "class 2", "correlation (R^2)": 0.6560762409196355, "num_variants": "5000"}, {"epitope": "class 3", "correlation (R^2)": 0.45959541315107766, "num_variants": "5000"}, {"epitope": "class 1", "correlation (R^2)": 0.5749424016502525, "num_variants": "10000"}, {"epitope": "class 2", "correlation (R^2)": 0.8664789669908456, "num_variants": "10000"}, {"epitope": "class 3", "correlation (R^2)": 0.794815336011536, "num_variants": "10000"}, {"epitope": "class 1", "correlation (R^2)": 0.6887010319168394, "num_variants": "20000"}, {"epitope": "class 2", "correlation (R^2)": 0.9331512149955108, "num_variants": "20000"}, {"epitope": "class 3", "correlation (R^2)": 0.876899149348737, "num_variants": "20000"}, {"epitope": "class 1", "correlation (R^2)": 0.7557697884639126, "num_variants": "30000"}, {"epitope": "class 2", "correlation (R^2)": 0.9465601495554855, "num_variants": "30000"}, {"epitope": "class 3", "correlation (R^2)": 0.9021540366349036, "num_variants": "30000"}]}}, {"mode": "vega-lite"});
+</script></div>
+</div>
+<p>Additionally, we’ll look at the correlation between “true” and predicted IC90’s for each of the fit models. To do this, we’ll predict the IC90’s of variants in a separate library with a with a different (higher) mutation rate. We therefore read in the “exact” simulated data from a library containing variants with an average of four mutations per gene.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">exact_data</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;RBD_variants_escape_exact.csv&#39;</span><span class="p">,</span> <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;library == &quot;avg4muts&quot;&#39;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;concentration in [1]&#39;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We’ll make the comparison on a log scale, and clip IC90s at values &gt;50 as that is likely to be way outside the dynamic range given the concentrations used.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;correlation (R^2)&#39;</span> <span class="p">:</span> <span class="p">[],</span>
+                           <span class="s1">&#39;num_variants&#39;</span> <span class="p">:</span> <span class="p">[]})</span>
+
+<span class="n">max_ic90</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">library_sizes</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">vars&#39;</span><span class="p">]</span>
+
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="p">(</span><span class="n">exact_data</span><span class="p">[[</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">,</span> <span class="s1">&#39;IC90&#39;</span><span class="p">]]</span>
+         <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;IC90&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="n">max_ic90</span><span class="p">))</span>
+         <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+         <span class="p">)</span>
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">ic90s</span><span class="p">)</span>
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">ic90s</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;predicted_IC90&#39;</span><span class="p">,</span> <span class="n">max_c</span><span class="o">=</span><span class="n">max_ic90</span><span class="p">)</span>
+
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ic90s</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">log_IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;IC90&#39;</span><span class="p">]),</span>
+            <span class="n">predicted_log_IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;predicted_IC90&#39;</span><span class="p">]),</span>
+            <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">corr</span> <span class="o">=</span> <span class="n">ic90s</span><span class="p">[</span><span class="s1">&#39;log_IC90&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">ic90s</span><span class="p">[</span><span class="s1">&#39;predicted_log_IC90&#39;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">ic90_corrs</span><span class="p">,</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;correlation (R^2)&#39;</span> <span class="p">:</span> <span class="n">corr</span><span class="p">,</span>
+                                  <span class="s1">&#39;num_variants&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]})])</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">ic90_corrs</span><span class="p">)</span><span class="o">.</span><span class="n">mark_point</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;num_variants:Q&#39;</span><span class="p">),</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s1">&#39;correlation (R^2):Q&#39;</span><span class="p">),</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3f&#39;</span><span class="p">)]</span>
+<span class="p">)</span>
+<span class="n">base</span> <span class="o">+</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_loess</span><span class="p">(</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="s1">&#39;correlation (R^2)&#39;</span>
+                           <span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">2.5</span>
+                                      <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;predicted vs. true IC90&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div id="altair-viz-9edbcac7846046ab987530e3e1730d8a"></div>
+<script type="text/javascript">
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-9edbcac7846046ab987530e3e1730d8a") {
+      outputDiv = document.getElementById("altair-viz-9edbcac7846046ab987530e3e1730d8a");
+    }
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm//vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@4.17.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
+    };
+
+    function loadScript(lib) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = paths[lib];
+        s.async = true;
+        s.onload = () => resolve(paths[lib]);
+        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+        document.getElementsByTagName("head")[0].appendChild(s);
+      });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else if (typeof vegaEmbed === "function") {
+      displayChart(vegaEmbed);
+    } else {
+      loadScript("vega")
+        .then(() => loadScript("vega-lite"))
+        .then(() => loadScript("vega-embed"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "layer": [{"mark": "point", "encoding": {"tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}}, {"mark": {"type": "line", "size": 2.5}, "encoding": {"tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "title": "predicted vs. true IC90", "transform": [{"loess": "correlation (R^2)", "on": "num_variants"}]}], "data": {"name": "data-bcd52b4482d51a8b13f6229ba1f32728"}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-bcd52b4482d51a8b13f6229ba1f32728": [{"correlation (R^2)": 0.8186109443522505, "num_variants": "1000"}, {"correlation (R^2)": 0.8968273492171873, "num_variants": "2500"}, {"correlation (R^2)": 0.9126594349752555, "num_variants": "5000"}, {"correlation (R^2)": 0.9740654089050067, "num_variants": "10000"}, {"correlation (R^2)": 0.9890548098168895, "num_variants": "20000"}, {"correlation (R^2)": 0.9932350869440111, "num_variants": "30000"}]}}, {"mode": "vega-lite"});
+</script></div>
+</div>
+<section id="Summary">
+<h2>Summary<a class="headerlink" href="#Summary" title="Permalink to this headline">¶</a></h2>
+<p>Library size is an important factor. Having greater than 10,000 (functional) multiply-mutated variants led to stronger inference of the true mutation-escape values at each epitope, particularly the subdominant epitopes.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/BloomLogo.jpg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">polyclonal</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Model mutational escape from polyclonal antibodies.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=jbloomlab&repo=polyclonal&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">polyclonal documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="biophysical_model.html">Biophysical model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="expt_design.html">Experimental design</a><ul>
+      <li>Previous: <a href="expt_design.html" title="previous chapter">Experimental design</a></li>
+      <li>Next: <a href="mutation_rate.html" title="next chapter">Library mutation rate</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019--2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/library_size.nblink.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/jbloomlab/polyclonal" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
