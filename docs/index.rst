@@ -23,6 +23,7 @@ Contents
    simulate_RBD
    fit_RBD
    specify_epitopes
+   expt_design
    optimization
    polyclonal
    package_index
