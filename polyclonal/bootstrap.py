@@ -3,7 +3,7 @@
 bootstrap
 ==========
 
-Defines :class:`PolyclonalCollection` objects for bootstrapping :class:`Polyclonal` model paramers.
+Defines :class:`PolyclonalCollection` objects for bootstrapping :class:`Polyclonal` model parameters.
 
 """
 
@@ -11,7 +11,8 @@ import pandas as pd
 
 
 def create_bootstrap_sample(df, group_by_col='concentration'):
-    """ Return a bootstrapped sample of a pandas data frame.
+    """ Return a bootstrapped sample of a pandas data frame, maintaining the
+    same number of items when grouped by a given column.
 
     Parameters
     -----------
@@ -27,14 +28,14 @@ def create_bootstrap_sample(df, group_by_col='concentration'):
     """
     # Check to make sure group_by_col exists -- raise an error otherwise.
     if group_by_col is not None and group_by_col not in df.columns:
-        raise KeyError(f'{group_by_col} is not in provdied data frame.')
+        raise KeyError(f'{group_by_col} is not in provided data frame.')
 
     boot_df = []
 
     if group_by_col is not None:
         grouped_df = df.groupby(group_by_col)
 
-        # Sample each concentration seperately
+        # Sample each concentration separately
         for name, group in grouped_df:
             boot_df.append(group.sample(n=len(group), replace=True))
     else:
@@ -120,6 +121,15 @@ class PolyclonalCollection:
         with inferred parameters.
 
         Save the model without attached data to `self.models`.
+
+        @Zorian given that we'd like to use multiprocessing.Pool I can say from
+        experience that your life will be much easier if you think about defining things
+        as much as possible in terms of free functions. I suggest a function that takes
+        a bootstrapped data set and spits out a re-initialized model like you describe here.
+        Then fit_models can take a threads argument, initialize the pool, and then apply
+        that free function repeatedly.
+        Given this, I'm not sure that you need _populate_collection but I probably don't
+        understand what you have in mind.
         """
         pass
 
@@ -128,12 +138,14 @@ class PolyclonalCollection:
         Make predictions on variants for models that have parameters for present
         mutations.
         Aggregate and return these predictions into a single data frame.
+        @Zorian-- can you provide a little more detail about the shape of this df?
         """
         pass
 
     def _aggregate_predictions():
         """
-        Aggregate predictions from all eligble models.
+        Aggregate predictions from all eligible models.
+        @Zorian-- can you describe the return type here?
         """
         pass
 
@@ -144,6 +156,7 @@ class PolyclonalCollection:
         or reporting in the heatmap.
         I am leaning towards the latter -- reporting the variance in the
         sampling distribution for each beta in each epitope.
+        @Zorian-- How do you propose reporting?
 
         For each `beta`, include the number (or frequency) of times it was
         **not** sampled.
