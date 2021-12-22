@@ -35,14 +35,14 @@ class MutationParser:
         for char in alphabet:
             if char.isalpha():
                 chars.append(char)
-            elif char == '*':
-                chars.append(r'\*')
+            elif char == "*":
+                chars.append(r"\*")
             else:
                 raise ValueError(f"invalid alphabet character: {char}")
-        chars = '|'.join(chars)
-        self._mutation_regex = re.compile(rf"(?P<wt>{chars})"
-                                          rf"(?P<site>\d+)"
-                                          rf"(?P<mut>{chars})")
+        chars = "|".join(chars)
+        self._mutation_regex = re.compile(
+            rf"(?P<wt>{chars})" rf"(?P<site>\d+)" rf"(?P<mut>{chars})"
+        )
 
     def parse_mut(self, mutation):
         """tuple: `(wildtype, site, mutation)`."""
@@ -50,15 +50,16 @@ class MutationParser:
         if not m:
             raise ValueError(f"invalid mutation {mutation}")
         else:
-            return (m.group('wt'), int(m.group('site')), m.group('mut'))
+            return (m.group("wt"), int(m.group("site")), m.group("mut"))
 
 
-def site_level_variants(df,
-                        *,
-                        original_alphabet=AAS_NOSTOP,
-                        wt_char='w',
-                        mut_char='m',
-                        ):
+def site_level_variants(
+    df,
+    *,
+    original_alphabet=AAS_NOSTOP,
+    wt_char="w",
+    mut_char="m",
+):
     """Re-define variants simply in terms of which sites are mutated.
 
     This function is useful if you have a data frame of variants and you
@@ -99,7 +100,7 @@ def site_level_variants(df,
     2      AG         w1m w53m     1.0
 
     """
-    subs_col = 'aa_substitutions'
+    subs_col = "aa_substitutions"
     if subs_col not in df.columns:
         raise ValueError(f"`df` lacks column {subs_col}")
     if isinstance(wt_char, str) and len(wt_char) != 1:
@@ -116,12 +117,13 @@ def site_level_variants(df,
             for sub in subs.split():
                 wt, site, _ = mutparser.parse_mut(sub)
                 if site in wts and wts[site] != wt:
-                    raise ValueError(f"inconsistent wildtype at {site}: "
-                                     f"{wt} versus {wts[site]}")
+                    raise ValueError(
+                        f"inconsistent wildtype at {site}: " f"{wt} versus {wts[site]}"
+                    )
                 else:
                     wts[site] = wt
                 site_subs.append(f"{wt_char}{site}{mut_char}")
-            site_subs_mapping[subs] = ' '.join(site_subs)
+            site_subs_mapping[subs] = " ".join(site_subs)
 
     df = df.copy()
     df[subs_col] = df[subs_col].map(site_subs_mapping)
@@ -150,17 +152,18 @@ def shift_mut_site(mut_str, shift):
 
     """
     if not isinstance(shift, int):
-        raise ValueError('shift must be int')
+        raise ValueError("shift must be int")
     new_mut_str = []
     for mut in mut_str.split():
-        m = re.fullmatch(r'(?P<wt>\S)(?P<site>\d+)(?P<mut>\S)', mut)
+        m = re.fullmatch(r"(?P<wt>\S)(?P<site>\d+)(?P<mut>\S)", mut)
         if not m:
             raise ValueError(f"cannot match {mut} in {mut_str}")
-        new_site = int(m.group('site')) + shift
+        new_site = int(m.group("site")) + shift
         new_mut_str.append(f"{m.group('wt')}{new_site}{m.group('mut')}")
-    return ' '.join(new_mut_str)
+    return " ".join(new_mut_str)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
