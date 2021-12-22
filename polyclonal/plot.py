@@ -288,7 +288,7 @@ def mut_escape_lineplot(*,
                                         else 'independent')
                          ),
                         spacing=10)
-            .configure_axis(grid=False)
+            .configure_axis(grid=False, labelOverlap='parity')
             .configure_title(anchor='start', fontSize=14)
             )
 
@@ -492,6 +492,7 @@ def mut_escape_heatmap(*,
     return (alt.vconcat(*charts,
                         spacing=0,
                         )
+            .configure_axis(labelOverlap='parity')
             .configure_title(anchor='start', fontSize=14)
             )
 
