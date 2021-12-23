@@ -21,10 +21,3 @@ def test_pseudo_huber():
     huberish_jac = jacrev(loss.scaled_pseudo_huber, argnums=1)
     jax_hgrad = jnp.diag(huberish_jac(delta, jnp.array(r)))
     assert jnp.allclose(hgrad, jax_hgrad)
-
-
-
-
-
-
-

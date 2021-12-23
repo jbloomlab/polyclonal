@@ -33,6 +33,3 @@ def scaled_pseudo_huber(delta, r):
     DeviceArray([0.24, 0.83, 2.47, 6.25], dtype=float32)
     """
     return delta * (jnp.sqrt(1. + jnp.square(r / delta)) - 1.)
-
-
-
