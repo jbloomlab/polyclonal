@@ -192,6 +192,82 @@ def reassign_b_factor(input_pdbfile,
     io.set_structure(pdb)
     io.save(output_pdbfile)
 
+def extract_atom_locations(input_pdbfile,
+                           target_chains,
+                           output_file,
+                           target_atom='CA',
+                           ):
+    """Extract atom locations from target chains of a PDB file.
+
+    By default the locations of alpha carbons are extracted, but any atom
+    can be specified. If a residue does not have the specified atom,
+    it is not included in the output file.
+
+    Parameters
+    ----------
+    input_pdbfile : str
+        Path to input PDB file.
+    target_chains : list
+        List of target chains to extract atom locations from. Chains must be in
+        the PDB and match the chain ids.
+    output_file: str
+        Name of created output csv file with the atom locations. Columns in this
+        file are 'site', 'x', 'y', and 'z'.
+    target_atom: str
+        Which type of atom to extract locations for. Default is alpha carbon, or
+        'CA'. If the specified type of atom is present multiple times for a
+        residue, that residue will end up having multiple entries in the output.
+
+    Returns
+    -------
+    None
+    """
+
+    # read PDB, catch warnings about discontinuous chains
+    with warnings.catch_warnings():
+        warnings.simplefilter(
+                'ignore',
+                category=Bio.PDB.PDBExceptions.PDBConstructionWarning)
+        pdb = Bio.PDB.PDBParser().get_structure('_', input_pdbfile)
+
+    # get the chains out of the PDB
+    chains = list(pdb.get_chains())
+    chain_ids = [chain.id for chain in chains]
+
+    # make sure the target chains are in the PDB
+    for chain in target_chains:
+        if chain not in chain_ids:
+            raise ValueError(f"Chain {chain} not in PDB {input_pdbfile}")
+
+    # make a list of chains to extract atom locations from
+    chains_to_use = []
+    for i, chain in enumerate(chain_ids):
+        if chain in target_chains:
+            chains_to_use.append(chains[i])
+
+    # extract atom locations from target chains
+    residue_list = []
+    x_list = []
+    y_list = []
+    z_list = []
+    for chain in chains_to_use:
+        for residue in chain.get_residues():
+            residue_number = residue.get_id()[1]
+            atoms = residue.get_atoms()
+            for atom in atoms:
+                if atom.get_id() == target_atom:
+                    x, y, z = atom.get_coord()
+                    x_list.append(x)
+                    y_list.append(y)
+                    z_list.append(z)
+                    residue_list.append(residue_number)
+
+    # write output
+    output = pd.DataFrame({'site': residue_list,
+                           'x': x_list,
+                           'y': y_list,
+                           'z': z_list})
+    output.to_csv(output_file, index=False)
 
 if __name__ == '__main__':
     import doctest
