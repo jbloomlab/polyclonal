@@ -28,6 +28,7 @@ import scipy.special
 import polyclonal.pdb_utils
 import polyclonal.plot
 import polyclonal.utils
+import polyclonal.functional as pfunc
 
 
 class Polyclonal:
@@ -806,16 +807,7 @@ class Polyclonal:
 
     def _a_beta_from_params(self, params):
         """Vector of activities and MxE matrix of betas from params vector."""
-        params_len = len(self.epitopes) * (1 + len(self.mutations))
-        if params.shape != (params_len,):
-            raise ValueError(f"invalid {params.shape=}")
-        a = params[: len(self.epitopes)]
-        beta = params[len(self.epitopes):].reshape(len(self.mutations),
-                                                   len(self.epitopes))
-        assert a.shape == (len(self.epitopes),)
-        assert beta.shape == (len(self.mutations), len(self.epitopes))
-        assert (not numpy.isnan(a).any()) and (not numpy.isnan(beta).any())
-        return (a, beta)
+        return pfunc.a_beta_from_params(len(self.epitopes), len(self.mutations), params)
 
     def _muts_from_data_to_fit(self, data_to_fit):
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
