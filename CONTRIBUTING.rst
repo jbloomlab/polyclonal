@@ -36,6 +36,11 @@ For more elaborate functionality, put unit tests in tests_.
 Note also that the `Jupyter notebooks`_ in notebooks_ are tested via nbval_.
 If you are getting errors on these notebook tests due to testing cells that output objects that can't be properly tested (such as widgets), see the *nbval-ignore-output* tag option discussed in the nbval_ docs.
 
+Formatting
+++++++++++
+The code is formatted using `Black <https://black.readthedocs.io/en/stable/index.html>`_
+Please run Black before submitting your PR.
+
 Versions and CHANGELOG
 ++++++++++++++++++++++
 The version is `single sourced <https://packaging.python.org/guides/single-sourcing-package-version/>`_ in `__init__.py`_.
