@@ -14,7 +14,7 @@ install:
 script:
   - flake8
   - pytest
-  - black
+  - black --check .
 
 branches:
   only:
