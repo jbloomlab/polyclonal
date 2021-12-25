@@ -47,6 +47,7 @@ setup(
         "altair>=4.1",
         "binarymap>=0.3",
         "biopython>=1.79",
+        "dms_variants",
         "frozendict>=2.0.7",
         "jax",
         "jaxlib",
