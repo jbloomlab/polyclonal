@@ -8,5 +8,6 @@ flake8-comprehensions
 flake8-bugbear
 flake8-print
 nbval
+black
 dms_variants>=1.1
 plotnine>=0.8.0
