@@ -38,8 +38,10 @@ If you are getting errors on these notebook tests due to testing cells that outp
 
 Formatting
 ++++++++++
-The code is formatted using `Black <https://black.readthedocs.io/en/stable/index.html>`_
-Please run Black before submitting your PR.
+The code is formatted using `Black <https://black.readthedocs.io/en/stable/index.html>`_, which you can install using `pip install "black[jupyter]"`.
+You may also wish to install a Black extension in your editor to, for example, auto-format upon save.
+In any case, please run Black using `black .` before submitting your PR, because the Travis tests will not pass unless the files have been formatted.
+Note that this will change files/notebooks that you may be actively editing.
 
 Versions and CHANGELOG
 ++++++++++++++++++++++
