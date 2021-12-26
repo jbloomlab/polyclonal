@@ -13,8 +13,8 @@ install:
 
 script:
   - flake8
-  - pytest
   - black --check .
+  - pytest
 
 branches:
   only:
