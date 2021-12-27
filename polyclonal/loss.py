@@ -47,7 +47,8 @@ def a_beta_from_params(n_epitopes, n_mutations, params):
     beta = params[n_epitopes:].reshape(n_mutations, n_epitopes)
     assert a.shape == (n_epitopes,)
     assert beta.shape == (n_mutations, n_epitopes)
-    assert (not numpy.isnan(a).any()) and (not numpy.isnan(beta).any())
+    # TODO fix
+    # assert (not jnp.isnan(a).any()) and (not jnp.isnan(beta).any())
     return (a, beta)
 
 
