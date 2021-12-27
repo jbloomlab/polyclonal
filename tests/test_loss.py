@@ -145,5 +145,13 @@ def test_compute_pv(poly_abs, n_epitopes, n_mutations, bmap, params, bv_sparse, 
     jax_pv = loss.compute_pv(
         n_epitopes, n_mutations, bmap.nvariants, params, bv_sparse, cs
     )
-    correct_pv = jnp.array(poly_abs._compute_pv(params, bmap, cs=cs))
-    assert jnp.allclose(jax_pv, correct_pv)
+    correct_pv, correct_pv_jac = poly_abs._compute_pv(
+        params, bmap, cs=cs, calc_grad=True
+    )
+    assert jnp.allclose(jax_pv, jnp.array(correct_pv))
+    jac_compute_pv = jacrev(loss.compute_pv, argnums=3)
+    # TODO note transpose here.
+    jax_pv_jac = jac_compute_pv(
+        n_epitopes, n_mutations, bmap.nvariants, params, bv_sparse, cs
+    ).transpose()
+    assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
