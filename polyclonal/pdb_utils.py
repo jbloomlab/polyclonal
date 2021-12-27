@@ -209,9 +209,6 @@ def extract_atom_locations(input_pdbfile,
     target_chains : list
         List of target chains to extract atom locations from. Chains must be in
         the PDB and match the chain ids.
-    output_file: str
-        Name of created output csv file with the atom locations. Columns in this
-        file are 'site', 'x', 'y', and 'z'.
     target_atom: str
         Which type of atom to extract locations for. Default is alpha carbon, or
         'CA'. If the specified type of atom is present multiple times for a
@@ -219,7 +216,37 @@ def extract_atom_locations(input_pdbfile,
 
     Returns
     -------
-    None
+    pandas dataframe with the columns 'chain', 'site', 'x', 'y', and 'z'.
+
+    Example
+    -------
+    Download PDB, do the re-assignment of B factors, read the lines
+    from the resulting re-assigned PDB:
+
+    >>> pdb_url = 'https://files.rcsb.org/download/6M0J.pdb'
+    >>> r = requests.get(pdb_url)
+    >>> with tempfile.TemporaryDirectory() as tmpdir:
+    ...    pdbfile = os.path.join(tmpdir, '6M0J.pdb')
+    ...    with open(pdbfile, 'wb') as f:
+    ...        _ = f.write(r.content)
+    ...    output = extract_atom_locations(pdbfile, ['A'])
+
+    Check the first ten lines of the ouput to make sure we got the expected
+    atom locations:
+
+    >>> output.head(n=10)
+      chain  site          x          y      z
+    0     A    19 -31.358999  50.852001  2.040
+    1     A    20 -29.424000  50.561001 -1.234
+    2     A    21 -30.722000  48.633999 -4.234
+    3     A    22 -28.080999  45.924999 -3.794
+    4     A    23 -28.982000  45.372002 -0.131
+    5     A    24 -32.637001  44.912998 -1.106
+    6     A    25 -31.709999  42.499001 -3.889
+    7     A    26 -29.688999  40.509998 -1.334
+    8     A    27 -32.740002  40.337002  0.917
+    9     A    28 -34.958000  39.424000 -2.028
+
     """
 
     # read PDB, catch warnings about discontinuous chains
@@ -270,7 +297,7 @@ def extract_atom_locations(input_pdbfile,
                            'y': y_list,
                            'z': z_list})
 
-    return output
+    return output.reset_index(drop=True)
 
 if __name__ == '__main__':
     import doctest
