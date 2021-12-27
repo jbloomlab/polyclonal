@@ -236,7 +236,7 @@ def extract_atom_locations(input_pdbfile,
     # make sure the target chains are in the PDB
     for chain in target_chains:
         if chain not in chain_ids:
-            raise ValueError(f"Chain {chain} not in PDB {input_pdbfile}")
+            raise ValueError(f"{chain=} not in {input_pdbfile=}")
 
     # make a list of chains to extract atom locations from
     chains_to_use = []
