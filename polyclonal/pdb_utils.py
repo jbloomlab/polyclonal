@@ -194,7 +194,6 @@ def reassign_b_factor(input_pdbfile,
 
 def extract_atom_locations(input_pdbfile,
                            target_chains,
-                           output_file,
                            target_atom='CA',
                            ):
     """Extract atom locations from target chains of a PDB file.
@@ -246,6 +245,7 @@ def extract_atom_locations(input_pdbfile,
             chains_to_use.append(chains[i])
 
     # extract atom locations from target chains
+    chain_list = []
     residue_list = []
     x_list = []
     y_list = []
@@ -261,13 +261,16 @@ def extract_atom_locations(input_pdbfile,
                     y_list.append(y)
                     z_list.append(z)
                     residue_list.append(residue_number)
+                    chain_list.append(chain.id)
 
     # write output
-    output = pd.DataFrame({'site': residue_list,
+    output = pd.DataFrame({'chain': chain_list,
+                           'site': residue_list,
                            'x': x_list,
                            'y': y_list,
                            'z': z_list})
-    output.to_csv(output_file, index=False)
+
+    return output
 
 if __name__ == '__main__':
     import doctest
