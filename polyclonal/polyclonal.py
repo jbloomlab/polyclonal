@@ -486,92 +486,107 @@ class Polyclonal:
 
     """
 
-    def __init__(self,
-                 *,
-                 activity_wt_df=None,
-                 mut_escape_df=None,
-                 data_to_fit=None,
-                 site_escape_df=None,
-                 n_epitopes=None,
-                 collapse_identical_variants='mean',
-                 alphabet=binarymap.binarymap.AAS_NOSTOP,
-                 epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
-                 init_missing='zero',
-                 data_mut_escape_overlap='exact_match',
-                 ):
+    def __init__(
+        self,
+        *,
+        activity_wt_df=None,
+        mut_escape_df=None,
+        data_to_fit=None,
+        site_escape_df=None,
+        n_epitopes=None,
+        collapse_identical_variants="mean",
+        alphabet=binarymap.binarymap.AAS_NOSTOP,
+        epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
+        init_missing="zero",
+        data_mut_escape_overlap="exact_match",
+    ):
         """See main class docstring."""
         if isinstance(init_missing, int):
             numpy.random.seed(init_missing)
-        elif init_missing != 'zero':
+        elif init_missing != "zero":
             raise ValueError(f"invalid {init_missing=}")
 
         if len(set(alphabet)) != len(alphabet):
-            raise ValueError('duplicate letters in `alphabet`')
+            raise ValueError("duplicate letters in `alphabet`")
         self.alphabet = tuple(alphabet)
         self._mutparser = polyclonal.utils.MutationParser(alphabet)
 
         if site_escape_df is not None:
             if mut_escape_df is not None:
-                raise ValueError('cannot set both `site_escape_df` and '
-                                 '`mut_escape_df`')
+                raise ValueError(
+                    "cannot set both `site_escape_df` and " "`mut_escape_df`"
+                )
             if activity_wt_df is None:
-                raise ValueError('cannot set `site_escape_df` without '
-                                 'setting `activity_wt_df`')
+                raise ValueError(
+                    "cannot set `site_escape_df` without " "setting `activity_wt_df`"
+                )
             if data_to_fit is None:
-                raise ValueError('cannot set `site_escape_df` without '
-                                 'setting `data_to_fit`')
-        if (activity_wt_df is not None) and ((mut_escape_df is not None) or
-                                             (site_escape_df is not None)):
+                raise ValueError(
+                    "cannot set `site_escape_df` without " "setting `data_to_fit`"
+                )
+        if (activity_wt_df is not None) and (
+            (mut_escape_df is not None) or (site_escape_df is not None)
+        ):
             if n_epitopes is not None:
-                raise ValueError('specify `activity_wt_df` or `n_epitopes`')
+                raise ValueError("specify `activity_wt_df` or `n_epitopes`")
 
-            if pd.isnull(activity_wt_df['epitope']).any():
-                raise ValueError('epitope name cannot be null')
-            self.epitopes = tuple(activity_wt_df['epitope'].unique())
+            if pd.isnull(activity_wt_df["epitope"]).any():
+                raise ValueError("epitope name cannot be null")
+            self.epitopes = tuple(activity_wt_df["epitope"].unique())
             if len(self.epitopes) != len(activity_wt_df):
-                raise ValueError('duplicate epitopes in `activity_wt_df`')
+                raise ValueError("duplicate epitopes in `activity_wt_df`")
 
         elif (activity_wt_df is None) and (mut_escape_df is None):
             if not isinstance(n_epitopes, int) and n_epitopes > 0:
-                raise ValueError('`n_epitopes` must be int > 1 if no '
-                                 '`activity_wt_df`')
-            self.epitopes = tuple(f"{i + 1}" for
-                                  i in range(n_epitopes))
+                raise ValueError(
+                    "`n_epitopes` must be int > 1 if no " "`activity_wt_df`"
+                )
+            self.epitopes = tuple(f"{i + 1}" for i in range(n_epitopes))
 
             # initialize activities
-            activity_wt_df = pd.DataFrame({
-                    'epitope': self.epitopes,
-                    'activity': (numpy.linspace(1, 0, len(self.epitopes))
-                                 if init_missing == 'zero' else
-                                 numpy.random.rand(len(self.epitopes)))
-                    })
+            activity_wt_df = pd.DataFrame(
+                {
+                    "epitope": self.epitopes,
+                    "activity": (
+                        numpy.linspace(1, 0, len(self.epitopes))
+                        if init_missing == "zero"
+                        else numpy.random.rand(len(self.epitopes))
+                    ),
+                }
+            )
 
             if data_to_fit is None:
-                raise ValueError('specify `data_to_fit` if `activity_wt_df` '
-                                 'and `mut_escape_df` are `None`')
+                raise ValueError(
+                    "specify `data_to_fit` if `activity_wt_df` "
+                    "and `mut_escape_df` are `None`"
+                )
 
         else:
-            raise ValueError('initialize both or neither `activity_wt_df` '
-                             'and `mut_escape_df` or `site_escape_df`')
+            raise ValueError(
+                "initialize both or neither `activity_wt_df` "
+                "and `mut_escape_df` or `site_escape_df`"
+            )
 
         if isinstance(epitope_colors, dict):
             self.epitope_colors = {epitope_colors[e] for e in self.epitopes}
         elif len(epitope_colors) < len(self.epitopes):
-            raise ValueError('not enough `epitope_colors`')
+            raise ValueError("not enough `epitope_colors`")
         else:
             self.epitope_colors = dict(zip(self.epitopes, epitope_colors))
 
         def _init_mut_escape_df(mutations):
             # initialize mutation escape values
-            if init_missing == 'zero':
+            if init_missing == "zero":
                 init = 0.0
             else:
                 init = numpy.random.rand(len(self.epitopes) * len(mutations))
             return pd.DataFrame(
-                    {'epitope': list(self.epitopes) * len(mutations),
-                     'mutation': [m for m in mutations for _ in self.epitopes],
-                     'escape': init
-                     })
+                {
+                    "epitope": list(self.epitopes) * len(mutations),
+                    "mutation": [m for m in mutations for _ in self.epitopes],
+                    "escape": init,
+                }
+            )
 
         # get wildtype, sites, and mutations
         if data_to_fit is not None:
@@ -579,97 +594,105 @@ class Polyclonal:
         if site_escape_df is not None:
             # construct mut_escape_df from site_escape_df and mutations
             # from data_to_fit
-            req_cols = {'epitope', 'site', 'escape'}
+            req_cols = {"epitope", "site", "escape"}
             if not req_cols.issubset(site_escape_df.columns):
                 raise ValueError(f"`site_escape_df` lacks columns {req_cols}")
             assert (data_to_fit is not None) and (mut_escape_df is None)
-            if not set(site_escape_df['epitope']).issubset(self.epitopes):
-                raise ValueError('`site_escape_df` has unrecognized epitopes')
-            if not set(site_escape_df['site']).issubset(sites2):
-                raise ValueError('site_escape_df has sites not in data_to_fit')
-            if len(site_escape_df) != len(site_escape_df
-                                          [['site', 'epitope']]
-                                          .drop_duplicates()):
-                raise ValueError('`site_escape_df` rows do not each represent '
-                                 f"unique epitope / site:\n{site_escape_df}")
+            if not set(site_escape_df["epitope"]).issubset(self.epitopes):
+                raise ValueError("`site_escape_df` has unrecognized epitopes")
+            if not set(site_escape_df["site"]).issubset(sites2):
+                raise ValueError("site_escape_df has sites not in data_to_fit")
+            if len(site_escape_df) != len(
+                site_escape_df[["site", "epitope"]].drop_duplicates()
+            ):
+                raise ValueError(
+                    "`site_escape_df` rows do not each represent "
+                    f"unique epitope / site:\n{site_escape_df}"
+                )
             mut_records = []
             for epitope in self.epitopes:
-                site_escape = (site_escape_df
-                               .query('epitope == @epitope')
-                               .set_index('site')
-                               ['escape']
-                               .to_dict()
-                               )
+                site_escape = (
+                    site_escape_df.query("epitope == @epitope")
+                    .set_index("site")["escape"]
+                    .to_dict()
+                )
                 for mut in muts2:
                     (_, site, _) = self._mutparser.parse_mut(mut)
                     if site in site_escape:
                         mut_records.append((epitope, mut, site_escape[site]))
             mut_escape_df = pd.DataFrame.from_records(
-                                    mut_records,
-                                    columns=['epitope', 'mutation', 'escape'])
+                mut_records, columns=["epitope", "mutation", "escape"]
+            )
 
         if mut_escape_df is not None:
             wts, sites, muts = self._muts_from_mut_escape_df(mut_escape_df)
         if mut_escape_df is data_to_fit is None:
-            raise ValueError('initialize `mut_escape_df` or `data_to_fit`')
+            raise ValueError("initialize `mut_escape_df` or `data_to_fit`")
         elif mut_escape_df is None:
             self.wts, self.sites, self.mutations = wts2, sites2, muts2
             mut_escape_df = _init_mut_escape_df(self.mutations)
         elif data_to_fit is None:
             self.wts, self.sites, self.mutations = wts, sites, muts
         else:
-            if data_mut_escape_overlap == 'exact_match':
+            if data_mut_escape_overlap == "exact_match":
                 if sites == sites2 and wts == wts2 and muts == muts2:
                     self.wts, self.sites, self.mutations = wts, sites, muts
                 else:
-                    raise ValueError('`data_to_fit` and `mut_escape_df` give '
-                                     'different mutations. Fix or set '
-                                     'data_mut_escape_overlap="fill_to_data"')
-            elif data_mut_escape_overlap == 'fill_to_data':
+                    raise ValueError(
+                        "`data_to_fit` and `mut_escape_df` give "
+                        "different mutations. Fix or set "
+                        'data_mut_escape_overlap="fill_to_data"'
+                    )
+            elif data_mut_escape_overlap == "fill_to_data":
                 if set(sites) < set(sites2):
                     self.sites = sites2
                 else:
-                    raise ValueError('`mut_escape_df` has more sites than '
-                                     '`data_to_fit`')
+                    raise ValueError(
+                        "`mut_escape_df` has more sites than " "`data_to_fit`"
+                    )
                 if wts.items() <= wts2.items():
                     self.wts = wts2
                 else:
-                    raise ValueError('`mut_escape_df` has wts not in '
-                                     '`data_to_fit`')
+                    raise ValueError("`mut_escape_df` has wts not in " "`data_to_fit`")
                 if set(muts) < set(muts2):
                     self.mutations = muts2
                 else:
-                    raise ValueError('`mut_escape_df` has mutations not in '
-                                     '`data_to_fit`')
+                    raise ValueError(
+                        "`mut_escape_df` has mutations not in " "`data_to_fit`"
+                    )
                 # take values from `mut_escape_df` and fill missing
                 mut_escape_df = (
-                    mut_escape_df
-                    .set_index(['epitope', 'mutation'])
-                    ['escape']
-                    .combine_first(_init_mut_escape_df(self.mutations)
-                                   .set_index(['epitope', 'mutation'])
-                                   ['escape'])
-                    .reset_index()
+                    mut_escape_df.set_index(["epitope", "mutation"])["escape"]
+                    .combine_first(
+                        _init_mut_escape_df(self.mutations).set_index(
+                            ["epitope", "mutation"]
+                        )["escape"]
                     )
+                    .reset_index()
+                )
             else:
                 raise ValueError(f"invalid {data_mut_escape_overlap=}")
 
-        if set(mut_escape_df['epitope']) != set(self.epitopes):
-            raise ValueError('`mut_escape_df` does not have same epitopes as '
-                             '`activity_wt_df`')
-        for epitope, df in mut_escape_df.groupby('epitope'):
-            if sorted(df['mutation']) != sorted(self.mutations):
+        if set(mut_escape_df["epitope"]) != set(self.epitopes):
+            raise ValueError(
+                "`mut_escape_df` does not have same epitopes as " "`activity_wt_df`"
+            )
+        for epitope, df in mut_escape_df.groupby("epitope"):
+            if sorted(df["mutation"]) != sorted(self.mutations):
                 raise ValueError(f"invalid set of mutations for {epitope=}")
 
         # set internal params with activities and escapes
         self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
         if data_to_fit is not None:
-            (self._one_binarymap, self._binarymaps,
-             self._cs, self._pvs, self._weights, self.data_to_fit
-             ) = self._binarymaps_from_df(data_to_fit,
-                                          True,
-                                          collapse_identical_variants)
+            (
+                self._one_binarymap,
+                self._binarymaps,
+                self._cs,
+                self._pvs,
+                self._weights,
+                self.data_to_fit,
+            ) = self._binarymaps_from_df(data_to_fit, True, collapse_identical_variants)
             assert len(self._pvs) == len(self.data_to_fit)
             # for each site get mask of indices in the binary map
             # that correspond to that site
@@ -677,18 +700,23 @@ class Polyclonal:
                 binary_sites = self._binarymaps.binary_sites
             else:
                 binary_sites = self._binarymaps[0].binary_sites
-                assert all((binary_sites == bmap.binary_sites).all()
-                           for bmap in self._binarymaps)
-            self._binary_sites = {site: numpy.where(binary_sites == site)
-                                  for site in numpy.unique(binary_sites)}
+                assert all(
+                    (binary_sites == bmap.binary_sites).all()
+                    for bmap in self._binarymaps
+                )
+            self._binary_sites = {
+                site: numpy.where(binary_sites == site)
+                for site in numpy.unique(binary_sites)
+            }
         else:
             self.data_to_fit = None
 
-    def _binarymaps_from_df(self,
-                            df,
-                            get_pv,
-                            collapse_identical_variants,
-                            ):
+    def _binarymaps_from_df(
+        self,
+        df,
+        get_pv,
+        collapse_identical_variants,
+    ):
         """Get variants and and other information from data frame.
 
         Get `(one_binarymap, binarymaps, cs, pvs, weights, sorted_df)`. If
@@ -703,58 +731,50 @@ class Polyclonal:
         have same BinaryMap.
 
         """
-        cols = ['concentration', 'aa_substitutions']
+        cols = ["concentration", "aa_substitutions"]
         if get_pv:
-            cols.append('prob_escape')
+            cols.append("prob_escape")
         if not df[cols].notnull().all().all():
             raise ValueError(f"null entries in data frame of variants:\n{df}")
         if collapse_identical_variants:
-            agg_dict = {'weight': 'sum'}
+            agg_dict = {"weight": "sum"}
             if get_pv:
-                agg_dict['prob_escape'] = collapse_identical_variants
-            df = (df
-                  [cols]
-                  .assign(weight=1)
-                  .groupby(['concentration', 'aa_substitutions'],
-                           as_index=False)
-                  .aggregate(agg_dict)
-                  )
-        sorted_df = (df
-                     .sort_values(['concentration', 'aa_substitutions'])
-                     .reset_index(drop=True)
-                     )
-        cs = (sorted_df
-              ['concentration']
-              .astype(float)
-              .sort_values()
-              .unique()
-              )
+                agg_dict["prob_escape"] = collapse_identical_variants
+            df = (
+                df[cols]
+                .assign(weight=1)
+                .groupby(["concentration", "aa_substitutions"], as_index=False)
+                .aggregate(agg_dict)
+            )
+        sorted_df = df.sort_values(["concentration", "aa_substitutions"]).reset_index(
+            drop=True
+        )
+        cs = sorted_df["concentration"].astype(float).sort_values().unique()
         if not (cs > 0).all():
-            raise ValueError('concentrations must be > 0')
+            raise ValueError("concentrations must be > 0")
         binarymaps = []
         pvs = [] if get_pv else None
         weights = [] if collapse_identical_variants else None
         one_binarymap = True
-        for i, (c, i_df) in enumerate(sorted_df.groupby('concentration',
-                                                        sort=False)):
+        for i, (c, i_df) in enumerate(sorted_df.groupby("concentration", sort=False)):
             assert c == cs[i]
-            i_variants = i_df['aa_substitutions'].reset_index(drop=True)
+            i_variants = i_df["aa_substitutions"].reset_index(drop=True)
             if i == 0:
                 first_variants = i_variants
             elif one_binarymap:
                 one_binarymap = first_variants.equals(i_variants)
             binarymaps.append(self._get_binarymap(i_df))
             if get_pv:
-                pvs.append(i_df['prob_escape'].to_numpy(dtype=float))
+                pvs.append(i_df["prob_escape"].to_numpy(dtype=float))
             if collapse_identical_variants:
-                weights.append(i_df['weight'].to_numpy(dtype=int))
+                weights.append(i_df["weight"].to_numpy(dtype=int))
         if one_binarymap:
             binarymaps = binarymaps[0]
         if get_pv:
             pvs = numpy.concatenate(pvs)
             assert len(pvs) == len(sorted_df)
             if (pvs < 0).any() or (pvs > 1).any():
-                raise ValueError('`prob_escape` must be between 0 and 1')
+                raise ValueError("`prob_escape` must be between 0 and 1")
         if collapse_identical_variants:
             weights = numpy.concatenate(weights)
             assert len(weights) == len(sorted_df)
@@ -766,42 +786,39 @@ class Polyclonal:
         """Params vector from data frames of activities and escapes."""
         # first E entries are activities
         assert len(activity_wt_df) == len(self.epitopes)
-        assert len(self.epitopes) == activity_wt_df['epitope'].nunique()
-        assert set(self.epitopes) == set(activity_wt_df['epitope'])
+        assert len(self.epitopes) == activity_wt_df["epitope"].nunique()
+        assert set(self.epitopes) == set(activity_wt_df["epitope"])
         params = (
-            activity_wt_df
-            .assign(epitope=lambda x: pd.Categorical(x['epitope'],
-                                                     self.epitopes,
-                                                     ordered=True)
-                    )
-            .sort_values('epitope')
-            ['activity']
-            .tolist()
+            activity_wt_df.assign(
+                epitope=lambda x: pd.Categorical(
+                    x["epitope"], self.epitopes, ordered=True
+                )
             )
+            .sort_values("epitope")["activity"]
+            .tolist()
+        )
 
         # Remaining MxE entries are beta values
         assert len(mut_escape_df) == len(self.epitopes) * len(self.mutations)
-        assert len(mut_escape_df) == len(mut_escape_df
-                                         .groupby(['mutation', 'epitope']))
-        assert set(self.epitopes) == set(mut_escape_df['epitope'])
-        assert set(self.mutations) == set(mut_escape_df['mutation'])
+        assert len(mut_escape_df) == len(mut_escape_df.groupby(["mutation", "epitope"]))
+        assert set(self.epitopes) == set(mut_escape_df["epitope"])
+        assert set(self.mutations) == set(mut_escape_df["mutation"])
         params.extend(
-            mut_escape_df
-            .assign(epitope=lambda x: pd.Categorical(x['epitope'],
-                                                     self.epitopes,
-                                                     ordered=True),
-                    mutation=lambda x: pd.Categorical(x['mutation'],
-                                                      self.mutations,
-                                                      ordered=True),
-                    )
-            .sort_values(['mutation', 'epitope'])
-            ['escape']
-            .tolist()
+            mut_escape_df.assign(
+                epitope=lambda x: pd.Categorical(
+                    x["epitope"], self.epitopes, ordered=True
+                ),
+                mutation=lambda x: pd.Categorical(
+                    x["mutation"], self.mutations, ordered=True
+                ),
             )
+            .sort_values(["mutation", "epitope"])["escape"]
+            .tolist()
+        )
 
         params = numpy.array(params).astype(float)
         if numpy.isnan(params).any():
-            raise ValueError('some parameters are NaN')
+            raise ValueError("some parameters are NaN")
         return params
 
     def _a_beta_from_params(self, params):
@@ -810,8 +827,9 @@ class Polyclonal:
         if params.shape != (params_len,):
             raise ValueError(f"invalid {params.shape=}")
         a = params[: len(self.epitopes)]
-        beta = params[len(self.epitopes):].reshape(len(self.mutations),
-                                                   len(self.epitopes))
+        beta = params[len(self.epitopes) :].reshape(
+            len(self.mutations), len(self.epitopes)
+        )
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         assert (not numpy.isnan(a).any()) and (not numpy.isnan(beta).any())
@@ -821,7 +839,7 @@ class Polyclonal:
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
         wts = {}
         mutations = collections.defaultdict(set)
-        for variant in data_to_fit['aa_substitutions']:
+        for variant in data_to_fit["aa_substitutions"]:
             for mutation in variant.split():
                 wt, site, _ = self._mutparser.parse_mut(mutation)
                 if site not in wts:
@@ -833,16 +851,18 @@ class Polyclonal:
         wts = dict(sorted(wts.items()))
         assert set(mutations.keys()) == set(sites) == set(wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
-        mutations = tuple(mut for site in sites for mut in
-                          sorted(mutations[site],
-                                 key=lambda m: char_order[m[-1]]))
+        mutations = tuple(
+            mut
+            for site in sites
+            for mut in sorted(mutations[site], key=lambda m: char_order[m[-1]])
+        )
         return (wts, sites, mutations)
 
     def _muts_from_mut_escape_df(self, mut_escape_df):
         """Get wildtypes, sites, and mutations from ``mut_escape_df``."""
         wts = {}
         mutations = collections.defaultdict(set)
-        for mutation in mut_escape_df['mutation'].unique():
+        for mutation in mut_escape_df["mutation"].unique():
             wt, site, _ = self._mutparser.parse_mut(mutation)
             if site not in wts:
                 wts[site] = wt
@@ -853,9 +873,11 @@ class Polyclonal:
         wts = dict(sorted(wts.items()))
         assert set(mutations.keys()) == set(sites) == set(wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
-        mutations = tuple(mut for site in sites for mut in
-                          sorted(mutations[site],
-                                 key=lambda m: char_order[m[-1]]))
+        mutations = tuple(
+            mut
+            for site in sites
+            for mut in sorted(mutations[site], key=lambda m: char_order[m[-1]])
+        )
         return (wts, sites, mutations)
 
     @property
@@ -863,58 +885,65 @@ class Polyclonal:
         r"""pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes."""
         a, _ = self._a_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
-        return pd.DataFrame({'epitope': self.epitopes,
-                             'activity': a,
-                             })
+        return pd.DataFrame(
+            {
+                "epitope": self.epitopes,
+                "activity": a,
+            }
+        )
 
     @property
     def mut_escape_df(self):
         r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation."""
         _, beta = self._a_beta_from_params(self._params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
-        return (pd.concat([pd.DataFrame({'mutation': self.mutations,
-                                         'escape': b,
-                                         'epitope': e,
-                                         })
-                           for e, b in zip(self.epitopes, beta.transpose())],
-                          ignore_index=True)
-                .assign(
-                    site=lambda x: x['mutation'].map(
-                                    lambda m: self._mutparser.parse_mut(m)[1]),
-                    mutant=lambda x: x['mutation'].map(
-                                    lambda m: self._mutparser.parse_mut(m)[2]),
-                    wildtype=lambda x: x['site'].map(self.wts),
-                    )
-                [['epitope', 'site', 'wildtype', 'mutant',
-                  'mutation', 'escape']]
+        return pd.concat(
+            [
+                pd.DataFrame(
+                    {
+                        "mutation": self.mutations,
+                        "escape": b,
+                        "epitope": e,
+                    }
                 )
+                for e, b in zip(self.epitopes, beta.transpose())
+            ],
+            ignore_index=True,
+        ).assign(
+            site=lambda x: x["mutation"].map(lambda m: self._mutparser.parse_mut(m)[1]),
+            mutant=lambda x: x["mutation"].map(
+                lambda m: self._mutparser.parse_mut(m)[2]
+            ),
+            wildtype=lambda x: x["site"].map(self.wts),
+        )[
+            ["epitope", "site", "wildtype", "mutant", "mutation", "escape"]
+        ]
 
     @property
     def mut_escape_site_summary_df(self):
         r"""pandas.DataFrame: Site-level summaries of mutation escape."""
         escape_metrics = {
-                'mean': pd.NamedAgg('escape', 'mean'),
-                'total positive': pd.NamedAgg('escape_gt_0', 'sum'),
-                'max': pd.NamedAgg('escape', 'max'),
-                'min': pd.NamedAgg('escape', 'min'),
-                'total negative': pd.NamedAgg('escape_lt_0', 'sum'),
-                }
+            "mean": pd.NamedAgg("escape", "mean"),
+            "total positive": pd.NamedAgg("escape_gt_0", "sum"),
+            "max": pd.NamedAgg("escape", "max"),
+            "min": pd.NamedAgg("escape", "min"),
+            "total negative": pd.NamedAgg("escape_lt_0", "sum"),
+        }
         return (
-            self.mut_escape_df
-            .assign(escape_gt_0=lambda x: x['escape'].clip(lower=0),
-                    escape_lt_0=lambda x: x['escape'].clip(upper=0),
-                    )
-            .groupby(['epitope', 'site', 'wildtype'],
-                     as_index=False,
-                     sort=False)
-            .aggregate(**escape_metrics)
+            self.mut_escape_df.assign(
+                escape_gt_0=lambda x: x["escape"].clip(lower=0),
+                escape_lt_0=lambda x: x["escape"].clip(upper=0),
             )
+            .groupby(["epitope", "site", "wildtype"], as_index=False, sort=False)
+            .aggregate(**escape_metrics)
+        )
 
-    def prob_escape(self,
-                    *,
-                    variants_df,
-                    concentrations=None,
-                    ):
+    def prob_escape(
+        self,
+        *,
+        variants_df,
+        concentrations=None,
+    ):
         r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
 
         Computed using current mutation-escape values :math:`beta_{m,e}` and
@@ -939,24 +968,27 @@ class Polyclonal:
             :math:`p_v\left(c\right)` for each variant at each concentration.
 
         """
-        prob_escape_col = 'predicted_prob_escape'
+        prob_escape_col = "predicted_prob_escape"
         if prob_escape_col in variants_df.columns:
             raise ValueError(f"`variants_df` has column {prob_escape_col}")
 
         # add concentrations column to variants_df
         if concentrations is not None:
-            if 'concentration' in variants_df.columns:
-                raise ValueError('`variants_df` has "concentration" column '
-                                 'and `concentrations` not `None`')
-            variants_df = pd.concat([variants_df.assign(concentration=c)
-                                     for c in concentrations],
-                                    ignore_index=True)
+            if "concentration" in variants_df.columns:
+                raise ValueError(
+                    '`variants_df` has "concentration" column '
+                    "and `concentrations` not `None`"
+                )
+            variants_df = pd.concat(
+                [variants_df.assign(concentration=c) for c in concentrations],
+                ignore_index=True,
+            )
 
-        (one_binarymap, binarymaps, cs, _, _, variants_df
-         ) = self._binarymaps_from_df(variants_df, False, False)
+        (one_binarymap, binarymaps, cs, _, _, variants_df) = self._binarymaps_from_df(
+            variants_df, False, False
+        )
 
-        p_v_c = self._compute_1d_pvs(self._params, one_binarymap,
-                                     binarymaps, cs)
+        p_v_c = self._compute_1d_pvs(self._params, one_binarymap, binarymaps, cs)
         assert p_v_c.shape == (len(variants_df),)
         variants_df[prob_escape_col] = p_v_c
 
@@ -968,14 +1000,17 @@ class Polyclonal:
         a_sorted = numpy.sort(a)
         for a1, a2 in zip(a_sorted, a_sorted[1:]):
             if numpy.allclose(a1, a2):
-                raise ValueError('Near-identical activities for two epitopes, '
-                                 'will cause problems in fitting. Reinitialize'
-                                 f" with more distinct activities:\n{a}")
+                raise ValueError(
+                    "Near-identical activities for two epitopes, "
+                    "will cause problems in fitting. Reinitialize"
+                    f" with more distinct activities:\n{a}"
+                )
 
-    def site_level_model(self,
-                         *,
-                         aggregate_mut_escapes='mean',
-                         ):
+    def site_level_model(
+        self,
+        *,
+        aggregate_mut_escapes="mean",
+    ):
         """Model with mutations collapsed at site level.
 
         Parameters
@@ -993,24 +1028,24 @@ class Polyclonal:
             site_data_to_fit = None
         else:
             site_data_to_fit = polyclonal.utils.site_level_variants(
-                                    self.data_to_fit,
-                                    original_alphabet=self.alphabet,
-                                    )
+                self.data_to_fit,
+                original_alphabet=self.alphabet,
+            )
         site_escape_df = (
             polyclonal.utils.site_level_variants(
-                    self.mut_escape_df
-                    .rename(columns={'mutation': 'aa_substitutions'})
-                    )
-            .rename(columns={'aa_substitutions': 'mutation'})
-            .groupby(['epitope', 'mutation'], as_index=False)
-            .aggregate({'escape': aggregate_mut_escapes})
+                self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"})
             )
-        return Polyclonal(activity_wt_df=self.activity_wt_df,
-                          mut_escape_df=site_escape_df,
-                          data_to_fit=site_data_to_fit,
-                          alphabet=('w', 'm'),
-                          epitope_colors=self.epitope_colors,
-                          )
+            .rename(columns={"aa_substitutions": "mutation"})
+            .groupby(["epitope", "mutation"], as_index=False)
+            .aggregate({"escape": aggregate_mut_escapes})
+        )
+        return Polyclonal(
+            activity_wt_df=self.activity_wt_df,
+            mut_escape_df=site_escape_df,
+            data_to_fit=site_data_to_fit,
+            alphabet=("w", "m"),
+            epitope_colors=self.epitope_colors,
+        )
 
     @staticmethod
     def _scaled_pseudo_huber(delta, r, calc_grad=False):
@@ -1044,7 +1079,7 @@ class Polyclonal:
 
         """
         if delta <= 0:
-            raise ValueError('PseudoHuber delta must be > 0')
+            raise ValueError("PseudoHuber delta must be > 0")
         h = scipy.special.pseudo_huber(delta, r) / delta
         if calc_grad:
             dh = r / (h + delta)
@@ -1055,8 +1090,8 @@ class Polyclonal:
     def _loss_dloss(self, params, delta):
         r"""Loss on :math:`p_v\left(c\right)` and derivative wrt params."""
         pred_pvs, dpred_pvs_dparams = self._compute_1d_pvs(
-                        params, self._one_binarymap, self._binarymaps,
-                        self._cs, calc_grad=True)
+            params, self._one_binarymap, self._binarymaps, self._cs, calc_grad=True
+        )
         assert pred_pvs.shape == self._pvs.shape
         assert dpred_pvs_dparams.shape == (len(params), len(self._pvs))
         assert type(dpred_pvs_dparams) == scipy.sparse.csr_matrix
@@ -1084,8 +1119,7 @@ class Polyclonal:
         h, dh = self._scaled_pseudo_huber(delta, beta, True)
         reg = h.sum() * weight
         assert dh.shape == beta.shape
-        dreg = weight * numpy.concatenate([numpy.zeros(len(self.epitopes)),
-                                           dh.ravel()])
+        dreg = weight * numpy.concatenate([numpy.zeros(len(self.epitopes)), dh.ravel()])
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         assert reg >= 0
@@ -1108,37 +1142,40 @@ class Polyclonal:
             sitemeans = sitebetas.mean(axis=0)
             assert sitemeans.shape == (len(self.epitopes),)
             beta_minus_mean = sitebetas - sitemeans
-            reg += weight * (beta_minus_mean**2).mean(axis=0).sum()
-            dreg_site = 2 * weight * (mi - 1) / (mi**2) * beta_minus_mean
+            reg += weight * (beta_minus_mean ** 2).mean(axis=0).sum()
+            dreg_site = 2 * weight * (mi - 1) / (mi ** 2) * beta_minus_mean
             assert dreg_site.shape == (mi, len(self.epitopes))
             dreg[siteindex] += dreg_site
         assert reg >= 0
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)),
-                                  dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
 
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
-            {'method': 'L-BFGS-B',
-             'options': {'maxfun': 1e7,
-                         'maxiter': 1e6,
-                         'ftol': 1e-7,
-                         },
-             })
+        {
+            "method": "L-BFGS-B",
+            "options": {
+                "maxfun": 1e7,
+                "maxiter": 1e6,
+                "ftol": 1e-7,
+            },
+        }
+    )
     """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
 
-    def fit(self,
-            *,
-            loss_delta=0.1,
-            reg_escape_weight=0.01,
-            reg_escape_delta=0.1,
-            reg_spread_weight=0.25,
-            fit_site_level_first=True,
-            scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
-            log=None,
-            logfreq=None,
-            ):
+    def fit(
+        self,
+        *,
+        loss_delta=0.1,
+        reg_escape_weight=0.01,
+        reg_escape_delta=0.1,
+        reg_spread_weight=0.25,
+        fit_site_level_first=True,
+        scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
+        log=None,
+        logfreq=None,
+    ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
         Requires :attr:`Polyclonal.data_to_fit` be set at initialization of
@@ -1175,7 +1212,7 @@ class Polyclonal:
 
         """
         if self.data_to_fit is None:
-            raise ValueError('cannot fit if `data_to_fit` not set')
+            raise ValueError("cannot fit if `data_to_fit` not set")
 
         if log is None:
             log = sys.stdout
@@ -1186,26 +1223,25 @@ class Polyclonal:
 
         if fit_site_level_first:
             if logfreq:
-                log.write('# First fitting site-level model.\n')
+                log.write("# First fitting site-level model.\n")
             # get arg passed to fit: https://stackoverflow.com/a/65927265
             myframe = inspect.currentframe()
             keys, _, _, values = inspect.getargvalues(myframe)
-            fit_kwargs = {key: values[key] for key in keys if key != 'self'}
-            fit_kwargs['fit_site_level_first'] = False
+            fit_kwargs = {key: values[key] for key in keys if key != "self"}
+            fit_kwargs["fit_site_level_first"] = False
             site_model = self.site_level_model()
             site_model.fit(**fit_kwargs)
             self._params = self._params_from_dfs(
-                    activity_wt_df=site_model.activity_wt_df,
-                    mut_escape_df=(
-                            site_model.mut_escape_df
-                            [['epitope', 'site', 'escape']]
-                            .merge(self.mut_escape_df.drop(columns='escape'),
-                                   on=['epitope', 'site'],
-                                   how='right',
-                                   validate='one_to_many',
-                                   )
-                            ),
+                activity_wt_df=site_model.activity_wt_df,
+                mut_escape_df=(
+                    site_model.mut_escape_df[["epitope", "site", "escape"]].merge(
+                        self.mut_escape_df.drop(columns="escape"),
+                        on=["epitope", "site"],
+                        how="right",
+                        validate="one_to_many",
                     )
+                ),
+            )
 
         class LossReg:
             # compute loss in class to remember last call
@@ -1214,28 +1250,33 @@ class Polyclonal:
                 self_.last_params = None
 
             def loss_reg(self_, params, breakdown=False):
-                if (self_.last_params is None) or (params !=
-                                                   self_.last_params).any():
+                if (self_.last_params is None) or (params != self_.last_params).any():
                     fitloss, dfitloss = self._loss_dloss(params, loss_delta)
-                    regescape, dregescape = self._reg_escape(params,
-                                                             reg_escape_weight,
-                                                             reg_escape_delta)
-                    regspread, dregspread = self._reg_spread(params,
-                                                             reg_spread_weight)
+                    regescape, dregescape = self._reg_escape(
+                        params, reg_escape_weight, reg_escape_delta
+                    )
+                    regspread, dregspread = self._reg_spread(params, reg_spread_weight)
                     loss = fitloss + regescape + regspread
                     dloss = dfitloss + dregescape + dregspread
                     self_.last_params = params
-                    self_.last_loss = (loss, dloss, {'fit_loss': fitloss,
-                                                     'reg_escape': regescape,
-                                                     'regspread': regspread,
-                                                     })
-                return self_.last_loss if breakdown else self_.last_loss[: 2]
+                    self_.last_loss = (
+                        loss,
+                        dloss,
+                        {
+                            "fit_loss": fitloss,
+                            "reg_escape": regescape,
+                            "regspread": regspread,
+                        },
+                    )
+                return self_.last_loss if breakdown else self_.last_loss[:2]
 
         lossreg = LossReg()
 
         if logfreq:
-            log.write(f"# Starting optimization of {len(self._params)} "
-                      f"parameters at {time.asctime()}.\n")
+            log.write(
+                f"# Starting optimization of {len(self._params)} "
+                f"parameters at {time.asctime()}.\n"
+            )
 
             class Callback:
                 # to log minimization
@@ -1248,28 +1289,30 @@ class Polyclonal:
                     if force_output or (self_.i % self_.interval == 0):
                         loss, _, breakdown = lossreg.loss_reg(params, True)
                         if header:
-                            cols = ['step', 'time_sec', 'loss',
-                                    *breakdown.keys()]
-                            log.write(''.join('{:>11}'.format(x) for x in cols)
-                                      + '\n')
+                            cols = ["step", "time_sec", "loss", *breakdown.keys()]
+                            log.write("".join("{:>11}".format(x) for x in cols) + "\n")
                         sec = time.time() - self_.start
-                        log.write(''.join('{:>11.5g}'.format(x) for x in
-                                  [self_.i, sec, loss, *breakdown.values()])
-                                  + '\n')
+                        log.write(
+                            "".join(
+                                "{:>11.5g}".format(x)
+                                for x in [self_.i, sec, loss, *breakdown.values()]
+                            )
+                            + "\n"
+                        )
                         log.flush()
                     self_.i += 1
 
             scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
             callback_logger = Callback(logfreq, time.time())
-            callback_logger.callback(self._params, header=True,
-                                     force_output=True)
-            scipy_minimize_kwargs['callback'] = callback_logger.callback
+            callback_logger.callback(self._params, header=True, force_output=True)
+            scipy_minimize_kwargs["callback"] = callback_logger.callback
 
-        opt_res = scipy.optimize.minimize(fun=lossreg.loss_reg,
-                                          x0=self._params,
-                                          jac=True,
-                                          **scipy_minimize_kwargs,
-                                          )
+        opt_res = scipy.optimize.minimize(
+            fun=lossreg.loss_reg,
+            x0=self._params,
+            jac=True,
+            **scipy_minimize_kwargs,
+        )
         self._params = opt_res.x
         if logfreq:
             callback_logger.callback(self._params, force_output=True)
@@ -1293,20 +1336,21 @@ class Polyclonal:
             Interactive plot.
 
         """
-        kwargs['activity_wt_df'] = self.activity_wt_df
-        if 'epitope_colors' not in kwargs:
-            kwargs['epitope_colors'] = self.epitope_colors
+        kwargs["activity_wt_df"] = self.activity_wt_df
+        if "epitope_colors" not in kwargs:
+            kwargs["epitope_colors"] = self.epitope_colors
         return polyclonal.plot.activity_wt_barplot(**kwargs)
 
-    def mut_escape_pdb_b_factor(self,
-                                *,
-                                input_pdbfile,
-                                chains,
-                                metric,
-                                outdir=None,
-                                outfile='{metric}-{epitope}.pdb',
-                                missing_metric=0,
-                                ):
+    def mut_escape_pdb_b_factor(
+        self,
+        *,
+        input_pdbfile,
+        chains,
+        metric,
+        outdir=None,
+        outfile="{metric}-{epitope}.pdb",
+        missing_metric=0,
+    ):
         r"""Create PDB files with B factors from a site's mutation escape.
 
         Parameters
@@ -1336,33 +1380,31 @@ class Polyclonal:
 
         """
         df = self.mut_escape_site_summary_df
-        if (metric in df.columns) and (metric not in
-                                       {'epitope', 'site', 'wildtype'}):
+        if (metric in df.columns) and (metric not in {"epitope", "site", "wildtype"}):
             metric_col = metric
         if isinstance(chains, str) and len(chains) == 1:
             chains = [chains]
-        df = pd.concat([df.assign(chain=chain) for chain in chains],
-                       ignore_index=True)
+        df = pd.concat([df.assign(chain=chain) for chain in chains], ignore_index=True)
         result_files = []
         for epitope in self.epitopes:
             if outdir:
                 output_pdbfile = os.path.join(outdir, outfile)
             else:
                 output_pdbfile = outfile
-            output_pdbfile = output_pdbfile.format(epitope=epitope,
-                                                   metric=metric
-                                                   ).replace(' ', '_')
+            output_pdbfile = output_pdbfile.format(
+                epitope=epitope, metric=metric
+            ).replace(" ", "_")
             if os.path.dirname(output_pdbfile):
                 os.makedirs(os.path.dirname(output_pdbfile), exist_ok=True)
             result_files.append((epitope, output_pdbfile))
             polyclonal.pdb_utils.reassign_b_factor(
-                        input_pdbfile,
-                        output_pdbfile,
-                        df.query('epitope == @epitope'),
-                        metric_col,
-                        missing_metric=missing_metric,
-                        )
-        return pd.DataFrame(result_files, columns=['epitope', 'PDB file'])
+                input_pdbfile,
+                output_pdbfile,
+                df.query("epitope == @epitope"),
+                metric_col,
+                missing_metric=missing_metric,
+            )
+        return pd.DataFrame(result_files, columns=["epitope", "PDB file"])
 
     def mut_escape_lineplot(self, **kwargs):
         r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
@@ -1378,9 +1420,9 @@ class Polyclonal:
             Interactive plot.
 
         """
-        kwargs['mut_escape_site_summary_df'] = self.mut_escape_site_summary_df
-        if 'epitope_colors' not in kwargs:
-            kwargs['epitope_colors'] = self.epitope_colors
+        kwargs["mut_escape_site_summary_df"] = self.mut_escape_site_summary_df
+        if "epitope_colors" not in kwargs:
+            kwargs["epitope_colors"] = self.epitope_colors
         return polyclonal.plot.mut_escape_lineplot(**kwargs)
 
     def mut_escape_heatmap(self, **kwargs):
@@ -1397,16 +1439,14 @@ class Polyclonal:
             Interactive heat maps.
 
         """
-        kwargs['mut_escape_df'] = self.mut_escape_df
-        if 'epitope_colors' not in kwargs:
-            kwargs['epitope_colors'] = self.epitope_colors
-        if 'alphabet' not in kwargs:
-            kwargs['alphabet'] = self.alphabet
+        kwargs["mut_escape_df"] = self.mut_escape_df
+        if "epitope_colors" not in kwargs:
+            kwargs["epitope_colors"] = self.epitope_colors
+        if "alphabet" not in kwargs:
+            kwargs["alphabet"] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def filter_variants_by_seen_muts(self,
-                                     variants_df,
-                                     subs_col='aa_substitutions'):
+    def filter_variants_by_seen_muts(self, variants_df, subs_col="aa_substitutions"):
         """Remove variants that contain mutations not seen during model fitting.
 
         Parameters
@@ -1429,16 +1469,17 @@ class Polyclonal:
         if filter_col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have column {filter_col}")
 
-        variants_df[filter_col] = (variants_df[subs_col]
-                                   .map(lambda s: set(s.split())
-                                   .issubset(self.mutations)))
+        variants_df[filter_col] = variants_df[subs_col].map(
+            lambda s: set(s.split()).issubset(self.mutations)
+        )
 
-        return (variants_df.query('_pass_filter == True')
-                           .drop(columns='_pass_filter')
-                           .reset_index(drop=True))
+        return (
+            variants_df.query("_pass_filter == True")
+            .drop(columns="_pass_filter")
+            .reset_index(drop=True)
+        )
 
-    def icXX(self, variants_df, *, x=0.5, col='IC50',
-             min_c=1e-5, max_c=1e5):
+    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-5, max_c=1e5):
         """Concentration at which a given fraction is neutralized (eg, IC50).
 
         Parameters
@@ -1468,12 +1509,12 @@ class Polyclonal:
         if col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have {col=}")
 
-        reduced_df = variants_df[['aa_substitutions']].drop_duplicates()
+        reduced_df = variants_df[["aa_substitutions"]].drop_duplicates()
         bmap = self._get_binarymap(reduced_df)
         a, beta = self._a_beta_from_params(self._params)
         exp_phi_e_v = numpy.exp(-bmap.binary_variants.dot(beta) + a)
         assert exp_phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
-        variants = reduced_df['aa_substitutions'].tolist()
+        variants = reduced_df["aa_substitutions"].tolist()
         assert len(variants) == exp_phi_e_v.shape[0]
 
         records = []
@@ -1489,25 +1530,23 @@ class Polyclonal:
             elif _func(max_c) < 0:
                 ic = max_c
             else:
-                sol = scipy.optimize.root_scalar(_func, x0=1,
-                                                 bracket=(min_c, max_c),
-                                                 method='brenth')
+                sol = scipy.optimize.root_scalar(
+                    _func, x0=1, bracket=(min_c, max_c), method="brenth"
+                )
                 ic = sol.root
             if not sol.converged:
                 raise ValueError(f"root finding failed:\n{sol}")
             records.append((variant, ic))
 
-        ic_df = pd.DataFrame.from_records(records,
-                                          columns=['aa_substitutions', col])
+        ic_df = pd.DataFrame.from_records(records, columns=["aa_substitutions", col])
 
-        return_df = variants_df.merge(ic_df,
-                                      on='aa_substitutions',
-                                      validate='many_to_one')
+        return_df = variants_df.merge(
+            ic_df, on="aa_substitutions", validate="many_to_one"
+        )
         assert len(return_df) == len(variants_df)
         return return_df
 
-    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs,
-                        calc_grad=False):
+    def _compute_1d_pvs(self, params, one_binarymap, binarymaps, cs, calc_grad=False):
         r"""Get 1D raveled array of :math:`p_v\left(c\right)` values.
 
         Differs from :meth:`Polyclonal._compute_pv` in that it works if just
@@ -1535,8 +1574,9 @@ class Polyclonal:
             n_vc = 0
             for c, bmap in zip(cs, binarymaps):
                 n_vc += bmap.nvariants
-                tup = self._compute_pv(params, bmap, numpy.array([c]),
-                                       calc_grad=calc_grad)
+                tup = self._compute_pv(
+                    params, bmap, numpy.array([c]), calc_grad=calc_grad
+                )
                 p_vc.append(tup[0] if calc_grad else tup)
                 if calc_grad:
                     dpvc_dparams.append(tup[1])
@@ -1574,8 +1614,7 @@ class Polyclonal:
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (bmap.binarylength, len(self.epitopes))
         assert beta.shape[0] == bmap.binary_variants.shape[1]
-        assert bmap.binary_variants.shape == (bmap.nvariants,
-                                              bmap.binarylength)
+        assert bmap.binary_variants.shape == (bmap.nvariants, bmap.binarylength)
         assert (cs > 0).all()
         assert cs.ndim == 1
         phi_e_v = bmap.binary_variants.dot(beta) - a
@@ -1585,56 +1624,60 @@ class Polyclonal:
         assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
         n_vc = bmap.nvariants * len(cs)
         U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
-                    n_vc, len(self.epitopes), order='F')
+            n_vc, len(self.epitopes), order="F"
+        )
         assert U_vc_e.shape == (n_vc, len(self.epitopes))
         p_vc = U_vc_e.prod(axis=1)
         assert p_vc.shape == (n_vc,)
         if calc_grad:
             dpvc_da = p_vc * (numpy.swapaxes(U_vc_e, 0, 1) - 1)
             assert dpvc_da.shape == (len(self.epitopes), n_vc)
-            dpevc = -dpvc_da.ravel(order='C')
+            dpevc = -dpvc_da.ravel(order="C")
             n_vce = n_vc * len(self.epitopes)
             assert dpevc.shape == (n_vce,)
             # Stack then transpose C X E binary_variants to multiply dpvce
             # Stacking should be fast: https://stackoverflow.com/a/45990096
             # Note after transpose this yields CSC matrix
             stacked_binary_variants = scipy.sparse.vstack(
-                    [bmap.binary_variants] * len(cs) * len(self.epitopes)
-                    ).transpose()
+                [bmap.binary_variants] * len(cs) * len(self.epitopes)
+            ).transpose()
             assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
             dpevc_dbeta = stacked_binary_variants.multiply(
-                        numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce)))
+                numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce))
+            )
             assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
             # in params, betas sorted first by mutation, then by epitope;
             # dpevc_dbeta sorted by concentration, then variant, then epitope
             dpvc_dbetaparams = dpevc_dbeta.reshape(
-                                    bmap.binarylength * len(self.epitopes),
-                                    n_vc)
+                bmap.binarylength * len(self.epitopes), n_vc
+            )
             assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
             # combine to make dpvc_dparams, noting activities before betas
             # in params
             dpvc_dparams = scipy.sparse.vstack(
-                    [scipy.sparse.csr_matrix(dpvc_da),
-                     dpvc_dbetaparams.tocsr()])
+                [scipy.sparse.csr_matrix(dpvc_da), dpvc_dbetaparams.tocsr()]
+            )
             assert type(dpvc_dparams) == scipy.sparse.csr_matrix
             assert dpvc_dparams.shape == (len(params), n_vc)
             return p_vc, dpvc_dparams
         return p_vc
 
-    def _get_binarymap(self,
-                       variants_df,
-                       ):
+    def _get_binarymap(
+        self,
+        variants_df,
+    ):
         """Get ``BinaryMap`` appropriate for use."""
         bmap = binarymap.BinaryMap(
-                variants_df,
-                substitutions_col='aa_substitutions',
-                allowed_subs=self.mutations,
-                alphabet=self.alphabet,
-                )
+            variants_df,
+            substitutions_col="aa_substitutions",
+            allowed_subs=self.mutations,
+            alphabet=self.alphabet,
+        )
         assert tuple(bmap.all_subs) == self.mutations
         return bmap
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -11,8 +11,9 @@ install:
   - pip install -r test_requirements.txt
   - pip install -e .
 
-script: 
+script:
   - flake8
+  - black --check .
   - pytest
 
 branches:
