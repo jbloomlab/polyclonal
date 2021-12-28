@@ -56,12 +56,6 @@ def a_beta_from_params(n_epitopes, n_mutations, params):
     return (a, beta)
 
 
-@partial(jit, static_argnames=["poly_abs", "n_variants", "bv_sparse"])
-def full_pv(poly_abs, n_variants, bv_sparse, params):
-    return compute_pv(len(poly_abs.epitopes), len(poly_abs.mutations), n_variants,
-                      params, bv_sparse, poly_abs._cs)
-
-
 @partial(jit, static_argnames=["n_epitopes", "n_mutations", "n_variants"])
 def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
     a, beta = a_beta_from_params(n_epitopes, n_mutations, params)
@@ -80,3 +74,23 @@ def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
     p_vc = U_vc_e.prod(axis=1)
     assert p_vc.shape == (n_vc,)
     return p_vc
+
+
+@partial(jit, static_argnames=["poly_abs", "bv_sparse"])
+def full_pv(poly_abs, bv_sparse, params):
+    return compute_pv(len(poly_abs.epitopes), len(poly_abs.mutations),
+                      bv_sparse.shape[0], params, bv_sparse, poly_abs._cs)
+
+
+@partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
+def loss(poly_abs, bv_sparse, delta, params):
+    pred_pvs = full_pv(poly_abs, bv_sparse, params)
+    assert pred_pvs.shape == poly_abs._pvs.shape
+    residuals = pred_pvs - poly_abs._pvs
+    unreduced_loss = scaled_pseudo_huber(delta, residuals)
+    assert unreduced_loss.shape == poly_abs._pvs.shape
+    if poly_abs._weights is None:
+        return unreduced_loss.sum()
+    else:
+        assert unreduced_loss.shape == poly_abs._weights.shape
+        return (poly_abs._weights * unreduced_loss).sum()

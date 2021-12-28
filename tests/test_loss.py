@@ -76,7 +76,7 @@ def variants_escape(poly_abs, variants_df, concentrations):
 
 @pytest.fixture
 def binarymaps_from_df_relevant_result(poly_abs, variants_escape):
-    (one_binarymap, binarymaps, cs, _, _, variants_df) = poly_abs._binarymaps_from_df(
+    (one_binarymap, binarymaps, cs, pvs, _, variants_df) = poly_abs._binarymaps_from_df(
         variants_escape, get_pv=False, collapse_identical_variants=False
     )
     assert one_binarymap
@@ -91,6 +91,11 @@ def bmap(binarymaps_from_df_relevant_result):
 @pytest.fixture
 def cs(binarymaps_from_df_relevant_result):
     return binarymaps_from_df_relevant_result[1]
+
+
+@pytest.fixture
+def pvs(binarymaps_from_df_relevant_result):
+    return binarymaps_from_df_relevant_result[2]
 
 
 @pytest.fixture
@@ -126,6 +131,42 @@ def params(poly_abs):
 def test_poly_abs(poly_abs):
     assert len(poly_abs.epitopes) == 2
     assert len(poly_abs.sites) == 3
+
+
+@pytest.fixture
+def exact_data():
+    return (
+        pd.read_csv("notebooks/RBD_variants_escape_exact.csv", na_filter=None)
+        .query('library == "avg2muts"')
+        .query("concentration in [0.25, 1, 4]")
+        .reset_index(drop=True)
+    )
+
+
+exact_mut_escape_df = pd.read_csv("exact_mut_escape_df.csv")
+exact_activity_wt_df = pd.read_csv("exact_activity_wt_df.csv")
+
+poly_abs_prefit = polyclonal.Polyclonal(
+    data_to_fit=exact_data,
+    activity_wt_df=exact_activity_wt_df,
+    mut_escape_df=exact_mut_escape_df,
+)
+poly_abs_prefit.fit(fit_site_level_first=False, logfreq=100)
+
+
+@pytest.fixture
+def poly_abs_d(exact_data):
+    return polyclonal.Polyclonal(
+        data_to_fit=exact_data,
+        activity_wt_df=pd.DataFrame.from_records(
+            [("1", 1.0), ("2", 3.0), ("3", 2.0)], columns=["epitope", "activity"]
+        ),
+        site_escape_df=pd.DataFrame.from_records(
+            [("1", 417, 10.0), ("2", 484, 10.0), ("3", 444, 10.0)],
+            columns=["epitope", "site", "escape"],
+        ),
+        data_mut_escape_overlap="fill_to_data",
+    )
 
 
 def test_pseudo_huber():
