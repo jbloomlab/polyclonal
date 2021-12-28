@@ -5,13 +5,19 @@ Tests for `loss.py`.
 import Bio.SeqIO
 import pandas as pd
 import pytest
+
+
+import jax
+import jax.numpy as jnp
 from jax import jacrev
 from jax.experimental import sparse
-import jax.numpy as jnp
 
 import dms_variants.simulate
 import polyclonal
 import polyclonal.loss as loss
+
+# Make JAX use double precision numbers.
+jax.config.update("jax_enable_x64", True)
 
 
 @pytest.fixture
@@ -143,15 +149,15 @@ def exact_data():
     )
 
 
-exact_mut_escape_df = pd.read_csv("exact_mut_escape_df.csv")
-exact_activity_wt_df = pd.read_csv("exact_activity_wt_df.csv")
-
-poly_abs_prefit = polyclonal.Polyclonal(
-    data_to_fit=exact_data,
-    activity_wt_df=exact_activity_wt_df,
-    mut_escape_df=exact_mut_escape_df,
-)
-poly_abs_prefit.fit(fit_site_level_first=False, logfreq=100)
+# exact_mut_escape_df = pd.read_csv("exact_mut_escape_df.csv")
+# exact_activity_wt_df = pd.read_csv("exact_activity_wt_df.csv")
+#
+# poly_abs_prefit = polyclonal.Polyclonal(
+#     data_to_fit=exact_data,
+#     activity_wt_df=exact_activity_wt_df,
+#     mut_escape_df=exact_mut_escape_df,
+# )
+# poly_abs_prefit.fit(fit_site_level_first=False, logfreq=100)
 
 
 @pytest.fixture
