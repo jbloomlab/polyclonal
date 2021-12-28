@@ -310,11 +310,11 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">noisy_data</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;RBD_variants_escape_noisy.csv&#39;</span><span class="p">,</span> <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;RBD_variants_escape_noisy.csv&quot;</span><span class="p">,</span> <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;library == &#39;avg3muts&#39;&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;concentration in [0.25, 1, 4]&#39;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;concentration in [0.25, 1, 4]&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">)</span>
+<span class="p">)</span>
 
 <span class="n">noisy_data</span>
 </pre></div>
@@ -453,54 +453,61 @@ div.rendered_html tbody tr:hover {
 <span></span><span class="n">library_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2500</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">,</span> <span class="mi">20000</span><span class="p">,</span> <span class="mi">30000</span><span class="p">]</span>
 
 <span class="c1"># Make a directory to house pickled models</span>
-<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s1">&#39;fit_polyclonal_models&#39;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;fit_polyclonal_models&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
 
 <span class="k">def</span> <span class="nf">fit_polyclonal</span><span class="p">(</span><span class="n">n_variants</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fit `Polyclonal` model on n_variants variants randomly subsampled from a dataset.</span>
 <span class="sd">    Returns fit `Polyclonal` object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">poly_abs</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span><span class="n">data_to_fit</span><span class="o">=</span><span class="p">(</span><span class="n">noisy_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;concentration&#39;</span><span class="p">)</span>
-                                                            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n_variants</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">))</span>
-                                                            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)),</span>
-                                     <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
-                                         <span class="p">[(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-                                          <span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
-                                          <span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
-                                          <span class="p">],</span>
-                                         <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;activity&#39;</span><span class="p">],</span>
-                                         <span class="p">),</span>
-                                     <span class="n">site_escape_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
-                                         <span class="p">[(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="mi">417</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
-                                          <span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="mi">484</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
-                                          <span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="mi">444</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
-                                          <span class="p">],</span>
-                                         <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;escape&#39;</span><span class="p">],</span>
-                                         <span class="p">),</span>
-                                     <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s1">&#39;fill_to_data&#39;</span><span class="p">,</span>
-                                 <span class="p">)</span>
+    <span class="n">poly_abs</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span>
+        <span class="n">data_to_fit</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">noisy_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;concentration&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n_variants</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;activity&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">site_escape_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="mi">417</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="mi">484</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="mi">444</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;escape&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;fill_to_data&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">poly_abs</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">poly_abs</span>
+
 
 <span class="c1"># Store all fit models in a dictionary for future lookup</span>
 <span class="n">fit_models</span> <span class="o">=</span> <span class="p">{}</span>
 
 <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">library_sizes</span><span class="p">:</span>
     <span class="c1"># These are the keys for fit models</span>
-    <span class="n">model_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">vars&#39;</span>
+    <span class="n">model_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">vars&quot;</span>
 
     <span class="c1"># If the pickled model exists in fit_polyclonal_models directory,</span>
     <span class="c1"># load it and update fit_models</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
-        <span class="n">fit_models</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span> <span class="p">:</span> <span class="n">model</span><span class="p">})</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+        <span class="n">fit_models</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span><span class="p">:</span> <span class="n">model</span><span class="p">})</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model with </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> variants was already fit.&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Else, fit a model using fit_polyclonal(), save it to the</span>
         <span class="c1"># fit_polyclonal_models directory, and update fit_models</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">fit_polyclonal</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-        <span class="n">fit_models</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span> <span class="p">:</span> <span class="n">model</span><span class="p">})</span>
-        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+        <span class="n">fit_models</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span><span class="p">:</span> <span class="n">model</span><span class="p">})</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model with </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> variants fit and saved.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -524,34 +531,31 @@ Model with 30000 variants was already fit.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;epitope&#39;</span> <span class="p">:</span> <span class="p">[],</span>
-                          <span class="s1">&#39;correlation (R^2)&#39;</span> <span class="p">:</span> <span class="p">[],</span>
-                          <span class="s1">&#39;num_variants&#39;</span> <span class="p">:</span> <span class="p">[]})</span>
+<span></span><span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;num_variants&quot;</span><span class="p">:</span> <span class="p">[]})</span>
 
 <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">library_sizes</span><span class="p">:</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">vars&#39;</span><span class="p">]</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">vars&quot;</span><span class="p">]</span>
 
-    <span class="n">mut_escape_pred</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;RBD_mut_escape_df.csv&#39;</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">merge</span><span class="p">((</span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span>
-                <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;class &#39;</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
-                <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;escape&#39;</span><span class="p">:</span> <span class="s1">&#39;predicted escape&#39;</span><span class="p">})</span>
-                <span class="p">),</span>
-               <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mutation&#39;</span><span class="p">,</span> <span class="s1">&#39;epitope&#39;</span><span class="p">],</span>
-               <span class="n">validate</span><span class="o">=</span><span class="s1">&#39;one_to_one&#39;</span><span class="p">,</span>
-               <span class="p">)</span>
-        <span class="p">)</span>
+    <span class="n">mut_escape_pred</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;RBD_mut_escape_df.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot;class &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;escape&quot;</span><span class="p">:</span> <span class="s2">&quot;predicted escape&quot;</span><span class="p">})</span>
+        <span class="p">),</span>
+        <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+        <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span><span class="n">mut_escape_pred</span>
-            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;epitope&#39;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;predicted escape&#39;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-            <span class="p">)</span>
+    <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">mut_escape_pred</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;predicted escape&quot;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="p">)</span>
 
-    <span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">all_corrs</span><span class="p">,</span>
-                    <span class="n">corr</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">num_variants</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span><span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
-                        <span class="p">])</span>
+    <span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">all_corrs</span><span class="p">,</span> <span class="n">corr</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">num_variants</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">))]</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -561,15 +565,23 @@ Model with 30000 variants was already fit.
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
-<span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">all_corrs</span><span class="p">)</span><span class="o">.</span><span class="n">mark_point</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-    <span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;num_variants:Q&#39;</span><span class="p">),</span>
-    <span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s1">&#39;correlation (R^2):Q&#39;</span><span class="p">),</span>
-    <span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s1">&#39;epitope:N&#39;</span><span class="p">),</span>
-    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3f&#39;</span><span class="p">),</span> <span class="s1">&#39;epitope&#39;</span><span class="p">]</span>
+<span class="n">base</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">all_corrs</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">mark_point</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;num_variants:Q&quot;</span><span class="p">),</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;correlation (R^2):Q&quot;</span><span class="p">),</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
+            <span class="s2">&quot;num_variants&quot;</span><span class="p">,</span>
+            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
 <span class="p">)</span>
-<span class="n">base</span> <span class="o">+</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_loess</span><span class="p">(</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span>
-                           <span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">2.5</span>
-                                      <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;inferred vs. true mutation escape values&#39;</span><span class="p">)</span>
+<span class="n">base</span> <span class="o">+</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_loess</span><span class="p">(</span>
+    <span class="s2">&quot;num_variants&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span>
+<span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -635,11 +647,11 @@ Model with 30000 variants was already fit.
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">exact_data</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;RBD_variants_escape_exact.csv&#39;</span><span class="p">,</span> <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;RBD_variants_escape_exact.csv&quot;</span><span class="p">,</span> <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;library == &quot;avg4muts&quot;&#39;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;concentration in [1]&#39;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;concentration in [1]&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">)</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -649,32 +661,33 @@ Model with 30000 variants was already fit.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;correlation (R^2)&#39;</span> <span class="p">:</span> <span class="p">[],</span>
-                           <span class="s1">&#39;num_variants&#39;</span> <span class="p">:</span> <span class="p">[]})</span>
+<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;num_variants&quot;</span><span class="p">:</span> <span class="p">[]})</span>
 
 <span class="n">max_ic90</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">library_sizes</span><span class="p">:</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">vars&#39;</span><span class="p">]</span>
-
-    <span class="n">ic90s</span> <span class="o">=</span> <span class="p">(</span><span class="n">exact_data</span><span class="p">[[</span><span class="s1">&#39;aa_substitutions&#39;</span><span class="p">,</span> <span class="s1">&#39;IC90&#39;</span><span class="p">]]</span>
-         <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;IC90&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="n">max_ic90</span><span class="p">))</span>
-         <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-         <span class="p">)</span>
-    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">ic90s</span><span class="p">)</span>
-    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">ic90s</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;predicted_IC90&#39;</span><span class="p">,</span> <span class="n">max_c</span><span class="o">=</span><span class="n">max_ic90</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;noisy_[0.25, 1, 4]conc_3muts_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">vars&quot;</span><span class="p">]</span>
 
     <span class="n">ic90s</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">ic90s</span>
-        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">log_IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;IC90&#39;</span><span class="p">]),</span>
-            <span class="n">predicted_log_IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;predicted_IC90&#39;</span><span class="p">]),</span>
-            <span class="p">)</span>
+        <span class="n">exact_data</span><span class="p">[[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span> <span class="s2">&quot;IC90&quot;</span><span class="p">]]</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;IC90&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="n">max_ic90</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">ic90s</span><span class="p">)</span>
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">ic90s</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;predicted_IC90&quot;</span><span class="p">,</span> <span class="n">max_c</span><span class="o">=</span><span class="n">max_ic90</span><span class="p">)</span>
+
+    <span class="n">ic90s</span> <span class="o">=</span> <span class="n">ic90s</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="n">log_IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;IC90&quot;</span><span class="p">]),</span>
+        <span class="n">predicted_log_IC90</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;predicted_IC90&quot;</span><span class="p">]),</span>
     <span class="p">)</span>
 
-    <span class="n">corr</span> <span class="o">=</span> <span class="n">ic90s</span><span class="p">[</span><span class="s1">&#39;log_IC90&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">ic90s</span><span class="p">[</span><span class="s1">&#39;predicted_log_IC90&#39;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">corr</span> <span class="o">=</span> <span class="n">ic90s</span><span class="p">[</span><span class="s2">&quot;log_IC90&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">ic90s</span><span class="p">[</span><span class="s2">&quot;predicted_log_IC90&quot;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
 
-    <span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">ic90_corrs</span><span class="p">,</span>
-                    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;correlation (R^2)&#39;</span> <span class="p">:</span> <span class="n">corr</span><span class="p">,</span>
-                                  <span class="s1">&#39;num_variants&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]})])</span>
+    <span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">ic90_corrs</span><span class="p">,</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">:</span> <span class="n">corr</span><span class="p">,</span> <span class="s2">&quot;num_variants&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]}),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -684,14 +697,18 @@ Model with 30000 variants was already fit.
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
-<span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">ic90_corrs</span><span class="p">)</span><span class="o">.</span><span class="n">mark_point</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-    <span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;num_variants:Q&#39;</span><span class="p">),</span>
-    <span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s1">&#39;correlation (R^2):Q&#39;</span><span class="p">),</span>
-    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;correlation (R^2)&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3f&#39;</span><span class="p">)]</span>
+<span class="n">base</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">ic90_corrs</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">mark_point</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;num_variants:Q&quot;</span><span class="p">),</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;correlation (R^2):Q&quot;</span><span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;num_variants&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
+    <span class="p">)</span>
 <span class="p">)</span>
-<span class="n">base</span> <span class="o">+</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_loess</span><span class="p">(</span><span class="s1">&#39;num_variants&#39;</span><span class="p">,</span> <span class="s1">&#39;correlation (R^2)&#39;</span>
-                           <span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">2.5</span>
-                                      <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;predicted vs. true IC90&#39;</span><span class="p">)</span>
+<span class="n">base</span> <span class="o">+</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_loess</span><span class="p">(</span><span class="s2">&quot;num_variants&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span>
+    <span class="n">size</span><span class="o">=</span><span class="mf">2.5</span>
+<span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;predicted vs. true IC90&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

@@ -70,14 +70,14 @@
         <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">alphabet</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
                 <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
-                <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\*&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+                <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\*&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid alphabet character: </span><span class="si">{</span><span class="n">char</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">chars</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mutation_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;(?P&lt;wt&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span>
-                                          <span class="sa">rf</span><span class="s2">&quot;(?P&lt;site&gt;\d+)&quot;</span>
-                                          <span class="sa">rf</span><span class="s2">&quot;(?P&lt;mut&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mutation_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+            <span class="sa">rf</span><span class="s2">&quot;(?P&lt;wt&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="sa">rf</span><span class="s2">&quot;(?P&lt;site&gt;\d+)&quot;</span> <span class="sa">rf</span><span class="s2">&quot;(?P&lt;mut&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
 
 <div class="viewcode-block" id="MutationParser.parse_mut"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.MutationParser.parse_mut">[docs]</a>    <span class="k">def</span> <span class="nf">parse_mut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mutation</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;tuple: `(wildtype, site, mutation)`.&quot;&quot;&quot;</span>
@@ -85,15 +85,16 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid mutation </span><span class="si">{</span><span class="n">mutation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;wt&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">)),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;mut&#39;</span><span class="p">))</span></div></div>
+            <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;wt&quot;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;mut&quot;</span><span class="p">))</span></div></div>
 
 
-<div class="viewcode-block" id="site_level_variants"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.site_level_variants">[docs]</a><span class="k">def</span> <span class="nf">site_level_variants</span><span class="p">(</span><span class="n">df</span><span class="p">,</span>
-                        <span class="o">*</span><span class="p">,</span>
-                        <span class="n">original_alphabet</span><span class="o">=</span><span class="n">AAS_NOSTOP</span><span class="p">,</span>
-                        <span class="n">wt_char</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span>
-                        <span class="n">mut_char</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
-                        <span class="p">):</span>
+<div class="viewcode-block" id="site_level_variants"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.site_level_variants">[docs]</a><span class="k">def</span> <span class="nf">site_level_variants</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">original_alphabet</span><span class="o">=</span><span class="n">AAS_NOSTOP</span><span class="p">,</span>
+    <span class="n">wt_char</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span>
+    <span class="n">mut_char</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Re-define variants simply in terms of which sites are mutated.</span>
 
 <span class="sd">    This function is useful if you have a data frame of variants and you</span>
@@ -134,7 +135,7 @@
 <span class="sd">    2      AG         w1m w53m     1.0</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">subs_col</span> <span class="o">=</span> <span class="s1">&#39;aa_substitutions&#39;</span>
+    <span class="n">subs_col</span> <span class="o">=</span> <span class="s2">&quot;aa_substitutions&quot;</span>
     <span class="k">if</span> <span class="n">subs_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`df` lacks column </span><span class="si">{</span><span class="n">subs_col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wt_char</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">wt_char</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -151,12 +152,13 @@
             <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
                 <span class="n">wt</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">wts</span> <span class="ow">and</span> <span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wt</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inconsistent wildtype at </span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">: &quot;</span>
-                                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt</span><span class="si">}</span><span class="s2"> versus </span><span class="si">{</span><span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;inconsistent wildtype at </span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">: &quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt</span><span class="si">}</span><span class="s2"> versus </span><span class="si">{</span><span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">=</span> <span class="n">wt</span>
                 <span class="n">site_subs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt_char</span><span class="si">}{</span><span class="n">site</span><span class="si">}{</span><span class="n">mut_char</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">site_subs_mapping</span><span class="p">[</span><span class="n">subs</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">site_subs</span><span class="p">)</span>
+            <span class="n">site_subs_mapping</span><span class="p">[</span><span class="n">subs</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">site_subs</span><span class="p">)</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">site_subs_mapping</span><span class="p">)</span>
@@ -185,19 +187,20 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shift</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;shift must be int&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;shift must be int&quot;</span><span class="p">)</span>
     <span class="n">new_mut_str</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">mut</span> <span class="ow">in</span> <span class="n">mut_str</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?P&lt;wt&gt;\S)(?P&lt;site&gt;\d+)(?P&lt;mut&gt;\S)&#39;</span><span class="p">,</span> <span class="n">mut</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?P&lt;wt&gt;\S)(?P&lt;site&gt;\d+)(?P&lt;mut&gt;\S)&quot;</span><span class="p">,</span> <span class="n">mut</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cannot match </span><span class="si">{</span><span class="n">mut</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">mut_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">new_site</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">shift</span>
+        <span class="n">new_site</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="n">shift</span>
         <span class="n">new_mut_str</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;wt&#39;</span><span class="p">)</span><span class="si">}{</span><span class="n">new_site</span><span class="si">}{</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;mut&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_mut_str</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_mut_str</span><span class="p">)</span></div>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">doctest</span>
+
     <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
 </pre></div>
 
@@ -240,6 +243,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../biophysical_model.html">Biophysical model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>

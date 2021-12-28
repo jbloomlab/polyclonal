@@ -57,9 +57,9 @@
 <span class="n">alt</span><span class="o">.</span><span class="n">data_transformers</span><span class="o">.</span><span class="n">disable_max_rows</span><span class="p">()</span>
 
 
-<span class="n">TAB10_COLORS_NOGRAY</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span>
-                            <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">TABLEAU_COLORS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-                            <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;#7f7f7f&#39;</span><span class="p">)</span>
+<span class="n">TAB10_COLORS_NOGRAY</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+    <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">TABLEAU_COLORS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s2">&quot;#7f7f7f&quot;</span>
+<span class="p">)</span>
 <span class="sd">&quot;&quot;&quot;tuple: Tableau 10 color palette without gray.&quot;&quot;&quot;</span>
 
 
@@ -87,19 +87,19 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
-                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span>
-                    <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span>
-                    <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">],</span> <span class="n">N</span><span class="o">=</span><span class="n">n</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb2hex</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)))]</span></div>
 
 
-<div class="viewcode-block" id="activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.activity_wt_barplot">[docs]</a><span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="o">*</span><span class="p">,</span>
-                        <span class="n">activity_wt_df</span><span class="p">,</span>
-                        <span class="n">epitope_colors</span><span class="p">,</span>
-                        <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>
-                        <span class="n">height_per_bar</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
-                        <span class="p">):</span>
+<div class="viewcode-block" id="activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.activity_wt_barplot">[docs]</a><span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">activity_wt_df</span><span class="p">,</span>
+    <span class="n">epitope_colors</span><span class="p">,</span>
+    <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>
+    <span class="n">height_per_bar</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.</span>
 
 <span class="sd">    Parameters</span>
@@ -124,52 +124,49 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">epitopes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">epitopes</span> <span class="o">=</span> <span class="n">activity_wt_df</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid entries in `epitopes`&#39;</span><span class="p">)</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">activity_wt_df</span>
-          <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;epitope in @epitopes&#39;</span><span class="p">)</span>
-          <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">],</span>
-                                                   <span class="n">epitopes</span><span class="p">,</span>
-                                                   <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                  <span class="p">)</span>
-          <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;epitope&#39;</span><span class="p">)</span>
-          <span class="p">)</span>
+        <span class="n">epitopes</span> <span class="o">=</span> <span class="n">activity_wt_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid entries in `epitopes`&quot;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;epitope in @epitopes&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span> <span class="n">epitopes</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="n">barplot</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;activity:Q&#39;</span><span class="p">,</span>
-                <span class="n">y</span><span class="o">=</span><span class="s1">&#39;epitope:N&#39;</span><span class="p">,</span>
-                <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
-                   <span class="s1">&#39;epitope:N&#39;</span><span class="p">,</span>
-                   <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">epitopes</span><span class="p">,</span>
-                                   <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span>
-                                          <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]),</span>
-                   <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="p">),</span>
-                <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;epitope:N&#39;</span><span class="p">),</span>
-                         <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;activity:Q&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3g&#39;</span><span class="p">)],</span>
-                <span class="p">)</span>
-        <span class="o">.</span><span class="n">mark_bar</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">height_per_bar</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
-                    <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="n">height_per_bar</span><span class="p">})</span>
-        <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="s2">&quot;activity:Q&quot;</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
+                <span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
+                    <span class="n">domain</span><span class="o">=</span><span class="n">epitopes</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;activity:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">)],</span>
         <span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_bar</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">height_per_bar</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">height_per_bar</span><span class="p">})</span>
+        <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">barplot</span></div>
 
 
-<div class="viewcode-block" id="mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.mut_escape_lineplot">[docs]</a><span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span><span class="o">*</span><span class="p">,</span>
-                        <span class="n">mut_escape_site_summary_df</span><span class="p">,</span>
-                        <span class="n">epitope_colors</span><span class="p">,</span>
-                        <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">share_ylims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
-                        <span class="n">init_metric</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span>
-                        <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-                        <span class="p">):</span>
+<div class="viewcode-block" id="mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.mut_escape_lineplot">[docs]</a><span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mut_escape_site_summary_df</span><span class="p">,</span>
+    <span class="n">epitope_colors</span><span class="p">,</span>
+    <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">share_ylims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
+    <span class="n">init_metric</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Line plots of mutation escape :math:`\beta_{m,e}` at each site.</span>
 
 <span class="sd">    Parameters</span>
@@ -203,143 +200,146 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">epitopes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">epitopes</span> <span class="o">=</span> <span class="n">mut_escape_site_summary_df</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">mut_escape_site_summary_df</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid entries in `epitopes`&#39;</span><span class="p">)</span>
+        <span class="n">epitopes</span> <span class="o">=</span> <span class="n">mut_escape_site_summary_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">mut_escape_site_summary_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid entries in `epitopes`&quot;</span><span class="p">)</span>
 
-    <span class="n">df</span> <span class="o">=</span> <span class="n">mut_escape_site_summary_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;epitope in @epitopes&#39;</span><span class="p">)</span>
-    <span class="n">escape_metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
-                      <span class="k">if</span> <span class="n">m</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;wildtype&#39;</span><span class="p">}]</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">mut_escape_site_summary_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;epitope in @epitopes&quot;</span><span class="p">)</span>
+    <span class="n">escape_metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">}]</span>
 
-    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">all_sites</span><span class="p">:</span>
         <span class="n">sites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sites</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
 
-    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span>
-          <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">epitopes</span><span class="p">),</span>
-                              <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;epitope&#39;</span><span class="p">]),</span>
-                 <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;epitope&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
-          <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">)</span>
-          <span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;wildtype&#39;</span><span class="p">],</span>
-                <span class="n">var_name</span><span class="o">=</span><span class="s1">&#39;metric&#39;</span><span class="p">,</span>
-                <span class="n">value_name</span><span class="o">=</span><span class="s1">&#39;escape&#39;</span>
-                <span class="p">)</span>
-          <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;wildtype&#39;</span><span class="p">,</span> <span class="s1">&#39;metric&#39;</span><span class="p">],</span>
-                       <span class="n">values</span><span class="o">=</span><span class="s1">&#39;escape&#39;</span><span class="p">,</span>
-                       <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span>
-                       <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-          <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-          <span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">epitopes</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+            <span class="n">how</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+            <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">],</span>
+            <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
+            <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span>
+            <span class="n">values</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="p">)</span>
 
     <span class="n">y_axis_dropdown</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">escape_metrics</span><span class="p">)</span>
-    <span class="n">y_axis_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">],</span>
-                                            <span class="n">bind</span><span class="o">=</span><span class="n">y_axis_dropdown</span><span class="p">,</span>
-                                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;escape&#39;</span><span class="p">,</span>
-                                            <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;metric&#39;</span><span class="p">:</span> <span class="n">init_metric</span><span class="p">})</span>
+    <span class="n">y_axis_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">],</span>
+        <span class="n">bind</span><span class="o">=</span><span class="n">y_axis_dropdown</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+        <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">init_metric</span><span class="p">},</span>
+    <span class="p">)</span>
 
-    <span class="n">zoom_brush</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_interval</span><span class="p">(</span><span class="n">encodings</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span>
-                                        <span class="n">mark</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">BrushConfig</span><span class="p">(</span>
-                                            <span class="n">stroke</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
-                                            <span class="n">strokeWidth</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
-                                        <span class="p">)</span>
-    <span class="n">zoom_bar</span> <span class="o">=</span> <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;site:O&#39;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">zoom_bar_width</span><span class="p">,</span>
-                            <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
-                            <span class="n">title</span><span class="o">=</span><span class="s1">&#39;site zoom bar&#39;</span><span class="p">,</span>
-                            <span class="p">)</span>
-                <span class="p">)</span>
+    <span class="n">zoom_brush</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_interval</span><span class="p">(</span>
+        <span class="n">encodings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span>
+        <span class="n">mark</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">BrushConfig</span><span class="p">(</span><span class="n">stroke</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">strokeWidth</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">zoom_bar</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;site:O&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">zoom_bar_width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;site zoom bar&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
-    <span class="n">site_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;single&#39;</span><span class="p">,</span>
-                                  <span class="n">on</span><span class="o">=</span><span class="s1">&#39;mouseover&#39;</span><span class="p">,</span>
-                                  <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">],</span>
-                                  <span class="n">empty</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="n">site_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">],</span> <span class="n">empty</span><span class="o">=</span><span class="s2">&quot;none&quot;</span>
+    <span class="p">)</span>
 
     <span class="n">charts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;site:O&#39;</span><span class="p">,</span>
-                            <span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;site&#39;</span> <span class="k">if</span> <span class="n">epitope</span> <span class="o">==</span> <span class="n">epitopes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                                   <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
-                            <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">()</span> <span class="k">if</span> <span class="n">epitope</span> <span class="o">==</span> <span class="n">epitopes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                                  <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
-                            <span class="p">),</span>
-                    <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="n">epitope</span><span class="p">,</span>
-                            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;quantitative&#39;</span><span class="p">,</span>
-                            <span class="n">title</span><span class="o">=</span><span class="s1">&#39;escape&#39;</span><span class="p">,</span>
-                            <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(),</span>
-                            <span class="p">),</span>
-                    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;site:O&#39;</span><span class="p">),</span>
-                             <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;wildtype:N&#39;</span><span class="p">),</span>
-                             <span class="o">*</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3g&#39;</span><span class="p">)</span>
-                               <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]</span>
-                             <span class="p">]</span>
-                    <span class="p">)</span>
-            <span class="p">)</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span>
+                <span class="s2">&quot;site:O&quot;</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;site&quot;</span> <span class="k">if</span> <span class="n">epitope</span> <span class="o">==</span> <span class="n">epitopes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">()</span> <span class="k">if</span> <span class="n">epitope</span> <span class="o">==</span> <span class="n">epitopes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;quantitative&quot;</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(),</span>
+            <span class="p">),</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;site:O&quot;</span><span class="p">),</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;wildtype:N&quot;</span><span class="p">),</span>
+                <span class="o">*</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">],</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
         <span class="c1"># in case some sites missing values, background thin transparent</span>
         <span class="c1"># over which we put darker foreground for measured points</span>
-        <span class="n">background</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">base</span>
-            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                       <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
-            <span class="p">)</span>
-        <span class="n">foreground</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">base</span>
-            <span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
-                       <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
-            <span class="p">)</span>
+        <span class="n">background</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">foreground</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
         <span class="n">foreground_circles</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">base</span>
-            <span class="o">.</span><span class="n">mark_circle</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                         <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
-            <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">site_selector</span><span class="p">,</span>
-                                       <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">75</span><span class="p">),</span>
-                                       <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">25</span><span class="p">)),</span>
-                    <span class="n">stroke</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">site_selector</span><span class="p">,</span>
-                                         <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">),</span>
-                                         <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="kc">None</span><span class="p">)),</span>
-                    <span class="p">)</span>
-            <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">site_selector</span><span class="p">)</span>
+            <span class="n">base</span><span class="o">.</span><span class="n">mark_circle</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">site_selector</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">75</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">25</span><span class="p">)),</span>
+                <span class="n">stroke</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span>
+                    <span class="n">site_selector</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                <span class="p">),</span>
             <span class="p">)</span>
-        <span class="n">charts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">background</span> <span class="o">+</span> <span class="n">foreground</span> <span class="o">+</span> <span class="n">foreground_circles</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">y_axis_selection</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">y_axis_selection</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
-                            <span class="n">title</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">TitleParams</span><span class="p">(</span>
-                                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">,</span>
-                                      <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]),</span>
-                            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
-                            <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
-                      <span class="p">)</span>
+            <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">site_selector</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">charts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">background</span> <span class="o">+</span> <span class="n">foreground</span> <span class="o">+</span> <span class="n">foreground_circles</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">y_axis_selection</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">y_axis_selection</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">TitleParams</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span><span class="n">zoom_bar</span><span class="p">,</span>
-                        <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span><span class="o">*</span><span class="n">charts</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-                         <span class="o">.</span><span class="n">resolve_scale</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;shared&#39;</span> <span class="k">if</span> <span class="n">share_ylims</span>
-                                        <span class="k">else</span> <span class="s1">&#39;independent&#39;</span><span class="p">)</span>
-                         <span class="p">),</span>
-                        <span class="n">spacing</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">configure_title</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-            <span class="p">)</span></div>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span>
+            <span class="n">zoom_bar</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span><span class="o">*</span><span class="n">charts</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">resolve_scale</span><span class="p">(</span>
+                    <span class="n">y</span><span class="o">=</span><span class="s2">&quot;shared&quot;</span> <span class="k">if</span> <span class="n">share_ylims</span> <span class="k">else</span> <span class="s2">&quot;independent&quot;</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">spacing</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelOverlap</span><span class="o">=</span><span class="s2">&quot;parity&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">configure_title</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap">[docs]</a><span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="o">*</span><span class="p">,</span>
-                       <span class="n">mut_escape_df</span><span class="p">,</span>
-                       <span class="n">alphabet</span><span class="p">,</span>
-                       <span class="n">epitope_colors</span><span class="p">,</span>
-                       <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">all_alphabet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">floor_color_at_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">share_heatmap_lims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">cell_size</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
-                       <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-                       <span class="p">):</span>
+<div class="viewcode-block" id="mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap">[docs]</a><span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mut_escape_df</span><span class="p">,</span>
+    <span class="n">alphabet</span><span class="p">,</span>
+    <span class="n">epitope_colors</span><span class="p">,</span>
+    <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">all_alphabet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">floor_color_at_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">share_heatmap_lims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">cell_size</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
+    <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.</span>
 
 <span class="sd">    Parameters</span>
@@ -378,83 +378,80 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">epitopes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">epitopes</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s1">&#39;epitope&#39;</span><span class="p">]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;invalid entries in `epitopes`&#39;</span><span class="p">)</span>
+        <span class="n">epitopes</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid entries in `epitopes`&quot;</span><span class="p">)</span>
 
-    <span class="n">df</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;epitope in @epitopes&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;epitope in @epitopes&quot;</span><span class="p">)</span>
 
     <span class="c1"># get alphabet and sites, expanding to all if needed</span>
-    <span class="n">extrachars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;mutant&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;wildtype&#39;</span><span class="p">]))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+    <span class="n">extrachars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">extrachars</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`mut_escape_df` has letters not in `alphabet`:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
-                         <span class="nb">str</span><span class="p">(</span><span class="n">extrachars</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`mut_escape_df` has letters not in `alphabet`:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">extrachars</span><span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">all_alphabet</span><span class="p">:</span>
-        <span class="n">alphabet</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">alphabet</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;mutant&#39;</span><span class="p">])</span> <span class="o">+</span>
-                    <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;wildtype&#39;</span><span class="p">])]</span>
-    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">alphabet</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">alphabet</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">])]</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">all_sites</span><span class="p">:</span>
         <span class="n">sites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sites</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
 
-    <span class="n">wts</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;site&#39;</span><span class="p">)[</span><span class="s1">&#39;wildtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">wts</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 
-    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span>
-          <span class="p">[[</span><span class="s1">&#39;epitope&#39;</span><span class="p">,</span> <span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;mutant&#39;</span><span class="p">,</span> <span class="s1">&#39;escape&#39;</span><span class="p">]]</span>
-          <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;mutant&#39;</span><span class="p">],</span>
-                       <span class="n">values</span><span class="o">=</span><span class="s1">&#39;escape&#39;</span><span class="p">,</span>
-                       <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;epitope&#39;</span><span class="p">)</span>
-          <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-          <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">),</span>
-                              <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;mutant&#39;</span><span class="p">]),</span>
-                 <span class="n">how</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
-          <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">wildtype</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">wts</span><span class="p">),</span>
-                  <span class="n">mutation</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;wildtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span>
-                                      <span class="n">x</span><span class="p">[</span><span class="s1">&#39;site&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;mutant&#39;</span><span class="p">]),</span>
-                  <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mutant&#39;</span><span class="p">],</span> <span class="n">alphabet</span><span class="p">,</span>
-                                                  <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                  <span class="c1"># mark wildtype cells with a `x`</span>
-                  <span class="n">wildtype_char</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mutant&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;wildtype&#39;</span><span class="p">]</span>
-                                           <span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="kc">True</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}),</span>
-                  <span class="p">)</span>
-          <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;site&#39;</span><span class="p">,</span> <span class="s1">&#39;mutant&#39;</span><span class="p">])</span>
-          <span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;escape&quot;</span><span class="p">]]</span>
+        <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">how</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">wildtype</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">wts</span><span class="p">),</span>
+            <span class="n">mutation</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">alphabet</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="c1"># mark wildtype cells with a `x`</span>
+            <span class="n">wildtype_char</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+                <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">])</span>
+    <span class="p">)</span>
     <span class="c1"># wildtype has escape of 0 by definition</span>
     <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;mutant&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;wildtype&#39;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="c1"># zoom bar to put at top</span>
-    <span class="n">zoom_brush</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_interval</span><span class="p">(</span><span class="n">encodings</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span>
-                                        <span class="n">mark</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">BrushConfig</span><span class="p">(</span>
-                                                    <span class="n">stroke</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
-                                                    <span class="n">strokeWidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-                                        <span class="p">)</span>
-    <span class="n">zoom_bar</span> <span class="o">=</span> <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;site:O&#39;</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">zoom_bar_width</span><span class="p">,</span>
-                            <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
-                            <span class="n">title</span><span class="o">=</span><span class="s1">&#39;site zoom bar&#39;</span><span class="p">,</span>
-                            <span class="p">)</span>
-                <span class="p">)</span>
+    <span class="n">zoom_brush</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_interval</span><span class="p">(</span>
+        <span class="n">encodings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">mark</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">BrushConfig</span><span class="p">(</span><span class="n">stroke</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">strokeWidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">zoom_bar</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;site:O&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">zoom_bar_width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;site zoom bar&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="c1"># select cells</span>
-    <span class="n">cell_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s1">&#39;mouseover&#39;</span><span class="p">,</span>
-                                         <span class="n">empty</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="n">cell_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span> <span class="n">empty</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
 
     <span class="c1"># make list of heatmaps for each epitope</span>
     <span class="n">charts</span> <span class="o">=</span> <span class="p">[</span><span class="n">zoom_bar</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
         <span class="c1"># base chart</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;site:O&#39;</span><span class="p">),</span>
-                        <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s1">&#39;mutant:O&#39;</span><span class="p">,</span>
-                                <span class="n">sort</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">EncodingSortField</span><span class="p">(</span>
-                                            <span class="s1">&#39;y&#39;</span><span class="p">,</span>
-                                            <span class="n">order</span><span class="o">=</span><span class="s1">&#39;ascending&#39;</span><span class="p">)</span>
-                                <span class="p">),</span>
-                        <span class="p">)</span>
-                <span class="p">)</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;site:O&quot;</span><span class="p">),</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;mutant:O&quot;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">EncodingSortField</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;ascending&quot;</span><span class="p">)),</span>
+        <span class="p">)</span>
         <span class="c1"># heatmap for cells with data</span>
         <span class="k">if</span> <span class="n">share_heatmap_lims</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span>
@@ -466,73 +463,72 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">escape_min</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">escape_min</span> <span class="o">&lt;</span> <span class="n">escape_max</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;escape min / max do not span a valid range&#39;</span><span class="p">)</span>
-        <span class="n">heatmap</span> <span class="o">=</span> <span class="p">(</span><span class="n">base</span>
-                   <span class="o">.</span><span class="n">mark_rect</span><span class="p">()</span>
-                   <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-                       <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
-                            <span class="n">epitope</span><span class="p">,</span>
-                            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;quantitative&#39;</span><span class="p">,</span>
-                            <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
-                               <span class="nb">range</span><span class="o">=</span><span class="n">color_gradient_hex</span><span class="p">(</span>
-                                   <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">],</span> <span class="mi">10</span><span class="p">),</span>
-                               <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
-                               <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="n">escape_min</span><span class="p">,</span> <span class="n">escape_max</span><span class="p">),</span>
-                               <span class="n">clamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                               <span class="p">),</span>
-                            <span class="n">legend</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Legend</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
-                                              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;gray is n.d.&#39;</span><span class="p">,</span>
-                                              <span class="n">titleFontWeight</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span>
-                                              <span class="n">gradientLength</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-                                              <span class="n">gradientStrokeColor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
-                                              <span class="n">gradientStrokeWidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-                            <span class="p">),</span>
-                       <span class="n">stroke</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">),</span>
-                       <span class="n">strokeWidth</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">,</span>
-                                                 <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mf">2.5</span><span class="p">),</span>
-                                                 <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)),</span>
-                       <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s1">&#39;mutation:N&#39;</span><span class="p">)]</span> <span class="o">+</span>
-                               <span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;.3g&#39;</span><span class="p">)</span>
-                                <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">],</span>
-                       <span class="p">)</span>
-                   <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;escape min / max do not span a valid range&quot;</span><span class="p">)</span>
+        <span class="n">heatmap</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_rect</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;quantitative&quot;</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
+                    <span class="nb">range</span><span class="o">=</span><span class="n">color_gradient_hex</span><span class="p">(</span><span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">],</span> <span class="mi">10</span><span class="p">),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+                    <span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="n">escape_min</span><span class="p">,</span> <span class="n">escape_max</span><span class="p">),</span>
+                    <span class="n">clamp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">legend</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Legend</span><span class="p">(</span>
+                    <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;gray is n.d.&quot;</span><span class="p">,</span>
+                    <span class="n">titleFontWeight</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+                    <span class="n">gradientLength</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                    <span class="n">gradientStrokeColor</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+                    <span class="n">gradientStrokeWidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">stroke</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">),</span>
+            <span class="n">strokeWidth</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mf">2.5</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)),</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;mutation:N&quot;</span><span class="p">)]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">],</span>
+        <span class="p">)</span>
         <span class="c1"># nulls for cells with missing data</span>
-        <span class="n">nulls</span> <span class="o">=</span> <span class="p">(</span><span class="n">base</span>
-                 <span class="o">.</span><span class="n">mark_rect</span><span class="p">()</span>
-                 <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;!isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span>
-                 <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
-                 <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s1">&#39;escape:N&#39;</span><span class="p">,</span>
-                                   <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">scheme</span><span class="o">=</span><span class="s1">&#39;greys&#39;</span><span class="p">),</span>
-                                   <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
-                         <span class="p">)</span>
-                 <span class="p">)</span>
+        <span class="n">nulls</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">base</span><span class="o">.</span><span class="n">mark_rect</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;!isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s2">&quot;escape:N&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;greys&quot;</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="c1"># mark wildtype cells</span>
-        <span class="n">wildtype</span> <span class="o">=</span> <span class="p">(</span><span class="n">base</span>
-                    <span class="o">.</span><span class="n">mark_text</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
-                    <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="s1">&#39;wildtype_char:N&#39;</span><span class="p">))</span>
-                    <span class="p">)</span>
+        <span class="n">wildtype</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_text</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;wildtype_char:N&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="c1"># combine the elements</span>
-        <span class="n">charts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">heatmap</span> <span class="o">+</span> <span class="n">nulls</span> <span class="o">+</span> <span class="n">wildtype</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
-                      <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
-                      <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
-                            <span class="n">title</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">TitleParams</span><span class="p">(</span>
-                                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">,</span>
-                                    <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]),</span>
-                            <span class="n">width</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="n">cell_size</span><span class="p">},</span>
-                            <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="n">cell_size</span><span class="p">})</span>
-                      <span class="p">)</span>
+        <span class="n">charts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">heatmap</span> <span class="o">+</span> <span class="n">nulls</span> <span class="o">+</span> <span class="n">wildtype</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">TitleParams</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">width</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">cell_size</span><span class="p">},</span>
+                <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">cell_size</span><span class="p">},</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span><span class="o">*</span><span class="n">charts</span><span class="p">,</span>
-                        <span class="n">spacing</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                        <span class="p">)</span>
-            <span class="o">.</span><span class="n">configure_title</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-            <span class="p">)</span></div>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">charts</span><span class="p">,</span>
+            <span class="n">spacing</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">labelOverlap</span><span class="o">=</span><span class="s2">&quot;parity&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">configure_title</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="p">)</span></div>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">doctest</span>
+
     <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
 </pre></div>
 
@@ -574,7 +570,11 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../biophysical_model.html">Biophysical model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>
