@@ -10,7 +10,7 @@ Defines loss functions.
 import jax.numpy as jnp
 from jax import jit
 from functools import partial
-import numpy
+from jax.experimental import sparse
 
 
 @jit
@@ -37,6 +37,10 @@ def scaled_pseudo_huber(delta, r):
     return delta * (jnp.sqrt(1. + jnp.square(r / delta)) - 1.)
 
 
+def bv_sparse_of_bmap(bmap):
+    return sparse.BCOO.fromdense(jnp.array(bmap.binary_variants.todense()))
+
+
 @partial(jit, static_argnames=["n_epitopes", "n_mutations"])
 def a_beta_from_params(n_epitopes, n_mutations, params):
     """Vector of activities and MxE matrix of betas from params vector."""
@@ -52,10 +56,16 @@ def a_beta_from_params(n_epitopes, n_mutations, params):
     return (a, beta)
 
 
+@partial(jit, static_argnames=["poly_abs", "n_variants", "bv_sparse"])
+def full_pv(poly_abs, n_variants, bv_sparse, params):
+    return compute_pv(len(poly_abs.epitopes), len(poly_abs.mutations), n_variants,
+                      params, bv_sparse, poly_abs._cs)
+
+
 @partial(jit, static_argnames=["n_epitopes", "n_mutations", "n_variants"])
-def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_dense, cs):
+def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
     a, beta = a_beta_from_params(n_epitopes, n_mutations, params)
-    phi_e_v = bv_dense @ beta - a
+    phi_e_v = bv_sparse @ beta - a
     assert phi_e_v.shape == (n_variants, n_epitopes)
     exp_minus_phi_e_v = jnp.exp(-phi_e_v)
     # Using tensordot as a replacement for np.multiply.outer, which doesn't
