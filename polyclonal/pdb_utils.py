@@ -216,7 +216,8 @@ def extract_atom_locations(
 
     Returns
     -------
-    pandas dataframe with the columns 'chain', 'site', 'x', 'y', and 'z'.
+    pandas.DataFrame
+        Has columns 'chain', 'site', 'x', 'y', and 'z'.
 
     Example
     -------
