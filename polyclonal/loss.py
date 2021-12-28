@@ -7,10 +7,15 @@ Defines loss functions.
 
 """
 
+import jax
 import jax.numpy as jnp
 from jax import jit
 from functools import partial
 from jax.experimental import sparse
+
+
+# Make JAX use double precision numbers.
+jax.config.update("jax_enable_x64", True)
 
 
 @jit
@@ -78,6 +83,7 @@ def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse"])
 def full_pv(poly_abs, bv_sparse, params):
+    # Note that I dropped a check by using the shape of bv_sparse here.
     return compute_pv(len(poly_abs.epitopes), len(poly_abs.mutations),
                       bv_sparse.shape[0], params, bv_sparse, poly_abs._cs)
 

@@ -149,30 +149,42 @@ def exact_data():
     )
 
 
-# exact_mut_escape_df = pd.read_csv("exact_mut_escape_df.csv")
-# exact_activity_wt_df = pd.read_csv("exact_activity_wt_df.csv")
-#
-# poly_abs_prefit = polyclonal.Polyclonal(
-#     data_to_fit=exact_data,
-#     activity_wt_df=exact_activity_wt_df,
-#     mut_escape_df=exact_mut_escape_df,
-# )
-# poly_abs_prefit.fit(fit_site_level_first=False, logfreq=100)
+@pytest.fixture
+def exact_mut_escape_df():
+    return pd.read_csv("exact_mut_escape_df.csv")
 
 
 @pytest.fixture
-def poly_abs_d(exact_data):
+def exact_activity_wt_df():
+    return pd.read_csv("exact_activity_wt_df.csv")
+
+
+@pytest.fixture
+def poly_abs_prefit(exact_data, exact_activity_wt_df, exact_mut_escape_df):
     return polyclonal.Polyclonal(
         data_to_fit=exact_data,
-        activity_wt_df=pd.DataFrame.from_records(
-            [("1", 1.0), ("2", 3.0), ("3", 2.0)], columns=["epitope", "activity"]
-        ),
-        site_escape_df=pd.DataFrame.from_records(
-            [("1", 417, 10.0), ("2", 484, 10.0), ("3", 444, 10.0)],
-            columns=["epitope", "site", "escape"],
-        ),
-        data_mut_escape_overlap="fill_to_data",
+        activity_wt_df=exact_activity_wt_df,
+        mut_escape_df=exact_mut_escape_df,
     )
+
+
+@pytest.fixture
+def exact_bv_sparse(poly_abs_prefit):
+    return loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
+
+
+def test_compute_pv_2(poly_abs_prefit, exact_bv_sparse):
+    params = poly_abs_prefit._params
+    jax_pv = loss.full_pv(poly_abs_prefit, exact_bv_sparse, params)
+    correct_pv, correct_pv_jac = poly_abs_prefit._compute_pv(
+        params, poly_abs_prefit._binarymaps, cs=poly_abs_prefit._cs, calc_grad=True
+    )
+    assert jnp.allclose(jax_pv, jnp.array(correct_pv))
+    # We can't do this for the big example because it takes too much memory.
+    # jac_compute_pv = jacrev(loss.full_pv, argnums=2)
+    # # TODO note transpose here.
+    # jax_pv_jac = jac_compute_pv(poly_abs_prefit, exact_bv_sparse, params).transpose()
+    # assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
 
 
 def test_pseudo_huber():
@@ -202,3 +214,14 @@ def test_compute_pv(poly_abs, n_epitopes, n_mutations, bmap, params, bv_sparse, 
         n_epitopes, n_mutations, bmap.nvariants, params, bv_sparse, cs
     ).transpose()
     assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
+
+
+def test_loss(poly_abs_prefit, exact_bv_sparse):
+    delta = 0.1
+    params = poly_abs_prefit._params
+    jax_loss = loss.loss(poly_abs_prefit, exact_bv_sparse, delta, params)
+    prefit_loss, prefit_dloss = poly_abs_prefit._loss_dloss(params, delta)
+    assert jax_loss == pytest.approx(prefit_loss)
+    loss_grad = jax.grad(loss.loss, 3)
+    jax_loss_grad = loss_grad(poly_abs_prefit, exact_bv_sparse, delta, params)
+    assert jnp.allclose(prefit_dloss, jax_loss_grad)
