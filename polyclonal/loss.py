@@ -82,6 +82,7 @@ def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse"])
+# TODO flip around so params comes first.
 def full_pv(poly_abs, bv_sparse, params):
     # Note that I dropped a check by using the shape of bv_sparse here.
     return compute_pv(len(poly_abs.epitopes), len(poly_abs.mutations),
@@ -89,7 +90,7 @@ def full_pv(poly_abs, bv_sparse, params):
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
-def loss(poly_abs, bv_sparse, delta, params):
+def loss(params, poly_abs, bv_sparse, delta):
     pred_pvs = full_pv(poly_abs, bv_sparse, params)
     assert pred_pvs.shape == poly_abs._pvs.shape
     residuals = pred_pvs - poly_abs._pvs

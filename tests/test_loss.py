@@ -225,3 +225,13 @@ def test_loss(poly_abs_prefit, exact_bv_sparse):
     loss_grad = jax.grad(loss.loss, 3)
     jax_loss_grad = loss_grad(poly_abs_prefit, exact_bv_sparse, delta, params)
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
+
+
+def test_fit(poly_abs_prefit, exact_bv_sparse):
+    optimize_result = jax.scipy.optimize.minimize(
+        loss.loss,
+        poly_abs_prefit._params,
+        args=(poly_abs_prefit, exact_bv_sparse, 0.1),
+        method="BFGS",
+    )
+    breakpoint()
