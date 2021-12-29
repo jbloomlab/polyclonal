@@ -7,6 +7,8 @@ Defines loss functions via JAX.
 
 """
 
+import numpy as np
+
 import jax
 import jax.numpy as jnp
 from jax import jit
@@ -61,6 +63,34 @@ def a_beta_from_params(n_epitopes, n_mutations, params):
     return (a, beta)
 
 
+def spread_matrices_of_polyclonal(poly_abs):
+    n_epitopes = len(poly_abs.epitopes)
+    n_mutations = len(poly_abs.mutations)
+    # Let's make a matrix, coeff_positions_np, that describes where the betas are for the
+    # various sites. It will be of size (number of sites) x (number of betas). It will have
+    # a 1 if the given beta is a coefficient for a given site.
+    coeff_positions_np = np.zeros((len(poly_abs._binary_sites), n_mutations))
+    for row, index_array in zip(coeff_positions_np, poly_abs._binary_sites.values()):
+        row[index_array[0]] = 1.0
+    # We can turn this into a matrix that will allow us to calculate per-site-per-epitope
+    # means by matrix multiplication.
+    matrix_to_mean_np = coeff_positions_np / coeff_positions_np.sum(axis=1)[:, None]
+    matrix_to_mean = sparse.BCOO.fromdense(jnp.array(matrix_to_mean_np, copy=False))
+    # We'd like to use the coeff_positions_np matrix to go from a site-wise view back to a
+    # beta-wise view, and for that we transpose.
+    coeff_positions = sparse.BCOO.fromdense(
+        jnp.array(coeff_positions_np, copy=False)
+    ).transpose()
+    return (matrix_to_mean, coeff_positions)
+
+
+@partial(jit, static_argnames=["matrix_to_mean", "coeff_positions"])
+def spread_penalty(matrix_to_mean, coeff_positions, beta):
+    # Our penalty is of the deviation of the coefficients from their mean.
+    to_penalize = beta - coeff_positions @ (matrix_to_mean @ beta)
+    return (matrix_to_mean @ (to_penalize ** 2)).sum()
+
+
 @partial(jit, static_argnames=["n_epitopes", "n_mutations", "n_variants"])
 def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
     a, beta = a_beta_from_params(n_epitopes, n_mutations, params)
@@ -90,7 +120,7 @@ def full_pv(poly_abs, bv_sparse, params):
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
-def loss(params, poly_abs, bv_sparse, delta):
+def unregularized_loss(params, poly_abs, bv_sparse, delta):
     pred_pvs = full_pv(poly_abs, bv_sparse, params)
     assert pred_pvs.shape == poly_abs._pvs.shape
     residuals = pred_pvs - poly_abs._pvs
@@ -101,3 +131,18 @@ def loss(params, poly_abs, bv_sparse, delta):
     else:
         assert unreduced_loss.shape == poly_abs._weights.shape
         return (poly_abs._weights * unreduced_loss).sum()
+
+@partial(jit, static_argnames=["poly_abs", "bv_sparse", "loss_delta",
+                               "reg_escape_weight", "reg_escape_delta",
+                               "reg_spread_weight"])
+def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_delta,
+         reg_spread_weight):
+    n_epitopes = len(poly_abs.epitopes)
+    n_mutations = len(poly_abs.mutations)
+    _, beta = a_beta_from_params(n_epitopes, n_mutations, params)
+    # TODO
+    # reg_escape = scaled_pseudo_huber(reg_escape_delta, beta).sum() * reg_escape_weight
+    # reg_spread
+    return unregularized_loss(params, poly_abs, bv_sparse, loss_delta):
+
+

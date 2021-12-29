@@ -6,7 +6,6 @@ import Bio.SeqIO
 import pandas as pd
 import pytest
 
-
 import jax
 import jax.numpy as jnp
 from jax import jacrev
@@ -234,6 +233,18 @@ def test_compute_pv(poly_abs, n_epitopes, n_mutations, bmap, params, bv_sparse, 
         n_epitopes, n_mutations, bmap.nvariants, params, bv_sparse, cs
     ).transpose()
     assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
+
+
+def test_spread_penalty(poly_abs_prefit):
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
+        poly_abs_prefit
+    )
+    n_epitopes = len(poly_abs_prefit.epitopes)
+    n_mutations = len(poly_abs_prefit.mutations)
+    _, beta = loss.a_beta_from_params(n_epitopes, n_mutations, poly_abs_prefit._params)
+    jax_penalty = loss.spread_penalty(matrix_to_mean, coeff_positions, beta)
+    correct_penalty, _ = poly_abs_prefit._reg_spread(poly_abs_prefit._params, 1.0)
+    jax_penalty == pytest.approx(correct_penalty)
 
 
 def test_loss(poly_abs_prefit, exact_bv_sparse):
