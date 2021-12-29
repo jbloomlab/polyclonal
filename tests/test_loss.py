@@ -22,13 +22,29 @@ jax.config.update("jax_enable_x64", True)
 
 
 @pytest.fixture
-def activity_wt_df():
+def mini_activity_wt_df():
     return pd.read_csv("mini_activity_wt_df.csv")
 
 
 @pytest.fixture
-def mut_escape_df():
+def mini_mut_escape_df():
     return pd.read_csv("mini_mut_escape_df.csv")
+
+
+@pytest.fixture
+def mini_data():
+    return pd.read_csv("mini_escape_variants_exact.csv", na_filter=None).reset_index(
+        drop=True
+    )
+
+
+@pytest.fixture
+def mini_poly_abs_prefit(mini_data, mini_activity_wt_df, mini_mut_escape_df):
+    return polyclonal.Polyclonal(
+        data_to_fit=mini_data,
+        activity_wt_df=mini_activity_wt_df,
+        mut_escape_df=mini_mut_escape_df,
+    )
 
 
 @pytest.fixture
@@ -50,7 +66,7 @@ def variants_df(poly_abs, geneseq):
     variants = dms_variants.simulate.simulate_CodonVariantTable(
         geneseq=geneseq,
         bclen=16,
-        library_specs={f"avg{m}muts": {"avgmuts": m, "nvariants": 4} for m in [1, 2]},
+        library_specs={f"avg{m}muts": {"avgmuts": m, "nvariants": 500} for m in [1]},
         allowed_aa_muts=[
             polyclonal.utils.shift_mut_site(m, -330) for m in allowed_aa_muts
         ],
@@ -77,6 +93,9 @@ def variants_escape(poly_abs, variants_df, concentrations):
     )
     variants_escape.rename(
         columns={"predicted_prob_escape": "prob_escape"}, inplace=True
+    )
+    variants_escape.to_csv(
+        "mini_escape_variants_exact.csv", index=False, float_format="%.4g"
     )
     return variants_escape
 
@@ -228,11 +247,6 @@ def test_loss(poly_abs_prefit, exact_bv_sparse):
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_fit(poly_abs_prefit, exact_bv_sparse):
-    optimize_result = jax.scipy.optimize.minimize(
-        loss.loss,
-        poly_abs_prefit._params,
-        args=(poly_abs_prefit, exact_bv_sparse, 0.1),
-        method="BFGS",
-    )
+def test_interact(poly_abs_prefit):
+    pa = poly_abs_prefit
     assert False

@@ -3,7 +3,7 @@
 loss
 ====
 
-Defines loss functions.
+Defines loss functions via JAX.
 
 """
 
