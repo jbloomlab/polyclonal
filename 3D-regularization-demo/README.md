@@ -8,7 +8,6 @@ To use the notebook interactively:
   ```bash
   conda env create -f env.yml
   ```
-
   **Note:** python 3.7 is currently required by the [`mushi.optimization`](https://harrispopgen.github.io/mushi/stubs/mushi.optimization.html#module-mushi.optimization) dependency, but there are [plans](https://github.com/harrispopgen/mushi/issues/59) to fix that.
 2. Activate the new environment:
   ```bash
