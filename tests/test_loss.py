@@ -116,9 +116,16 @@ def test_spread_penalty(poly_abs_prefit):
     n_epitopes = len(poly_abs_prefit.epitopes)
     n_mutations = len(poly_abs_prefit.mutations)
     _, beta = loss.a_beta_from_params(n_epitopes, n_mutations, poly_abs_prefit._params)
-    jax_penalty = loss.spread_penalty(matrix_to_mean, coeff_positions, beta)
-    correct_penalty, _ = poly_abs_prefit._reg_spread(poly_abs_prefit._params, 1.0)
+    jax_penalty, jax_dpenalty = jax.value_and_grad(loss.spread_penalty, 2)(
+        matrix_to_mean, coeff_positions, beta
+    )
+    correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
+        poly_abs_prefit._params, 1.0
+    )
     jax_penalty == pytest.approx(correct_penalty)
+    # The polyclonal code prepends zeroes so that the grad is on the whole parameter
+    # set. We remove that here with the [n_epitopes:].
+    jnp.allclose(jax_dpenalty.flatten(), correct_dpenalty[n_epitopes:])
 
 
 def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
