@@ -11,6 +11,7 @@ import jax
 import jax.numpy as jnp
 from jax import jacrev
 from jax.experimental import sparse
+import jax.scipy.optimize
 
 import dms_variants.simulate
 import polyclonal
@@ -219,11 +220,11 @@ def test_compute_pv(poly_abs, n_epitopes, n_mutations, bmap, params, bv_sparse, 
 def test_loss(poly_abs_prefit, exact_bv_sparse):
     delta = 0.1
     params = poly_abs_prefit._params
-    jax_loss = loss.loss(poly_abs_prefit, exact_bv_sparse, delta, params)
+    jax_loss = loss.loss(params, poly_abs_prefit, exact_bv_sparse, delta)
     prefit_loss, prefit_dloss = poly_abs_prefit._loss_dloss(params, delta)
     assert jax_loss == pytest.approx(prefit_loss)
-    loss_grad = jax.grad(loss.loss, 3)
-    jax_loss_grad = loss_grad(poly_abs_prefit, exact_bv_sparse, delta, params)
+    loss_grad = jax.grad(loss.loss, 0)
+    jax_loss_grad = loss_grad(params, poly_abs_prefit, exact_bv_sparse, delta)
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
@@ -234,4 +235,4 @@ def test_fit(poly_abs_prefit, exact_bv_sparse):
         args=(poly_abs_prefit, exact_bv_sparse, 0.1),
         method="BFGS",
     )
-    breakpoint()
+    assert False
