@@ -37,7 +37,7 @@ def scaled_pseudo_huber(delta, r):
 
     >>> h = scaled_pseudo_huber(2., jnp.array([1., 2., 4., 8.]))
     >>> h.round(2)
-    DeviceArray([0.24, 0.83, 2.47, 6.25], dtype=float32)
+    DeviceArray([0.24, 0.83, 2.47, 6.25], dtype=float64)
     """
     return delta * (jnp.sqrt(1. + jnp.square(r / delta)) - 1.)
 
