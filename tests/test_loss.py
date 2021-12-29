@@ -47,118 +47,6 @@ def mini_poly_abs_prefit(mini_data, mini_activity_wt_df, mini_mut_escape_df):
 
 
 @pytest.fixture
-def poly_abs(activity_wt_df, mut_escape_df):
-    return polyclonal.Polyclonal(
-        activity_wt_df=activity_wt_df, mut_escape_df=mut_escape_df
-    )
-
-
-@pytest.fixture
-def geneseq():
-    geneseq = str(Bio.SeqIO.read("notebooks/RBD_seq.fasta", "fasta").seq)
-    return geneseq[:333]
-
-
-@pytest.fixture
-def variants_df(poly_abs, geneseq):
-    allowed_aa_muts = poly_abs.mut_escape_df["mutation"].unique()
-    variants = dms_variants.simulate.simulate_CodonVariantTable(
-        geneseq=geneseq,
-        bclen=16,
-        library_specs={f"avg{m}muts": {"avgmuts": m, "nvariants": 500} for m in [1]},
-        allowed_aa_muts=[
-            polyclonal.utils.shift_mut_site(m, -330) for m in allowed_aa_muts
-        ],
-    )
-
-    return variants.barcode_variant_df[
-        ["library", "barcode", "aa_substitutions", "n_aa_substitutions"]
-    ].assign(
-        aa_substitutions=lambda x: x["aa_substitutions"].apply(
-            polyclonal.utils.shift_mut_site, shift=330
-        )
-    )
-
-
-@pytest.fixture
-def concentrations():
-    return [0.25, 2]
-
-
-@pytest.fixture
-def variants_escape(poly_abs, variants_df, concentrations):
-    variants_escape = poly_abs.prob_escape(
-        variants_df=variants_df, concentrations=concentrations
-    )
-    variants_escape.rename(
-        columns={"predicted_prob_escape": "prob_escape"}, inplace=True
-    )
-    variants_escape.to_csv(
-        "mini_escape_variants_exact.csv", index=False, float_format="%.4g"
-    )
-    return variants_escape
-
-
-@pytest.fixture
-def binarymaps_from_df_relevant_result(poly_abs, variants_escape):
-    (one_binarymap, binarymaps, cs, pvs, _, variants_df) = poly_abs._binarymaps_from_df(
-        variants_escape, get_pv=False, collapse_identical_variants=False
-    )
-    assert one_binarymap
-    return (binarymaps, cs, variants_df)
-
-
-@pytest.fixture
-def bmap(binarymaps_from_df_relevant_result):
-    return binarymaps_from_df_relevant_result[0]
-
-
-@pytest.fixture
-def cs(binarymaps_from_df_relevant_result):
-    return binarymaps_from_df_relevant_result[1]
-
-
-@pytest.fixture
-def pvs(binarymaps_from_df_relevant_result):
-    return binarymaps_from_df_relevant_result[2]
-
-
-@pytest.fixture
-def final_variants_df(binarymaps_from_df_relevant_result):
-    return binarymaps_from_df_relevant_result[2]
-
-
-@pytest.fixture
-def n_epitopes(poly_abs):
-    return len(poly_abs.epitopes)
-
-
-@pytest.fixture
-def n_mutations(poly_abs):
-    return len(poly_abs.mutations)
-
-
-@pytest.fixture
-def bv_dense(bmap):
-    return jnp.array(bmap.binary_variants.todense())
-
-
-@pytest.fixture
-def bv_sparse(bv_dense):
-    return sparse.BCOO.fromdense(bv_dense)
-
-
-@pytest.fixture
-def params(poly_abs):
-    return poly_abs._params
-
-
-def test_poly_abs(poly_abs):
-    assert len(poly_abs.epitopes) == 2
-    assert len(poly_abs.sites) == 3
-
-
-@pytest.fixture
 def exact_data():
     return (
         pd.read_csv("notebooks/RBD_variants_escape_exact.csv", na_filter=None)
@@ -192,18 +80,20 @@ def exact_bv_sparse(poly_abs_prefit):
     return loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
 
 
-def test_compute_pv_2(poly_abs_prefit, exact_bv_sparse):
-    params = poly_abs_prefit._params
-    jax_pv = loss.full_pv(poly_abs_prefit, exact_bv_sparse, params)
-    correct_pv, correct_pv_jac = poly_abs_prefit._compute_pv(
-        params, poly_abs_prefit._binarymaps, cs=poly_abs_prefit._cs, calc_grad=True
+def test_compute_pv(mini_poly_abs_prefit):
+    bv_sparse = loss.bv_sparse_of_bmap(mini_poly_abs_prefit._binarymaps)
+    params = mini_poly_abs_prefit._params
+    jax_pv = loss.full_pv(mini_poly_abs_prefit, bv_sparse, params)
+    correct_pv, correct_pv_jac = mini_poly_abs_prefit._compute_pv(
+        params,
+        mini_poly_abs_prefit._binarymaps,
+        cs=mini_poly_abs_prefit._cs,
+        calc_grad=True,
     )
     assert jnp.allclose(jax_pv, jnp.array(correct_pv))
-    # We can't do this for the big example because it takes too much memory.
-    # jac_compute_pv = jacrev(loss.full_pv, argnums=2)
-    # # TODO note transpose here.
-    # jax_pv_jac = jac_compute_pv(poly_abs_prefit, exact_bv_sparse, params).transpose()
-    # assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
+    jac_compute_pv = jacrev(loss.full_pv, argnums=2)
+    jax_pv_jac = jac_compute_pv(mini_poly_abs_prefit, bv_sparse, params).transpose()
+    assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
 
 
 def test_pseudo_huber():
@@ -219,22 +109,6 @@ def test_pseudo_huber():
     assert jnp.allclose(hgrad, jax_hgrad)
 
 
-def test_compute_pv(poly_abs, n_epitopes, n_mutations, bmap, params, bv_sparse, cs):
-    jax_pv = loss.compute_pv(
-        n_epitopes, n_mutations, bmap.nvariants, params, bv_sparse, cs
-    )
-    correct_pv, correct_pv_jac = poly_abs._compute_pv(
-        params, bmap, cs=cs, calc_grad=True
-    )
-    assert jnp.allclose(jax_pv, jnp.array(correct_pv))
-    jac_compute_pv = jacrev(loss.compute_pv, argnums=3)
-    # TODO note transpose here.
-    jax_pv_jac = jac_compute_pv(
-        n_epitopes, n_mutations, bmap.nvariants, params, bv_sparse, cs
-    ).transpose()
-    assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
-
-
 def test_spread_penalty(poly_abs_prefit):
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
         poly_abs_prefit
@@ -247,17 +121,48 @@ def test_spread_penalty(poly_abs_prefit):
     jax_penalty == pytest.approx(correct_penalty)
 
 
-def test_loss(poly_abs_prefit, exact_bv_sparse):
+def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
     delta = 0.1
     params = poly_abs_prefit._params
-    jax_loss = loss.loss(params, poly_abs_prefit, exact_bv_sparse, delta)
+    jax_loss = loss.unregularized_loss(params, poly_abs_prefit, exact_bv_sparse, delta)
     prefit_loss, prefit_dloss = poly_abs_prefit._loss_dloss(params, delta)
     assert jax_loss == pytest.approx(prefit_loss)
-    loss_grad = jax.grad(loss.loss, 0)
+    loss_grad = jax.grad(loss.unregularized_loss, 0)
     jax_loss_grad = loss_grad(params, poly_abs_prefit, exact_bv_sparse, delta)
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_interact(poly_abs_prefit):
-    pa = poly_abs_prefit
-    assert False
+def test_loss(poly_abs_prefit, exact_bv_sparse):
+    loss_delta = 0.15
+    reg_escape_weight = 0.314
+    reg_escape_delta = 0.29
+    reg_spread_weight = 100.27
+    params = poly_abs_prefit._params
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
+        poly_abs_prefit
+    )
+    loss_args = [
+        params,
+        poly_abs_prefit,
+        exact_bv_sparse,
+        loss_delta,
+        reg_escape_weight,
+        reg_escape_delta,
+        reg_spread_weight,
+        matrix_to_mean,
+        coeff_positions,
+    ]
+    jax_loss = loss.loss(*loss_args)
+    fitloss, dfitloss = poly_abs_prefit._loss_dloss(params, loss_delta)
+    regescape, dregescape = poly_abs_prefit._reg_escape(
+        params, reg_escape_weight, reg_escape_delta
+    )
+    regspread, dregspread = poly_abs_prefit._reg_spread(params, reg_spread_weight)
+    correct_loss = fitloss + regescape + regspread
+    assert jax_loss == pytest.approx(correct_loss)
+    correct_dloss = dfitloss + dregescape + dregspread
+    loss_grad = jax.grad(loss.loss, 0)
+    jax_loss_grad = loss_grad(*loss_args)
+    diff = correct_dloss - jax_loss_grad
+    print(jnp.abs(diff).max())
+    assert jnp.allclose(correct_dloss, jax_loss_grad)

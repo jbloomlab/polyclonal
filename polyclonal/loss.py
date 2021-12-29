@@ -132,17 +132,15 @@ def unregularized_loss(params, poly_abs, bv_sparse, delta):
         assert unreduced_loss.shape == poly_abs._weights.shape
         return (poly_abs._weights * unreduced_loss).sum()
 
+
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "loss_delta",
                                "reg_escape_weight", "reg_escape_delta",
-                               "reg_spread_weight"])
+                               "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
 def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_delta,
-         reg_spread_weight):
+         reg_spread_weight, matrix_to_mean, coeff_positions):
     n_epitopes = len(poly_abs.epitopes)
     n_mutations = len(poly_abs.mutations)
     _, beta = a_beta_from_params(n_epitopes, n_mutations, params)
-    # TODO
-    # reg_escape = scaled_pseudo_huber(reg_escape_delta, beta).sum() * reg_escape_weight
-    # reg_spread
-    return unregularized_loss(params, poly_abs, bv_sparse, loss_delta):
-
-
+    reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
+    reg_spread = reg_spread_weight * spread_penalty(matrix_to_mean, coeff_positions, beta)
+    return reg_escape + reg_spread + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
