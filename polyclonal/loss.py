@@ -48,9 +48,11 @@ def bv_sparse_of_bmap(bmap):
     return sparse.BCOO.fromdense(jnp.array(bmap.binary_variants.todense()))
 
 
-@partial(jit, static_argnames=["n_epitopes", "n_mutations"])
-def a_beta_from_params(n_epitopes, n_mutations, params):
+@partial(jit, static_argnames=["poly_abs"])
+def a_beta_from_params(params, poly_abs):
     """Vector of activities and MxE matrix of betas from params vector."""
+    n_epitopes = len(poly_abs.epitopes)
+    n_mutations = len(poly_abs.mutations)
     params_len = n_epitopes * (1 + n_mutations)
     if params.shape != (params_len,):
         raise ValueError(f"invalid {params.shape=}")
@@ -58,12 +60,13 @@ def a_beta_from_params(n_epitopes, n_mutations, params):
     beta = params[n_epitopes:].reshape(n_mutations, n_epitopes)
     assert a.shape == (n_epitopes,)
     assert beta.shape == (n_mutations, n_epitopes)
-    # TODO fix
-    # assert (not jnp.isnan(a).any()) and (not jnp.isnan(beta).any())
     return (a, beta)
 
 
 def spread_matrices_of_polyclonal(poly_abs):
+    """
+    Builds matrices we can use to do the regularization on spread using matrix math.
+    """
     n_epitopes = len(poly_abs.epitopes)
     n_mutations = len(poly_abs.mutations)
     # Let's make a matrix, coeff_positions_np, that describes where the betas are for the
@@ -85,15 +88,22 @@ def spread_matrices_of_polyclonal(poly_abs):
 
 
 @partial(jit, static_argnames=["matrix_to_mean", "coeff_positions"])
-def spread_penalty(matrix_to_mean, coeff_positions, beta):
-    # Our penalty is of the deviation of the coefficients from their mean.
+def spread_penalty(beta, matrix_to_mean, coeff_positions):
+    """
+    Return the sum of the per-site squared deviation of the coefficients from their
+    mean.
+    """
     to_penalize = beta - coeff_positions @ (matrix_to_mean @ beta)
     return (matrix_to_mean @ (to_penalize ** 2)).sum()
 
 
-@partial(jit, static_argnames=["n_epitopes", "n_mutations", "n_variants"])
-def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
-    a, beta = a_beta_from_params(n_epitopes, n_mutations, params)
+@partial(jit, static_argnames=["poly_abs", "bv_sparse"])
+def compute_pv(params, poly_abs, bv_sparse):
+    a, beta = a_beta_from_params(params, poly_abs)
+    n_epitopes = len(poly_abs.epitopes)
+    n_mutations = len(poly_abs.mutations),
+    n_variants = bv_sparse.shape[0]
+    cs = poly_abs._cs
     phi_e_v = bv_sparse @ beta - a
     assert phi_e_v.shape == (n_variants, n_epitopes)
     exp_minus_phi_e_v = jnp.exp(-phi_e_v)
@@ -111,17 +121,10 @@ def compute_pv(n_epitopes, n_mutations, n_variants, params, bv_sparse, cs):
     return p_vc
 
 
-@partial(jit, static_argnames=["poly_abs", "bv_sparse"])
-# TODO flip around so params comes first.
-def full_pv(poly_abs, bv_sparse, params):
-    # Note that I dropped a check by using the shape of bv_sparse here.
-    return compute_pv(len(poly_abs.epitopes), len(poly_abs.mutations),
-                      bv_sparse.shape[0], params, bv_sparse, poly_abs._cs)
-
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
 def unregularized_loss(params, poly_abs, bv_sparse, delta):
-    pred_pvs = full_pv(poly_abs, bv_sparse, params)
+    pred_pvs = compute_pv(params, poly_abs, bv_sparse)
     assert pred_pvs.shape == poly_abs._pvs.shape
     residuals = pred_pvs - poly_abs._pvs
     unreduced_loss = scaled_pseudo_huber(delta, residuals)
@@ -138,9 +141,7 @@ def unregularized_loss(params, poly_abs, bv_sparse, delta):
                                "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
 def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_delta,
          reg_spread_weight, matrix_to_mean, coeff_positions):
-    n_epitopes = len(poly_abs.epitopes)
-    n_mutations = len(poly_abs.mutations)
-    _, beta = a_beta_from_params(n_epitopes, n_mutations, params)
+    _, beta = a_beta_from_params(params, poly_abs)
     reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
-    reg_spread = reg_spread_weight * spread_penalty(matrix_to_mean, coeff_positions, beta)
+    reg_spread = reg_spread_weight * spread_penalty(beta, matrix_to_mean, coeff_positions)
     return reg_escape + reg_spread + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
