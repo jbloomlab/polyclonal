@@ -20,25 +20,12 @@ import polyclonal.loss as loss
 jax.config.update("jax_enable_x64", True)
 
 
-@pytest.fixture
-def mini_activity_wt_df():
-    return pd.read_csv("mini_activity_wt_df.csv")
-
-
-@pytest.fixture
-def mini_mut_escape_df():
-    return pd.read_csv("mini_mut_escape_df.csv")
-
-
-@pytest.fixture
-def mini_data():
-    return pd.read_csv("mini_escape_variants_exact.csv", na_filter=None).reset_index(
-        drop=True
-    )
-
-
-@pytest.fixture
-def mini_poly_abs_prefit(mini_data, mini_activity_wt_df, mini_mut_escape_df):
+def build_mini_poly_abs_prefit():
+    mini_activity_wt_df = pd.read_csv("notebooks/mini_activity_wt_df.csv")
+    mini_mut_escape_df = pd.read_csv("notebooks/mini_mut_escape_df.csv")
+    mini_data = pd.read_csv(
+        "notebooks/mini_escape_variants_exact.csv", na_filter=None
+    ).reset_index(drop=True)
     return polyclonal.Polyclonal(
         data_to_fit=mini_data,
         activity_wt_df=mini_activity_wt_df,
@@ -47,32 +34,29 @@ def mini_poly_abs_prefit(mini_data, mini_activity_wt_df, mini_mut_escape_df):
 
 
 @pytest.fixture
-def exact_data():
-    return (
+def mini_poly_abs_prefit():
+    return build_mini_poly_abs_prefit()
+
+
+def build_poly_abs_prefit():
+    exact_data = (
         pd.read_csv("notebooks/RBD_variants_escape_exact.csv", na_filter=None)
         .query('library == "avg2muts"')
         .query("concentration in [0.25, 1, 4]")
         .reset_index(drop=True)
     )
-
-
-@pytest.fixture
-def exact_mut_escape_df():
-    return pd.read_csv("exact_mut_escape_df.csv")
-
-
-@pytest.fixture
-def exact_activity_wt_df():
-    return pd.read_csv("exact_activity_wt_df.csv")
-
-
-@pytest.fixture
-def poly_abs_prefit(exact_data, exact_activity_wt_df, exact_mut_escape_df):
+    exact_mut_escape_df = pd.read_csv("notebooks/exact_mut_escape_df.csv")
+    exact_activity_wt_df = pd.read_csv("notebooks/exact_activity_wt_df.csv")
     return polyclonal.Polyclonal(
         data_to_fit=exact_data,
         activity_wt_df=exact_activity_wt_df,
         mut_escape_df=exact_mut_escape_df,
     )
+
+
+@pytest.fixture
+def poly_abs_prefit():
+    return build_poly_abs_prefit()
 
 
 @pytest.fixture
@@ -102,8 +86,6 @@ def test_pseudo_huber():
     h, hgrad = polyclonal.Polyclonal._scaled_pseudo_huber(delta, r, True)
     jax_h = loss.scaled_pseudo_huber(delta, jnp.array(r))
     assert jnp.allclose(h, jax_h)
-
-    # Argnums specifies here that we want the gradient WRT the second argument.
     huberish_jac = jacrev(loss.scaled_pseudo_huber, argnums=1)
     jax_hgrad = jnp.diag(huberish_jac(delta, jnp.array(r)))
     assert jnp.allclose(hgrad, jax_hgrad)
@@ -173,3 +155,8 @@ def test_loss(poly_abs_prefit, exact_bv_sparse):
     diff = correct_dloss - jax_loss_grad
     print(jnp.abs(diff).max())
     assert jnp.allclose(correct_dloss, jax_loss_grad)
+
+
+def test_interact(poly_abs_prefit):
+    pa = poly_abs_prefit
+    assert False
