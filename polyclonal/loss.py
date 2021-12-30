@@ -87,14 +87,14 @@ def spread_matrices_of_polyclonal(poly_abs):
     return (matrix_to_mean, coeff_positions)
 
 
-@partial(jit, static_argnames=["matrix_to_mean", "coeff_positions"])
-def spread_penalty(beta, matrix_to_mean, coeff_positions):
+@partial(jit, static_argnames=["matrix_to_mean", "coeff_positions", "weight"])
+def spread_penalty(beta, matrix_to_mean, coeff_positions, weight):
     """
     Return the sum of the per-site squared deviation of the coefficients from their
     mean.
     """
     to_penalize = beta - coeff_positions @ (matrix_to_mean @ beta)
-    return (matrix_to_mean @ (to_penalize ** 2)).sum()
+    return weight * (matrix_to_mean @ (to_penalize ** 2)).sum()
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse"])
@@ -143,5 +143,5 @@ def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_
          reg_spread_weight, matrix_to_mean, coeff_positions):
     _, beta = a_beta_from_params(params, poly_abs)
     reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
-    reg_spread = reg_spread_weight * spread_penalty(beta, matrix_to_mean, coeff_positions)
+    reg_spread = spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
     return reg_escape + reg_spread + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)

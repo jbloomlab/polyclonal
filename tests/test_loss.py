@@ -92,16 +92,17 @@ def test_pseudo_huber():
 
 
 def test_spread_penalty(poly_abs_prefit):
+    reg_spread_weight = 0.25
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
         poly_abs_prefit
     )
     n_epitopes = len(poly_abs_prefit.epitopes)
     _, beta = loss.a_beta_from_params(poly_abs_prefit._params, poly_abs_prefit)
     jax_penalty, jax_dpenalty = jax.value_and_grad(loss.spread_penalty)(
-        beta, matrix_to_mean, coeff_positions
+        beta, matrix_to_mean, coeff_positions, reg_spread_weight
     )
     correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
-        poly_abs_prefit._params, 1.0
+        poly_abs_prefit._params, reg_spread_weight
     )
     jax_penalty == pytest.approx(correct_penalty)
     # The polyclonal code prepends zeroes so that the grad is on the whole parameter
@@ -150,4 +151,4 @@ def test_loss(poly_abs_prefit, exact_bv_sparse):
     correct_dloss = dfitloss + dregescape + dregspread
     diff = correct_dloss - jax_loss_grad
     print("max difference in gradient:", jnp.abs(diff).max())
-    # assert jnp.allclose(correct_dloss, jax_loss_grad)
+    assert jnp.allclose(correct_dloss, jax_loss_grad)
