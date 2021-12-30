@@ -1,6 +1,7 @@
 .*
 ~*
 *.out
+_ignore
 
 !.gitignore
 !.travis.yml
