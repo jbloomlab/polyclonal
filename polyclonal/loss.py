@@ -145,7 +145,6 @@ def unregularized_loss(params, poly_abs, bv_sparse, delta):
         return (poly_abs._weights * unreduced_loss).sum()
 
 
-# TODO cost
 @partial(
     jit,
     static_argnames=[
@@ -159,7 +158,7 @@ def unregularized_loss(params, poly_abs, bv_sparse, delta):
         "coeff_positions",
     ],
 )
-def loss(
+def cost(
     params,
     poly_abs,
     bv_sparse,
@@ -180,17 +179,3 @@ def loss(
         + reg_spread
         + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
     )
-
-
-@partial(
-    jit,
-    static_argnames=[
-        "poly_abs",
-        "matrix_to_mean",
-        "coeff_positions",
-        "reg_spread_weight",
-    ],
-)
-def fake_loss(params, poly_abs, matrix_to_mean, coeff_positions, reg_spread_weight):
-    _, beta = a_beta_from_params(params, poly_abs)
-    return spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
