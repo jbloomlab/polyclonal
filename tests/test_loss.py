@@ -181,22 +181,18 @@ def test_loss(mini_poly_abs_prefit):
 def test_fake_loss(mini_poly_abs_prefit):
     poly_abs_prefit = mini_poly_abs_prefit
     reg_spread_weight = 1.0
-    params = poly_abs_prefit._params
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
         poly_abs_prefit
     )
     jax_loss, jax_loss_grad = jax.value_and_grad(loss.fake_loss)(
-        params,
+        poly_abs_prefit._params,
         poly_abs_prefit,
         reg_spread_weight,
         matrix_to_mean,
         coeff_positions,
     )
-    regspread, dregspread = poly_abs_prefit._reg_spread(params, reg_spread_weight)
-    correct_loss = regspread
-    assert jax_loss == pytest.approx(correct_loss)
-    correct_dloss = dregspread
-    diff = correct_dloss - jax_loss_grad
-    diff_max = jnp.abs(diff).max()
-    print("max difference in gradient:", jnp.abs(diff).max())
-    assert jnp.allclose(correct_dloss, jax_loss_grad)
+    regspread, dregspread = poly_abs_prefit._reg_spread(
+        poly_abs_prefit._params, reg_spread_weight
+    )
+    assert jax_loss == pytest.approx(regspread)
+    assert jnp.allclose(dregspread, jax_loss_grad)
