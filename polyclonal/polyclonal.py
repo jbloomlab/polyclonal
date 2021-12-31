@@ -1143,7 +1143,7 @@ class Polyclonal:
             assert sitemeans.shape == (len(self.epitopes),)
             beta_minus_mean = sitebetas - sitemeans
             reg += weight * (beta_minus_mean ** 2).mean(axis=0).sum()
-            dreg_site = 2 * weight * (mi - 1) / (mi ** 2) * beta_minus_mean
+            dreg_site = 2 * weight / mi * beta_minus_mean
             assert dreg_site.shape == (mi, len(self.epitopes))
             dreg[siteindex] += dreg_site
         assert reg >= 0
