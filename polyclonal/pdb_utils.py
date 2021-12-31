@@ -249,7 +249,6 @@ def extract_atom_locations(
     9     A    28 -34.958000  39.424000 -2.028
 
     """
-
     # read PDB, catch warnings about discontinuous chains
     with warnings.catch_warnings():
         warnings.simplefilter(
