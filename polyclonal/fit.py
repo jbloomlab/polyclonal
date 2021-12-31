@@ -30,7 +30,7 @@ def prox_grad_of_polyclonal(
 ):
     bv_sparse = loss.bv_sparse_of_bmap(poly_abs._binarymaps)
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(poly_abs)
-    loss_grad = jax.grad(loss.loss, 0)
+    loss_grad = jax.grad(loss.cost, 0)
     args = [
         poly_abs,
         bv_sparse,
@@ -42,7 +42,7 @@ def prox_grad_of_polyclonal(
         coeff_positions,
     ]
     return optimization.AccProxGrad(
-        lambda p: loss.loss(p, *args),
+        lambda p: loss.cost(p, *args),
         lambda p: loss_grad(p, *args),
         zero_function,
         trivial_prox,
