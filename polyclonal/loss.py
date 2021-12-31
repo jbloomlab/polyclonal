@@ -159,11 +159,7 @@ def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "loss_delta",
-                               "reg_escape_weight", "reg_escape_delta",
                                "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
-def fake_loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_delta,
-         reg_spread_weight, matrix_to_mean, coeff_positions):
+def fake_loss(params, poly_abs, bv_sparse, loss_delta, reg_spread_weight, matrix_to_mean, coeff_positions):
     _, beta = a_beta_from_params(params, poly_abs)
-    reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
-    reg_spread = spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
-    return reg_escape + reg_spread
+    return spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
