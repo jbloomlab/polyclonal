@@ -91,7 +91,8 @@ def test_pseudo_huber():
     assert jnp.allclose(hgrad, jax_hgrad)
 
 
-def test_spread_penalty(poly_abs_prefit):
+def test_spread_penalty(mini_poly_abs_prefit):
+    poly_abs_prefit = mini_poly_abs_prefit
     reg_spread_weight = 0.25
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
         poly_abs_prefit
@@ -104,10 +105,10 @@ def test_spread_penalty(poly_abs_prefit):
     correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
         poly_abs_prefit._params, reg_spread_weight
     )
-    jax_penalty == pytest.approx(correct_penalty)
+    assert jax_penalty == pytest.approx(correct_penalty)
     # The polyclonal code prepends zeroes so that the grad is on the whole parameter
     # set. We remove that here with the [n_epitopes:].
-    jnp.allclose(jax_dpenalty.flatten(), correct_dpenalty[n_epitopes:])
+    assert jnp.allclose(jax_dpenalty.flatten(), correct_dpenalty[n_epitopes:])
 
 
 def test_spread_penalty_of_params(mini_poly_abs_prefit):
@@ -126,8 +127,8 @@ def test_spread_penalty_of_params(mini_poly_abs_prefit):
     correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
         poly_abs_prefit._params, reg_spread_weight
     )
-    jax_penalty == pytest.approx(correct_penalty)
-    jnp.allclose(jax_dpenalty, correct_dpenalty)
+    assert jax_penalty == pytest.approx(correct_penalty)
+    assert jnp.allclose(jax_dpenalty, correct_dpenalty)
 
 
 def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
