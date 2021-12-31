@@ -12,6 +12,9 @@ from jax import jacrev
 from jax.experimental import sparse
 import jax.scipy.optimize
 
+import numpy as np
+import scipy.optimize
+
 import dms_variants.simulate
 import polyclonal
 import polyclonal.loss as loss
@@ -89,6 +92,40 @@ def test_pseudo_huber():
     huberish_jac = jacrev(loss.scaled_pseudo_huber, argnums=1)
     jax_hgrad = jnp.diag(huberish_jac(delta, jnp.array(r)))
     assert jnp.allclose(hgrad, jax_hgrad)
+
+
+def test_regspread(mini_poly_abs_prefit):
+    weight = 1.0
+
+    def func(params):
+        return mini_poly_abs_prefit._reg_spread(params, weight)[0]
+
+    def fgrad(params):
+        return mini_poly_abs_prefit._reg_spread(params, weight)[1]
+
+    err = scipy.optimize.check_grad(func, fgrad, mini_poly_abs_prefit._params)
+
+    assert err < 1e-6
+
+
+def test_spread_penalty_check_grad(mini_poly_abs_prefit):
+    weight = 1.0
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
+        mini_poly_abs_prefit
+    )
+
+    jax_grad = jax.grad(loss.spread_penalty_of_params)
+    args = [mini_poly_abs_prefit, matrix_to_mean, coeff_positions, weight]
+
+    def func(params):
+        return loss.spread_penalty_of_params(params, *args)
+
+    def fgrad(params):
+        return np.array(jax_grad(params, *args))
+
+    err = scipy.optimize.check_grad(func, fgrad, mini_poly_abs_prefit._params)
+
+    assert err < 1e-6
 
 
 def test_spread_penalty(mini_poly_abs_prefit):
