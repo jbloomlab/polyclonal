@@ -179,10 +179,8 @@ def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-# def test_loss(mini_poly_abs_prefit, exact_bv_sparse):
-def test_cost(mini_poly_abs_prefit):
-    poly_abs_prefit = mini_poly_abs_prefit
-    exact_bv_sparse = loss.bv_sparse_of_bmap(mini_poly_abs_prefit._binarymaps)
+def test_loss(poly_abs_prefit, exact_bv_sparse):
+    exact_bv_sparse = loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
     loss_delta = 0.15
     reg_escape_weight = 0.314
     reg_escape_delta = 0.29
@@ -210,7 +208,4 @@ def test_cost(mini_poly_abs_prefit):
     correct_loss = fitloss + regescape + regspread
     assert jax_loss == pytest.approx(correct_loss)
     correct_dloss = dfitloss + dregescape + dregspread
-    diff = correct_dloss - jax_loss_grad
-    diff_max = jnp.abs(diff).max()
-    print("max difference in gradient:", jnp.abs(diff).max())
     assert jnp.allclose(correct_dloss, jax_loss_grad)
