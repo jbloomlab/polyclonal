@@ -7,13 +7,14 @@ Defines loss functions via JAX.
 
 """
 
-import numpy as np
+from functools import partial
 
 import jax
 import jax.numpy as jnp
 from jax import jit
-from functools import partial
 from jax.experimental import sparse
+
+import numpy as np
 
 
 # Make JAX use double precision numbers.
@@ -67,20 +68,19 @@ def spread_matrices_of_polyclonal(poly_abs):
     """
     Builds matrices we can use to do the regularization on spread using matrix math.
     """
-    n_epitopes = len(poly_abs.epitopes)
     n_mutations = len(poly_abs.mutations)
-    # Let's make a matrix, coeff_positions_np, that describes where the betas are for the
-    # various sites. It will be of size (number of sites) x (number of betas). It will have
-    # a 1 if the given beta is a coefficient for a given site.
+    # Let's make a matrix, coeff_positions_np, that describes where the betas are for
+    # the various sites. It will be of size (number of sites) x (number of betas). It
+    # will have a 1 if the given beta is a coefficient for a given site.
     coeff_positions_np = np.zeros((len(poly_abs._binary_sites), n_mutations))
     for row, index_array in zip(coeff_positions_np, poly_abs._binary_sites.values()):
         row[index_array[0]] = 1.0
-    # We can turn this into a matrix that will allow us to calculate per-site-per-epitope
-    # means by matrix multiplication.
+    # We can turn this into a matrix that will allow us to calculate
+    # per-site-per-epitope means by matrix multiplication.
     matrix_to_mean_np = coeff_positions_np / coeff_positions_np.sum(axis=1)[:, None]
     matrix_to_mean = sparse.BCOO.fromdense(jnp.array(matrix_to_mean_np, copy=False))
-    # We'd like to use the coeff_positions_np matrix to go from a site-wise view back to a
-    # beta-wise view, and for that we transpose.
+    # We'd like to use the coeff_positions_np matrix to go from a site-wise view back to
+    # a beta-wise view, and for that we transpose.
     coeff_positions = sparse.BCOO.fromdense(
         jnp.array(coeff_positions_np, copy=False)
     ).transpose()
@@ -112,7 +112,6 @@ def spread_penalty_of_params(params, poly_abs, matrix_to_mean, coeff_positions, 
 def compute_pv(params, poly_abs, bv_sparse):
     a, beta = a_beta_from_params(params, poly_abs)
     n_epitopes = len(poly_abs.epitopes)
-    n_mutations = (len(poly_abs.mutations),)
     n_variants = bv_sparse.shape[0]
     cs = poly_abs._cs
     phi_e_v = bv_sparse @ beta - a
@@ -132,7 +131,7 @@ def compute_pv(params, poly_abs, bv_sparse):
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
-def unregularized_loss(params, poly_abs, bv_sparse, delta):
+def loss(params, poly_abs, bv_sparse, delta):
     pred_pvs = compute_pv(params, poly_abs, bv_sparse)
     assert pred_pvs.shape == poly_abs._pvs.shape
     residuals = pred_pvs - poly_abs._pvs
@@ -169,13 +168,12 @@ def cost(
     matrix_to_mean,
     coeff_positions,
 ):
+    """
+    The cost is the loss with the regularization.
+    """
     _, beta = a_beta_from_params(params, poly_abs)
     reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
     reg_spread = spread_penalty(
         beta, matrix_to_mean, coeff_positions, reg_spread_weight
     )
-    return (
-        reg_escape
-        + reg_spread
-        + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
-    )
+    return reg_escape + reg_spread + loss(params, poly_abs, bv_sparse, loss_delta)

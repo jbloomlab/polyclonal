@@ -166,10 +166,10 @@ def test_spread_penalty_of_params(mini_poly_abs_prefit):
     assert jnp.allclose(jax_dpenalty, correct_dpenalty)
 
 
-def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
+def test_loss(poly_abs_prefit, exact_bv_sparse):
     delta = 0.1
     params = poly_abs_prefit._params
-    jax_loss, jax_loss_grad = jax.value_and_grad(loss.unregularized_loss)(
+    jax_loss, jax_loss_grad = jax.value_and_grad(loss.loss)(
         params, poly_abs_prefit, exact_bv_sparse, delta
     )
     prefit_loss, prefit_dloss = poly_abs_prefit._loss_dloss(params, delta)
@@ -177,7 +177,7 @@ def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_loss(poly_abs_prefit, exact_bv_sparse):
+def test_cost(poly_abs_prefit, exact_bv_sparse):
     exact_bv_sparse = loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
     loss_delta = 0.15
     reg_escape_weight = 0.314
