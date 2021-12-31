@@ -2,20 +2,18 @@
 Tests for `loss.py`.
 """
 
-import Bio.SeqIO
-import pandas as pd
-import pytest
-
-import jax
 import jax.numpy as jnp
-from jax import jacrev
-from jax.experimental import sparse
 import jax.scipy.optimize
+from jax import jacrev
 
 import numpy as np
+
+import pandas as pd
+
+import pytest
+
 import scipy.optimize
 
-import dms_variants.simulate
 import polyclonal
 import polyclonal.loss as loss
 
