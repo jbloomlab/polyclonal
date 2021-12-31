@@ -41,7 +41,7 @@ def scaled_pseudo_huber(delta, r):
     >>> h.round(2)
     DeviceArray([0.24, 0.83, 2.47, 6.25], dtype=float64)
     """
-    return delta * (jnp.sqrt(1. + jnp.square(r / delta)) - 1.)
+    return delta * (jnp.sqrt(1.0 + jnp.square(r / delta)) - 1.0)
 
 
 def bv_sparse_of_bmap(bmap):
@@ -55,8 +55,8 @@ def a_beta_from_params(params, poly_abs):
     n_mutations = len(poly_abs.mutations)
     params_len = n_epitopes * (1 + n_mutations)
     if params.shape != (params_len,):
-        raise ValueError(f"invalid {params.shape=}")
-    a = params[: n_epitopes]
+        raise ValueError(f"invalid params.shape={params.shape}")
+    a = params[:n_epitopes]
     beta = params[n_epitopes:].reshape(n_mutations, n_epitopes)
     assert a.shape == (n_epitopes,)
     assert beta.shape == (n_mutations, n_epitopes)
@@ -97,7 +97,9 @@ def spread_penalty(beta, matrix_to_mean, coeff_positions, weight):
     return weight * (matrix_to_mean @ (to_penalize ** 2)).sum()
 
 
-@partial(jit, static_argnames=["poly_abs", "matrix_to_mean", "coeff_positions", "weight"])
+@partial(
+    jit, static_argnames=["poly_abs", "matrix_to_mean", "coeff_positions", "weight"]
+)
 def spread_penalty_of_params(params, poly_abs, matrix_to_mean, coeff_positions, weight):
     """
     As above, but parameterized in terms of params.
@@ -110,7 +112,7 @@ def spread_penalty_of_params(params, poly_abs, matrix_to_mean, coeff_positions, 
 def compute_pv(params, poly_abs, bv_sparse):
     a, beta = a_beta_from_params(params, poly_abs)
     n_epitopes = len(poly_abs.epitopes)
-    n_mutations = len(poly_abs.mutations),
+    n_mutations = (len(poly_abs.mutations),)
     n_variants = bv_sparse.shape[0]
     cs = poly_abs._cs
     phi_e_v = bv_sparse @ beta - a
@@ -122,13 +124,11 @@ def compute_pv(params, poly_abs, bv_sparse):
     U_v_e_c = 1.0 / (1.0 + jnp.tensordot(exp_minus_phi_e_v, cs, axes=((), ())))
     assert U_v_e_c.shape == (n_variants, n_epitopes, len(cs))
     n_vc = n_variants * len(cs)
-    U_vc_e = jnp.moveaxis(U_v_e_c, 1, 2).reshape(
-                n_vc, n_epitopes, order='F')
+    U_vc_e = jnp.moveaxis(U_v_e_c, 1, 2).reshape(n_vc, n_epitopes, order="F")
     assert U_vc_e.shape == (n_vc, n_epitopes)
     p_vc = U_vc_e.prod(axis=1)
     assert p_vc.shape == (n_vc,)
     return p_vc
-
 
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
@@ -145,20 +145,52 @@ def unregularized_loss(params, poly_abs, bv_sparse, delta):
         return (poly_abs._weights * unreduced_loss).sum()
 
 
-
 # TODO cost
-@partial(jit, static_argnames=["poly_abs", "bv_sparse", "loss_delta",
-                               "reg_escape_weight", "reg_escape_delta",
-                               "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
-def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_delta,
-         reg_spread_weight, matrix_to_mean, coeff_positions):
+@partial(
+    jit,
+    static_argnames=[
+        "poly_abs",
+        "bv_sparse",
+        "loss_delta",
+        "reg_escape_weight",
+        "reg_escape_delta",
+        "reg_spread_weight",
+        "matrix_to_mean",
+        "coeff_positions",
+    ],
+)
+def loss(
+    params,
+    poly_abs,
+    bv_sparse,
+    loss_delta,
+    reg_escape_weight,
+    reg_escape_delta,
+    reg_spread_weight,
+    matrix_to_mean,
+    coeff_positions,
+):
     _, beta = a_beta_from_params(params, poly_abs)
     reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
-    reg_spread = spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
-    return reg_escape + reg_spread + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
+    reg_spread = spread_penalty(
+        beta, matrix_to_mean, coeff_positions, reg_spread_weight
+    )
+    return (
+        reg_escape
+        + reg_spread
+        + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
+    )
 
 
-@partial(jit, static_argnames=["poly_abs", "matrix_to_mean", "coeff_positions", "reg_spread_weight"])
+@partial(
+    jit,
+    static_argnames=[
+        "poly_abs",
+        "matrix_to_mean",
+        "coeff_positions",
+        "reg_spread_weight",
+    ],
+)
 def fake_loss(params, poly_abs, matrix_to_mean, coeff_positions, reg_spread_weight):
     _, beta = a_beta_from_params(params, poly_abs)
     return spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
