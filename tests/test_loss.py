@@ -187,12 +187,12 @@ def test_fake_loss(mini_poly_abs_prefit):
     jax_loss, jax_loss_grad = jax.value_and_grad(loss.fake_loss)(
         poly_abs_prefit._params,
         poly_abs_prefit,
-        reg_spread_weight,
         matrix_to_mean,
         coeff_positions,
+        reg_spread_weight,
     )
     regspread, dregspread = poly_abs_prefit._reg_spread(
         poly_abs_prefit._params, reg_spread_weight
     )
     assert jax_loss == pytest.approx(regspread)
-    assert jnp.allclose(dregspread, jax_loss_grad)
+    assert jnp.allclose(jax_loss_grad, dregspread)

@@ -158,8 +158,7 @@ def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_
     return reg_escape + reg_spread + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
 
 
-@partial(jit, static_argnames=["poly_abs",
-                               "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
-def fake_loss(params, poly_abs, reg_spread_weight, matrix_to_mean, coeff_positions):
+@partial(jit, static_argnames=["poly_abs", "matrix_to_mean", "coeff_positions", "reg_spread_weight"])
+def fake_loss(params, poly_abs, matrix_to_mean, coeff_positions, reg_spread_weight):
     _, beta = a_beta_from_params(params, poly_abs)
     return spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
