@@ -110,6 +110,26 @@ def test_spread_penalty(poly_abs_prefit):
     jnp.allclose(jax_dpenalty.flatten(), correct_dpenalty[n_epitopes:])
 
 
+def test_spread_penalty_of_params(mini_poly_abs_prefit):
+    poly_abs_prefit = mini_poly_abs_prefit
+    reg_spread_weight = 0.25
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
+        poly_abs_prefit
+    )
+    jax_penalty, jax_dpenalty = jax.value_and_grad(loss.spread_penalty_of_params)(
+        poly_abs_prefit._params,
+        poly_abs_prefit,
+        matrix_to_mean,
+        coeff_positions,
+        reg_spread_weight,
+    )
+    correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
+        poly_abs_prefit._params, reg_spread_weight
+    )
+    jax_penalty == pytest.approx(correct_penalty)
+    jnp.allclose(jax_dpenalty, correct_dpenalty)
+
+
 def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
     delta = 0.1
     params = poly_abs_prefit._params
@@ -121,7 +141,10 @@ def test_unregularized_loss(poly_abs_prefit, exact_bv_sparse):
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_loss(poly_abs_prefit, exact_bv_sparse):
+# def test_loss(mini_poly_abs_prefit, exact_bv_sparse):
+def test_loss(mini_poly_abs_prefit):
+    poly_abs_prefit = mini_poly_abs_prefit
+    exact_bv_sparse = loss.bv_sparse_of_bmap(mini_poly_abs_prefit._binarymaps)
     loss_delta = 0.15
     reg_escape_weight = 0.314
     reg_escape_delta = 0.29
@@ -150,5 +173,41 @@ def test_loss(poly_abs_prefit, exact_bv_sparse):
     assert jax_loss == pytest.approx(correct_loss)
     correct_dloss = dfitloss + dregescape + dregspread
     diff = correct_dloss - jax_loss_grad
+    diff_max = jnp.abs(diff).max()
+    print("max difference in gradient:", jnp.abs(diff).max())
+    assert jnp.allclose(correct_dloss, jax_loss_grad)
+
+
+def test_fake_loss(mini_poly_abs_prefit):
+    poly_abs_prefit = mini_poly_abs_prefit
+    exact_bv_sparse = loss.bv_sparse_of_bmap(mini_poly_abs_prefit._binarymaps)
+    loss_delta = 0.15
+    reg_escape_weight = 0.0
+    reg_escape_delta = 0.29
+    reg_spread_weight = 1.0
+    params = poly_abs_prefit._params
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
+        poly_abs_prefit
+    )
+    jax_loss, jax_loss_grad = jax.value_and_grad(loss.fake_loss)(
+        params,
+        poly_abs_prefit,
+        exact_bv_sparse,
+        loss_delta,
+        reg_escape_weight,
+        reg_escape_delta,
+        reg_spread_weight,
+        matrix_to_mean,
+        coeff_positions,
+    )
+    regescape, dregescape = poly_abs_prefit._reg_escape(
+        params, reg_escape_weight, reg_escape_delta
+    )
+    regspread, dregspread = poly_abs_prefit._reg_spread(params, reg_spread_weight)
+    correct_loss = regescape + regspread
+    assert jax_loss == pytest.approx(correct_loss)
+    correct_dloss = dregescape + dregspread
+    diff = correct_dloss - jax_loss_grad
+    diff_max = jnp.abs(diff).max()
     print("max difference in gradient:", jnp.abs(diff).max())
     assert jnp.allclose(correct_dloss, jax_loss_grad)

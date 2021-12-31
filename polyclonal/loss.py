@@ -97,6 +97,15 @@ def spread_penalty(beta, matrix_to_mean, coeff_positions, weight):
     return weight * (matrix_to_mean @ (to_penalize ** 2)).sum()
 
 
+@partial(jit, static_argnames=["poly_abs", "matrix_to_mean", "coeff_positions", "weight"])
+def spread_penalty_of_params(params, poly_abs, matrix_to_mean, coeff_positions, weight):
+    """
+    As above, but parameterized in terms of params.
+    """
+    _, beta = a_beta_from_params(params, poly_abs)
+    return spread_penalty(beta, matrix_to_mean, coeff_positions, weight)
+
+
 @partial(jit, static_argnames=["poly_abs", "bv_sparse"])
 def compute_pv(params, poly_abs, bv_sparse):
     a, beta = a_beta_from_params(params, poly_abs)
@@ -136,6 +145,8 @@ def unregularized_loss(params, poly_abs, bv_sparse, delta):
         return (poly_abs._weights * unreduced_loss).sum()
 
 
+
+# TODO cost
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "loss_delta",
                                "reg_escape_weight", "reg_escape_delta",
                                "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
@@ -145,3 +156,14 @@ def loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_
     reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
     reg_spread = spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
     return reg_escape + reg_spread + unregularized_loss(params, poly_abs, bv_sparse, loss_delta)
+
+
+@partial(jit, static_argnames=["poly_abs", "bv_sparse", "loss_delta",
+                               "reg_escape_weight", "reg_escape_delta",
+                               "reg_spread_weight", "matrix_to_mean", "coeff_positions"])
+def fake_loss(params, poly_abs, bv_sparse, loss_delta, reg_escape_weight, reg_escape_delta,
+         reg_spread_weight, matrix_to_mean, coeff_positions):
+    _, beta = a_beta_from_params(params, poly_abs)
+    reg_escape = reg_escape_weight * scaled_pseudo_huber(reg_escape_delta, beta).sum()
+    reg_spread = spread_penalty(beta, matrix_to_mean, coeff_positions, reg_spread_weight)
+    return reg_escape + reg_spread
