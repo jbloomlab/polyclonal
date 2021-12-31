@@ -112,7 +112,7 @@ def test_spread_penalty(poly_abs_prefit):
 
 def test_spread_penalty_of_params(mini_poly_abs_prefit):
     poly_abs_prefit = mini_poly_abs_prefit
-    reg_spread_weight = 0.25
+    reg_spread_weight = 1.0
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
         poly_abs_prefit
     )
@@ -180,8 +180,6 @@ def test_loss(mini_poly_abs_prefit):
 
 def test_fake_loss(mini_poly_abs_prefit):
     poly_abs_prefit = mini_poly_abs_prefit
-    exact_bv_sparse = loss.bv_sparse_of_bmap(mini_poly_abs_prefit._binarymaps)
-    loss_delta = 0.15
     reg_spread_weight = 1.0
     params = poly_abs_prefit._params
     (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
@@ -190,8 +188,6 @@ def test_fake_loss(mini_poly_abs_prefit):
     jax_loss, jax_loss_grad = jax.value_and_grad(loss.fake_loss)(
         params,
         poly_abs_prefit,
-        exact_bv_sparse,
-        loss_delta,
         reg_spread_weight,
         matrix_to_mean,
         coeff_positions,
