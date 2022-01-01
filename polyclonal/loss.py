@@ -45,8 +45,16 @@ def scaled_pseudo_huber(delta, r):
     return delta * (jnp.sqrt(1.0 + jnp.square(r / delta)) - 1.0)
 
 
+# TODO make more efficient?
 def bv_sparse_of_bmap(bmap):
     return sparse.BCOO.fromdense(jnp.array(bmap.binary_variants.todense()))
+
+
+def bv_sparses_of_polyclonal(poly_abs):
+    if poly_abs._one_binarymap:
+        return bv_sparse_of_bmap(poly_abs._binarymaps)
+    else:
+        return [bv_sparse_of_bmap(bmap) for bmap in poly_abs._binarymaps]
 
 
 @partial(jit, static_argnames=["poly_abs"])
@@ -108,12 +116,19 @@ def spread_penalty_of_params(params, poly_abs, matrix_to_mean, coeff_positions, 
     return spread_penalty(beta, matrix_to_mean, coeff_positions, weight)
 
 
-@partial(jit, static_argnames=["poly_abs", "bv_sparse"])
-def compute_pv(params, poly_abs, bv_sparse):
+@partial(jit, static_argnames=["poly_abs", "bv_sparse", "which_cs"])
+def compute_pv(params, poly_abs, bv_sparse, which_cs):
+    """
+    If `which_cs` is None, then there is one binarymap. If there are multiple then it's
+    the index of _cs that we want.
+    """
     a, beta = a_beta_from_params(params, poly_abs)
     n_epitopes = len(poly_abs.epitopes)
     n_variants = bv_sparse.shape[0]
-    cs = poly_abs._cs
+    if which_cs is None:
+        cs = poly_abs._cs
+    else:
+        cs = poly_abs._cs[which_cs]
     phi_e_v = bv_sparse @ beta - a
     assert phi_e_v.shape == (n_variants, n_epitopes)
     exp_minus_phi_e_v = jnp.exp(-phi_e_v)
@@ -132,7 +147,7 @@ def compute_pv(params, poly_abs, bv_sparse):
 
 @partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
 def loss(params, poly_abs, bv_sparse, delta):
-    pred_pvs = compute_pv(params, poly_abs, bv_sparse)
+    pred_pvs = compute_pv(params, poly_abs, bv_sparse, None)
     assert pred_pvs.shape == poly_abs._pvs.shape
     residuals = pred_pvs - poly_abs._pvs
     unreduced_loss = scaled_pseudo_huber(delta, residuals)
