@@ -191,6 +191,119 @@ def reassign_b_factor(
     io.save(output_pdbfile)
 
 
+def extract_atom_locations(
+    input_pdbfile,
+    target_chains,
+    target_atom="CA",
+):
+    """Extract atom locations from target chains of a PDB file.
+
+    By default the locations of alpha carbons are extracted, but any atom
+    can be specified. If a residue does not have the specified atom,
+    it is not included in the output file.
+
+    Parameters
+    ----------
+    input_pdbfile : str
+        Path to input PDB file.
+    target_chains : list
+        List of target chains to extract atom locations from. Chains must be in
+        the PDB and match the chain ids.
+    target_atom: str
+        Which type of atom to extract locations for. Default is alpha carbon, or
+        'CA'. If the specified type of atom is present multiple times for a
+        residue, that residue will end up having multiple entries in the output.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Has columns 'chain', 'site', 'x', 'y', and 'z'.
+
+    Example
+    -------
+    Download PDB, do the re-assignment of B factors, read the lines
+    from the resulting re-assigned PDB:
+
+    >>> pdb_url = 'https://files.rcsb.org/download/6M0J.pdb'
+    >>> r = requests.get(pdb_url)
+    >>> with tempfile.TemporaryDirectory() as tmpdir:
+    ...    pdbfile = os.path.join(tmpdir, '6M0J.pdb')
+    ...    with open(pdbfile, 'wb') as f:
+    ...        _ = f.write(r.content)
+    ...    output = extract_atom_locations(pdbfile, ['A'])
+
+    Check the first ten lines of the ouput to make sure we got the expected
+    atom locations:
+
+    >>> output.head(n=10)
+      chain  site          x          y      z
+    0     A    19 -31.358999  50.852001  2.040
+    1     A    20 -29.424000  50.561001 -1.234
+    2     A    21 -30.722000  48.633999 -4.234
+    3     A    22 -28.080999  45.924999 -3.794
+    4     A    23 -28.982000  45.372002 -0.131
+    5     A    24 -32.637001  44.912998 -1.106
+    6     A    25 -31.709999  42.499001 -3.889
+    7     A    26 -29.688999  40.509998 -1.334
+    8     A    27 -32.740002  40.337002  0.917
+    9     A    28 -34.958000  39.424000 -2.028
+
+    """
+    # read PDB, catch warnings about discontinuous chains
+    with warnings.catch_warnings():
+        warnings.simplefilter(
+            "ignore", category=Bio.PDB.PDBExceptions.PDBConstructionWarning
+        )
+        pdb = Bio.PDB.PDBParser().get_structure("_", input_pdbfile)
+
+    # get the chains out of the PDB
+    chains = list(pdb.get_chains())
+    chain_ids = [chain.id for chain in chains]
+
+    # make sure the target chains are in the PDB
+    for chain in target_chains:
+        if chain not in chain_ids:
+            raise ValueError(f"{chain=} not in {input_pdbfile=}")
+
+    # make a list of chains to extract atom locations from
+    chains_to_use = []
+    for i, chain in enumerate(chain_ids):
+        if chain in target_chains:
+            chains_to_use.append(chains[i])
+
+    # extract atom locations from target chains
+    chain_list = []
+    residue_list = []
+    x_list = []
+    y_list = []
+    z_list = []
+    for chain in chains_to_use:
+        for residue in chain.get_residues():
+            residue_number = residue.get_id()[1]
+            atoms = residue.get_atoms()
+            for atom in atoms:
+                if atom.get_id() == target_atom:
+                    x, y, z = atom.get_coord()
+                    x_list.append(x)
+                    y_list.append(y)
+                    z_list.append(z)
+                    residue_list.append(residue_number)
+                    chain_list.append(chain.id)
+
+    # write output
+    output = pd.DataFrame(
+        {
+            "chain": chain_list,
+            "site": residue_list,
+            "x": x_list,
+            "y": y_list,
+            "z": z_list,
+        }
+    )
+
+    return output.reset_index(drop=True)
+
+
 if __name__ == "__main__":
     import doctest
 
