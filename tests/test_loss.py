@@ -42,33 +42,7 @@ def mini_poly_abs_prefit():
     return build_mini_poly_abs_prefit()
 
 
-def build_poly_abs_prefit():
-    exact_data = (
-        pd.read_csv("notebooks/RBD_variants_escape_exact.csv", na_filter=None)
-        .query('library == "avg2muts"')
-        .query("concentration in [0.25, 1, 4]")
-        .reset_index(drop=True)
-    )
-    exact_mut_escape_df = pd.read_csv("notebooks/exact_mut_escape_df.csv")
-    exact_activity_wt_df = pd.read_csv("notebooks/exact_activity_wt_df.csv")
-    return polyclonal.Polyclonal(
-        data_to_fit=exact_data,
-        activity_wt_df=exact_activity_wt_df,
-        mut_escape_df=exact_mut_escape_df,
-    )
-
-
-@pytest.fixture
-def poly_abs_prefit():
-    return build_poly_abs_prefit()
-
-
-@pytest.fixture
-def exact_bv_sparse(poly_abs_prefit):
-    return loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
-
-
-def build_full_poly_abs_prefit(use_noisy=True):
+def build_poly_abs_prefit(use_noisy=True):
     """
     Build a Polyclonal object with some reasonable parameters and "real" simulated data.
 
@@ -80,7 +54,12 @@ def build_full_poly_abs_prefit(use_noisy=True):
         data_path = "notebooks/RBD_variants_escape_noisy.csv"
     else:
         data_path = "notebooks/RBD_variants_escape_exact.csv"
-    data = pd.read_csv(data_path, na_filter=None).reset_index(drop=True)
+    data = (
+        pd.read_csv(data_path, na_filter=None)
+        .query('library == "avg2muts"')
+        .query("concentration in [0.25, 1, 4]")
+        .reset_index(drop=True)
+    )
     mut_escape_df = pd.read_csv("notebooks/exact_mut_escape_df.csv")
     activity_wt_df = pd.read_csv("notebooks/exact_activity_wt_df.csv")
     return polyclonal.Polyclonal(
@@ -91,13 +70,15 @@ def build_full_poly_abs_prefit(use_noisy=True):
 
 
 @pytest.fixture
-def full_poly_abs_prefit():
-    return build_full_poly_abs_prefit()
+def poly_abs_prefit():
+    poly_abs = build_poly_abs_prefit()
+    assert poly_abs._one_binarymap is False
+    return poly_abs
 
 
 @pytest.fixture
-def full_bv_sparses(full_poly_abs_prefit):
-    return loss.bv_sparses_of_polyclonal(full_poly_abs_prefit)
+def full_bv_sparses(poly_abs_prefit):
+    return loss.bv_sparses_of_polyclonal(poly_abs_prefit)
 
 
 def test_compute_pv(mini_poly_abs_prefit):
@@ -163,18 +144,16 @@ def test_spread_penalty_check_grad(mini_poly_abs_prefit):
 
 
 def test_spread_penalty(mini_poly_abs_prefit):
-    poly_abs_prefit = mini_poly_abs_prefit
+    poly_abs = mini_poly_abs_prefit
     reg_spread_weight = 0.25
-    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
-        poly_abs_prefit
-    )
-    n_epitopes = len(poly_abs_prefit.epitopes)
-    _, beta = loss.a_beta_from_params(poly_abs_prefit._params, poly_abs_prefit)
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(poly_abs)
+    n_epitopes = len(poly_abs.epitopes)
+    _, beta = loss.a_beta_from_params(poly_abs._params, poly_abs)
     jax_penalty, jax_dpenalty = jax.value_and_grad(loss.spread_penalty)(
         beta, matrix_to_mean, coeff_positions, reg_spread_weight
     )
-    correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
-        poly_abs_prefit._params, reg_spread_weight
+    correct_penalty, correct_dpenalty = poly_abs._reg_spread(
+        poly_abs._params, reg_spread_weight
     )
     assert jax_penalty == pytest.approx(correct_penalty)
     # The polyclonal code prepends zeroes so that the grad is on the whole parameter
@@ -183,27 +162,25 @@ def test_spread_penalty(mini_poly_abs_prefit):
 
 
 def test_spread_penalty_of_params(mini_poly_abs_prefit):
-    poly_abs_prefit = mini_poly_abs_prefit
+    poly_abs = mini_poly_abs_prefit
     reg_spread_weight = 1.0
-    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
-        poly_abs_prefit
-    )
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(poly_abs)
     jax_penalty, jax_dpenalty = jax.value_and_grad(loss.spread_penalty_of_params)(
-        poly_abs_prefit._params,
-        poly_abs_prefit,
+        poly_abs._params,
+        poly_abs,
         matrix_to_mean,
         coeff_positions,
         reg_spread_weight,
     )
-    correct_penalty, correct_dpenalty = poly_abs_prefit._reg_spread(
-        poly_abs_prefit._params, reg_spread_weight
+    correct_penalty, correct_dpenalty = poly_abs._reg_spread(
+        poly_abs._params, reg_spread_weight
     )
     assert jax_penalty == pytest.approx(correct_penalty)
     assert jnp.allclose(jax_dpenalty, correct_dpenalty)
 
 
-def test_loss(full_poly_abs_prefit, full_bv_sparses):
-    poly_abs = full_poly_abs_prefit
+def test_loss(poly_abs_prefit, full_bv_sparses):
+    poly_abs = poly_abs_prefit
     bv_sparses = full_bv_sparses
     delta = 0.1
     params = poly_abs._params
@@ -215,8 +192,8 @@ def test_loss(full_poly_abs_prefit, full_bv_sparses):
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_cost(full_poly_abs_prefit, full_bv_sparses):
-    poly_abs = full_poly_abs_prefit
+def test_cost(poly_abs_prefit, full_bv_sparses):
+    poly_abs = poly_abs_prefit
     bv_sparses = full_bv_sparses
     loss_delta = 0.15
     reg_escape_weight = 0.314
