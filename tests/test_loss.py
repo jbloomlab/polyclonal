@@ -21,6 +21,9 @@ import polyclonal.loss as loss
 jax.config.update("jax_enable_x64", True)
 
 
+# TODO do we have any tests with weights?
+
+
 def build_mini_poly_abs_prefit():
     mini_activity_wt_df = pd.read_csv("notebooks/mini_activity_wt_df.csv")
     mini_mut_escape_df = pd.read_csv("notebooks/mini_mut_escape_df.csv")
@@ -95,7 +98,8 @@ def full_poly_abs_prefit():
 def test_compute_pv(mini_poly_abs_prefit):
     bv_sparse = loss.bv_sparse_of_bmap(mini_poly_abs_prefit._binarymaps)
     params = mini_poly_abs_prefit._params
-    jax_pv = loss.compute_pv(params, mini_poly_abs_prefit, bv_sparse)
+    args = [params, mini_poly_abs_prefit, bv_sparse, None]
+    jax_pv = loss.compute_pv(*args)
     correct_pv, correct_pv_jac = mini_poly_abs_prefit._compute_pv(
         params,
         mini_poly_abs_prefit._binarymaps,
@@ -104,7 +108,7 @@ def test_compute_pv(mini_poly_abs_prefit):
     )
     assert jnp.allclose(jax_pv, jnp.array(correct_pv))
     jac_compute_pv = jacrev(loss.compute_pv)
-    jax_pv_jac = jac_compute_pv(params, mini_poly_abs_prefit, bv_sparse).transpose()
+    jax_pv_jac = jac_compute_pv(*args).transpose()
     assert jnp.allclose(jax_pv_jac, correct_pv_jac.todense())
 
 
@@ -204,19 +208,18 @@ def test_loss(poly_abs_prefit, exact_bv_sparse):
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_cost(poly_abs_prefit):
-    bv_sparses = loss.bv_sparses_of_polyclonal(poly_abs_prefit)
+def test_cost(full_poly_abs_prefit):
+    poly_abs = full_poly_abs_prefit
+    bv_sparses = loss.bv_sparses_of_polyclonal(poly_abs)
     loss_delta = 0.15
     reg_escape_weight = 0.314
     reg_escape_delta = 0.29
     reg_spread_weight = 100.27
-    params = poly_abs_prefit._params
-    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(
-        poly_abs_prefit
-    )
+    params = poly_abs._params
+    (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(poly_abs)
     jax_loss, jax_loss_grad = jax.value_and_grad(loss.cost)(
         params,
-        poly_abs_prefit,
+        poly_abs,
         bv_sparses,
         loss_delta,
         reg_escape_weight,
@@ -225,11 +228,11 @@ def test_cost(poly_abs_prefit):
         matrix_to_mean,
         coeff_positions,
     )
-    fitloss, dfitloss = poly_abs_prefit._loss_dloss(params, loss_delta)
-    regescape, dregescape = poly_abs_prefit._reg_escape(
+    fitloss, dfitloss = poly_abs._loss_dloss(params, loss_delta)
+    regescape, dregescape = poly_abs._reg_escape(
         params, reg_escape_weight, reg_escape_delta
     )
-    regspread, dregspread = poly_abs_prefit._reg_spread(params, reg_spread_weight)
+    regspread, dregspread = poly_abs._reg_spread(params, reg_spread_weight)
     correct_loss = fitloss + regescape + regspread
     assert jax_loss == pytest.approx(correct_loss)
     correct_dloss = dfitloss + dregescape + dregspread

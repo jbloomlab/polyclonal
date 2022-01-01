@@ -14,7 +14,7 @@ import jax.numpy as jnp
 from jax import jit
 from jax.experimental import sparse
 
-import numpy as np
+import numpy
 
 
 # Make JAX use double precision numbers.
@@ -54,7 +54,7 @@ def bv_sparses_of_polyclonal(poly_abs):
     if poly_abs._one_binarymap:
         return bv_sparse_of_bmap(poly_abs._binarymaps)
     else:
-        return [bv_sparse_of_bmap(bmap) for bmap in poly_abs._binarymaps]
+        return tuple([bv_sparse_of_bmap(bmap) for bmap in poly_abs._binarymaps])
 
 
 @partial(jit, static_argnames=["poly_abs"])
@@ -80,7 +80,7 @@ def spread_matrices_of_polyclonal(poly_abs):
     # Let's make a matrix, coeff_positions_np, that describes where the betas are for
     # the various sites. It will be of size (number of sites) x (number of betas). It
     # will have a 1 if the given beta is a coefficient for a given site.
-    coeff_positions_np = np.zeros((len(poly_abs._binary_sites), n_mutations))
+    coeff_positions_np = numpy.zeros((len(poly_abs._binary_sites), n_mutations))
     for row, index_array in zip(coeff_positions_np, poly_abs._binary_sites.values()):
         row[index_array[0]] = 1.0
     # We can turn this into a matrix that will allow us to calculate
@@ -126,13 +126,15 @@ def compute_pv(params, poly_abs, bv_sparse, which_cs):
     n_epitopes = len(poly_abs.epitopes)
     n_variants = bv_sparse.shape[0]
     if which_cs is None:
+        assert poly_abs._one_binarymap
         cs = poly_abs._cs
     else:
-        cs = poly_abs._cs[which_cs]
+        assert poly_abs._one_binarymap is False
+        cs = numpy.array([poly_abs._cs[which_cs]])
     phi_e_v = bv_sparse @ beta - a
     assert phi_e_v.shape == (n_variants, n_epitopes)
     exp_minus_phi_e_v = jnp.exp(-phi_e_v)
-    # Using tensordot as a replacement for np.multiply.outer, which doesn't
+    # Using tensordot as a replacement for numpy.multiply.outer, which doesn't
     # exist in JAX. See
     # https://numpy.org/doc/stable/reference/generated/numpy.ufunc.outer.html#numpy.ufunc.outer
     U_v_e_c = 1.0 / (1.0 + jnp.tensordot(exp_minus_phi_e_v, cs, axes=((), ())))
@@ -145,9 +147,25 @@ def compute_pv(params, poly_abs, bv_sparse, which_cs):
     return p_vc
 
 
-@partial(jit, static_argnames=["poly_abs", "bv_sparse", "delta"])
-def loss(params, poly_abs, bv_sparse, delta):
-    pred_pvs = compute_pv(params, poly_abs, bv_sparse, None)
+@partial(jit, static_argnames=["poly_abs", "bv_sparses"])
+def compute_1d_pvs(params, poly_abs, bv_sparses):
+    if poly_abs._one_binarymap:
+        return compute_pv(params, poly_abs, bv_sparses, None)
+    else:
+        return jnp.concatenate(
+            [
+                compute_pv(params, poly_abs, bv_sparse, ibv)
+                for ibv, bv_sparse in enumerate(bv_sparses)
+            ]
+        )
+
+
+@partial(jit, static_argnames=["poly_abs", "bv_sparses", "delta"])
+def loss(params, poly_abs, bv_sparses, delta):
+    """
+    bv_sparses could be a single BCOO sparse, or a tuple of them.
+    """
+    pred_pvs = compute_1d_pvs(params, poly_abs, bv_sparses)
     assert pred_pvs.shape == poly_abs._pvs.shape
     residuals = pred_pvs - poly_abs._pvs
     unreduced_loss = scaled_pseudo_huber(delta, residuals)
