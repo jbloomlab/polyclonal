@@ -38,12 +38,11 @@ class Optimizer(metaclass=abc.ABCMeta):
     def _check_x(self) -> None:
         """Test if x is defined"""
         if self.x is None:
-            raise TypeError('solution point x is not initialized')
+            raise TypeError("solution point x is not initialized")
 
     @abc.abstractmethod
     def f(self) -> np.float64:
-        """Evaluate cost function at current solution point
-        """
+        """Evaluate cost function at current solution point"""
         pass
 
     @abc.abstractmethod
@@ -51,8 +50,9 @@ class Optimizer(metaclass=abc.ABCMeta):
         """Take an optimization step and update solution point"""
         pass
 
-    def run(self, x: np.ndarray,
-            tol: np.float64 = 1e-6, max_iter: int = 100) -> np.ndarray:
+    def run(
+        self, x: np.ndarray, tol: np.float64 = 1e-6, max_iter: int = 100
+    ) -> np.ndarray:
         """Optimize until convergence criteria are met
 
         Args:
@@ -68,31 +68,38 @@ class Optimizer(metaclass=abc.ABCMeta):
         # initial objective value
         f = self.f()
         if self.verbose:
-            print(f'initial objective {f:.6e}', flush=True)
+            print(f"initial objective {f:.6e}", flush=True)
         k = 0
         for k in range(1, max_iter + 1):
             self._step()
             if not np.all(np.isfinite(self.x)):
-                print('warning: x contains invalid values', flush=True)
+                print("warning: x contains invalid values", flush=True)
             # terminate if objective function is constant within tolerance
             f_old = f
             f = self.f()
             rel_change = np.abs((f - f_old) / f_old)
             if self.verbose:
-                print(f'iteration {k}, objective {f:.3e}, '
-                      f'relative change {rel_change:.3e}',
-                      end='        \r', flush=True)
+                print(
+                    f"iteration {k}, objective {f:.3e}, "
+                    f"relative change {rel_change:.3e}",
+                    end="        \r",
+                    flush=True,
+                )
             if rel_change < tol:
                 if self.verbose:
-                    print('\nrelative change in objective function '
-                          f'{rel_change:.2g} '
-                          f'is within tolerance {tol} after {k} iterations',
-                          flush=True)
+                    print(
+                        "\nrelative change in objective function "
+                        f"{rel_change:.2g} "
+                        f"is within tolerance {tol} after {k} iterations",
+                        flush=True,
+                    )
                 return np.squeeze(self.x)
         if self.verbose and k > 0:
-            print(f'\nmaximum iteration {max_iter} reached with relative '
-                  f'change in objective function {rel_change:.2g}',
-                  flush=True)
+            print(
+                f"\nmaximum iteration {max_iter} reached with relative "
+                f"change in objective function {rel_change:.2g}",
+                flush=True,
+            )
         return np.squeeze(self.x)
 
 
@@ -106,8 +113,13 @@ class LineSearcher(Optimizer):
         verbose: flag to print convergence messages
     """
 
-    def __init__(self, s0: np.float64 = 1, max_line_iter: int = 100,
-                 gamma: np.float64 = 0.8, verbose: bool = False):
+    def __init__(
+        self,
+        s0: np.float64 = 1,
+        max_line_iter: int = 100,
+        gamma: np.float64 = 0.8,
+        verbose: bool = False,
+    ):
         self.s0 = s0
         self.max_line_iter = max_line_iter
         self.gamma = gamma
@@ -183,13 +195,15 @@ class AccProxGrad(LineSearcher):
 
     """
 
-    def __init__(self,
-                 g: Callable[[np.ndarray], np.float64],
-                 grad: Callable[[np.ndarray], np.float64],
-                 h: Callable[[np.ndarray], np.float64],
-                 prox: Callable[[np.ndarray, np.float64], np.float64],
-                 verbose: bool = False,
-                 **line_search_kwargs):
+    def __init__(
+        self,
+        g: Callable[[np.ndarray], np.float64],
+        grad: Callable[[np.ndarray], np.float64],
+        h: Callable[[np.ndarray], np.float64],
+        prox: Callable[[np.ndarray, np.float64], np.float64],
+        verbose: bool = False,
+        **line_search_kwargs,
+    ):
         self.g = g
         self.grad = grad
         self.h = h
@@ -217,7 +231,7 @@ class AccProxGrad(LineSearcher):
         g1 = self.g(self.q)
         grad1 = self.grad(self.q)
         if not np.all(np.isfinite(grad1)):
-            raise RuntimeError(f'invalid gradient:\n{grad1}')
+            raise RuntimeError(f"invalid gradient:\n{grad1}")
         # store old iterate
         x_old = self.x
         # Armijo line search
@@ -228,8 +242,8 @@ class AccProxGrad(LineSearcher):
             G = (1 / self.s) * (self.q - self.x)
             # test g(q - sG_s(q)) for sufficient decrease
             if self.g(self.q - self.s * G) <= (
-                                            g1 - self.s * (grad1 * G).sum()
-                                            + (self.s / 2) * (G ** 2).sum()):
+                g1 - self.s * (grad1 * G).sum() + (self.s / 2) * (G ** 2).sum()
+            ):
                 # Armijo satisfied
                 break
             else:
@@ -242,7 +256,7 @@ class AccProxGrad(LineSearcher):
         self.q = self.x + ((self.k - 1) / (self.k + 2)) * (self.x - x_old)
 
         if line_iter == self.max_line_iter - 1:
-            print('warning: line search failed', flush=True)
+            print("warning: line search failed", flush=True)
             # reset step size
             self.s = self.s0
 
@@ -335,17 +349,18 @@ class ThreeOpProxGrad(AccProxGrad):
 
     """
 
-    def __init__(self,
-                 g: Callable[[np.ndarray], np.float64],
-                 grad: Callable[[np.ndarray], np.float64],
-                 h1: Callable[[np.ndarray], np.float64],
-                 prox1: Callable[[np.ndarray, np.float64], np.float64],
-                 h2: Callable[[np.ndarray], np.float64],
-                 prox2: Callable[[np.ndarray, np.float64], np.float64],
-                 verbose: bool = False,
-                 **line_search_kwargs):
-        super().__init__(g, grad, h1, prox1, verbose=verbose,
-                         **line_search_kwargs)
+    def __init__(
+        self,
+        g: Callable[[np.ndarray], np.float64],
+        grad: Callable[[np.ndarray], np.float64],
+        h1: Callable[[np.ndarray], np.float64],
+        prox1: Callable[[np.ndarray, np.float64], np.float64],
+        h2: Callable[[np.ndarray], np.float64],
+        prox2: Callable[[np.ndarray, np.float64], np.float64],
+        verbose: bool = False,
+        **line_search_kwargs,
+    ):
+        super().__init__(g, grad, h1, prox1, verbose=verbose, **line_search_kwargs)
         self.h2 = h2
         self.prox2 = prox2
 
@@ -364,14 +379,17 @@ class ThreeOpProxGrad(AccProxGrad):
         g1 = self.g(self.q)
         grad1 = self.grad(self.q)
         if not np.all(np.isfinite(grad1)):
-            raise RuntimeError(f'invalid gradient:\n{grad1}')
+            raise RuntimeError(f"invalid gradient:\n{grad1}")
         # Armijo line search
         for line_iter in range(self.max_line_iter):
             # new point via prox-gradient of momentum point
             self.x = self.prox(self.q - self.s * (self.u + grad1), self.s)
             # quadratic approximation of objective
-            Q = (g1 + (grad1 * (self.x - self.q)).sum()
-                    + ((self.x - self.q) ** 2).sum() / (2 * self.s))
+            Q = (
+                g1
+                + (grad1 * (self.x - self.q)).sum()
+                + ((self.x - self.q) ** 2).sum() / (2 * self.s)
+            )
             if self.g(self.x) - Q <= 0:
                 # sufficient decrease satisfied
                 break
@@ -379,7 +397,7 @@ class ThreeOpProxGrad(AccProxGrad):
                 # sufficient decrease not satisfied
                 self.s *= self.gamma  # shrink step size
         if line_iter == self.max_line_iter - 1:
-            print('warning: line search failed', flush=True)
+            print("warning: line search failed", flush=True)
             # reset step size
             self.s = self.s0
 
@@ -389,4 +407,3 @@ class ThreeOpProxGrad(AccProxGrad):
         self.u = self.u + (self.x - self.q) / self.s
         # grow step size
         self.s = min(self.s / self.gamma ** 2, self.s0)
-
