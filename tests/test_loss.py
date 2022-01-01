@@ -63,6 +63,11 @@ def poly_abs_prefit():
     return build_poly_abs_prefit()
 
 
+@pytest.fixture
+def exact_bv_sparse(poly_abs_prefit):
+    return loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
+
+
 def build_full_poly_abs_prefit(use_noisy=True):
     """
     Build a Polyclonal object with some reasonable parameters and "real" simulated data.
@@ -86,13 +91,13 @@ def build_full_poly_abs_prefit(use_noisy=True):
 
 
 @pytest.fixture
-def exact_bv_sparse(poly_abs_prefit):
-    return loss.bv_sparse_of_bmap(poly_abs_prefit._binarymaps)
+def full_poly_abs_prefit():
+    return build_full_poly_abs_prefit()
 
 
 @pytest.fixture
-def full_poly_abs_prefit():
-    return build_full_poly_abs_prefit()
+def full_bv_sparses(full_poly_abs_prefit):
+    return loss.bv_sparses_of_polyclonal(full_poly_abs_prefit)
 
 
 def test_compute_pv(mini_poly_abs_prefit):
@@ -197,20 +202,22 @@ def test_spread_penalty_of_params(mini_poly_abs_prefit):
     assert jnp.allclose(jax_dpenalty, correct_dpenalty)
 
 
-def test_loss(poly_abs_prefit, exact_bv_sparse):
+def test_loss(full_poly_abs_prefit, full_bv_sparses):
+    poly_abs = full_poly_abs_prefit
+    bv_sparses = full_bv_sparses
     delta = 0.1
-    params = poly_abs_prefit._params
+    params = poly_abs._params
     jax_loss, jax_loss_grad = jax.value_and_grad(loss.loss)(
-        params, poly_abs_prefit, exact_bv_sparse, delta
+        params, poly_abs, bv_sparses, delta
     )
-    prefit_loss, prefit_dloss = poly_abs_prefit._loss_dloss(params, delta)
+    prefit_loss, prefit_dloss = poly_abs._loss_dloss(params, delta)
     assert jax_loss == pytest.approx(prefit_loss)
     assert jnp.allclose(prefit_dloss, jax_loss_grad)
 
 
-def test_cost(full_poly_abs_prefit):
+def test_cost(full_poly_abs_prefit, full_bv_sparses):
     poly_abs = full_poly_abs_prefit
-    bv_sparses = loss.bv_sparses_of_polyclonal(poly_abs)
+    bv_sparses = full_bv_sparses
     loss_delta = 0.15
     reg_escape_weight = 0.314
     reg_escape_delta = 0.29
