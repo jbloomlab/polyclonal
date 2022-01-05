@@ -44,6 +44,15 @@ def create_bootstrap_sample(df, group_by_col='concentration'):
     return pd.concat(boot_df)
 
 
+def create_bootstrap_polyclonal():
+    """
+    Creates a :class:Polyclonal object from bootstrapped dataset and fits model.
+    Then re-initializes that model without the attached dataframe and just wt_activit_df and mut_escape_df from the big model.
+    Returns the "slim" model.
+    """
+    pass
+
+
 class PolyclonalCollection:
     r""" A container class for multiple :class:`Polyclonal` objects.
 
@@ -104,15 +113,9 @@ class PolyclonalCollection:
         details."""
         pass
 
-    @staticmethod
-    def _populate_collection():
-        """
-        Creates `n_samples` :class:Polyclonal objects, each with a different
-        bootstrapped dataset.
-        """
-        pass
 
-    def fit_models():
+
+    def fit_models(n_threads=1):
         """
         Fits :class:Polyclonal models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
@@ -130,6 +133,16 @@ class PolyclonalCollection:
         that free function repeatedly.
         Given this, I'm not sure that you need _populate_collection but I probably don't
         understand what you have in mind.
+
+        @Erick okay, I do think this is a good idea and have adjusted things above.
+        I guess one thing I'm confused by "free function" -- do you mean a non-member function here
+        or just like, more modularized functions that would all get called here?
+        Regardless, I have a seperate function that will:
+         - Take in a dataframe for `data_to_fit` and then creates and fits a polyclonal model.
+         - Re-creates this object without the attached data and just the params.
+         - Returns this polyclonal object
+        We don't need _populate_collection and I've removed it.
+
         """
         pass
 
@@ -139,13 +152,30 @@ class PolyclonalCollection:
         mutations.
         Aggregate and return these predictions into a single data frame.
         @Zorian-- can you provide a little more detail about the shape of this df?
+
+        @Erick After some thought, I think I'd like a method that works like fit_models() perhaps
+            * We could give a number of threads for making these predictions across all models.
+            * For the target-data, we will generate the standard output for `polyclonal.prob_escape()`
+            * One change here, is for variants with unseen mutations, I'd like a null prediction
+            * Then we aggregate predictions:
+                - We start by concatenating these `polyclonal.variant_df` objects (the model predictions)
+                - We can then aggregate these predictions into a summary df for plotting using _aggregate_predictions()
         """
         pass
+
 
     def _aggregate_predictions():
         """
         Aggregate predictions from all eligible models.
         @Zorian-- can you describe the return type here?
+
+        @Erick My plan was for the return to be a dataframe with shape N_test_variants(including each concentration) x N_summary_stats.
+            * Each row would represent a variant in the "test" set.
+            * Each column would be a summary statsitic of the model predictions
+                - i.e., mean, number or % of models we have a prediction for (support), variance, etc.
+            * And this would be the final output from `make_predictions()`
+            * Though I would probably want this to look more like an `mut_escape_df` object for plotting downstream.
+
         """
         pass
 
@@ -158,8 +188,16 @@ class PolyclonalCollection:
         sampling distribution for each beta in each epitope.
         @Zorian-- How do you propose reporting?
 
-        For each `beta`, include the number (or frequency) of times it was
-        **not** sampled.
+        @Erick-- The current altair heatmaps created by polyclonal objects are really nice.
+        I Think we should keep this format, but creating a "bootstrapped" heatmap where we also give the variance of each beta as well.
+        So when hovering over a mutation, the user would see the mean beta-values for each epitope (same as polyclonal now), as well as the variances for these means.
+        For each mutation, include the number (or frequency) of times it was
+        **not** sampled as well.
+        Hopefully this isn't too messy.
+
+        A more visual altΩernative could be to use a heatmap for mean beta values
+        and a seperate, epitope-wise set of heatmaps where the color corresponds
+        to uncertainty/variance for that beta (the darker the color, the more uncertainty)
         """
         pass
 
