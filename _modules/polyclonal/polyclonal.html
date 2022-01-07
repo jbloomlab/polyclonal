@@ -1178,7 +1178,7 @@
             <span class="k">assert</span> <span class="n">sitemeans</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
             <span class="n">beta_minus_mean</span> <span class="o">=</span> <span class="n">sitebetas</span> <span class="o">-</span> <span class="n">sitemeans</span>
             <span class="n">reg</span> <span class="o">+=</span> <span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">beta_minus_mean</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-            <span class="n">dreg_site</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">mi</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mi</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">beta_minus_mean</span>
+            <span class="n">dreg_site</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">weight</span> <span class="o">/</span> <span class="n">mi</span> <span class="o">*</span> <span class="n">beta_minus_mean</span>
             <span class="k">assert</span> <span class="n">dreg_site</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
             <span class="n">dreg</span><span class="p">[</span><span class="n">siteindex</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dreg_site</span>
         <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
@@ -1759,6 +1759,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
@@ -1798,7 +1799,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019--2021.
+      &copy;2019--2022.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>

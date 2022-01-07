@@ -39,6 +39,61 @@
 <h1>pdb_utils<a class="headerlink" href="#pdb-utils" title="Permalink to this headline">¶</a></h1>
 <p>Functions to manipulate <a class="reference external" href="https://www.rcsb.org/">PDB</a> files.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="polyclonal.pdb_utils.extract_atom_locations">
+<span class="sig-prename descclassname"><span class="pre">polyclonal.pdb_utils.</span></span><span class="sig-name descname"><span class="pre">extract_atom_locations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_pdbfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_chains</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_atom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CA'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/pdb_utils.html#extract_atom_locations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.pdb_utils.extract_atom_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract atom locations from target chains of a PDB file.</p>
+<p>By default the locations of alpha carbons are extracted, but any atom
+can be specified. If a residue does not have the specified atom,
+it is not included in the output file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_pdbfile</strong> (<em>str</em>) – Path to input PDB file.</p></li>
+<li><p><strong>target_chains</strong> (<em>list</em>) – List of target chains to extract atom locations from. Chains must be in
+the PDB and match the chain ids.</p></li>
+<li><p><strong>target_atom</strong> (<em>str</em>) – Which type of atom to extract locations for. Default is alpha carbon, or
+‘CA’. If the specified type of atom is present multiple times for a
+residue, that residue will end up having multiple entries in the output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Has columns ‘chain’, ‘site’, ‘x’, ‘y’, and ‘z’.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>Download PDB, do the re-assignment of B factors, read the lines
+from the resulting re-assigned PDB:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pdb_url</span> <span class="o">=</span> <span class="s1">&#39;https://files.rcsb.org/download/6M0J.pdb&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pdb_url</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+<span class="gp">... </span>   <span class="n">pdbfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;6M0J.pdb&#39;</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdbfile</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>       <span class="n">_</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="n">output</span> <span class="o">=</span> <span class="n">extract_atom_locations</span><span class="p">(</span><span class="n">pdbfile</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Check the first ten lines of the ouput to make sure we got the expected
+atom locations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">output</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">  chain  site          x          y      z</span>
+<span class="go">0     A    19 -31.358999  50.852001  2.040</span>
+<span class="go">1     A    20 -29.424000  50.561001 -1.234</span>
+<span class="go">2     A    21 -30.722000  48.633999 -4.234</span>
+<span class="go">3     A    22 -28.080999  45.924999 -3.794</span>
+<span class="go">4     A    23 -28.982000  45.372002 -0.131</span>
+<span class="go">5     A    24 -32.637001  44.912998 -1.106</span>
+<span class="go">6     A    25 -31.709999  42.499001 -3.889</span>
+<span class="go">7     A    26 -29.688999  40.509998 -1.334</span>
+<span class="go">8     A    27 -32.740002  40.337002  0.917</span>
+<span class="go">9     A    28 -34.958000  39.424000 -2.028</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="polyclonal.pdb_utils.reassign_b_factor">
 <span class="sig-prename descclassname"><span class="pre">polyclonal.pdb_utils.</span></span><span class="sig-name descname"><span class="pre">reassign_b_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_pdbfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_pdbfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_col</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'site'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/pdb_utils.html#reassign_b_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.pdb_utils.reassign_b_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reassign B factors in PDB file to some other metric.</p>
@@ -175,6 +230,7 @@ other sites (such as 335) assigned to -1:</p>
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
@@ -216,7 +272,7 @@ other sites (such as 335) assigned to -1:</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019--2021.
+      &copy;2019--2022.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
