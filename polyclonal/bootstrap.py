@@ -51,7 +51,7 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
     return pd.concat(boot_df)
 
 
-def create_bootstrap_polyclonal(root_polyclonal, seed=0, groups="concentration"):
+def _create_bootstrap_polyclonal(root_polyclonal, seed=0, groups="concentration"):
     """Creates a :class:Polyclonal object from bootstrapped dataset and fits model.
 
     Parameters
@@ -106,7 +106,7 @@ def _fit_polyclonal_model(polyclonal_obj):
     return polyclonal_obj
 
 
-def predict(polyclonal_obj, variants_df):
+def _predict(polyclonal_obj, variants_df):
     """ Takes a polyclonal object and a dataframe of variants to predict on and makes predictions for escape probabilities.
 
     Parameters:
@@ -168,6 +168,10 @@ class PolyclonalCollection:
                     _create_bootstrap_polyclonal,
                     zip(repeat(root_polyclonal), list(range(n_samples))),
                 )
+        else:
+            raise ValueError(
+                "Please specify a number of bootstrap samples to make by specifying n_samples."
+            )
 
     def fit_models(self, n_threads=1):
         """ Fits :class:Polyclonal models.
@@ -238,7 +242,7 @@ class PolyclonalCollection:
                 - We can then aggregate these predictions into a summary df for plotting using _aggregate_predictions()
         """
         with Pool(n_threads) as p:
-            pred_dfs = p.starmap(predict, zip(self.models, repeat(variants_df)))
+            pred_dfs = p.starmap(_predict, zip(self.models, repeat(variants_df)))
         return pred_dfs
 
     def _aggregate_predictions():
