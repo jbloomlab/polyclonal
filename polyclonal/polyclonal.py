@@ -1276,7 +1276,7 @@ class Polyclonal:
             log.write(f"# Successfully finished at {time.asctime()}.\n")
         if not opt_res.success:
             log.write(f"# Optimization FAILED at {time.asctime()}.\n")
-            raise RuntimeError(f"Optimization failed:\n{opt_res}")
+            # raise RuntimeError(f"Optimization failed:\n{opt_res}")
         return opt_res
 
     def activity_wt_barplot(self, **kwargs):
