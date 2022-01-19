@@ -715,10 +715,7 @@ class Polyclonal:
             self.data_to_fit = None
 
     def _binarymaps_from_df(
-        self,
-        df,
-        get_pv,
-        collapse_identical_variants,
+        self, df, get_pv, collapse_identical_variants,
     ):
         """Get variants and and other information from data frame.
 
@@ -888,12 +885,7 @@ class Polyclonal:
         r"""pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes."""
         a, _ = self._a_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
-        return pd.DataFrame(
-            {
-                "epitope": self.epitopes,
-                "activity": a,
-            }
-        )
+        return pd.DataFrame({"epitope": self.epitopes, "activity": a,})
 
     @property
     def mut_escape_df(self):
@@ -902,13 +894,7 @@ class Polyclonal:
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         return pd.concat(
             [
-                pd.DataFrame(
-                    {
-                        "mutation": self.mutations,
-                        "escape": b,
-                        "epitope": e,
-                    }
-                )
+                pd.DataFrame({"mutation": self.mutations, "escape": b, "epitope": e,})
                 for e, b in zip(self.epitopes, beta.transpose())
             ],
             ignore_index=True,
@@ -932,9 +918,14 @@ class Polyclonal:
             The updated dataframe to replace `self.mut_escape_df` with.
         """
         if self._mapping_dict is None:
-            raise AttributeError("`_mapping_dict` not defined. Harmonize epitopes first.")
-        return self.mut_escape_df.replace({'epitope' : self._mapping_dict}).sort_values(by=['epitope', 'site']).reset_index(drop=True)
-
+            raise AttributeError(
+                "`_mapping_dict` not defined. Harmonize epitopes first."
+            )
+        return (
+            self.mut_escape_df.replace({"epitope": self._mapping_dict})
+            .sort_values(by=["epitope", "site"])
+            .reset_index(drop=True)
+        )
 
     @property
     def mut_escape_site_summary_df(self):
@@ -956,10 +947,7 @@ class Polyclonal:
         )
 
     def prob_escape(
-        self,
-        *,
-        variants_df,
-        concentrations=None,
+        self, *, variants_df, concentrations=None,
     ):
         r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
 
@@ -1024,9 +1012,7 @@ class Polyclonal:
                 )
 
     def site_level_model(
-        self,
-        *,
-        aggregate_mut_escapes="mean",
+        self, *, aggregate_mut_escapes="mean",
     ):
         """Model with mutations collapsed at site level.
 
@@ -1045,8 +1031,7 @@ class Polyclonal:
             site_data_to_fit = None
         else:
             site_data_to_fit = polyclonal.utils.site_level_variants(
-                self.data_to_fit,
-                original_alphabet=self.alphabet,
+                self.data_to_fit, original_alphabet=self.alphabet,
             )
         site_escape_df = (
             polyclonal.utils.site_level_variants(
@@ -1172,11 +1157,7 @@ class Polyclonal:
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
         {
             "method": "L-BFGS-B",
-            "options": {
-                "maxfun": 1e7,
-                "maxiter": 1e6,
-                "ftol": 1e-7,
-            },
+            "options": {"maxfun": 1e7, "maxiter": 1e6, "ftol": 1e-7,},
         }
     )
     """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
@@ -1325,10 +1306,7 @@ class Polyclonal:
             scipy_minimize_kwargs["callback"] = callback_logger.callback
 
         opt_res = scipy.optimize.minimize(
-            fun=lossreg.loss_reg,
-            x0=self._params,
-            jac=True,
-            **scipy_minimize_kwargs,
+            fun=lossreg.loss_reg, x0=self._params, jac=True, **scipy_minimize_kwargs,
         )
         self._params = opt_res.x
         if logfreq:
@@ -1680,8 +1658,7 @@ class Polyclonal:
         return p_vc
 
     def _get_binarymap(
-        self,
-        variants_df,
+        self, variants_df,
     ):
         """Get ``BinaryMap`` appropriate for use."""
         bmap = binarymap.BinaryMap(
@@ -1751,8 +1728,9 @@ class Polyclonal:
         align_mat : pandas.DataFrame
             A matrix of 1s and 0s depicting how to shift the epitopes of the non-reference axis.
         """
-        corr_mat = corr_df.pivot(index='self_epitope',
-                   columns='ref_epitope', values='r2').values
+        corr_mat = corr_df.pivot(
+            index="self_epitope", columns="ref_epitope", values="r2"
+        ).values
         map_mat = numpy.zeros_like(corr_mat)
 
         for idx, row in pd.DataFrame(corr_mat).iterrows():
@@ -1810,8 +1788,6 @@ class Polyclonal:
 
         # 3a get dictionary of self:ref epitope mapping (?)
         self._make_mapping_dict(mapping_mat, ref_poly)
-
-
 
 
 if __name__ == "__main__":
