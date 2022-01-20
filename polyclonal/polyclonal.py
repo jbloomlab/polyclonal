@@ -1728,7 +1728,7 @@ class Polyclonal:
                 validate="one_to_one",
             )
 
-            corr = df["escape_x"].corr(df["escape_y"]) ** 2
+            corr = df["escape_x"].corr(df["escape_y"])
 
             corr_df = pd.concat(
                 [
