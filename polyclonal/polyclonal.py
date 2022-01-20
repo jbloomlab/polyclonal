@@ -10,10 +10,11 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 import collections
 import inspect
+import itertools
 import os
 import sys
 import time
-import itertools
+
 
 import binarymap
 
@@ -924,7 +925,8 @@ class Polyclonal:
 
     @property
     def aligned_mut_escape_df(self):
-        """An aligned mut_escape_df.
+        r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation,
+        with harmonized epitopes.
 
         Parameters
         -----------
@@ -932,9 +934,14 @@ class Polyclonal:
             The updated dataframe to replace `self.mut_escape_df` with.
         """
         if self._mapping_dict is None:
-            raise AttributeError("`_mapping_dict` not defined. Harmonize epitopes first.")
-        return self.mut_escape_df.replace({'epitope' : self._mapping_dict}).sort_values(by=['epitope', 'site']).reset_index(drop=True)
-
+            raise AttributeError(
+                "`_mapping_dict` not defined. Harmonize epitopes first."
+            )
+        return (
+            self.mut_escape_df.replace({"epitope": self._mapping_dict})
+            .sort_values(by=["epitope", "site"])
+            .reset_index(drop=True)
+        )
 
     @property
     def mut_escape_site_summary_df(self):
@@ -1744,15 +1751,18 @@ class Polyclonal:
         Parameters
         -----------
         corr_df : pandas.DataFrame
-            An correlation matrix between the inferred escape probabilities amongst the epitopes of two models.
+            An correlation matrix between the inferred escape probabilities
+            amongst the epitopes of two models.
 
         Returns
         --------
         align_mat : pandas.DataFrame
-            A matrix of 1s and 0s depicting how to shift the epitopes of the non-reference axis.
+            A matrix of 1s and 0s depicting how to shift the epitopes of the
+            non-reference axis.
         """
-        corr_mat = corr_df.pivot(index='self_epitope',
-                   columns='ref_epitope', values='r2').values
+        corr_mat = corr_df.pivot(
+            index="self_epitope", columns="ref_epitope", values="r2"
+        ).values
         map_mat = numpy.zeros_like(corr_mat)
 
         for idx, row in pd.DataFrame(corr_mat).iterrows():
@@ -1785,7 +1795,7 @@ class Polyclonal:
         self._mapping_dict = epi_dict
 
     def harmonize_epitopes_with(self, ref_poly):
-        """ Harmonize epitopes with another polyclonal object.
+        """Harmonize epitopes with another polyclonal object.
         Epitopes are unidentifiable, meaning there is no gurantee that we will infer
         the same epitopes across multiple models.
         This function aims to "align" inferred epitopes with two models.
@@ -1810,8 +1820,6 @@ class Polyclonal:
 
         # 3a get dictionary of self:ref epitope mapping (?)
         self._make_mapping_dict(mapping_mat, ref_poly)
-
-
 
 
 if __name__ == "__main__":
