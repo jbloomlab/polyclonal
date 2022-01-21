@@ -1707,7 +1707,6 @@ class Polyclonal:
     def _make_correlation_matrix(self, ref_poly):
         """Calculate mutation-escape values of all pairwise combinations of two models.
         Both inputs must have the same number of epitopes specified.
-        * How to handle unseen mutations???
 
         Parameters
         ------------
