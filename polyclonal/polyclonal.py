@@ -684,7 +684,7 @@ class Polyclonal:
                 raise ValueError(f"invalid set of mutations for {epitope=}")
 
         # Set mapping dict to none
-        self._mapping_dict = None
+        self._aligned_mut_escape_df = None
         # set internal params with activities and escapes
         self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
@@ -933,15 +933,19 @@ class Polyclonal:
         df : pandas.DataFrame
             The updated dataframe to replace `self.mut_escape_df` with.
         """
-        if self._mapping_dict is None:
-            raise AttributeError(
-                "`_mapping_dict` not defined. Harmonize epitopes first."
-            )
-        return (
-            self.mut_escape_df.replace({"epitope": self._mapping_dict})
-            .sort_values(by=["epitope", "site"])
-            .reset_index(drop=True)
-        )
+        return self._aligned_mut_escape_df
+
+    @aligned_mut_escape_df.setter
+    def aligned_mut_escape_df(self, df):
+        """Update the aligned_mut_escape_df datafield.
+
+        Parameters
+        -----------
+        df : The algined df.
+
+        """
+        # Maybe write some checks here to ensure all of the necesarry columns are here?
+        self._aligned_mut_escape_df = df
 
     @property
     def mut_escape_site_summary_df(self):
@@ -1791,8 +1795,27 @@ class Polyclonal:
         for i in range(len(map_mat)):
             ref_epi_idx = map_mat[i].argmax()
             epi_dict[self.epitopes[i]] = ref_poly.epitopes[ref_epi_idx]
+        return epi_dict
 
-        self._mapping_dict = epi_dict
+    def _edit_epitopes_in_mut_escape_df(self, mapping_dict):
+        """Create a new version of `mut_escape_df` with harmonized epitopes.
+
+        Parameters
+        -----------
+        mapping_dict : Dictionary
+            Dictionary of self-reference epitope IDs.
+
+        Returns
+        -------
+        An edited pandas.DataFrame with edited epitopes corresponding to `mapping_dict`.
+        """
+        if mapping_dict is None:
+            raise AttributeError("`_mapping_dict` not defined.")
+        return (
+            self.mut_escape_df.replace({"epitope": mapping_dict})
+            .sort_values(by=["epitope", "site"])
+            .reset_index(drop=True)
+        )
 
     def harmonize_epitopes_with(self, ref_poly):
         """Harmonize epitopes with another polyclonal object.
@@ -1819,7 +1842,10 @@ class Polyclonal:
         # Step three: harmonize epitopes using mapping matrix
 
         # 3a get dictionary of self:ref epitope mapping (?)
-        self._make_mapping_dict(mapping_mat, ref_poly)
+        epi_dict = self._make_mapping_dict(mapping_mat, ref_poly)
+
+        # Save the new attribute
+        self.aligned_mut_escape_df = self._edit_epitopes_in_mut_escape_df(epi_dict)
 
 
 if __name__ == "__main__":
