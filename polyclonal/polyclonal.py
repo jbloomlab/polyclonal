@@ -1772,6 +1772,16 @@ class Polyclonal:
             match_epi = row.argmax()
             map_mat[idx, match_epi] = 1
 
+        # Assert that our epitope mappings are 1-to-1.
+        # Since I expect square matricies in this scenario
+        # (we're bootstrapping a lot of the same model arc)
+        # We could check this by seeing if all of the column sums of the mapping
+        # matrix are one.
+        # We could also check to see if the deteriminant is zero but I assume
+        # that's more computationally expensive
+        if numpy.any(map_mat.sum(axis=0) != 1):
+            raise ValueError("Mapping matrix does not have a 1-to-1 mapping.")
+
         return map_mat
 
     def _make_mapping_dict(self, map_mat, ref_poly):
