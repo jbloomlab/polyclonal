@@ -1803,10 +1803,25 @@ class Polyclonal:
         # matrix are one.
         # We could also check to see if the deteriminant is zero but I assume
         # that's more computationally expensive
+        self._check_epitope_mapping_matrix(map_mat)
+
+        return map_mat
+
+    def _check_epitope_mapping_matrix(self, map_mat):
+        """Check to ensure an epitope mapping matrix is 1-to-1.
+
+        Raises a `ValueError` if all of the columns in this matrix have a column
+        sum that is not one.
+
+        Parameters
+        -----------
+        map_mat : numpy.array
+            A square matrix of correlations between epitiope escape values
+            between `self` and a reference polyclonal object.
+        """
         if numpy.any(map_mat.sum(axis=0) != 1):
             raise ValueError("Mapping matrix does not have a 1-to-1 mapping.")
 
-        return map_mat
 
     def _make_mapping_dict(self, map_mat, ref_poly):
         """Create a dictionary from a mapping matrix to replace values in the
