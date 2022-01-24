@@ -1881,11 +1881,42 @@ class Polyclonal:
         self : :class:Polyclonal
             Enables `_mapping_dict` so aligned properties can be returned.
         """
+        # Checks to ensure `ref_poly` and self are compattible.
+
+        # Make sure models have same number of params.
+        if len(self._params) != len(ref_poly._params):
+            raise ValueError(
+                "The polyclonal objects have a different number of parameters."
+            )
+        # We must have the same number of epitopes
+        if len(self.epitopes) != len(ref_poly.epitopes):
+            raise ValueError(
+                "The two models being aligned do not have the same number of "
+                "epitopes."
+            )
+        # Both models should have `mut_escape_df` initialized
+        if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
+            raise ValueError(
+                "Both objects must have `mut_escape_df` initialized."
+            )
+
+        # Add another check to ensure both `mut_escape_df`s have needed columns
+        required_cols = {"epitope", "mutation", "escape"}
+        if not required_cols.issubset(self.mut_escape_df.columns):
+            raise KeyError(
+                "The `mut_escape_df` of the object being aligned does not "
+                f"contain all of the required columns: {required_cols}."
+            )
+        if not required_cols.issubset(ref_poly.mut_escape_df.columns):
+            raise KeyError(
+                "The `mut_escape_df` of the reference object being aligned to "
+                f"does not contain all of the required columns: {required_cols}."
+            )
         # Step one: get correlation matrix
         corr_df = self._make_correlation_matrix(ref_poly)
 
         # Step two: create mapping matrix
-        mapping_mat = self._create_mapping_matrix(corr_df)
+        mapping_mat = self._create_max_correlation_mapping_matrix(corr_df)
 
         # Step three: harmonize epitopes using mapping matrix
 
