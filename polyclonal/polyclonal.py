@@ -1800,13 +1800,7 @@ class Polyclonal:
             match_epi = row.argmax()
             map_mat[idx, match_epi] = 1
 
-        # Assert that our epitope mappings are 1-to-1.
-        # Since I expect square matricies in this scenario
-        # (we're bootstrapping a lot of the same model arc)
-        # We could check this by seeing if all of the column sums of the mapping
-        # matrix are one.
-        # We could also check to see if the deteriminant is zero but I assume
-        # that's more computationally expensive
+        # Check to see if epitope mapping is 1-to-1 before returning
         self._check_epitope_mapping_matrix(map_mat)
 
         return map_mat
