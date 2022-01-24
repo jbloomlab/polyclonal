@@ -941,7 +941,7 @@ class Polyclonal:
 
         Parameters
         -----------
-        df : The algined df.
+        df : The aligned df.
 
         """
         # Maybe write some checks here to ensure all of the necesarry columns are here?
