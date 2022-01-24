@@ -1772,7 +1772,7 @@ class Polyclonal:
 
         return corr_df
 
-    def _create_mapping_matrix(self, corr_df):
+    def _create_max_correlation_mapping_matrix(self, corr_df):
         """Create a binary matrix for mapping epitopes to one another.
 
         Parameters
