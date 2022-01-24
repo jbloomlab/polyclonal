@@ -952,7 +952,7 @@ class Polyclonal:
 
         Parameters
         -----------
-        df : The algined df.
+        df : The aligned df.
 
         """
         required_cols = {"epitope", "mutation", "escape"}
