@@ -935,15 +935,15 @@ class Polyclonal:
         """
         if len(self._aligned_mut_escape_df) == 0:
             raise ValueError(
-            "`algined_mut_escape_df` not initailized."
-            "Call `harmonize_epitopes_with()` to align epitopes."
+                "`algined_mut_escape_df` not initailized."
+                "Call `harmonize_epitopes_with()` to align epitopes."
             )
         if len(self._aligned_mut_escape_df) != len(self.mut_escape_df):
             raise ValueError(
                 "`algined_mut_escape_df` has a different number of rows than"
                 "`mut_escape_df`."
             )
-            
+
         return self._aligned_mut_escape_df
 
     @aligned_mut_escape_df.setter
@@ -1820,7 +1820,6 @@ class Polyclonal:
         if numpy.any(map_mat.sum(axis=0) != 1):
             raise ValueError("Mapping matrix does not have a 1-to-1 mapping.")
 
-
     def _make_mapping_dict(self, map_mat, ref_poly):
         """Create a dictionary from a mapping matrix to replace values in the
         `mut_escape_df` dataframe.
@@ -1879,12 +1878,12 @@ class Polyclonal:
                 "Number of WT activity params not equal to number of epitopes."
             )
         # This will make sure `activity_wt_df()` is aligned in future calls.
-        self._params[0:len(self.epitopes)] = self._params[new_idxs]
+        self._params[0 : len(self.epitopes)] = self._params[new_idxs]
 
         # Align the params
-        self._params = self._params_from_dfs(self.activity_wt_df, self.aligned_mut_escape_df)
-
-
+        self._params = self._params_from_dfs(
+            self.activity_wt_df, self.aligned_mut_escape_df
+        )
 
     def harmonize_epitopes_with(self, ref_poly):
         """Harmonize epitopes with another polyclonal object.
@@ -1917,9 +1916,7 @@ class Polyclonal:
             )
         # Both models should have `mut_escape_df` initialized
         if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
-            raise ValueError(
-                "Both objects must have `mut_escape_df` initialized."
-            )
+            raise ValueError("Both objects must have `mut_escape_df` initialized.")
 
         # Add another check to ensure both `mut_escape_df`s have needed columns
         required_cols = {"epitope", "mutation", "escape"}
