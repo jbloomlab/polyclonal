@@ -1798,7 +1798,7 @@ class Polyclonal:
         Returns
         --------
         epi_dict : Dictionary
-            A dictionary of 'self':`ref` key-value pairs of "harmoninzed" epitopes.
+            A dictionary of 'self':`ref` key-value pairs of "harmonized" epitopes.
         """
         epi_dict = {}
         for i in range(len(map_mat)):
