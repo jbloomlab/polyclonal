@@ -1729,13 +1729,23 @@ class Polyclonal:
         return bmap
 
     def _make_correlation_matrix(self, ref_poly):
-        """Calculate mutation-escape values of all pairwise combinations of two models.
+        """Calculate the correlation of mutation-escape values of all pairwise
+        combinations of `self`s model and the model inferred by `ref_poly`.
         Both inputs must have the same number of epitopes specified.
+
+        The rows of this matrix index the epitopes in `self`, the columns do the
+        same for `ref_poly`.
+
+        In the situation where a mutation is only seen by one model, we exclude
+        that mutation from correlation calculations (i.e., we omit the rows
+        where either `escape_x` and `escape_y` of the merged df contain None.)
 
         Parameters
         ------------
         ref_poly : :class:Polyclonal object
-            A polyclonal object that will be used as a reference to align epitopes with.
+            The reference polyclonal object to calculate the correlation of
+            mutation-escape values between all pairwise combinations of
+            epitopes.
 
         Returns
         ---------
