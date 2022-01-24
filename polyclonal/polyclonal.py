@@ -1840,14 +1840,15 @@ class Polyclonal:
         Parameters
         -----------
         map_mat : numpy.array
-            A 2D array from `self._create_mapping_matrix` that aligns epitopes.
+            A 2D array from `self._create_max_correlation_mapping_matrix` that aligns
+            epitopes.
         ref_poly : :class:Polyclonal
             The reference polyclonal object to align to.
 
         Returns
         --------
         epi_dict : Dictionary
-            A dictionary of 'self':`ref` key-value pairs of "harmoninzed" epitopes.
+            A dictionary of 'self:ref` key-value pairs of "harmoninzed" epitopes.
         """
         epi_dict = {}
         for i in range(len(map_mat)):
