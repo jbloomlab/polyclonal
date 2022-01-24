@@ -961,7 +961,14 @@ class Polyclonal:
         df : The algined df.
 
         """
-        # Maybe write some checks here to ensure all of the necesarry columns are here?
+        required_cols = {"epitope", "mutation", "escape"}
+        if not required_cols.issubset(df.columns):
+            raise KeyError(
+                "The supplied dataframe does not contain all of the required "
+                f"columns: {required_cols}."
+            )
+        if len(df) == 0:
+            raise ValueError("The supplied dataframe is empty.")
         self._aligned_mut_escape_df = df
 
     @property
