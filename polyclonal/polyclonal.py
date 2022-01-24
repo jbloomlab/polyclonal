@@ -928,10 +928,6 @@ class Polyclonal:
         r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation,
         with harmonized epitopes.
 
-        Parameters
-        -----------
-        df : pandas.DataFrame
-            The updated dataframe to replace `self.mut_escape_df` with.
         """
         if len(self._aligned_mut_escape_df) == 0:
             raise ValueError(
