@@ -943,13 +943,7 @@ class Polyclonal:
                 "`algined_mut_escape_df` has a different number of rows than"
                 "`mut_escape_df`."
             )
-        # Should we also check that the escape columns are equal? The only thing
-        # that should change in the dataframe is the epitope column.
-        if not self.mut_escape_df['escape'].equals(self._aligned_mut_escape_df['escape']):
-            raise ValueError(
-                "Other columns in `aligned_mut_escape_df` besides `epitope`"
-                " were changed."
-            )
+            
         return self._aligned_mut_escape_df
 
     @aligned_mut_escape_df.setter
