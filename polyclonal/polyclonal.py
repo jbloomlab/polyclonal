@@ -1864,6 +1864,28 @@ class Polyclonal:
             .reset_index(drop=True)
         )
 
+    def _align_params(self, mapping_dict):
+        """Reorders corresponding epitope parameters in `self._params`.
+
+        Parameters
+        -----------
+        mapping_dict : Dictionary
+            A dictionary of `self:ref` key-value pairs of "harmonized" epitopes.
+        """
+        # Get new ordering of epitope indicies for _params.
+        new_idxs = numpy.fromiter(mapping_dict.values(), dtype=int) - 1
+        if len(new_idxs) != len(self.epitopes):
+            raise ValueError(
+                "Number of WT activity params not equal to number of epitopes."
+            )
+        # This will make sure `activity_wt_df()` is aligned in future calls.
+        self._params[0:len(self.epitopes)] = self._params[new_idxs]
+
+        # Align the params
+        self._params = self._params_from_dfs(self.activity_wt_df, self.aligned_mut_escape_df)
+
+
+
     def harmonize_epitopes_with(self, ref_poly):
         """Harmonize epitopes with another polyclonal object.
         Epitopes are unidentifiable, meaning there is no gurantee that we will infer
@@ -1924,6 +1946,9 @@ class Polyclonal:
 
         # Save the new attribute
         self.aligned_mut_escape_df = self._edit_epitopes_in_mut_escape_df(epi_dict)
+
+        # Align WT activity and params with the aligned_mut_escape_df.
+        self._align_params(epi_dict)
 
 
 if __name__ == "__main__":
