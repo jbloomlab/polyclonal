@@ -19,6 +19,7 @@ Contents
 
    installation
    biophysical_model
+   partition_function
    visualize_RBD
    simulate_RBD
    fit_RBD
