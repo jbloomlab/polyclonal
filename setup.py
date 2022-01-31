@@ -56,6 +56,7 @@ setup(
         "pandas>=1.2",
         "requests",
         "scipy>=1.7.1",
+        "mushi",
     ],
     platforms="Linux and Mac OS X.",
     packages=["polyclonal"],
