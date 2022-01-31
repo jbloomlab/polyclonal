@@ -10,7 +10,7 @@ Defines fitting functions for the loss function in JAX.
 import jax
 
 import polyclonal.loss as loss
-import polyclonal.optimization as optimization
+import mushi.optimization as optimization
 
 
 def zero_function(params):
