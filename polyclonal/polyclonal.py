@@ -1773,11 +1773,15 @@ class Polyclonal:
         Parameters
         -----------
         map_mat : numpy.array
-            A square matrix of correlations between epitiope escape values
-            between `self` and a reference polyclonal object.
+            A square binary matrix of indicators between `self` and a
+            reference polyclonal object's epitopes.
         """
         if numpy.any(map_mat.sum(axis=0) != 1):
             raise ValueError("Mapping matrix does not have a 1-to-1 mapping.")
+        if map_mat.shape[0] != map_mat.shape[1]:
+            raise ValueError("Mapping matrix is not square.")
+        if not numpy.isin(map_mat, [0, 1]).all():
+            raise ValueError("Mapping matrix has values other than 0 or 1.")
 
     def _make_mapping_dict(self, map_mat, ref_poly):
         """Create a dictionary from a mapping matrix to replace values in the
