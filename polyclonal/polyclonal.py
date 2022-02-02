@@ -1724,7 +1724,7 @@ class Polyclonal:
                         data={
                             "ref_epitope": [model_ref_e],
                             "self_epitope": [model_self_e],
-                            "r2": [corr],
+                            "correlation": [corr],
                         }
                     ),
                 ]
@@ -1735,6 +1735,9 @@ class Polyclonal:
     def _create_max_correlation_mapping_matrix(self, corr_df):
         """Create a binary matrix for mapping epitopes to one another.
 
+        For each epitope, we align it with the reference model epitope with the
+        highest correlation in escape values.
+
         Parameters
         -----------
         corr_df : pandas.DataFrame
@@ -1743,12 +1746,12 @@ class Polyclonal:
 
         Returns
         --------
-        align_mat : pandas.DataFrame
+        map_mat : numpy.array
             A matrix of 1s and 0s depicting how to shift the epitopes of the
             non-reference axis.
         """
         corr_mat = corr_df.pivot(
-            index="self_epitope", columns="ref_epitope", values="r2"
+            index="self_epitope", columns="ref_epitope", values="correlation"
         ).values
         map_mat = numpy.zeros_like(corr_mat)
 
