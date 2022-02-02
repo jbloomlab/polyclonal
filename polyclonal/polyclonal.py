@@ -683,8 +683,6 @@ class Polyclonal:
             if sorted(df["mutation"]) != sorted(self.mutations):
                 raise ValueError(f"invalid set of mutations for {epitope=}")
 
-        # Set mapping dict to none
-        self._aligned_mut_escape_df = None
         # set internal params with activities and escapes
         self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
 
@@ -922,44 +920,6 @@ class Polyclonal:
         )[
             ["epitope", "site", "wildtype", "mutant", "mutation", "escape"]
         ]
-
-    @property
-    def aligned_mut_escape_df(self):
-        r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation,
-        with harmonized epitopes.
-
-        """
-        if len(self._aligned_mut_escape_df) == 0:
-            raise ValueError(
-                "`algined_mut_escape_df` not initailized."
-                "Call `harmonize_epitopes_with()` to align epitopes."
-            )
-        if len(self._aligned_mut_escape_df) != len(self.mut_escape_df):
-            raise ValueError(
-                "`algined_mut_escape_df` has a different number of rows than"
-                "`mut_escape_df`."
-            )
-
-        return self._aligned_mut_escape_df
-
-    @aligned_mut_escape_df.setter
-    def aligned_mut_escape_df(self, df):
-        """Update the aligned_mut_escape_df datafield.
-
-        Parameters
-        -----------
-        df : The aligned df.
-
-        """
-        required_cols = {"epitope", "mutation", "escape"}
-        if not required_cols.issubset(df.columns):
-            raise KeyError(
-                "The supplied dataframe does not contain all of the required "
-                f"columns: {required_cols}."
-            )
-        if len(df) == 0:
-            raise ValueError("The supplied dataframe is empty.")
-        self._aligned_mut_escape_df = df
 
     @property
     def mut_escape_site_summary_df(self):
@@ -1874,12 +1834,13 @@ class Polyclonal:
                 "Number of WT activity params not equal to number of epitopes."
             )
         # This will make sure `activity_wt_df()` is aligned in future calls.
-        self._params[0 : len(self.epitopes)] = self._params[new_idxs]
+        aligned_activity_wt_vals = self._params[new_idxs]
+        self._params[0 : len(self.epitopes)] = aligned_activity_wt_vals
+        # Now edit mut escape df
+        aligned_mut_escape_df = self._edit_epitopes_in_mut_escape_df(mapping_dict)
 
-        # Align the params
-        self._params = self._params_from_dfs(
-            self.activity_wt_df, self.aligned_mut_escape_df
-        )
+        # Align the params -- now mut_escape_df should be flipped.
+        self._params = self._params_from_dfs(self.activity_wt_df, aligned_mut_escape_df)
 
     def harmonize_epitopes_with(self, ref_poly):
         """Harmonize epitopes with another polyclonal object.
@@ -1937,10 +1898,7 @@ class Polyclonal:
         # 3a get dictionary of self:ref epitope mapping (?)
         epi_dict = self._make_mapping_dict(mapping_mat, ref_poly)
 
-        # Save the new attribute
-        self.aligned_mut_escape_df = self._edit_epitopes_in_mut_escape_df(epi_dict)
-
-        # Align WT activity and params with the aligned_mut_escape_df.
+        # Align params.
         self._align_params(epi_dict)
 
 
