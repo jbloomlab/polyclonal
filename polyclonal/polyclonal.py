@@ -884,7 +884,7 @@ class Polyclonal:
         r"""pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes."""
         a, _ = self._a_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
-        return pd.DataFrame({"epitope": self.epitopes, "activity": a,})
+        return pd.DataFrame({"epitope": self.epitopes, "activity": a, })
 
     @property
     def mut_escape_df(self):
@@ -893,7 +893,7 @@ class Polyclonal:
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         return pd.concat(
             [
-                pd.DataFrame({"mutation": self.mutations, "escape": b, "epitope": e,})
+                pd.DataFrame({"mutation": self.mutations, "escape": b, "epitope": e, })
                 for e, b in zip(self.epitopes, beta.transpose())
             ],
             ignore_index=True,
@@ -1137,7 +1137,7 @@ class Polyclonal:
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
         {
             "method": "L-BFGS-B",
-            "options": {"maxfun": 1e7, "maxiter": 1e6, "ftol": 1e-7,},
+            "options": {"maxfun": 1e7, "maxiter": 1e6, "ftol": 1e-7, },
         }
     )
     """frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``."""
