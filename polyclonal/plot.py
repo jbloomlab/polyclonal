@@ -58,7 +58,12 @@ def color_gradient_hex(start, end, n):
 
 
 def activity_wt_barplot(
-    *, activity_wt_df, epitope_colors, epitopes=None, width=110, height_per_bar=25,
+    *,
+    activity_wt_df,
+    epitope_colors,
+    epitopes=None,
+    width=110,
+    height_per_bar=25,
 ):
     r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
 
@@ -203,14 +208,19 @@ def mut_escape_lineplot(
     )
 
     zoom_brush = alt.selection_interval(
-        encodings=["x"], mark=alt.BrushConfig(stroke="black", strokeWidth=2),
+        encodings=["x"],
+        mark=alt.BrushConfig(stroke="black", strokeWidth=2),
     )
     zoom_bar = (
         alt.Chart(df)
         .mark_rect(color="gray")
         .encode(x="site:O")
         .add_selection(zoom_brush)
-        .properties(width=zoom_bar_width, height=15, title="site zoom bar",)
+        .properties(
+            width=zoom_bar_width,
+            height=15,
+            title="site zoom bar",
+        )
     )
 
     site_selector = alt.selection(
@@ -225,7 +235,12 @@ def mut_escape_lineplot(
                 title=("site" if epitope == epitopes[-1] else None),
                 axis=(alt.Axis() if epitope == epitopes[-1] else None),
             ),
-            y=alt.Y(epitope, type="quantitative", title="escape", scale=alt.Scale(),),
+            y=alt.Y(
+                epitope,
+                type="quantitative",
+                title="escape",
+                scale=alt.Scale(),
+            ),
             tooltip=[
                 alt.Tooltip("site:O"),
                 alt.Tooltip("wildtype:N"),
@@ -384,7 +399,11 @@ def mut_escape_heatmap(
         .mark_rect(color="gray")
         .encode(x="site:O")
         .add_selection(zoom_brush)
-        .properties(width=zoom_bar_width, height=15, title="site zoom bar",)
+        .properties(
+            width=zoom_bar_width,
+            height=15,
+            title="site zoom bar",
+        )
     )
 
     # select cells
@@ -463,7 +482,10 @@ def mut_escape_heatmap(
         )
 
     return (
-        alt.vconcat(*charts, spacing=0,)
+        alt.vconcat(
+            *charts,
+            spacing=0,
+        )
         .configure_axis(labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
     )

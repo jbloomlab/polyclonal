@@ -54,7 +54,11 @@ class MutationParser:
 
 
 def site_level_variants(
-    df, *, original_alphabet=AAS_NOSTOP, wt_char="w", mut_char="m",
+    df,
+    *,
+    original_alphabet=AAS_NOSTOP,
+    wt_char="w",
+    mut_char="m",
 ):
     """Re-define variants simply in terms of which sites are mutated.
 
