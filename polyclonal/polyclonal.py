@@ -1900,9 +1900,7 @@ class Polyclonal:
         # Step two: create mapping matrix
         mapping_mat = self._create_max_correlation_mapping_matrix(corr_df)
 
-        # Step three: harmonize epitopes using mapping matrix
-
-        # 3a get dictionary of self:ref epitope mapping (?)
+        # Step three: make epitope mapping dictionary
         epi_dict = self._make_mapping_dict(mapping_mat, ref_poly)
 
         # Align params.
