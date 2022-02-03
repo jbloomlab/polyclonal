@@ -192,9 +192,7 @@ def reassign_b_factor(
 
 
 def extract_atom_locations(
-    input_pdbfile,
-    target_chains,
-    target_atom="CA",
+    input_pdbfile, target_chains, target_atom="CA",
 ):
     """Extract atom locations from target chains of a PDB file.
 
