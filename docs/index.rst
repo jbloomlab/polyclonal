@@ -19,13 +19,13 @@ Contents
 
    installation
    biophysical_model
-   partition_function
    visualize_RBD
    simulate_RBD
    fit_RBD
    specify_epitopes
    expt_design
    optimization
+   partition_function
    polyclonal
    package_index
    acknowledgments
