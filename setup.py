@@ -7,9 +7,9 @@ import sys
 from setuptools import setup
 
 
-if not (sys.version_info[0] == 3 and sys.version_info[1] >= 8):
+if not (sys.version_info[0] == 3 and sys.version_info[1] >= 9):
     raise RuntimeError(
-        "polyclonal requires Python =3.9.\n"
+        "polyclonal requires Python >=3.9.\n"
         f"You are using {sys.version_info[0]}.{sys.version_info[1]}."
     )
 
