@@ -1845,8 +1845,7 @@ class Polyclonal:
         self._params[0 : len(self.epitopes)] = aligned_activity_wt_vals
         # Now edit mut escape df
         aligned_mut_escape_df = self._edit_epitopes_in_mut_escape_df(mapping_dict)
-
-        # Align the params -- now mut_escape_df should be flipped.
+        # Align the params -- now mut_escape_df should be rearranged.
         self._params = self._params_from_dfs(self.activity_wt_df, aligned_mut_escape_df)
 
     def harmonize_epitopes_with(self, ref_poly):
@@ -1865,19 +1864,21 @@ class Polyclonal:
         self : :class:Polyclonal
             Enables `_mapping_dict` so aligned properties can be returned.
         """
-        # Checks to ensure `ref_poly` and self are compattible.
+        # Checks to ensure `ref_poly` and self are compatible.
 
         # Make sure models have same number of params.
         if len(self._params) != len(ref_poly._params):
             raise ValueError(
                 "The polyclonal objects have a different number of parameters."
             )
+
         # We must have the same number of epitopes
         if len(self.epitopes) != len(ref_poly.epitopes):
             raise ValueError(
                 "The two models being aligned do not have the same number of "
                 "epitopes."
             )
+
         # Both models should have `mut_escape_df` initialized
         if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
             raise ValueError("Both objects must have `mut_escape_df` initialized.")
@@ -1889,11 +1890,13 @@ class Polyclonal:
                 "The `mut_escape_df` of the object being aligned does not "
                 f"contain all of the required columns: {required_cols}."
             )
+
         if not required_cols.issubset(ref_poly.mut_escape_df.columns):
             raise KeyError(
                 "The `mut_escape_df` of the reference object being aligned to "
                 f"does not contain all of the required columns: {required_cols}."
             )
+
         # Step one: get correlation matrix
         corr_df = self._make_correlation_matrix(ref_poly)
 
