@@ -1767,7 +1767,7 @@ class Polyclonal:
     def _check_epitope_mapping_matrix(self, map_mat):
         """Check to ensure an epitope mapping matrix is 1-to-1.
 
-        Raises a `ValueError` if all of the columns in this matrix have a column
+        Raises a `ValueError` if any of the columns in this matrix have a column
         sum that is not one.
 
         Parameters
