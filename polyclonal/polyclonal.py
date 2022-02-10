@@ -1861,8 +1861,10 @@ class Polyclonal:
 
         Returns
         --------
-        self : :class:Polyclonal
-            Enables `_mapping_dict` so aligned properties can be returned.
+        void
+            Edits `self._params`, `self.mut_escape_df`, and `self.activity_wt_df`
+            inplace. These parameters are adjusted so that the epitopes between
+            `self` and `ref_poly` are aligned.
         """
         # Checks to ensure `ref_poly` and self are compatible.
 
