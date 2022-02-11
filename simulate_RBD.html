@@ -367,18 +367,28 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">p</span> <span class="o">=</span> <span class="n">variants</span><span class="o">.</span><span class="n">plotNumMutsHistogram</span><span class="p">(</span>
+<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">variants</span><span class="o">.</span><span class="n">plotNumMutsHistogram</span><span class="p">(</span>
     <span class="n">mut_type</span><span class="o">=</span><span class="s2">&quot;aa&quot;</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">libraries</span><span class="o">=</span><span class="n">variants</span><span class="o">.</span><span class="n">libraries</span>
 <span class="p">)</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/jared/miniconda3/envs/polyclonal38/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/simulate_RBD_5_0.png" src="_images/simulate_RBD_5_0.png" />
+<img alt="_images/simulate_RBD_5_1.png" src="_images/simulate_RBD_5_1.png" />
 </div>
 </div>
 <p>We also look at the mutation rate across the gene. Note that this is sequential numbering of the sequence. Also, the per-site mutation frequency is uneven because we only include tolerated mutations, and there are different number of tolerated mutations per site:</p>
@@ -387,18 +397,28 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">p</span> <span class="o">=</span> <span class="n">variants</span><span class="o">.</span><span class="n">plotMutFreqs</span><span class="p">(</span>
+<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">variants</span><span class="o">.</span><span class="n">plotMutFreqs</span><span class="p">(</span>
     <span class="n">variant_type</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">mut_type</span><span class="o">=</span><span class="s2">&quot;aa&quot;</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">libraries</span><span class="o">=</span><span class="n">variants</span><span class="o">.</span><span class="n">libraries</span>
 <span class="p">)</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/jared/miniconda3/envs/polyclonal38/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/simulate_RBD_7_0.png" src="_images/simulate_RBD_7_0.png" />
+<img alt="_images/simulate_RBD_7_1.png" src="_images/simulate_RBD_7_1.png" />
 </div>
 </div>
 <p>Now we get the data frame with the amino-acid substitutions for each variant, re-adding site offset to get back to RBD numbering:</p>
@@ -691,7 +711,9 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">plotnine</span> <span class="kn">import</span> <span class="o">*</span>
+<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+
+<span class="kn">from</span> <span class="nn">plotnine</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">p</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">ggplot</span><span class="p">(</span>
@@ -713,11 +735,19 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/jared/miniconda3/envs/polyclonal38/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/simulate_RBD_13_0.png" src="_images/simulate_RBD_13_0.png" />
+<img alt="_images/simulate_RBD_13_1.png" src="_images/simulate_RBD_13_1.png" />
 </div>
 </div>
 <p>Also, just compute the overall average probability of escape for each library:</p>
@@ -1239,6 +1269,7 @@ There are 1932 allowed amino-acid mutations.
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="partition_function.html">Distinct epitopes assumption</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>

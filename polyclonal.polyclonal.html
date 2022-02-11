@@ -625,6 +625,28 @@ escapes to initialize fit of this model. Generally works better.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with">
+<span class="sig-name descname"><span class="pre">harmonize_epitopes_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_poly</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.harmonize_epitopes_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Harmonize epitopes with another polyclonal object.
+Epitopes are unidentifiable, meaning there is no gurantee that we will infer
+the same epitopes across multiple models.
+This function aims to “align” inferred epitopes with two models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ref_poly</strong> (<em>:class:Polyclonal</em>) – The reference polyclonal object to align epitopes to.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Edits <cite>self._params</cite>, <cite>self.mut_escape_df</cite>, and <cite>self.activity_wt_df</cite>
+inplace. These parameters are adjusted so that the epitopes between
+<cite>self</cite> and <cite>ref_poly</cite> are aligned.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>void</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.icXX">
 <span class="sig-name descname"><span class="pre">icXX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'IC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.icXX"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.icXX" title="Permalink to this definition">¶</a></dt>
 <dd><p>Concentration at which a given fraction is neutralized (eg, IC50).</p>
@@ -830,6 +852,7 @@ ones in <code class="docutils literal notranslate"><span class="pre">mut_effects
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="partition_function.html">Distinct epitopes assumption</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>
