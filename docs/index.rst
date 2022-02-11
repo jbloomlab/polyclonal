@@ -25,6 +25,7 @@ Contents
    specify_epitopes
    expt_design
    optimization
+   partition_function
    polyclonal
    package_index
    acknowledgments
