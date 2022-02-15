@@ -259,31 +259,7 @@ class PolyclonalCollection:
         """
         pass
 
-    def mut_escape_bootstrap_heatmaps():
-        """
-        Visualize uncertainty in beta coefficients.
-        Jesse suggests either circle size (which may get kind of hard to digest)
-        or reporting in the heatmap.
-        I am leaning towards the latter -- reporting the variance in the
-        sampling distribution for each beta in each epitope.
-        @Zorian-- How do you propose reporting?
 
-        @Erick-- The current altair heatmaps created by polyclonal objects are really nice.
-        I Think we should keep this format, but creating a "bootstrapped" heatmap where we also give the variance of each beta as well.
-        So when hovering over a mutation, the user would see the mean beta-values for each epitope (same as polyclonal now), as well as the variances for these means.
-        For each mutation, include the number (or frequency) of times it was
-        **not** sampled as well.
-        Hopefully this isn't too messy.
-
-        A more visual altΩernative could be to use a heatmap for mean beta values
-        and a seperate, epitope-wise set of heatmaps where the color corresponds
-        to uncertainty/variance for that beta (the darker the color, the more uncertainty)
-        """
-        pass
-
-    def activity_wt_violinplot():
-        """
-        Visualize the distributions of inferred WT activities across models.
 
         This may be tricky if we don't start the model in a good spot, as
         epitope identifiability becomes an issue.
