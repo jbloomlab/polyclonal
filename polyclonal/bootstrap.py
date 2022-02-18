@@ -14,7 +14,7 @@ from itertools import repeat
 
 
 def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
-    """ Return a bootstrapped sample of a pandas data frame, maintaining the
+    """Return a bootstrapped sample of a pandas data frame, maintaining the
     same number of items when grouped by a given column.
 
     Parameters
@@ -107,7 +107,7 @@ def _fit_polyclonal_model(polyclonal_obj):
 
 
 def _predict(polyclonal_obj, variants_df):
-    """ Takes a polyclonal object and a dataframe of variants to predict on and makes predictions for escape probabilities.
+    """Takes a polyclonal object and a dataframe of variants to predict on and makes predictions for escape probabilities.
 
     Parameters:
     ------------
@@ -127,7 +127,7 @@ def _predict(polyclonal_obj, variants_df):
 
 
 class PolyclonalCollection:
-    r""" A container class for multiple :class:`Polyclonal` objects.
+    r"""A container class for multiple :class:`Polyclonal` objects.
 
     Parameters
     -----------
@@ -152,9 +152,12 @@ class PolyclonalCollection:
     """
 
     def __init__(
-        self, root_polyclonal, n_samples=0, seed=0,
+        self,
+        root_polyclonal,
+        n_samples=0,
+        seed=0,
     ):
-        """ See main class docstring and :class:Polyclonal documentation for
+        """See main class docstring and :class:Polyclonal documentation for
         details."""
         # TODO Check to see if the polyclonal object has required args `data_to_fit`
         self.root_polyclonal = root_polyclonal
@@ -174,7 +177,7 @@ class PolyclonalCollection:
             )
 
     def fit_models(self, n_threads=1):
-        """ Fits :class:Polyclonal models.
+        """Fits :class:Polyclonal models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
         After this fitting, re-initialize :class:Polyclonal without data, but
@@ -245,8 +248,10 @@ class PolyclonalCollection:
             pred_dfs = p.starmap(_predict, zip(self.models, repeat(variants_df)))
         return pred_dfs
 
-    def _aggregate_predictions():
+    def _aggregate_predictions(self, pred_list):
         """Aggregate predictions from all eligible models.
+        Given a list of prediction dataframes, splits each variant up by each mutation,
+        and calculates summary statistics of escape predictions associated with each mutation at each concentration.
         @Zorian-- can you describe the return type here?
 
         @Erick My plan was for the return to be a dataframe with shape N_test_variants(including each concentration) x N_summary_stats.
