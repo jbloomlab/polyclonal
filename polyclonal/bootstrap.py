@@ -275,10 +275,21 @@ class PolyclonalCollection:
         # Combine all dataframes together (maybe add some model ID column?)
         raw_concat_df = pd.concat(pred_list)
 
-        # Get summary stats
-
         results_df = raw_concat_df
-        return results_df
+
+        # TODO: calculate summary statistics
+        pred_summary_stats = {
+            "mean_predicted_prob_escape": pd.NamedAgg("predicted_prob_escape", "mean"),
+            "median_predicted_prob_escape": pd.NamedAgg(
+                "predicted_prob_escape", "median"
+            ),
+            "std_predicted_prob_escape": pd.NamedAgg("predicted_prob_escape", "std"),
+            "n_model_predictions": pd.NamedAgg("prob_escape", "count"),
+        }
+
+        return results_df.groupby(
+            ["barcode", "aa_substitutions", "concentration"], as_index=False, sort=False
+        ).aggregate(**pred_summary_stats)
 
     @property
     def mut_bootstrap_freq_dict(self):
