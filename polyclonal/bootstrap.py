@@ -11,6 +11,7 @@ import pandas as pd
 import polyclonal
 from multiprocessing import Pool
 from itertools import repeat
+from collections import Counter
 
 
 def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
@@ -261,12 +262,119 @@ class PolyclonalCollection:
             * And this would be the final output from `make_predictions()`
             * Though I would probably want this to look more like an `mut_escape_df` object for plotting downstream.
 
+        Parameters:
+        ------------
+        pred_list : list of pandas.DataFrame objets
+
+        Returns:
+        ---------
+        results_df : pandas.DataFrame
+            A dataframe of summary stats for predictions made from each model.
+
         """
-        pass
+        # Combine all dataframes together (maybe add some model ID column?)
+        raw_concat_df = pd.concat(pred_list)
 
+        # Get summary stats
 
+        results_df = raw_concat_df
+        return results_df
 
-        This may be tricky if we don't start the model in a good spot, as
-        epitope identifiability becomes an issue.
+    @property
+    def mut_bootstrap_freq_dict(self):
+        """Gives a dictionary of the mutations and the percentage of bootstrapped samples they were in."""
+        mutation_dict = Counter()
+
+        for model in self.models:
+            # Update mutation observation counts
+            mutation_dict.update(model.mutations)
+
+        mutation_dict_freqs = {
+            key: mutation_dict[key] / self.n_samples for key in mutation_dict.keys()
+        }
+
+        return mutation_dict_freqs
+
+    def _summarize_param_dfs(self):
+        """Creates a dataframe of summary statistics for `self.mut_escape_df` and `self.activity_wt_df`"""
+
+        mut_escape_df_list = []
+        activity_wt_df_list = []
+
+        # Create dictionary of desired summary stats
+        escape_summary_stats = {
+            "site": pd.NamedAgg("site", "first"),
+            "wildtype": pd.NamedAgg("mutant", "first"),
+            "mean": pd.NamedAgg("escape", "mean"),
+            "median": pd.NamedAgg("escape", "median"),
+            "std": pd.NamedAgg("escape", "std"),
+        }
+
+        activity_summary_stats = {
+            "epitope": pd.NamedAgg("epitope", "first"),
+            "mean": pd.NamedAgg("activity", "mean"),
+            "median": pd.NamedAgg("activity", "median"),
+            "std": pd.NamedAgg("activity", "std"),
+        }
+
+        # Grab all dataframes
+        for model in self.models:
+            # Add inferred params
+            mut_escape_df_list.append(model.mut_escape_df)
+            activity_wt_df_list.append(model.activity_wt_df)
+
+        mut_escape_df = pd.concat(mut_escape_df_list)
+        activity_wt_df = pd.concat(activity_wt_df_list)
+
+        mut_escape_df_stats = mut_escape_df.groupby(
+            ["mutation", "epitope"], as_index=False, sort=False
+        ).aggregate(**escape_summary_stats)
+        wt_df_stats = activity_wt_df.groupby("epitope", as_index=False).aggregate(
+            **activity_summary_stats
+        )
+
+        return mut_escape_df_stats, wt_df_stats
+
+    def avg_model(self, avg_type="median", min_bootstrap_frac=0.9):
+        """Returns :class:`Polyclonal` object with average fit parameters.
+
+        Parameters
+        ------------
+        avg_type : {'median', 'mean'}
+            Average activities and beta values in this way.
+        min_bootstrap_frac : float
+            Only include beta values for mutations in this fraction of bootstrap replicates.
+
+        Returns
+        --------
+        :class:`Polyclonal`
         """
-        pass
+        # Harmonize epitopes -- a bug here (need to raise issue)
+
+        # Get summary stats dataframes
+        avg_mut_df, avg_activity_df = self._summarize_param_dfs()
+
+        # Filter beta values for mutations passing min_bootstrap_frac threshold
+        muts_to_drop = [
+            key
+            for key, value in self.mut_bootstrap_freq_dict.items()
+            if value < min_bootstrap_frac
+        ]
+        avg_mut_df = avg_mut_df[~avg_mut_df["mutation"].isin(muts_to_drop)]
+
+        # Use desired avg_type
+        avg_mut_df["escape"] = avg_mut_df[avg_type]
+        avg_activity_df["activity"] = avg_activity_df[avg_type]
+
+        # Drop all summary stat columns
+        cols_to_drop = ["mean", "median", "std"]
+
+        # Create a new polyclonal object with `mut_escape_df` of average values.
+        avg_model = polyclonal.Polyclonal(
+            data_to_fit=None,
+            mut_escape_df=avg_mut_df.drop(columns=cols_to_drop),
+            activity_wt_df=avg_activity_df.drop(columns=cols_to_drop),
+        )
+
+        # Also create columns with SD and % of bootstrap samples the mutation is in
+        return avg_model
