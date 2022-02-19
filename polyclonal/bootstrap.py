@@ -277,7 +277,6 @@ class PolyclonalCollection:
 
         results_df = raw_concat_df
 
-        # TODO: calculate summary statistics
         pred_summary_stats = {
             "mean_predicted_prob_escape": pd.NamedAgg("predicted_prob_escape", "mean"),
             "median_predicted_prob_escape": pd.NamedAgg(
