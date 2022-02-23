@@ -101,7 +101,7 @@ def _fit_polyclonal_model(polyclonal_obj):
     # TODO: How should we handle situations where optimization fails?
     # Is failed optimization only an issue on the small dataset?
     try:
-        _ = polyclonal_obj.fit()
+        _ = polyclonal_obj.fit(fit_site_level_first=False)
     except RuntimeError:
         return None
 
