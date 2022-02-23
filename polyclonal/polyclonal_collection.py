@@ -1,6 +1,6 @@
 """
 ==========
-bootstrap
+polyclonal_collection
 ==========
 
 Defines :class:`PolyclonalCollection` objects for bootstrapping :class:`Polyclonal` model parameters.
