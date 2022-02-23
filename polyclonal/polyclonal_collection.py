@@ -135,7 +135,7 @@ class PolyclonalCollection:
     -----------
     root_polyclonal : :class:Polyclonal
         The polyclonal object created with the full dataset to draw bootstrapped samples from.
-    n_samples : int
+    n_bootstrap_samples : int
         The number of desired bootstrap samples to draw and :class:Polyclonal
         models to fit.
     seed : int
@@ -146,7 +146,7 @@ class PolyclonalCollection:
     mutations : tuple
         All mutations for which we have escape values.
     models : tuple
-        Contains `n_samples` of the :class:`Polyclonal` models.
+        Contains `n_bootstrap_samples` of the :class:`Polyclonal` models.
     unsampled_mutations : dictionary
         A dictionary that keeps track of which mutations that are not seen by
         at least one model. The keys are the mutations and the values are the
@@ -157,7 +157,7 @@ class PolyclonalCollection:
     def __init__(
         self,
         root_polyclonal,
-        n_samples=0,
+        n_bootstrap_samples=0,
         n_threads=1,
         seed=0,
     ):
@@ -165,13 +165,13 @@ class PolyclonalCollection:
         details."""
         # TODO Check to see if the polyclonal object has required args `data_to_fit`
         self.root_polyclonal = root_polyclonal
-        self.n_samples = n_samples
+        self.n_bootstrap_samples = n_bootstrap_samples
         self.n_threads = n_threads
         self.seed = seed
 
-        if n_samples > 0:
+        if self.n_bootstrap_samples > 0:
             # Create distinct seeds for each model
-            seeds = [x + self.seed for x in list(range(n_samples))]
+            seeds = [x + self.seed for x in list(range(self.n_bootstrap_samples))]
 
             # Create list of bootstrapped polyclonal objects
             with Pool(self.n_threads) as p:
@@ -181,10 +181,10 @@ class PolyclonalCollection:
                 )
         else:
             raise ValueError(
-                "Please specify a number of bootstrap samples to make by specifying n_samples."
+                "Please specify a number of bootstrap samples to make by specifying n_bootstrap_samples."
             )
 
-    def fit_models(self, n_tries=5):
+    def fit_models(self):
         """Fits :class:Polyclonal models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
@@ -195,12 +195,11 @@ class PolyclonalCollection:
 
         Parameters:
         ------------
-        n_tries : int
-            The number of attempts for all optimization procedures to succeed.
+        None
 
         Returns:
         ---------
-        Void
+        None
 
         @Zorian given that we'd like to use multiprocessing.Pool I can say from
         experience that your life will be much easier if you think about defining things
@@ -229,7 +228,7 @@ class PolyclonalCollection:
         n_fails = sum(model is None for model in self.models)
 
         # Shift seed to avoid duplicate bootstraps
-        shifted_seed = self.seed + self.n_samples
+        shifted_seed = self.seed + self.n_bootstrap_samples
         replacement_models = []
 
         # Create replacement models one by one (for now at least)
@@ -332,7 +331,8 @@ class PolyclonalCollection:
             mutation_dict.update(model.mutations)
 
         mutation_dict_freqs = {
-            key: mutation_dict[key] / self.n_samples for key in mutation_dict.keys()
+            key: mutation_dict[key] / self.n_bootstrap_samples
+            for key in mutation_dict.keys()
         }
 
         return mutation_dict_freqs
