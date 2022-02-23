@@ -40,7 +40,6 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
     boot_df = []
 
     if group_by_col is not None:
-        # TODO enable grouping by multiple columns
         grouped_df = df.groupby(group_by_col)
 
         # Sample each concentration separately
@@ -52,7 +51,7 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
     return pd.concat(boot_df)
 
 
-def _create_bootstrap_polyclonal(root_polyclonal, seed=0, groups="concentration"):
+def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentration"):
     """Creates a :class:Polyclonal object from bootstrapped dataset and fits model.
 
     Parameters
@@ -60,7 +59,7 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, groups="concentration"
     root_polyclonal : :class:Polyclonal
         A initialized :class:Polyclonal object with complete dataset.
     seed : int
-        Random seed (for now, model number), may make this an "offset" from 0.
+        Random seed
     groups: string
         The column name to group `root_polyclonal.data_to_fit` by, In most cases, this will be `concentration`
 
@@ -70,19 +69,18 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, groups="concentration"
         A new :class:Polyclonal object constructed from a bootsrapped sample of `root_polyclonal.data_to_fit`.
 
     """
-    # Check to see if polyclonal has data_to_fit
+    if root_polyclonal.data_to_fit is None:
+        raise ValueError("No data to fit provided in the polyclonal object.")
     # Polyclonal drops duplicate from data_to_fit by default -- should we  keep this?
     bootstrap_df = create_bootstrap_sample(
-        df=root_polyclonal.data_to_fit, seed=seed, group_by_col=groups
+        df=root_polyclonal.data_to_fit, seed=seed, group_by_col=group_by_col
     )
     new_polyclonal = polyclonal.Polyclonal(
         data_to_fit=bootstrap_df,
         n_epitopes=len(root_polyclonal.epitopes),
         collapse_identical_variants=False,
     )
-    # Re-initialize this model without the attached dataframe and just wt_activity_df and mut_escape_df from the big model.
-    # Return the "slim" model?
-    # Maybe create a new method for fitting a polyclonal model and returning the slim version?
+
     return new_polyclonal
 
 
@@ -102,12 +100,15 @@ def _fit_polyclonal_model(polyclonal_obj):
     """
     # TODO: How should we handle situations where optimization fails?
     # Is failed optimization only an issue on the small dataset?
-    _ = polyclonal_obj.fit()
-    # TODO: re-initialize that model without the attached dataframe and just info from the big model.
+    try:
+        _ = polyclonal_obj.fit()
+    except RuntimeError:
+        return None
+
     return polyclonal_obj
 
 
-def _predict(polyclonal_obj, variants_df):
+def _prob_escape_static(polyclonal_obj, variants_df):
     """Takes a polyclonal object and a dataframe of variants to predict on and makes predictions for escape probabilities.
 
     Parameters:
@@ -147,8 +148,9 @@ class PolyclonalCollection:
     models : tuple
         Contains `n_samples` of the :class:`Polyclonal` models.
     unsampled_mutations : dictionary
-        A dictionary that keeps track of which mutations are not seen by a model
-        and how often they are not sampled across all models in the collection.
+        A dictionary that keeps track of which mutations that are not seen by
+        at least one model. The keys are the mutations and the values are the
+        number of models that did not observe the mutation.
 
     """
 
@@ -156,6 +158,7 @@ class PolyclonalCollection:
         self,
         root_polyclonal,
         n_samples=0,
+        n_threads=1,
         seed=0,
     ):
         """See main class docstring and :class:Polyclonal documentation for
@@ -163,21 +166,25 @@ class PolyclonalCollection:
         # TODO Check to see if the polyclonal object has required args `data_to_fit`
         self.root_polyclonal = root_polyclonal
         self.n_samples = n_samples
+        self.n_threads = n_threads
+        self.seed = seed
 
-        # TODO: in either polyclonal or in PolyclonalCollection, store indicies from original dataset.
         if n_samples > 0:
-            # Create list of bootstrapped polyclonal objects (don't fit yet)
-            with Pool(2) as p:
+            # Create distinct seeds for each model
+            seeds = [x + self.seed for x in list(range(n_samples))]
+
+            # Create list of bootstrapped polyclonal objects
+            with Pool(self.n_threads) as p:
                 self.models = p.starmap(
                     _create_bootstrap_polyclonal,
-                    zip(repeat(root_polyclonal), list(range(n_samples))),
+                    zip(repeat(root_polyclonal), seeds),
                 )
         else:
             raise ValueError(
                 "Please specify a number of bootstrap samples to make by specifying n_samples."
             )
 
-    def fit_models(self, n_threads=1):
+    def fit_models(self, n_tries=5):
         """Fits :class:Polyclonal models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
@@ -188,9 +195,12 @@ class PolyclonalCollection:
 
         Parameters:
         ------------
+        n_tries : int
+            The number of attempts for all optimization procedures to succeed.
 
         Returns:
         ---------
+        Void
 
         @Zorian given that we'd like to use multiprocessing.Pool I can say from
         experience that your life will be much easier if you think about defining things
@@ -211,11 +221,33 @@ class PolyclonalCollection:
         We don't need _populate_collection and I've removed it.
 
         """
-        with Pool(n_threads) as p:
-            # May not need this re-assignment since fit() updates params in place.
-            self.models = p.map(_fit_polyclonal_model, self.models)
+        # Initial pass over all models
+        with Pool(self.n_threads) as p:
+            p.map(_fit_polyclonal_model, self.models)
 
-    def make_predictions(self, variants_df, n_threads=1):
+        # Check to see how many models failed optimization
+        n_fails = sum(model is None for model in self.models)
+
+        # Shift seed to avoid duplicate bootstraps
+        shifted_seed = self.seed + self.n_samples
+        replacement_models = []
+
+        # Create replacement models one by one (for now at least)
+        while len(replacement_models) < n_fails:
+            # Create new models one by one but only add the ones that succeed
+            tmp_model = self._create_bootstrap_polyclonal(root_polyclonal, shifted_seed)
+            tmp_model = self._fit_polyclonal_model()
+
+            if tmp_model is not None:
+                replacement_models.append(tmp_model)
+
+            shifted_seed += 1
+
+        # Now, replace all None in self.models with replacement models
+        self.models = list(filter(None, self.models))
+        self.models = self.models + replacement_models
+
+    def make_predictions(self, variants_df):
         """Make predictions on variants for models that have parameters for present
         mutations.
         Aggregate and return these predictions into a single data frame.
@@ -225,8 +257,6 @@ class PolyclonalCollection:
         variants_df : pandas.DataFrame
             Data frame defining variants. Should have column named ‘aa_substitutions’
             that defines variants as space-delimited strings of substitutions (e.g., ‘M1A K3T’).
-        n_threads : int
-            Number of threads to use to make predictions across all models.
 
         Returns:
         ---------
@@ -243,13 +273,15 @@ class PolyclonalCollection:
             * One change here, is for variants with unseen mutations, I'd like a null prediction
             * Then we aggregate predictions:
                 - We start by concatenating these `polyclonal.variant_df` objects (the model predictions)
-                - We can then aggregate these predictions into a summary df for plotting using _aggregate_predictions()
+                - We can then aggregate these predictions into a summary df for plotting using _summarize_bootstraped_predictions()
         """
-        with Pool(n_threads) as p:
-            pred_dfs = p.starmap(_predict, zip(self.models, repeat(variants_df)))
+        with Pool(self.n_threads) as p:
+            pred_dfs = p.starmap(
+                _prob_escape_static, zip(self.models, repeat(variants_df))
+            )
         return pred_dfs
 
-    def _aggregate_predictions(self, pred_list):
+    def _summarize_bootstraped_predictions(self, pred_list):
         """Aggregate predictions from all eligible models.
         Given a list of prediction dataframes, splits each variant up by each mutation,
         and calculates summary statistics of escape predictions associated with each mutation at each concentration.
@@ -305,7 +337,7 @@ class PolyclonalCollection:
 
         return mutation_dict_freqs
 
-    def _summarize_param_dfs(self):
+    def _summarize_bootstrapped_params(self):
         """Creates a dataframe of summary statistics for `self.mut_escape_df` and `self.activity_wt_df`"""
 
         mut_escape_df_list = []
@@ -343,48 +375,19 @@ class PolyclonalCollection:
             **activity_summary_stats
         )
 
-        return mut_escape_df_stats, wt_df_stats
+        # Create a dictionary for summary stats for both dataframes
+        mut_core_cols = ["mutation", "epitope", "site", "wildtype"]
 
-    def avg_model(self, avg_type="median", min_bootstrap_frac=0.9):
-        """Returns :class:`Polyclonal` object with average fit parameters.
+        mut_escape_stats_dict = {
+            "mean": mut_escape_df_stats.filter(items=mut_core_cols + ["mean"]),
+            "median": mut_escape_df_stats.filter(items=mut_core_cols + ["median"]),
+            "std": mut_escape_df_stats.filter(items=mut_core_cols + ["std"]),
+        }
 
-        Parameters
-        ------------
-        avg_type : {'median', 'mean'}
-            Average activities and beta values in this way.
-        min_bootstrap_frac : float
-            Only include beta values for mutations in this fraction of bootstrap replicates.
+        wt_activity_stats_dict = {
+            "mean": wt_df_stats.filter(items=["epitope", "mean"]),
+            "median": wt_df_stats.filter(items=["epitope", "median"]),
+            "std": wt_df_stats.filter(items=["epitope", "std"]),
+        }
 
-        Returns
-        --------
-        :class:`Polyclonal`
-        """
-        # Harmonize epitopes -- a bug here (need to raise issue)
-
-        # Get summary stats dataframes
-        avg_mut_df, avg_activity_df = self._summarize_param_dfs()
-
-        # Filter beta values for mutations passing min_bootstrap_frac threshold
-        muts_to_drop = [
-            key
-            for key, value in self.mut_bootstrap_freq_dict.items()
-            if value < min_bootstrap_frac
-        ]
-        avg_mut_df = avg_mut_df[~avg_mut_df["mutation"].isin(muts_to_drop)]
-
-        # Use desired avg_type
-        avg_mut_df["escape"] = avg_mut_df[avg_type]
-        avg_activity_df["activity"] = avg_activity_df[avg_type]
-
-        # Drop all summary stat columns
-        cols_to_drop = ["mean", "median", "std"]
-
-        # Create a new polyclonal object with `mut_escape_df` of average values.
-        avg_model = polyclonal.Polyclonal(
-            data_to_fit=None,
-            mut_escape_df=avg_mut_df.drop(columns=cols_to_drop),
-            activity_wt_df=avg_activity_df.drop(columns=cols_to_drop),
-        )
-
-        # Also create columns with SD and % of bootstrap samples the mutation is in
-        return avg_model
+        return mut_escape_stats_dict, wt_activity_stats_dict
