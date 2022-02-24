@@ -222,7 +222,7 @@ class PolyclonalCollection:
         """
         # Initial pass over all models
         with Pool(self.n_threads) as p:
-            p.map(_fit_polyclonal_model, self.models)
+            self.models = p.map(_fit_polyclonal_model, self.models)
 
         # Check to see how many models failed optimization
         n_fails = sum(model is None for model in self.models)
