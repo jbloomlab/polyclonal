@@ -26,6 +26,7 @@ Contents
    expt_design
    optimization
    partition_function
+   interaction_effects
    polyclonal
    package_index
    acknowledgments
