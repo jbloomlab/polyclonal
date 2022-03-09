@@ -9,6 +9,7 @@ Defines :class:`PolyclonalCollection` objects for bootstrapping :class:`Polyclon
 
 import pandas as pd
 import polyclonal
+from functools import partial
 from multiprocessing import Pool
 from itertools import repeat
 from collections import Counter
@@ -65,27 +66,28 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
 
     Returns:
     ---------
-    new_polyclonal : class:Polyclonal
+    polyclonal : class:Polyclonal
         A new :class:Polyclonal object constructed from a bootsrapped sample of `root_polyclonal.data_to_fit`.
 
     """
     if root_polyclonal.data_to_fit is None:
         raise ValueError("No data to fit provided in the polyclonal object.")
-    # Polyclonal drops duplicate from data_to_fit by default -- should we  keep this?
+
     bootstrap_df = create_bootstrap_sample(
         df=root_polyclonal.data_to_fit, seed=seed, group_by_col=group_by_col
     )
-    new_polyclonal = polyclonal.Polyclonal(
+
+    return polyclonal.Polyclonal(
         data_to_fit=bootstrap_df,
         n_epitopes=len(root_polyclonal.epitopes),
         collapse_identical_variants=False,
     )
 
-    return new_polyclonal
 
-
-def _fit_polyclonal_model(polyclonal_obj):
+def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     """Wrapper method to fit the model in a :class:Polyclonal object.
+
+    If optimization of model parameters is succesful, return None.
 
     Parameters:
     ------------
@@ -98,10 +100,8 @@ def _fit_polyclonal_model(polyclonal_obj):
         The same class:Polyclonal object but with optimized model parameters after fitting.
 
     """
-    # TODO: How should we handle situations where optimization fails?
-    # Is failed optimization only an issue on the small dataset?
     try:
-        _ = polyclonal_obj.fit(fit_site_level_first=False)
+        _ = polyclonal_obj.fit(**kwargs)
     except RuntimeError:
         return None
 
@@ -163,7 +163,8 @@ class PolyclonalCollection:
     ):
         """See main class docstring and :class:Polyclonal documentation for
         details."""
-        # TODO Check to see if the polyclonal object has required args `data_to_fit`
+        if root_polyclonal.data_to_fit is None:
+            raise ValueError("Provided polyclonal object does not have data to fit.")
         self.root_polyclonal = root_polyclonal
         self.n_bootstrap_samples = n_bootstrap_samples
         self.n_threads = n_threads
@@ -184,7 +185,7 @@ class PolyclonalCollection:
                 "Please specify a number of bootstrap samples to make by specifying n_bootstrap_samples."
             )
 
-    def fit_models(self):
+    def fit_models(self, max_attempts=10, **kwargs):
         """Fits :class:Polyclonal models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
@@ -195,37 +196,23 @@ class PolyclonalCollection:
 
         Parameters:
         ------------
-        None
+        max_attempts : int
+            The maximum number of retries to allow if optimization fails.
 
         Returns:
         ---------
         None
 
-        @Zorian given that we'd like to use multiprocessing.Pool I can say from
-        experience that your life will be much easier if you think about defining things
-        as much as possible in terms of free functions. I suggest a function that takes
-        a bootstrapped data set and spits out a re-initialized model like you describe here.
-        Then fit_models can take a threads argument, initialize the pool, and then apply
-        that free function repeatedly.
-        Given this, I'm not sure that you need _populate_collection but I probably don't
-        understand what you have in mind.
-
-        @Erick okay, I do think this is a good idea and have adjusted things above.
-        I guess one thing I'm confused by "free function" -- do you mean a non-member function here
-        or just like, more modularized functions that would all get called here?
-        Regardless, I have a seperate function that will:
-         - Take in a dataframe for `data_to_fit` and then creates and fits a polyclonal model.
-         - Re-creates this object without the attached data and just the params.
-         - Returns this polyclonal object
-        We don't need _populate_collection and I've removed it.
-
         """
         # Initial pass over all models
         with Pool(self.n_threads) as p:
-            self.models = p.map(_fit_polyclonal_model, self.models)
+            self.models = p.map(
+                partial(_fit_polyclonal_model_static, **kwargs), self.models
+            )
 
         # Check to see how many models failed optimization
         n_fails = sum(model is None for model in self.models)
+        n_retry_fails = 0
 
         # Shift seed to avoid duplicate bootstraps
         shifted_seed = self.seed + self.n_bootstrap_samples
@@ -233,12 +220,17 @@ class PolyclonalCollection:
 
         # Create replacement models one by one (for now at least)
         while len(replacement_models) < n_fails:
+            if n_retry_fails == max_attempts:
+                raise RuntimeError("Maximum number of fitting retries reached.")
+
             # Create new models one by one but only add the ones that succeed
             tmp_model = self._create_bootstrap_polyclonal(root_polyclonal, shifted_seed)
-            tmp_model = self._fit_polyclonal_model()
+            tmp_model = self._fit_polyclonal_model_static()
 
             if tmp_model is not None:
                 replacement_models.append(tmp_model)
+            else:
+                n_retry_fails += 1
 
             shifted_seed += 1
 
@@ -263,16 +255,6 @@ class PolyclonalCollection:
             For each model in the `PolyclonalCollection`, generates a dataframe
             of predictions on `variants_df` and returns them in a list.
 
-
-        @Zorian-- can you provide a little more detail about the shape of this df?
-
-        @Erick After some thought, I think I'd like a method that works like fit_models() perhaps
-            * We could give a number of threads for making these predictions across all models.
-            * For the target-data, we will generate the standard output for `polyclonal.prob_escape()`
-            * One change here, is for variants with unseen mutations, I'd like a null prediction
-            * Then we aggregate predictions:
-                - We start by concatenating these `polyclonal.variant_df` objects (the model predictions)
-                - We can then aggregate these predictions into a summary df for plotting using _summarize_bootstraped_predictions()
         """
         with Pool(self.n_threads) as p:
             pred_dfs = p.starmap(
@@ -280,18 +262,10 @@ class PolyclonalCollection:
             )
         return pred_dfs
 
-    def _summarize_bootstraped_predictions(self, pred_list):
+    def summarize_bootstraped_predictions(self, pred_list):
         """Aggregate predictions from all eligible models.
         Given a list of prediction dataframes, splits each variant up by each mutation,
         and calculates summary statistics of escape predictions associated with each mutation at each concentration.
-        @Zorian-- can you describe the return type here?
-
-        @Erick My plan was for the return to be a dataframe with shape N_test_variants(including each concentration) x N_summary_stats.
-            * Each row would represent a variant in the "test" set.
-            * Each column would be a summary statsitic of the model predictions
-                - i.e., mean, number or % of models we have a prediction for (support), variance, etc.
-            * And this would be the final output from `make_predictions()`
-            * Though I would probably want this to look more like an `mut_escape_df` object for plotting downstream.
 
         Parameters:
         ------------
@@ -303,11 +277,10 @@ class PolyclonalCollection:
             A dataframe of summary stats for predictions made from each model.
 
         """
-        # Combine all dataframes together (maybe add some model ID column?)
-        raw_concat_df = pd.concat(pred_list)
+        # Combine all dataframes together
+        results_df = pd.concat(pred_list)
 
-        results_df = raw_concat_df
-
+        # Define dictionary of data transformations we want to calculate.ß
         pred_summary_stats = {
             "mean_predicted_prob_escape": pd.NamedAgg("predicted_prob_escape", "mean"),
             "median_predicted_prob_escape": pd.NamedAgg(
@@ -337,8 +310,26 @@ class PolyclonalCollection:
 
         return mutation_dict_freqs
 
-    def _summarize_bootstrapped_params(self):
-        """Creates a dataframe of summary statistics for `self.mut_escape_df` and `self.activity_wt_df`"""
+    def summarize_bootstrapped_params(self):
+        """Creates a dataframe of summary statistics for `self.mut_escape_df`
+        and `self.activity_wt_df`
+
+        Parameters:
+        ------------
+        None
+
+        Returns:
+        ------------
+        mut_escape_stats_dict : Dictionary
+            A dictionary of dataframes in the format of `self.mut_escape_df`,
+            but instead have a summary statistic for the beta parameter for the
+            coresponding mutation. Statistic is given by the key in the object.
+        activity_wt_stats_dict : Dictionary
+            A dictionary of dataframes in the format of `self.activity_wt_df`,
+            but instead have a summary statistic for the beta parameter for the
+            coresponding mutation. Statistic is given by the key in the object.
+
+        """
 
         mut_escape_df_list = []
         activity_wt_df_list = []
@@ -384,10 +375,10 @@ class PolyclonalCollection:
             "std": mut_escape_df_stats.filter(items=mut_core_cols + ["std"]),
         }
 
-        wt_activity_stats_dict = {
+        activity_wt_stats_dict = {
             "mean": wt_df_stats.filter(items=["epitope", "mean"]),
             "median": wt_df_stats.filter(items=["epitope", "median"]),
             "std": wt_df_stats.filter(items=["epitope", "std"]),
         }
 
-        return mut_escape_stats_dict, wt_activity_stats_dict
+        return mut_escape_stats_dict, activity_wt_stats_dict
