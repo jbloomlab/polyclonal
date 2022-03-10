@@ -87,7 +87,11 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
 def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     """Wrapper method to fit the model in a :class:Polyclonal object.
 
-    If optimization of model parameters is succesful, return None.
+    If scipy optimization fails, :class:Polyclonal objects will throw a
+    `RuntimeError`.
+
+    We catch this error and proceed with the program by returning `None` for the
+    model that failed optimization.
 
     Parameters:
     ------------
@@ -131,7 +135,12 @@ def _prob_escape_static(polyclonal_obj, variants_df):
 def _harmonize_epitopes_static(other_poly, ref_poly):
     """Wrapper to harmonize epitopes with a root_polyclonal object.
 
-    If mapping matrix is not 1-to-1, return None to trigger restarting.
+    If mapping matricies are not 1-to-1, :class:Polyclonal objects will throw a
+    `ValueError`.
+
+    If we catch this error, the program will return a value of `None` for the
+    `other_poly` model that could not be harmonized with `ref_poly`.
+
 
     Parameters:
     ------------
@@ -168,6 +177,8 @@ class PolyclonalCollection:
         models to fit.
     seed : int
         Random seed for reproducibility.
+    n_threads : int
+        The number of threads to use for multiprocessing.
 
     Attributes
     -----------
@@ -324,7 +335,7 @@ class PolyclonalCollection:
             A new polyclonal object with a different seed.
 
         """
-        # Create a temp model with next seed
+        # Create a new model with next seed
         new_polyclonal = self._create_bootstrap_polyclonal(
             root_polyclonal, self.next_seed
         )
