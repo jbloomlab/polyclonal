@@ -264,66 +264,17 @@ class PolyclonalCollection:
 
             # Create new models one by one but only add the ones that succeed
             tmp_model = self._retry_model_fit()
-
-            if tmp_model is not None:
-                replacement_models.append(tmp_model)
-            else:
-                n_retry_fails += 1
-
-        # Now, replace all None in self.models with replacement models
-        self.models = list(filter(None, self.models))
-        self.models = self.models + replacement_models
-
-    def harmonize_epitopes(self, max_attempts=10):
-        """Harmonize all models in self.models with self.root_polyclonal.
-
-        Parameters:
-        ------------
-        max_attempts : int
-            The number of total tries to give `PolyclonalCollection` to align or
-            "harmonize" epitopes of `self.models` with `self.root_polyclonal`.
-
-        Returns:
-        ---------
-        None
-            Will throw an error if all models could not be harmonized with the
-            given number of trials.
-
-        """
-        harmonized_models = []
-        for model in self.models:
-            harmonized_models.append(
-                _harmonize_epitopes_static(model, self.root_polyclonal)
-            )
-
-        # Check to see how many models failed optimization
-        n_fails = sum(model is None for model in self.models)
-        n_retry_fails = 0
-
-        # Models that were harmonized successfully
-        replacement_models = []
-
-        if n_fails > 0:
-            print(f"{n_fails} models could not be harmonized. Re-running.")
-
-        # Create replacement models one by one (for now at least)
-        while len(replacement_models) < n_fails:
-            if n_retry_fails >= max_attempts:
-                raise RuntimeError("Maximum number of fitting retries reached.")
-
-            # Create new models one by one but only add the ones that succeed
-            tmp_model = self._retry_model_fit()
             tmp_model = _harmonize_epitopes_static(self.root_polyclonal, tmp_model)
 
             if tmp_model is not None:
                 replacement_models.append(tmp_model)
             else:
-                print("Epitope harmonization failed, retrying...")
                 n_retry_fails += 1
 
         # Now, replace all None in self.models with replacement models
         self.models = list(filter(None, self.models))
         self.models = self.models + replacement_models
+
 
     def _retry_model_fit(self):
         """Retry fitting the model in the case of failure with optimization or
