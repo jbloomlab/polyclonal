@@ -19,4 +19,4 @@ __version__ = "0.1"
 __url__ = "https://github.com/jbloomlab/polyclonal"
 
 from polyclonal.polyclonal import Polyclonal  # noqa: F401
-from polyclonal.polyclonal_collection import PolyclonalCollection
+from polyclonal.polyclonal_collection import PolyclonalCollection  # noqa: F401
