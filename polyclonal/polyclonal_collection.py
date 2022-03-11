@@ -16,6 +16,7 @@ from multiprocessing import Pool
 import pandas as pd
 
 import polyclonal
+from polyclonal.polyclonal import PolyclonalFitError, PolyclonalHarmonizeError
 
 
 def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
@@ -97,7 +98,7 @@ def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
 
     A wrapper method for fitting models with `multiprocessing`.
     If scipy optimization fails, :class:Polyclonal objects will throw a
-    `RuntimeError`.
+    `PolyclonalFitError`.
 
     We catch this error and proceed with the program by returning `None` for the
     model that failed optimization.
@@ -116,7 +117,7 @@ def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     """
     try:
         _ = polyclonal_obj.fit(**kwargs)
-    except RuntimeError:
+    except PolyclonalFitError:
         return None
 
     return polyclonal_obj
@@ -173,7 +174,7 @@ def _harmonize_epitopes_static(other_poly, ref_poly):
     """
     try:
         other_poly.harmonize_epitopes_with(ref_poly)
-    except ValueError:
+    except PolyclonalHarmonizeError:
         return None
 
     return other_poly
