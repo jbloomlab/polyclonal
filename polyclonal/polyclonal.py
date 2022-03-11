@@ -32,6 +32,18 @@ import polyclonal.plot
 import polyclonal.utils
 
 
+class PolyclonalFitError(Exception):
+    """Error fitting in :meth:`Polyclonal.fit`."""
+
+    pass
+
+
+class PolyclonalHarmonizeError(Exception):
+    """Error harmonizing epitopes in :meth:`Polyclonal.harmonize_epitopes_with`."""
+
+    pass
+
+
 class Polyclonal:
     r"""Represent polyclonal antibody mixtures targeting multiple epitopes.
 
@@ -1321,7 +1333,7 @@ class Polyclonal:
             log.write(f"# Successfully finished at {time.asctime()}.\n")
         if not opt_res.success:
             log.write(f"# Optimization FAILED at {time.asctime()}.\n")
-            raise RuntimeError(f"Optimization failed:\n{opt_res}")
+            raise PolyclonalFitError(f"Optimization failed:\n{opt_res}")
         return opt_res
 
     def activity_wt_barplot(self, **kwargs):
@@ -1834,10 +1846,10 @@ class Polyclonal:
         mapping_dict : Dictionary
             A dictionary of `self:ref` key-value pairs of "harmonized" epitopes.
         """
-        # Get new ordering of epitope indicies for _params.
+        # Get new ordering of epitope indices for _params.
         new_idxs = numpy.fromiter(mapping_dict.values(), dtype=int) - 1
         if len(new_idxs) != len(self.epitopes):
-            raise ValueError(
+            raise PolyclonalHarmonizeError(
                 "Number of WT activity params not equal to number of epitopes."
             )
         # This will make sure `activity_wt_df()` is aligned in future calls.
@@ -1870,31 +1882,33 @@ class Polyclonal:
 
         # Make sure models have same number of params.
         if len(self._params) != len(ref_poly._params):
-            raise ValueError(
+            raise PolyclonalHarmonizeError(
                 "The polyclonal objects have a different number of parameters."
             )
 
         # We must have the same number of epitopes
         if len(self.epitopes) != len(ref_poly.epitopes):
-            raise ValueError(
+            raise PolyclonalHarmonizeError(
                 "The two models being aligned do not have the same number of "
                 "epitopes."
             )
 
         # Both models should have `mut_escape_df` initialized
         if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
-            raise ValueError("Both objects must have `mut_escape_df` initialized.")
+            raise PolyclonalHarmonizeError(
+                "Both objects must have `mut_escape_df` initialized."
+            )
 
         # Add another check to ensure both `mut_escape_df`s have needed columns
         required_cols = {"epitope", "mutation", "escape"}
         if not required_cols.issubset(self.mut_escape_df.columns):
-            raise KeyError(
+            raise PolyclonalHarmonizeError(
                 "The `mut_escape_df` of the object being aligned does not "
                 f"contain all of the required columns: {required_cols}."
             )
 
         if not required_cols.issubset(ref_poly.mut_escape_df.columns):
-            raise KeyError(
+            raise PolyclonalHarmonizeError(
                 "The `mut_escape_df` of the reference object being aligned to "
                 f"does not contain all of the required columns: {required_cols}."
             )
