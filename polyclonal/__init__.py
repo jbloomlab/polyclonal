@@ -11,6 +11,8 @@ into the package namespace:
 
  - :mod:`polyclonal.polyclonal.Polyclonal`
 
+ - :mod:`polyclonal.polyclonal_collection.PolyclonalCollection`
+
 """
 
 __author__ = "`the Bloom lab <https://research.fhcrc.org/bloom/en.html>`_"
