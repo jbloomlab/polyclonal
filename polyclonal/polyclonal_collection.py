@@ -4,7 +4,7 @@ polyclonal_collection
 ======================
 
 Defines :class:`PolyclonalCollection` objects for bootstrapping
-:class:`Polyclonal` model parameters.
+:mod:`~polyclonal.polyclonal.Polyclonal` model parameters.
 
 """
 
@@ -33,11 +33,11 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
         The name of a column to group the dataframe by. In most cases, this will
         be 'concentration'
 
-    Returns:
-    ---------
+    Returns
+    -------
     bootstrap_df : pandas.DataFrame
-         A dataframe that has the same number of rows as df as well as the same
-         number of samples per group_by_col
+         A dataframe that has the same number of rows as `df` as well as the same
+         number of samples per `group_by_col`.
 
     """
     # Check to make sure group_by_col exists -- raise an error otherwise.
@@ -59,24 +59,23 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
 
 
 def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentration"):
-    """Create a :class:Polyclonal object from bootstrapped dataset and
-    fits model.
+    """Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped
+    dataset and fits model.
 
     Parameters
     -----------
-    root_polyclonal : :class:Polyclonal
-        A initialized :class:Polyclonal object with complete dataset.
+    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
+        Initialized :class:`~polyclonal.polyclonal.Polyclonal` object with full dataset.
     seed : int
         Random seed
     groups: string
         The column name to group `root_polyclonal.data_to_fit` by,
         in most cases, this will be `concentration`
 
-    Returns:
-    ---------
-    polyclonal : class:Polyclonal
-        A new :class:Polyclonal object constructed from a bootsrapped sample of
-        `root_polyclonal.data_to_fit`.
+    Returns
+    -------
+    polyclonal : class:`~polyclonal.polyclonal.Polyclonal`
+        New object from bootstrapped sample of `root_polyclonal.data_to_fit`.
 
     """
     if root_polyclonal.data_to_fit is None:
@@ -94,25 +93,24 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
 
 
 def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
-    """Fit the model in a :class:Polyclonal object.
+    """Fit the model in a :class:`~polyclonal.polyclonal.Polyclonal` object.
 
-    A wrapper method for fitting models with `multiprocessing`.
-    If scipy optimization fails, :class:Polyclonal objects will throw a
-    `PolyclonalFitError`.
+    A wrapper method for fitting models with `multiprocessing`. If optimization
+    optimization fails, :class:`~polyclonal.polyclonal.Polyclonal` objects will throw a
+    :class:`~polyclonal.polyclonal.PolyclonalFitError`.
 
     We catch this error and proceed with the program by returning `None` for the
     model that failed optimization.
 
-    Parameters:
-    ------------
-    polyclonal_obj : class:Polyclonal
-        An initialized :class:Polyclonal object.
+    Parameters
+    ----------
+    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
+        An initialized :class:`~polyclonal.polyclonal.Polyclonal` object.
 
-    Returns:
-    ---------
-    polyclonal_obj : class:Polyclonal
-        The same class:Polyclonal object but with optimized model parameters
-        after fitting.
+    Returns
+    -------
+    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
+        `polyclonal_obj` but with optimized model parameters after fitting.
 
     """
     try:
@@ -127,16 +125,16 @@ def _prob_escape_static(polyclonal_obj, variants_df):
     """Make escape probability predictions for a dataframe of variants, given a
     polyclonal object.
 
-    Parameters:
-    ------------
-    polyclonal_obj : :class:Polyclonal
-        A :class:Polyclonal object to make predictions with.
+    Parameters
+    ----------
+    polyclonal_obj : :class:`~polyclonal.polyclonal.Polyclonal`
+        A :class:`~polyclonal.polyclonal.Polyclonal` object to make predictions with.
 
     vairants_df : pandas.DataFrame
         A dataframe of variants to predict escape probabilities for.
 
-    Returns:
-    ---------
+    Returns
+    -------
     variants_df : pandas.DataFrame
         A dataframe of the variants from the input data and corresponding
         predictions for escape probabilities.
@@ -149,27 +147,25 @@ def _harmonize_epitopes_static(other_poly, ref_poly):
     """Harmonize the epitopes of an polycolonal object with a root_polyclonal
     object.
 
-    A wrapper method for fitting models with `multiprocessing`.
-    If mapping matricies are not 1-to-1, :class:Polyclonal objects will throw a
-    `ValueError`.
+    A wrapper method for fitting models with `multiprocessing`. If mapping
+    matrices are not 1-to-1, :class:`~polyclonal.polyclonal.Polyclonal` objects will
+    throw a :class:`~polyclonal.polyclonal.PolyclonalHarmonizeError`.
 
     If we catch this error, the program will return a value of `None` for the
     `other_poly` model that could not be harmonized with `ref_poly`.
 
 
-    Parameters:
-    ------------
-    other_poly : :class:Polyclonal
-        Another :class:Polyclonal object that will align its epitopes with
-        `ref_poly`.
-    ref_poly : :class:Polyclonal
-        A :class:Polyclonal object to serve as the reference object.
+    Parameters
+    ----------
+    other_poly : :class:`~polyclonal.polyclonal.Polyclonal`
+        :class:`~polyclonal.polyclonal.Polyclonal` object for which we align epitopes.
+    ref_poly : :class:`~polyclonal.polyclonal.Polyclonal`
+        A :class:`~polyclonal.polyclonal.Polyclonal` object to serve as the reference.
 
-    Returns:
-    ---------
-    other_poly : :class:Polyclonal
-        The same :class:Polyclonal object but with aligned epitopes with
-        `ref_poly`.
+    Returns
+    -------
+    other_poly : :class:`~polyclonal.polyclonal.Polyclonal`
+        `other_poly` but with epitopes aligned to `ref_poly`.
 
     """
     try:
@@ -181,16 +177,15 @@ def _harmonize_epitopes_static(other_poly, ref_poly):
 
 
 class PolyclonalCollection:
-    r"""A container class for multiple :class:`Polyclonal` objects.
+    r"""A container class for multiple :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
     Parameters
     -----------
-    root_polyclonal : :class:Polyclonal
+    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
         The polyclonal object created with the full dataset to draw bootstrapped
         samples from.
     n_bootstrap_samples : int
-        The number of desired bootstrap samples to draw and :class:Polyclonal
-        models to fit.
+        Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
     seed : int
         Random seed for reproducibility.
     n_threads : int
@@ -201,7 +196,7 @@ class PolyclonalCollection:
     mutations : tuple
         All mutations for which we have escape values.
     models : tuple
-        Contains `n_bootstrap_samples` of the :class:`Polyclonal` models.
+        `n_bootstrap_samples` of :class:`~polyclonal.polyclonal.Polyclonal` models.
     unsampled_mutations : dictionary
         A dictionary that keeps track of which mutations that are not seen by
         at least one model. The keys are the mutations and the values are the
@@ -216,8 +211,8 @@ class PolyclonalCollection:
         n_threads=1,
         seed=0,
     ):
-        """See main class docstring and :class:Polyclonal documentation for
-        details.
+        """See main class docstring and :class:`~polyclonal.polyclonal.Polyclonal`
+        documentation for details.
         """
         if root_polyclonal.data_to_fit is None:
             raise ValueError("polyclonal object does not have data to fit.")
@@ -241,21 +236,21 @@ class PolyclonalCollection:
             raise ValueError("Please specify a number of bootstrap samples to make.")
 
     def fit_models(self, max_attempts=10, **kwargs):
-        """Fits :class:Polyclonal models.
+        """Fits :class:`~polyclonal.polyclonal.Polyclonal` models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
-        After this fitting, re-initialize :class:Polyclonal without data, but
-        with inferred parameters.
+        After fitting, re-initialize :class:`~polyclonal.polyclonal.Polyclonal` without
+        data, but with inferred parameters.
 
-        Save the model without attached data to `self.models`.
+        Save the models without attached data to :attr:`PolyclonalCollection.models`.
 
-        Parameters:
-        ------------
+        Parameters
+        ----------
         max_attempts : int
             The maximum number of retries to allow if optimization fails.
 
-        Returns:
-        ---------
+        Returns
+        -------
         None
 
         """
@@ -294,9 +289,9 @@ class PolyclonalCollection:
         """Retry fitting the model in the case of failure with optimization or
         epitope harmonization.
 
-        Returns:
-        --------
-        new_polyclonal : :class:Polyclonal
+        Returns
+        -------
+        new_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
             A new polyclonal object with a different seed.
 
         """
@@ -316,15 +311,15 @@ class PolyclonalCollection:
         present mutations.
         Aggregate and return these predictions into a single data frame.
 
-        Parameters:
-        ------------
+        Parameters
+        ----------
         variants_df : pandas.DataFrame
             Data frame defining variants. Should have column named
             ‘aa_substitutions’ that defines variants as space-delimited strings
             of substitutions (e.g., ‘M1A K3T’).
 
-        Returns:
-        ---------
+        Returns
+        -------
         pred_dfs : list of pandas.DataFrame objects
             For each model in the `PolyclonalCollection`, generates a dataframe
             of predictions on `variants_df` and returns them in a list.
@@ -342,12 +337,12 @@ class PolyclonalCollection:
         mutation, and calculates summary statistics of escape predictions
         associated with each mutation at each concentration.
 
-        Parameters:
-        ------------
-        pred_list : list of pandas.DataFrame objets
+        Parameters
+        ----------
+        pred_list : list of pandas.DataFrame objects
 
-        Returns:
-        ---------
+        Returns
+        -------
         results_df : pandas.DataFrame
             A dataframe of summary stats for predictions made from each model.
 
@@ -391,17 +386,13 @@ class PolyclonalCollection:
         """Return a dataframe of summary statistics for `self.mut_escape_df`
         and `self.activity_wt_df`.
 
-        Parameters:
-        ------------
-        None
-
-        Returns:
-        ------------
-        mut_escape_stats_dict : Dictionary
+        Returns
+        -------
+        mut_escape_stats_dict : dict
             A dictionary of dataframes in the format of `self.mut_escape_df`,
             but instead have a summary statistic for the beta parameter for the
             coresponding mutation. Statistic is given by the key in the object.
-        activity_wt_stats_dict : Dictionary
+        activity_wt_stats_dict : dict
             A dictionary of dataframes in the format of `self.activity_wt_df`,
             but instead have a summary statistic for the beta parameter for the
             coresponding mutation. Statistic is given by the key in the object.

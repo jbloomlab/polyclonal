@@ -9,9 +9,9 @@ deep mutational scanning experiments.
 Importing this package imports the following objects
 into the package namespace:
 
- - :mod:`polyclonal.polyclonal.Polyclonal`
+ - :mod:`~polyclonal.polyclonal.Polyclonal`
 
- - :mod:`polyclonal.polyclonal_collection.PolyclonalCollection`
+ - :mod:`~polyclonal.polyclonal_collection.PolyclonalCollection`
 
 """
 

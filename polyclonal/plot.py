@@ -71,7 +71,7 @@ def activity_wt_barplot(
     ----------
     activity_wt_df : pandas.DataFrame
         Epitope activities in format of
-        :attr:`polyclonal.Polyclonal.activity_wt_df`.
+        :attr:`polyclonal.polyclonal.Polyclonal.activity_wt_df`.
     epitope_colors : dict
         Maps each epitope name to its color.
     epitopes : array-like or None
@@ -138,7 +138,7 @@ def mut_escape_lineplot(
     -----------
     mut_escape_site_summary_df : pandas.DataFrame
         Site-level escape in format of
-        :attr:`polyclonal.Polyclonal.mut_escape_site_summary_df`.
+        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
     epitope_colors : dict
         Maps each epitope name to its color.
     epitopes : array-like or None
@@ -153,8 +153,8 @@ def mut_escape_lineplot(
     width : float
         Width of plot.
     init_metric : str
-        Metric to show initially (others can be selected by dropdown).
-        One of metrics in :attr:`Polyclonal.site_summary_df`.
+        Metric to show initially (others can be selected by dropdown). One of
+        metrics in :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
     zoom_bar_width : float
         Width of zoom bar
 
@@ -311,7 +311,7 @@ def mut_escape_heatmap(
     ----------
     mut_escape_df : pandas.DataFrame
         Mutation-level escape in format of
-        :attr:`polyclonal.Polyclonal.mut_escape_df`.
+        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`.
     alphabet : array-like or None
         Alphabet letters (e.g., amino acids) in order to plot them.
     epitope_colors : dict
