@@ -189,7 +189,7 @@ class PolyclonalCollection:
     seed : int
         Random seed for reproducibility.
     n_threads : int
-        The number of threads to use for multiprocessing.
+        Number of threads to use for multiprocessing, -1 means all available.
 
     Attributes
     -----------
@@ -208,7 +208,7 @@ class PolyclonalCollection:
         self,
         root_polyclonal,
         n_bootstrap_samples,
-        n_threads=1,
+        n_threads=-1,
         seed=0,
     ):
         """See main class docstring for details."""
@@ -216,7 +216,10 @@ class PolyclonalCollection:
             raise ValueError("polyclonal object does not have data to fit.")
         self.root_polyclonal = root_polyclonal
         self.n_bootstrap_samples = n_bootstrap_samples
-        self.n_threads = n_threads
+        if n_threads == -1:
+            self.n_threads = multiprocessing.cpu_count()
+        else:
+            self.n_threads = n_threads
         self.seed = seed
         self.next_seed = self.seed + self.n_bootstrap_samples  # For retrying
 
