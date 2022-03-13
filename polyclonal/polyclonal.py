@@ -144,8 +144,9 @@ class Polyclonal:
     collapse_identical_variants : {'mean', 'median', False}
         If identical variants in ``data_to_fit`` (same 'aa_substitutions'),
         collapse them and make weight proportional to number of collapsed
-        variants. Collapse by taking mean or median of 'prob_escape', or
-        do not collapse at all.
+        variants? Collapse by taking mean or median of 'prob_escape', or
+        (if `False`) do not collapse at all. Collapsing will make fitting faster,
+        but *not* a good idea if you are doing bootstrapping.
     alphabet : array-like
         Allowed characters in mutation strings.
     epitope_colors : array-like or dict
@@ -160,7 +161,7 @@ class Polyclonal:
         specified random number seed.
     data_mut_escape_overlap : {'exact_match', 'fill_to_data'}
         If ``data_to_fit`` and ``mut_escape_df`` (or ``site_escape_df``) both
-        specificied, what if they don't specify same mutations.
+        specified, what if they don't specify same mutations.
         If 'exact_match', raise error. If 'fill_to_data', then take
         sites / wildtypes / mutations from ``data_to_fit`` and fill init
         values from any not specified in ``mut_escape_df`` as indicated by
@@ -200,8 +201,11 @@ class Polyclonal:
     ...   'epitope':  [ 'e1',  'e2',  'e1',  'e2',  'e1',  'e2',  'e1',  'e2'],
     ...   'escape':   [  2.0,   0.0,   3.0,   0.0,  0.0,    2.5,   0.0,   1.5],
     ...   })
-    >>> polyclonal = Polyclonal(activity_wt_df=activity_wt_df,
-    ...                         mut_escape_df=mut_escape_df)
+    >>> polyclonal = Polyclonal(
+    ...     activity_wt_df=activity_wt_df,
+    ...     mut_escape_df=mut_escape_df,
+    ...     collapse_identical_variants="mean",
+    ... )
     >>> polyclonal.epitopes
     ('e1', 'e2')
     >>> polyclonal.mutations
@@ -362,8 +366,11 @@ class Polyclonal:
     ...         .rename(columns={'predicted_prob_escape': 'prob_escape'})
     ...         )
 
-    >>> polyclonal_data = Polyclonal(data_to_fit=data_to_fit,
-    ...                              n_epitopes=2)
+    >>> polyclonal_data = Polyclonal(
+    ...     data_to_fit=data_to_fit,
+    ...     n_epitopes=2,
+    ...     collapse_identical_variants="mean",
+    ... )
 
     The mutations are those in ``data_to_fit``:
 
@@ -391,10 +398,12 @@ class Polyclonal:
     You can initialize to random numbers by setting ``init_missing`` to seed
     (in this example we also don't include all variants for one concentration):
 
-    >>> polyclonal_data2 = Polyclonal(data_to_fit=data_to_fit.head(30),
-    ...                               n_epitopes=2,
-    ...                               init_missing=1,
-    ...                               )
+    >>> polyclonal_data2 = Polyclonal(
+    ...     data_to_fit=data_to_fit.head(30),
+    ...     n_epitopes=2,
+    ...     init_missing=1,
+    ...     collapse_identical_variants="mean",
+    ... )
     >>> polyclonal_data2.activity_wt_df.round(3)
       epitope  activity
     0       1     0.417
@@ -403,13 +412,14 @@ class Polyclonal:
     You can set some or all mutation escapes to initial values:
 
     >>> polyclonal_data3 = Polyclonal(
-    ...            data_to_fit=data_to_fit,
-    ...            activity_wt_df=activity_wt_df,
-    ...            mut_escape_df=pd.DataFrame({'epitope': ['e1'],
-    ...                                        'mutation': ['M1C'],
-    ...                                        'escape': [4]}),
-    ...            data_mut_escape_overlap='fill_to_data',
-    ...            )
+    ...     data_to_fit=data_to_fit,
+    ...     activity_wt_df=activity_wt_df,
+    ...     mut_escape_df=pd.DataFrame({'epitope': ['e1'],
+    ...                                 'mutation': ['M1C'],
+    ...                                 'escape': [4]}),
+    ...     data_mut_escape_overlap='fill_to_data',
+    ...     collapse_identical_variants="mean",
+    ... )
     >>> polyclonal_data3.mut_escape_df
       epitope  site wildtype mutant mutation  escape
     0      e1     1        M      C      M1C     4.0
@@ -424,14 +434,16 @@ class Polyclonal:
     You can initialize **sites** to escape values via ``site_activity_df``:
 
     >>> polyclonal_data4 = Polyclonal(
-    ...        data_to_fit=data_to_fit,
-    ...        activity_wt_df=activity_wt_df,
-    ...        site_escape_df=pd.DataFrame.from_records(
-    ...                [('e1', 1, 1.0), ('e1', 4, 0.0),
-    ...                 ('e2', 1, 0.0), ('e2', 4, 2.0)],
-    ...                columns=['epitope', 'site', 'escape']),
-    ...        data_mut_escape_overlap='fill_to_data',
-    ...        )
+    ...     data_to_fit=data_to_fit,
+    ...     activity_wt_df=activity_wt_df,
+    ...     site_escape_df=pd.DataFrame.from_records(
+    ...         [('e1', 1, 1.0), ('e1', 4, 0.0),
+    ...          ('e2', 1, 0.0), ('e2', 4, 2.0)],
+    ...         columns=['epitope', 'site', 'escape'],
+    ...     ),
+    ...     data_mut_escape_overlap='fill_to_data',
+    ...     collapse_identical_variants="mean",
+    ... )
     >>> polyclonal_data4.mut_escape_df
       epitope  site wildtype mutant mutation  escape
     0      e1     1        M      C      M1C     1.0
@@ -508,7 +520,7 @@ class Polyclonal:
         data_to_fit=None,
         site_escape_df=None,
         n_epitopes=None,
-        collapse_identical_variants="mean",
+        collapse_identical_variants=False,
         alphabet=binarymap.binarymap.AAS_NOSTOP,
         epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
         init_missing="zero",
@@ -1024,6 +1036,7 @@ class Polyclonal:
         self,
         *,
         aggregate_mut_escapes="mean",
+        collapse_identical_variants="mean",
     ):
         """Model with mutations collapsed at site level.
 
@@ -1032,6 +1045,8 @@ class Polyclonal:
         aggregate_mut_escapes : {'mean'}
             How to aggregate mutation-level escape values to site-level
             ones in ``mut_effects_df``.
+        collapse_identical_variants : {"mean", "median", False}
+            Same meaning as for :class:`Polyclonal` initialization.
 
         Returns
         -------
@@ -1059,6 +1074,7 @@ class Polyclonal:
             data_to_fit=site_data_to_fit,
             alphabet=("w", "m"),
             epitope_colors=self.epitope_colors,
+            collapse_identical_variants=collapse_identical_variants,
         )
 
     @staticmethod
