@@ -36,8 +36,8 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
     Returns
     -------
     bootstrap_df : pandas.DataFrame
-         A dataframe that has the same number of rows as df as well as the same
-         number of samples per group_by_col
+         A dataframe that has the same number of rows as `df` as well as the same
+         number of samples per `group_by_col`.
 
     """
     # Check to make sure group_by_col exists -- raise an error otherwise.
@@ -59,13 +59,13 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
 
 
 def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentration"):
-    """Create a :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped dataset and
-    fits model.
+    """Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped
+    dataset and fits model.
 
     Parameters
     -----------
     root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
-        A initialized :class:`~polyclonal.polyclonal.Polyclonal` object with complete dataset.
+        Initialized :class:`~polyclonal.polyclonal.Polyclonal` object with full dataset.
     seed : int
         Random seed
     groups: string
@@ -95,8 +95,8 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
 def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     """Fit the model in a :class:`~polyclonal.polyclonal.Polyclonal` object.
 
-    A wrapper method for fitting models with `multiprocessing`.
-    If scipy optimization fails, :class:`~polyclonal.polyclonal.Polyclonal` objects will throw a
+    A wrapper method for fitting models with `multiprocessing`. If optimization
+    optimization fails, :class:`~polyclonal.polyclonal.Polyclonal` objects will throw a
     :class:`~polyclonal.polyclonal.PolyclonalFitError`.
 
     We catch this error and proceed with the program by returning `None` for the
@@ -110,8 +110,7 @@ def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     Returns
     -------
     polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
-        The same class:`~polyclonal.polyclonal.Polyclonal` object but with optimized model
-        parameters after fitting.
+        `polyclonal_obj` but with optimized model parameters after fitting.
 
     """
     try:
@@ -148,8 +147,8 @@ def _harmonize_epitopes_static(other_poly, ref_poly):
     """Harmonize the epitopes of an polycolonal object with a root_polyclonal
     object.
 
-    A wrapper method for fitting models with `multiprocessing`.
-    If mapping matricies are not 1-to-1, :class:`~polyclonal.polyclonal.Polyclonal` objects will
+    A wrapper method for fitting models with `multiprocessing`. If mapping
+    matrices are not 1-to-1, :class:`~polyclonal.polyclonal.Polyclonal` objects will
     throw a :class:`~polyclonal.polyclonal.PolyclonalHarmonizeError`.
 
     If we catch this error, the program will return a value of `None` for the
@@ -159,16 +158,14 @@ def _harmonize_epitopes_static(other_poly, ref_poly):
     Parameters
     ----------
     other_poly : :class:`~polyclonal.polyclonal.Polyclonal`
-        Another :class:`~polyclonal.polyclonal.Polyclonal` object that will align its epitopes with
-        `ref_poly`.
+        :class:`~polyclonal.polyclonal.Polyclonal` object for which we align epitopes.
     ref_poly : :class:`~polyclonal.polyclonal.Polyclonal`
-        A :class:`~polyclonal.polyclonal.Polyclonal` object to serve as the reference object.
+        A :class:`~polyclonal.polyclonal.Polyclonal` object to serve as the reference.
 
     Returns
     -------
     other_poly : :class:`~polyclonal.polyclonal.Polyclonal`
-        The same :class:`~polyclonal.polyclonal.Polyclonal` object but with aligned epitopes with
-        `ref_poly`.
+        `other_poly` but with epitopes aligned to `ref_poly`.
 
     """
     try:
@@ -188,8 +185,7 @@ class PolyclonalCollection:
         The polyclonal object created with the full dataset to draw bootstrapped
         samples from.
     n_bootstrap_samples : int
-        Number of bootstrap samples to draw and :class:`~polyclonal.polyclonal.Polyclonal`
-        models to fit.
+        Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
     seed : int
         Random seed for reproducibility.
     n_threads : int
@@ -200,7 +196,7 @@ class PolyclonalCollection:
     mutations : tuple
         All mutations for which we have escape values.
     models : tuple
-        Contains `n_bootstrap_samples` of the :class:`~polyclonal.polyclonal.Polyclonal` models.
+        `n_bootstrap_samples` of :class:`~polyclonal.polyclonal.Polyclonal` models.
     unsampled_mutations : dictionary
         A dictionary that keeps track of which mutations that are not seen by
         at least one model. The keys are the mutations and the values are the
@@ -215,8 +211,8 @@ class PolyclonalCollection:
         n_threads=1,
         seed=0,
     ):
-        """See main class docstring and :class:`~polyclonal.polyclonal.Polyclonal` documentation for
-        details.
+        """See main class docstring and :class:`~polyclonal.polyclonal.Polyclonal`
+        documentation for details.
         """
         if root_polyclonal.data_to_fit is None:
             raise ValueError("polyclonal object does not have data to fit.")
@@ -243,10 +239,10 @@ class PolyclonalCollection:
         """Fits :class:`~polyclonal.polyclonal.Polyclonal` models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
-        After this fitting, re-initialize :class:`~polyclonal.polyclonal.Polyclonal` without data,
-        but with inferred parameters.
+        After fitting, re-initialize :class:`~polyclonal.polyclonal.Polyclonal` without
+        data, but with inferred parameters.
 
-        Save the model without attached data to `self.models`.
+        Save the models without attached data to :attr:`PolyclonalCollection.models`.
 
         Parameters
         ----------
