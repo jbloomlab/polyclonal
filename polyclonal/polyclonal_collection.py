@@ -201,6 +201,8 @@ class PolyclonalCollection:
         A dictionary that keeps track of which mutations that are not seen by
         at least one model. The keys are the mutations and the values are the
         number of models that did not observe the mutation.
+    n_threads: int
+        Number of threads for multiprocessing.
 
     """
 
@@ -220,12 +222,11 @@ class PolyclonalCollection:
             self.n_threads = multiprocessing.cpu_count()
         else:
             self.n_threads = n_threads
-        self.seed = seed
-        self.next_seed = self.seed + self.n_bootstrap_samples  # For retrying
+        self.next_seed = seed + self.n_bootstrap_samples  # For retrying
 
         if self.n_bootstrap_samples > 0:
             # Create distinct seeds for each model
-            seeds = [x + self.seed for x in list(range(self.n_bootstrap_samples))]
+            seeds = range(seed, self.n_bootstrap_samples)
 
             # Create list of bootstrapped polyclonal objects
             with Pool(self.n_threads) as p:
