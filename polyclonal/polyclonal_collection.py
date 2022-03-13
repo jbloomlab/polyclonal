@@ -11,12 +11,18 @@ Defines :class:`PolyclonalCollection` objects for bootstrapping
 from collections import Counter
 from functools import partial
 from itertools import repeat
-from multiprocessing import Pool
+import multiprocessing
 
 import pandas as pd
 
 import polyclonal
 from polyclonal.polyclonal import PolyclonalFitError, PolyclonalHarmonizeError
+
+
+class PolyclonalCollectionFitError(Exception):
+    """Error fitting in :meth:`PolyclonalCollection.fit_models`."""
+
+    pass
 
 
 def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
@@ -106,6 +112,8 @@ def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     ----------
     polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
         An initialized :class:`~polyclonal.polyclonal.Polyclonal` object.
+    **kwargs
+        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`
 
     Returns
     -------
@@ -141,39 +149,6 @@ def _prob_escape_static(polyclonal_obj, variants_df):
 
     """
     return polyclonal_obj.prob_escape(variants_df=variants_df)
-
-
-def _harmonize_epitopes_static(other_poly, ref_poly):
-    """Harmonize the epitopes of an polycolonal object with a root_polyclonal
-    object.
-
-    A wrapper method for fitting models with `multiprocessing`. If mapping
-    matrices are not 1-to-1, :class:`~polyclonal.polyclonal.Polyclonal` objects will
-    throw a :class:`~polyclonal.polyclonal.PolyclonalHarmonizeError`.
-
-    If we catch this error, the program will return a value of `None` for the
-    `other_poly` model that could not be harmonized with `ref_poly`.
-
-
-    Parameters
-    ----------
-    other_poly : :class:`~polyclonal.polyclonal.Polyclonal`
-        :class:`~polyclonal.polyclonal.Polyclonal` object for which we align epitopes.
-    ref_poly : :class:`~polyclonal.polyclonal.Polyclonal`
-        A :class:`~polyclonal.polyclonal.Polyclonal` object to serve as the reference.
-
-    Returns
-    -------
-    other_poly : :class:`~polyclonal.polyclonal.Polyclonal`
-        `other_poly` but with epitopes aligned to `ref_poly`.
-
-    """
-    try:
-        other_poly.harmonize_epitopes_with(ref_poly)
-    except PolyclonalHarmonizeError:
-        return None
-
-    return other_poly
 
 
 class PolyclonalCollection:
@@ -229,7 +204,7 @@ class PolyclonalCollection:
             seeds = range(seed, self.n_bootstrap_samples)
 
             # Create list of bootstrapped polyclonal objects
-            with Pool(self.n_threads) as p:
+            with multiprocessing.Pool(self.n_threads) as p:
                 self.models = p.starmap(
                     _create_bootstrap_polyclonal,
                     zip(repeat(root_polyclonal), seeds),
@@ -237,7 +212,7 @@ class PolyclonalCollection:
         else:
             raise ValueError("Please specify a number of bootstrap samples to make.")
 
-    def fit_models(self, max_attempts=10, **kwargs):
+    def fit_models(self, failures="error", **kwargs):
         """Fits :class:`~polyclonal.polyclonal.Polyclonal` models.
         Initializes models with bootstrapped `data_to_fit`, and then fits model.
 
@@ -248,65 +223,44 @@ class PolyclonalCollection:
 
         Parameters
         ----------
-        max_attempts : int
-            The maximum number of retries to allow if optimization fails.
+        failures : {"error", "tolerate"}
+            Tolerate failures in model fitting or raise an error if a failure?
+            Always raise an error if all models failed.
+        **kwargs
+            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`
 
         Returns
         -------
-        None
+        (n_fit, n_failed)
+            Number of model fits that failed and succeeded.
 
         """
         # Initial pass over all models
-        with Pool(self.n_threads) as p:
+        with multiprocessing.Pool(self.n_threads) as p:
             self.models = p.map(
                 partial(_fit_polyclonal_model_static, **kwargs), self.models
             )
 
         # Check to see how many models failed optimization
-        n_fails = sum(model is None for model in self.models)
-        n_retry_fails = 0
+        n_failed = sum(model is None for model in self.models)
+        if failures == "error":
+            if n_failed:
+                raise PolyclonalCollectionFitError(
+                    f"Failed fitting {n_failed} of {len(self.models)} models"
+                )
+        elif failures != "tolerate":
+            raise ValueError(f"invalid {failures=}")
+        n_fit = len(self.models) - n_failed
+        if n_fit == 0:
+            raise PolyclonalCollectionFitError(
+                f"Failed fitting all {len(self.models)} models"
+            )
 
-        # Models that were optimized successfully
-        replacement_models = []
+        self.models = [m for m in self.models if m is not None]
+        for m in self.models:
+            m.harmonize_epitopes_with(self.root_polyclonal)
 
-        # Create replacement models one by one (for now at least)
-        while len(replacement_models) < n_fails:
-            if n_retry_fails == max_attempts:
-                raise RuntimeError("Maximum number of fitting retries reached.")
-
-            # Create new models one by one but only add the ones that succeed
-            tmp_model = self._retry_model_fit()
-            tmp_model = _harmonize_epitopes_static(self.root_polyclonal, tmp_model)
-
-            if tmp_model is not None:
-                replacement_models.append(tmp_model)
-            else:
-                n_retry_fails += 1
-
-        # Now, replace all None in self.models with replacement models
-        self.models = list(filter(None, self.models))
-        self.models = self.models + replacement_models
-
-    def _retry_model_fit(self):
-        """Retry fitting the model in the case of failure with optimization or
-        epitope harmonization.
-
-        Returns
-        -------
-        new_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
-            A new polyclonal object with a different seed.
-
-        """
-        # Create a new model with next seed
-        new_polyclonal = self._create_bootstrap_polyclonal(
-            self.root_polyclonal, self.next_seed
-        )
-        # Fit the model again
-        self._fit_polyclonal_model_static(polyclonal_obj=new_polyclonal)
-        # Increment last seed
-        self.next_seed += 1
-        # Return model
-        return new_polyclonal
+        return (n_fit, n_failed)
 
     def make_predictions(self, variants_df):
         """Make predictions on variants for models that have parameters for
@@ -327,7 +281,7 @@ class PolyclonalCollection:
             of predictions on `variants_df` and returns them in a list.
 
         """
-        with Pool(self.n_threads) as p:
+        with multiprocessing.Pool(self.n_threads) as p:
             pred_dfs = p.starmap(
                 _prob_escape_static, zip(self.models, repeat(variants_df))
             )
