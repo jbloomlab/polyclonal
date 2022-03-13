@@ -207,13 +207,11 @@ class PolyclonalCollection:
     def __init__(
         self,
         root_polyclonal,
-        n_bootstrap_samples=0,
+        n_bootstrap_samples,
         n_threads=1,
         seed=0,
     ):
-        """See main class docstring and :class:`~polyclonal.polyclonal.Polyclonal`
-        documentation for details.
-        """
+        """See main class docstring for details."""
         if root_polyclonal.data_to_fit is None:
             raise ValueError("polyclonal object does not have data to fit.")
         self.root_polyclonal = root_polyclonal
