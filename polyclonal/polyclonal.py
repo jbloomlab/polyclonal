@@ -1790,9 +1790,7 @@ class Polyclonal:
         """
         # Both models should have `mut_escape_df` initialized
         if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
-            raise ValueError(
-                "Both objects must have `mut_escape_df` initialized."
-            )
+            raise ValueError("Both objects must have `mut_escape_df` initialized.")
 
         corr_df = pd.DataFrame()
         for model_ref_e, model_self_e in list(
@@ -1862,32 +1860,30 @@ class Polyclonal:
         corr_df = self.mut_escape_corr(ref_poly)
 
         map_df = (
-            corr_df
-            .rename(columns={"self_epitope": "self_initial_epitope"})
+            corr_df.rename(columns={"self_epitope": "self_initial_epitope"})
             .sort_values("correlation")
             .groupby("self_initial_epitope", as_index=False)
             .last()  # will be row with highest correlation
-            .assign(self_harmonized_epitope=lambda x: x["ref_epitope"])
-            [[
-                "self_initial_epitope",
-                "self_harmonized_epitope",
-                "ref_epitope",
-                "correlation",
-            ]]
+            .assign(self_harmonized_epitope=lambda x: x["ref_epitope"])[
+                [
+                    "self_initial_epitope",
+                    "self_harmonized_epitope",
+                    "ref_epitope",
+                    "correlation",
+                ]
+            ]
         )
         assert len(map_df) == len(self.epitopes) == len(ref_poly.epitopes)
         if not (
-            set(self.epitopes) == set(map_df["self_initial_epitope"])
+            set(self.epitopes)
+            == set(map_df["self_initial_epitope"])
             == set(map_df["self_harmonized_epitope"])
         ):
             raise PolyclonalHarmonizeError(f"epitopes do not match 1-to-1:\n{map_df}")
 
-        map_dict = (
-            map_df
-            .set_index("self_initial_epitope")
-            ["self_harmonized_epitope"]
-            .to_dict()
-        )
+        map_dict = map_df.set_index("self_initial_epitope")[
+            "self_harmonized_epitope"
+        ].to_dict()
         assert len(map_dict) == len(self.epitopes) == len(set(map_dict.values()))
 
         self.epitopes = [map_dict[e] for e in self.epitopes]
