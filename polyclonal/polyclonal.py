@@ -9,6 +9,7 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 
 import collections
+import copy  # noqa: F401
 import inspect
 import itertools
 import os
@@ -509,6 +510,65 @@ class Polyclonal:
     2            1.0          w1m w2m       1        0.256
     3            1.0      w1m w2m w4m       2        0.686
     4            1.0          w1m w4m       1        0.409
+
+    Example
+    -------
+    Epitope assignments are arbitrary, so you can calculate correlations
+    among their mutation-escape values and align them.
+
+    First, correlations of a model to itself:
+
+    >>> ref_poly = copy.deepcopy(polyclonal)
+    >>> polyclonal.mut_escape_corr(ref_poly).round(3)
+      ref_epitope self_epitope  correlation
+    0          e1           e1        1.000
+    1          e1           e2       -0.907
+    2          e2           e1       -0.907
+    3          e2           e2        1.000
+
+    Make another model with epitope assignments inverted and a few mutations missing:
+
+    >>> inverted_poly = Polyclonal(
+    ...     activity_wt_df=(
+    ...         activity_wt_df
+    ...         .assign(epitope=lambda x: x["epitope"].map({"e1": "e2", "e2": "e1"}))
+    ...     ),
+    ...     mut_escape_df=(
+    ...         mut_escape_df
+    ...         .query("mutation != 'A4K'")
+    ...         .assign(epitope=lambda x: x["epitope"].map({"e1": "e2", "e2": "e1"}))
+    ...     ),
+    ... )
+    >>> inverted_poly.mut_escape_corr(ref_poly).round(3)
+      ref_epitope self_epitope  correlation
+    0          e1           e2        1.000
+    1          e1           e1       -0.945
+    2          e2           e2       -0.945
+    3          e2           e1        1.000
+
+    Now actually harmonize the epitopes
+
+    >>> polyclonal.harmonize_epitopes_with(ref_poly)
+      self_initial_epitope self_harmonized_epitope ref_epitope  correlation
+    0                   e1                      e1          e1          1.0
+    1                   e2                      e2          e2          1.0
+
+    >>> inverted_poly.harmonize_epitopes_with(ref_poly)
+      self_initial_epitope self_harmonized_epitope ref_epitope  correlation
+    0                   e1                      e2          e2          1.0
+    1                   e2                      e1          e1          1.0
+
+    The order of the epitopes have been switched after harmonization:
+
+    >>> inverted_poly.epitopes
+    ['e1', 'e2']
+
+    >>> inverted_poly.mut_escape_corr(ref_poly).round(3)
+      ref_epitope self_epitope  correlation
+    0          e1           e1        1.000
+    1          e1           e2       -0.945
+    2          e2           e1       -0.945
+    3          e2           e2        1.000
 
     """
 
@@ -1706,13 +1766,11 @@ class Polyclonal:
         assert tuple(bmap.all_subs) == self.mutations
         return bmap
 
-    def _make_correlation_matrix(self, ref_poly):
-        """Calculate the correlation of mutation-escape values of all pairwise
-        combinations of `self`s model and the model inferred by `ref_poly`.
-        Both inputs must have the same number of epitopes specified.
+    def mut_escape_corr(self, ref_poly):
+        """Correlation of mutation-escape values with another model.
 
-        The rows of this matrix index the epitopes in `self`, the columns do the
-        same for `ref_poly`.
+        For each epitope, how well is this model's mutation-escape values
+        correlation with another model?
 
         In the situation where a mutation is only seen by one model, we exclude
         that mutation from correlation calculations (i.e., we omit the rows
@@ -1720,16 +1778,22 @@ class Polyclonal:
 
         Parameters
         ------------
-        ref_poly : :class:Polyclonal object
-            The reference polyclonal object to calculate the correlation of
-            mutation-escape values between all pairwise combinations of
+        ref_poly : :class:`Polyclonal`
+            The other (reference) polyclonal object with which we calculate the
+            correlation of mutation-escape values between all pairwise combinations of
             epitopes.
 
         Returns
         ---------
         corr_df : pandas.DataFrame
-            A dataframe object with pairwise epitope correlations for escape.
+            Pairwise epitope correlations for escape.
         """
+        # Both models should have `mut_escape_df` initialized
+        if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
+            raise ValueError(
+                "Both objects must have `mut_escape_df` initialized."
+            )
+
         corr_df = pd.DataFrame()
         for model_ref_e, model_self_e in list(
             itertools.product(
@@ -1760,186 +1824,75 @@ class Polyclonal:
 
         return corr_df
 
-    def _create_max_correlation_mapping_matrix(self, corr_df):
-        """Create a binary matrix for mapping epitopes to one another.
-
-        For each epitope, we align it with the reference model epitope with the
-        highest correlation in escape values.
-
-        Parameters
-        -----------
-        corr_df : pandas.DataFrame
-            An correlation matrix between the inferred escape probabilities
-            amongst the epitopes of two models.
-
-        Returns
-        --------
-        map_mat : numpy.array
-            A matrix of 1s and 0s depicting how to shift the epitopes of the
-            non-reference axis.
-        """
-        corr_mat = corr_df.pivot(
-            index="self_epitope", columns="ref_epitope", values="correlation"
-        ).values
-        map_mat = numpy.zeros_like(corr_mat)
-
-        for idx, row in pd.DataFrame(corr_mat).iterrows():
-            match_epi = row.argmax()
-            map_mat[idx, match_epi] = 1
-
-        # Check to see if epitope mapping is 1-to-1 before returning
-        self._check_epitope_mapping_matrix(map_mat)
-
-        return map_mat
-
-    def _check_epitope_mapping_matrix(self, map_mat):
-        """Check to ensure an epitope mapping matrix is 1-to-1.
-
-        Raises a `ValueError` if any of the columns in this matrix have a column
-        sum that is not one.
-
-        Parameters
-        -----------
-        map_mat : numpy.array
-            A square binary matrix of indicators between `self` and a
-            reference polyclonal object's epitopes.
-        """
-        if numpy.any(map_mat.sum(axis=0) != 1):
-            raise ValueError("Mapping matrix does not have a 1-to-1 mapping.")
-        if map_mat.shape[0] != map_mat.shape[1]:
-            raise ValueError("Mapping matrix is not square.")
-        if not numpy.isin(map_mat, [0, 1]).all():
-            raise ValueError("Mapping matrix has values other than 0 or 1.")
-
-    def _make_mapping_dict(self, map_mat, ref_poly):
-        """Create a dictionary from a mapping matrix to replace values in the
-        `mut_escape_df` dataframe.
-
-        Parameters
-        -----------
-        map_mat : numpy.array
-            A 2D array from `self._create_max_correlation_mapping_matrix` that aligns
-            epitopes.
-        ref_poly : :class:Polyclonal
-            The reference polyclonal object to align to.
-
-        Returns
-        --------
-        epi_dict : Dictionary
-            A dictionary of 'self:ref` key-value pairs of "harmoninzed" epitopes.
-        """
-        epi_dict = {}
-        for i in range(len(map_mat)):
-            ref_epi_idx = map_mat[i].argmax()
-            epi_dict[self.epitopes[i]] = ref_poly.epitopes[ref_epi_idx]
-        return epi_dict
-
-    def _edit_epitopes_in_mut_escape_df(self, mapping_dict):
-        """Create a new version of `mut_escape_df` with harmonized epitopes.
-
-        Parameters
-        -----------
-        mapping_dict : Dictionary
-            Dictionary of self-reference epitope IDs.
-
-        Returns
-        -------
-        An edited pandas.DataFrame with edited epitopes corresponding to `mapping_dict`.
-        """
-        if mapping_dict is None:
-            raise AttributeError("`_mapping_dict` not defined.")
-        return (
-            self.mut_escape_df.replace({"epitope": mapping_dict})
-            .sort_values(by=["epitope", "site"])
-            .reset_index(drop=True)
-        )
-
-    def _align_params(self, mapping_dict):
-        """Reorders corresponding epitope parameters in `self._params`.
-
-        Parameters
-        -----------
-        mapping_dict : Dictionary
-            A dictionary of `self:ref` key-value pairs of "harmonized" epitopes.
-        """
-        # Get new ordering of epitope indices for _params.
-        new_idxs = numpy.fromiter(mapping_dict.values(), dtype=int) - 1
-        if len(new_idxs) != len(self.epitopes):
-            raise PolyclonalHarmonizeError(
-                "Number of WT activity params not equal to number of epitopes."
-            )
-        # This will make sure `activity_wt_df()` is aligned in future calls.
-        aligned_activity_wt_vals = self._params[new_idxs]
-        self._params[0 : len(self.epitopes)] = aligned_activity_wt_vals
-        # Now edit mut escape df
-        aligned_mut_escape_df = self._edit_epitopes_in_mut_escape_df(mapping_dict)
-        # Align the params -- now mut_escape_df should be rearranged.
-        self._params = self._params_from_dfs(self.activity_wt_df, aligned_mut_escape_df)
-
     def harmonize_epitopes_with(self, ref_poly):
-        """Harmonize epitopes with another polyclonal object.
-        Epitopes are unidentifiable, meaning there is no gurantee that we will infer
-        the same epitopes across multiple models.
-        This function aims to "align" inferred epitopes with two models.
+        """Harmonize epitope labels with another polyclonal object.
+
+        Epitopes are unidentifiable, meaning there is no guarantee that we will assign
+        the same epitope labels across multiple models fit to similar data. This
+        function aligns the epitope labels of the current :class:`Polyclonal` object
+        with those of another model with the same epitope labels.
+
+        The harmonization is done simply by re-ordering the epitope labels
+        in :attr:`Polyclonal.epitopes`. The epitopes will be matched by label,
+        but not necessarily by order in :attr:`Polyclonal.epitopes`.
 
         Parameters
         -----------
-        ref_poly : :class:Polyclonal
-            The reference polyclonal object to align epitopes to.
+        ref_poly : :class:`Polyclonal`
+            The reference polyclonal object to align epitope labels with.
 
         Returns
         --------
-        void
-            Edits `self._params`, `self.mut_escape_df`, and `self.activity_wt_df`
-            inplace. These parameters are adjusted so that the epitopes between
-            `self` and `ref_poly` are aligned.
+        pandas.DataFrame
+            Has columns 'self_initial_epitope', 'self_harmonized_epitope',
+            'ref_epitope', 'correlation'.
+
+        Raises
+        ------
+        :class:`PolyclonalHarmonizeError`
+            Raise this error if epitopes cannot be harmonized one-to-one.
+
         """
-        # Checks to ensure `ref_poly` and self are compatible.
-
-        # Make sure models have same number of params.
-        if len(self._params) != len(ref_poly._params):
+        if set(self.epitopes) != set(ref_poly.epitopes):
             raise PolyclonalHarmonizeError(
-                "The polyclonal objects have a different number of parameters."
+                "The two models being aligned do not have the same epitope labels: "
+                f"{self.epitopes} versus {ref_poly.epitopes}"
             )
 
-        # We must have the same number of epitopes
-        if len(self.epitopes) != len(ref_poly.epitopes):
-            raise PolyclonalHarmonizeError(
-                "The two models being aligned do not have the same number of "
-                "epitopes."
-            )
+        corr_df = self.mut_escape_corr(ref_poly)
 
-        # Both models should have `mut_escape_df` initialized
-        if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
-            raise PolyclonalHarmonizeError(
-                "Both objects must have `mut_escape_df` initialized."
-            )
+        map_df = (
+            corr_df
+            .rename(columns={"self_epitope": "self_initial_epitope"})
+            .sort_values("correlation")
+            .groupby("self_initial_epitope", as_index=False)
+            .last()  # will be row with highest correlation
+            .assign(self_harmonized_epitope=lambda x: x["ref_epitope"])
+            [[
+                "self_initial_epitope",
+                "self_harmonized_epitope",
+                "ref_epitope",
+                "correlation",
+            ]]
+        )
+        assert len(map_df) == len(self.epitopes) == len(ref_poly.epitopes)
+        if not (
+            set(self.epitopes) == set(map_df["self_initial_epitope"])
+            == set(map_df["self_harmonized_epitope"])
+        ):
+            raise PolyclonalHarmonizeError(f"epitopes do not match 1-to-1:\n{map_df}")
 
-        # Add another check to ensure both `mut_escape_df`s have needed columns
-        required_cols = {"epitope", "mutation", "escape"}
-        if not required_cols.issubset(self.mut_escape_df.columns):
-            raise PolyclonalHarmonizeError(
-                "The `mut_escape_df` of the object being aligned does not "
-                f"contain all of the required columns: {required_cols}."
-            )
+        map_dict = (
+            map_df
+            .set_index("self_initial_epitope")
+            ["self_harmonized_epitope"]
+            .to_dict()
+        )
+        assert len(map_dict) == len(self.epitopes) == len(set(map_dict.values()))
 
-        if not required_cols.issubset(ref_poly.mut_escape_df.columns):
-            raise PolyclonalHarmonizeError(
-                "The `mut_escape_df` of the reference object being aligned to "
-                f"does not contain all of the required columns: {required_cols}."
-            )
+        self.epitopes = [map_dict[e] for e in self.epitopes]
 
-        # Step one: get correlation matrix
-        corr_df = self._make_correlation_matrix(ref_poly)
-
-        # Step two: create mapping matrix
-        mapping_mat = self._create_max_correlation_mapping_matrix(corr_df)
-
-        # Step three: make epitope mapping dictionary
-        epi_dict = self._make_mapping_dict(mapping_mat, ref_poly)
-
-        # Align params.
-        self._align_params(epi_dict)
+        return map_df
 
 
 if __name__ == "__main__":
