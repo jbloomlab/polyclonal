@@ -1291,8 +1291,7 @@ class Polyclonal:
         scipy_minimize_kwargs : dict
             Keyword arguments passed to ``scipy.optimize.minimize``.
         log : None or writable file-like object
-            Where to log output if ``verbosity > 0``. If ``None``, use
-            ``sys.stdout``.
+            Where to log output. If ``None``, use ``sys.stdout``.
         logfreq : None or int
             How frequently to write updates on fitting to ``log``.
 
@@ -1857,13 +1856,17 @@ class Polyclonal:
                 f"{self.epitopes} versus {ref_poly.epitopes}"
             )
 
-        corr_df = self.mut_escape_corr(ref_poly)
+        corr_df = (
+            self.mut_escape_corr(ref_poly)
+            .sort_values(["self_epitope", "correlation"], ascending=[True, False])
+            .reset_index(drop=True)
+        )
 
         map_df = (
             corr_df.rename(columns={"self_epitope": "self_initial_epitope"})
             .sort_values("correlation")
             .groupby("self_initial_epitope", as_index=False)
-            .last()  # will be row with highest correlation
+            .first()  # will be row with highest correlation
             .assign(self_harmonized_epitope=lambda x: x["ref_epitope"])[
                 [
                     "self_initial_epitope",
@@ -1879,7 +1882,7 @@ class Polyclonal:
             == set(map_df["self_initial_epitope"])
             == set(map_df["self_harmonized_epitope"])
         ):
-            raise PolyclonalHarmonizeError(f"epitopes do not match 1-to-1:\n{map_df}")
+            raise PolyclonalHarmonizeError(f"epitopes do not match 1-to-1:\n{corr_df}")
 
         map_dict = map_df.set_index("self_initial_epitope")[
             "self_harmonized_epitope"
