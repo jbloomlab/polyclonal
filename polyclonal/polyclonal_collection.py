@@ -8,15 +8,15 @@ Defines :class:`PolyclonalCollection` objects for bootstrapping
 
 """
 
+import multiprocessing
 from collections import Counter
 from functools import partial
 from itertools import repeat
-import multiprocessing
 
 import pandas as pd
 
 import polyclonal
-from polyclonal.polyclonal import PolyclonalFitError, PolyclonalHarmonizeError
+from polyclonal.polyclonal import PolyclonalFitError
 
 
 class PolyclonalCollectionFitError(Exception):
@@ -66,7 +66,8 @@ def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
 
 def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentration"):
     """Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped
-    dataset and fits model.
+    dataset and fits model. The model is initialized to the parameters in
+    `root_polyclonal`.
 
     Parameters
     -----------
@@ -92,9 +93,13 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
     )
 
     return polyclonal.Polyclonal(
+        activity_wt_df=root_polyclonal.activity_wt_df,
+        mut_escape_df=root_polyclonal.mut_escape_df,
         data_to_fit=bootstrap_df,
-        n_epitopes=len(root_polyclonal.epitopes),
         collapse_identical_variants=False,
+        alphabet=root_polyclonal.alphabet,
+        epitope_colors=root_polyclonal.epitope_colors,
+        data_mut_escape_overlap="prune_to_data",  # some muts maybe not in bootstrap
     )
 
 
@@ -158,7 +163,9 @@ class PolyclonalCollection:
     -----------
     root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
         The polyclonal object created with the full dataset to draw bootstrapped
-        samples from.
+        samples from. The bootstrapped samples are also initialized to mutation effects
+        and activities of this model, so it is **highly recommended** that this object
+        already have been fit to the full dataset.
     n_bootstrap_samples : int
         Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
     seed : int
@@ -197,11 +204,10 @@ class PolyclonalCollection:
             self.n_threads = multiprocessing.cpu_count()
         else:
             self.n_threads = n_threads
-        self.next_seed = seed + self.n_bootstrap_samples  # For retrying
 
         if self.n_bootstrap_samples > 0:
             # Create distinct seeds for each model
-            seeds = range(seed, self.n_bootstrap_samples)
+            seeds = range(seed, seed + self.n_bootstrap_samples)
 
             # Create list of bootstrapped polyclonal objects
             with multiprocessing.Pool(self.n_threads) as p:
@@ -227,7 +233,9 @@ class PolyclonalCollection:
             Tolerate failures in model fitting or raise an error if a failure?
             Always raise an error if all models failed.
         **kwargs
-            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`
+            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.
+            If not specified otherwise, `fit_site_level_first` is set to `False`,
+            since models are initialized to "good" values from the root object.
 
         Returns
         -------
@@ -236,6 +244,8 @@ class PolyclonalCollection:
 
         """
         # Initial pass over all models
+        if "fit_site_level_first" not in kwargs:
+            kwargs["fit_site_level_first"] = False
         with multiprocessing.Pool(self.n_threads) as p:
             self.models = p.map(
                 partial(_fit_polyclonal_model_static, **kwargs), self.models
