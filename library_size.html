@@ -517,12 +517,12 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Model with 1000 variants was already fit.
-Model with 2500 variants was already fit.
-Model with 5000 variants was already fit.
-Model with 10000 variants was already fit.
-Model with 20000 variants was already fit.
-Model with 30000 variants was already fit.
+Model with 1000 variants fit and saved.
+Model with 2500 variants fit and saved.
+Model with 5000 variants fit and saved.
+Model with 10000 variants fit and saved.
+Model with 20000 variants fit and saved.
+Model with 30000 variants fit and saved.
 </pre></div></div>
 </div>
 <p>We can look at the correlation between the “true” and inferred mutation-escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, for the fit models. These mutation-escape values represent the extent to which mutations mediate escape from specific epitopes.</p>
@@ -590,12 +590,13 @@ Model with 30000 variants was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-ca9520cc511346d5977d27733300509b"></div>
+<div id="altair-viz-1b95b5398d98443286421dd09131d170"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-ca9520cc511346d5977d27733300509b") {
-      outputDiv = document.getElementById("altair-viz-ca9520cc511346d5977d27733300509b");
+    if (outputDiv.id !== "altair-viz-1b95b5398d98443286421dd09131d170") {
+      outputDiv = document.getElementById("altair-viz-1b95b5398d98443286421dd09131d170");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -604,15 +605,21 @@ Model with 30000 variants was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -628,16 +635,14 @@ Model with 30000 variants was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "layer": [{"mark": "point", "encoding": {"color": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}, {"field": "epitope", "type": "nominal"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}}, {"mark": {"type": "line", "size": 2.5}, "encoding": {"color": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}, {"field": "epitope", "type": "nominal"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "title": "inferred vs. true mutation escape values", "transform": [{"loess": "correlation (R^2)", "on": "num_variants", "groupby": ["epitope"]}]}], "data": {"name": "data-407f08896ab392fd6cba7b78f38b9ca4"}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-407f08896ab392fd6cba7b78f38b9ca4": [{"epitope": "class 1", "correlation (R^2)": 0.0005833374527068625, "num_variants": "1000"}, {"epitope": "class 2", "correlation (R^2)": 0.3837377180727185, "num_variants": "1000"}, {"epitope": "class 3", "correlation (R^2)": 0.020187187339052344, "num_variants": "1000"}, {"epitope": "class 1", "correlation (R^2)": 0.007389692730778493, "num_variants": "2500"}, {"epitope": "class 2", "correlation (R^2)": 0.5881293887025464, "num_variants": "2500"}, {"epitope": "class 3", "correlation (R^2)": 0.3524713277073588, "num_variants": "2500"}, {"epitope": "class 1", "correlation (R^2)": 0.0536765335409406, "num_variants": "5000"}, {"epitope": "class 2", "correlation (R^2)": 0.6560762409196355, "num_variants": "5000"}, {"epitope": "class 3", "correlation (R^2)": 0.45959541315107766, "num_variants": "5000"}, {"epitope": "class 1", "correlation (R^2)": 0.5749424016502525, "num_variants": "10000"}, {"epitope": "class 2", "correlation (R^2)": 0.8664789669908456, "num_variants": "10000"}, {"epitope": "class 3", "correlation (R^2)": 0.794815336011536, "num_variants": "10000"}, {"epitope": "class 1", "correlation (R^2)": 0.6887010319168394, "num_variants": "20000"}, {"epitope": "class 2", "correlation (R^2)": 0.9331512149955108, "num_variants": "20000"}, {"epitope": "class 3", "correlation (R^2)": 0.876899149348737, "num_variants": "20000"}, {"epitope": "class 1", "correlation (R^2)": 0.7557697884639126, "num_variants": "30000"}, {"epitope": "class 2", "correlation (R^2)": 0.9465601495554855, "num_variants": "30000"}, {"epitope": "class 3", "correlation (R^2)": 0.9021540366349036, "num_variants": "30000"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "layer": [{"mark": "point", "encoding": {"color": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}, {"field": "epitope", "type": "nominal"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}}, {"mark": {"type": "line", "size": 2.5}, "encoding": {"color": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}, {"field": "epitope", "type": "nominal"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "title": "inferred vs. true mutation escape values", "transform": [{"loess": "correlation (R^2)", "on": "num_variants", "groupby": ["epitope"]}]}], "data": {"name": "data-780d85c3e5856cf7f0298fc454ca52e3"}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-780d85c3e5856cf7f0298fc454ca52e3": [{"epitope": "class 1", "correlation (R^2)": 0.00014902447366104142, "num_variants": "1000"}, {"epitope": "class 2", "correlation (R^2)": 0.39078598754101984, "num_variants": "1000"}, {"epitope": "class 3", "correlation (R^2)": 0.02090877019475958, "num_variants": "1000"}, {"epitope": "class 1", "correlation (R^2)": 0.005768465874189956, "num_variants": "2500"}, {"epitope": "class 2", "correlation (R^2)": 0.5731572933502277, "num_variants": "2500"}, {"epitope": "class 3", "correlation (R^2)": 0.35039115800467197, "num_variants": "2500"}, {"epitope": "class 1", "correlation (R^2)": 0.06810277770362462, "num_variants": "5000"}, {"epitope": "class 2", "correlation (R^2)": 0.6722409355392467, "num_variants": "5000"}, {"epitope": "class 3", "correlation (R^2)": 0.49335096214532254, "num_variants": "5000"}, {"epitope": "class 1", "correlation (R^2)": 0.5711398662281895, "num_variants": "10000"}, {"epitope": "class 2", "correlation (R^2)": 0.8646225451974343, "num_variants": "10000"}, {"epitope": "class 3", "correlation (R^2)": 0.791415702698018, "num_variants": "10000"}, {"epitope": "class 1", "correlation (R^2)": 0.693282259624974, "num_variants": "20000"}, {"epitope": "class 2", "correlation (R^2)": 0.9327993227244932, "num_variants": "20000"}, {"epitope": "class 3", "correlation (R^2)": 0.8789975332486836, "num_variants": "20000"}, {"epitope": "class 1", "correlation (R^2)": 0.7954208943251723, "num_variants": "30000"}, {"epitope": "class 2", "correlation (R^2)": 0.9461536050659455, "num_variants": "30000"}, {"epitope": "class 3", "correlation (R^2)": 0.9025881818172772, "num_variants": "30000"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Additionally, we’ll look at the correlation between “true” and predicted IC90’s for each of the fit models. To do this, we’ll predict the IC90’s of variants in a separate library with a with a different (higher) mutation rate. We therefore read in the “exact” simulated data from a library containing variants with an average of four mutations per gene.</p>
@@ -717,12 +722,13 @@ Model with 30000 variants was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-9edbcac7846046ab987530e3e1730d8a"></div>
+<div id="altair-viz-c76c4b014926441aa55972df412eb8e5"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-9edbcac7846046ab987530e3e1730d8a") {
-      outputDiv = document.getElementById("altair-viz-9edbcac7846046ab987530e3e1730d8a");
+    if (outputDiv.id !== "altair-viz-c76c4b014926441aa55972df412eb8e5") {
+      outputDiv = document.getElementById("altair-viz-c76c4b014926441aa55972df412eb8e5");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -731,15 +737,21 @@ Model with 30000 variants was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -755,16 +767,14 @@ Model with 30000 variants was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "layer": [{"mark": "point", "encoding": {"tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}}, {"mark": {"type": "line", "size": 2.5}, "encoding": {"tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "title": "predicted vs. true IC90", "transform": [{"loess": "correlation (R^2)", "on": "num_variants"}]}], "data": {"name": "data-bcd52b4482d51a8b13f6229ba1f32728"}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-bcd52b4482d51a8b13f6229ba1f32728": [{"correlation (R^2)": 0.8186109443522505, "num_variants": "1000"}, {"correlation (R^2)": 0.8968273492171873, "num_variants": "2500"}, {"correlation (R^2)": 0.9126594349752555, "num_variants": "5000"}, {"correlation (R^2)": 0.9740654089050067, "num_variants": "10000"}, {"correlation (R^2)": 0.9890548098168895, "num_variants": "20000"}, {"correlation (R^2)": 0.9932350869440111, "num_variants": "30000"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "layer": [{"mark": "point", "encoding": {"tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}}, {"mark": {"type": "line", "size": 2.5}, "encoding": {"tooltip": [{"field": "num_variants", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "num_variants", "type": "quantitative"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "title": "predicted vs. true IC90", "transform": [{"loess": "correlation (R^2)", "on": "num_variants"}]}], "data": {"name": "data-88a6e0b0e0bf32de07077563ed586aaa"}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-88a6e0b0e0bf32de07077563ed586aaa": [{"correlation (R^2)": 0.8231314756728234, "num_variants": "1000"}, {"correlation (R^2)": 0.897091926211851, "num_variants": "2500"}, {"correlation (R^2)": 0.914869118484924, "num_variants": "5000"}, {"correlation (R^2)": 0.9735794511273995, "num_variants": "10000"}, {"correlation (R^2)": 0.9892356832964254, "num_variants": "20000"}, {"correlation (R^2)": 0.993305747398935, "num_variants": "30000"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <section id="Summary">

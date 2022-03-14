@@ -615,7 +615,7 @@ Model with [4] was already fit.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;icxx_set&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+<span></span><span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">conc_sets</span><span class="p">:</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;noisy_</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">conc_3muts&quot;</span><span class="p">]</span>
@@ -641,7 +641,8 @@ Model with [4] was already fit.
         <span class="p">[</span>
             <span class="n">all_corrs</span><span class="p">,</span>
             <span class="n">corr</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">icxx_set</span><span class="o">=</span><span class="p">[[</span><span class="sa">f</span><span class="s2">&quot;IC</span><span class="si">{</span><span class="n">wt_data_icxx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">icxx_set</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;IC</span><span class="si">{</span><span class="n">wt_data_icxx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])]</span>
+                <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="p">),</span>
         <span class="p">]</span>
     <span class="p">)</span>
@@ -658,7 +659,7 @@ Model with [4] was already fit.
     <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;icxx_set:O&quot;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">EncodingSortField</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;descending&quot;</span><span class="p">)),</span>
     <span class="n">y</span><span class="o">=</span><span class="s2">&quot;correlation (R^2):Q&quot;</span><span class="p">,</span>
     <span class="n">column</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
-    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;icxx_set&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
+    <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;icxx_set:O&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
     <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
 <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span><span class="p">)</span>
 </pre></div>
@@ -669,12 +670,13 @@ Model with [4] was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-684c21d2d5684dcebe4a10aef275b705"></div>
+<div id="altair-viz-b77f23f0f7ab44dead66fca753e4ca3b"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-684c21d2d5684dcebe4a10aef275b705") {
-      outputDiv = document.getElementById("altair-viz-684c21d2d5684dcebe4a10aef275b705");
+    if (outputDiv.id !== "altair-viz-b77f23f0f7ab44dead66fca753e4ca3b") {
+      outputDiv = document.getElementById("altair-viz-b77f23f0f7ab44dead66fca753e4ca3b");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -683,15 +685,21 @@ Model with [4] was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -707,16 +715,14 @@ Model with [4] was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-3886302605302058a82c76d3f8dbca7e"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-3886302605302058a82c76d3f8dbca7e": [{"epitope": "class 1", "correlation": null, "icxx_set": ["IC91.443"], "correlation (R^2)": 0.46120975785639706}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC91.443"], "correlation (R^2)": 0.48238838369905557}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC91.443"], "correlation (R^2)": 0.23113436147471061}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC97.488"], "correlation (R^2)": 0.5141118341528156}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC97.488"], "correlation (R^2)": 0.7603069707803831}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC97.488"], "correlation (R^2)": 0.5395348883108452}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.441"], "correlation (R^2)": 0.5661861480700429}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.441"], "correlation (R^2)": 0.8688626793584749}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.441"], "correlation (R^2)": 0.7388519195074222}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.6509201460362352}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.8930324381969524}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.8250396895359596}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.985"], "correlation (R^2)": 0.5938883968415591}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.985"], "correlation (R^2)": 0.9013541648748807}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.985"], "correlation (R^2)": 0.8383621079296067}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.998"], "correlation (R^2)": 0.5192696542786476}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.998"], "correlation (R^2)": 0.8828125505013785}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.998"], "correlation (R^2)": 0.8376039325124446}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-6aee41be04d005ec279fc4148fe46187"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "ordinal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-6aee41be04d005ec279fc4148fe46187": [{"epitope": "class 1", "correlation (R^2)": 0.4517311552902694, "icxx_set": "IC91.443"}, {"epitope": "class 2", "correlation (R^2)": 0.45406679238919523, "icxx_set": "IC91.443"}, {"epitope": "class 3", "correlation (R^2)": 0.20225684431448754, "icxx_set": "IC91.443"}, {"epitope": "class 1", "correlation (R^2)": 0.5165039677345514, "icxx_set": "IC97.488"}, {"epitope": "class 2", "correlation (R^2)": 0.7633531900219436, "icxx_set": "IC97.488"}, {"epitope": "class 3", "correlation (R^2)": 0.5491665037642408, "icxx_set": "IC97.488"}, {"epitope": "class 1", "correlation (R^2)": 0.5676249093859114, "icxx_set": "IC99.441"}, {"epitope": "class 2", "correlation (R^2)": 0.8681570382783633, "icxx_set": "IC99.441"}, {"epitope": "class 3", "correlation (R^2)": 0.7414358447678353, "icxx_set": "IC99.441"}, {"epitope": "class 1", "correlation (R^2)": 0.6516754583209915, "icxx_set": "IC99.9"}, {"epitope": "class 2", "correlation (R^2)": 0.8936896057376064, "icxx_set": "IC99.9"}, {"epitope": "class 3", "correlation (R^2)": 0.8255677869147199, "icxx_set": "IC99.9"}, {"epitope": "class 1", "correlation (R^2)": 0.6091355723769093, "icxx_set": "IC99.985"}, {"epitope": "class 2", "correlation (R^2)": 0.9016013816563426, "icxx_set": "IC99.985"}, {"epitope": "class 3", "correlation (R^2)": 0.8407623085834055, "icxx_set": "IC99.985"}, {"epitope": "class 1", "correlation (R^2)": 0.5256034947526533, "icxx_set": "IC99.998"}, {"epitope": "class 2", "correlation (R^2)": 0.8834118761519151, "icxx_set": "IC99.998"}, {"epitope": "class 3", "correlation (R^2)": 0.8405609501948846, "icxx_set": "IC99.998"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>The highest correlation is observed when the wildtype virus is potently neutralized. However, there is a fine balance. The correlation is lower when the concentration is too low (i.e., many mutated variants escape and even some wildtype) or too high (i.e., few mutated variants escape).</p>
@@ -741,7 +747,7 @@ Model with [4] was already fit.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;icxx_set&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
 <span class="n">max_ic90</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">conc_sets</span><span class="p">:</span>
@@ -795,12 +801,13 @@ Model with [4] was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-0b8dda62c2504c44a95e9514560ecc21"></div>
+<div id="altair-viz-08c5f0f4a2454abb81064a6669fd1aca"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-0b8dda62c2504c44a95e9514560ecc21") {
-      outputDiv = document.getElementById("altair-viz-0b8dda62c2504c44a95e9514560ecc21");
+    if (outputDiv.id !== "altair-viz-08c5f0f4a2454abb81064a6669fd1aca") {
+      outputDiv = document.getElementById("altair-viz-08c5f0f4a2454abb81064a6669fd1aca");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -809,15 +816,21 @@ Model with [4] was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -833,16 +846,14 @@ Model with [4] was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-4ba64bdd97e1d036d5ff453ec1ff4397"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-4ba64bdd97e1d036d5ff453ec1ff4397": [{"correlation": null, "icxx_set": "IC91.443", "correlation (R^2)": 0.9496525961648239}, {"correlation": null, "icxx_set": "IC97.488", "correlation (R^2)": 0.9680017147310113}, {"correlation": null, "icxx_set": "IC99.441", "correlation (R^2)": 0.9784935556568388}, {"correlation": null, "icxx_set": "IC99.9", "correlation (R^2)": 0.9811776752617761}, {"correlation": null, "icxx_set": "IC99.985", "correlation (R^2)": 0.9755336331137197}, {"correlation": null, "icxx_set": "IC99.998", "correlation (R^2)": 0.9549182874768274}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-2023d6db03487ced057fe35530983a62"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-2023d6db03487ced057fe35530983a62": [{"correlation (R^2)": 0.9476874193761419, "icxx_set": "IC91.443"}, {"correlation (R^2)": 0.9680515627082523, "icxx_set": "IC97.488"}, {"correlation (R^2)": 0.9783794270921263, "icxx_set": "IC99.441"}, {"correlation (R^2)": 0.9810948637714103, "icxx_set": "IC99.9"}, {"correlation (R^2)": 0.975472599233265, "icxx_set": "IC99.985"}, {"correlation (R^2)": 0.9550666314957607, "icxx_set": "IC99.998"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Across all models fit on data with single concentrations, the correlation was very strong.</p>
@@ -905,7 +916,7 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 <span></span><span class="c1"># add best performing single concentration to concentration sets, so we can plot as reference</span>
 <span class="n">conc_sets_to_plot</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="n">conc_sets</span>
 
-<span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;icxx_set&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+<span class="n">all_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">conc_sets_to_plot</span><span class="p">:</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;noisy_</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">conc_3muts&quot;</span><span class="p">]</span>
@@ -931,10 +942,11 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
         <span class="p">[</span>
             <span class="n">all_corrs</span><span class="p">,</span>
             <span class="n">corr</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">icxx_set</span><span class="o">=</span><span class="p">[[</span><span class="sa">f</span><span class="s2">&quot;IC</span><span class="si">{</span><span class="n">wt_data_icxx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">icxx_set</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;IC</span><span class="si">{</span><span class="n">wt_data_icxx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])]</span>
+                <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="p">),</span>
         <span class="p">]</span>
-    <span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -946,15 +958,18 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 <span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">all_corrs</span><span class="p">)</span><span class="o">.</span><span class="n">mark_circle</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">125</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
     <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span>
-        <span class="s2">&quot;icxx_set:O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;icxx_set:N&quot;</span><span class="p">,</span>
         <span class="n">sort</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">EncodingSortField</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;descending&quot;</span><span class="p">),</span>
-        <span class="n">axis</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">(</span><span class="n">labelAngle</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="n">y</span><span class="o">=</span><span class="s2">&quot;correlation (R^2):Q&quot;</span><span class="p">,</span>
     <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;icxx_set&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
     <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
     <span class="n">row</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
-<span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">375</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span><span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">375</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span>
+    <span class="n">labelLimit</span><span class="o">=</span><span class="mi">300</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -963,12 +978,13 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-5be50216d70c4f1aa8a81371100b31b8"></div>
+<div id="altair-viz-680f98b2f8c14f4d926b86e57796c553"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-5be50216d70c4f1aa8a81371100b31b8") {
-      outputDiv = document.getElementById("altair-viz-5be50216d70c4f1aa8a81371100b31b8");
+    if (outputDiv.id !== "altair-viz-680f98b2f8c14f4d926b86e57796c553") {
+      outputDiv = document.getElementById("altair-viz-680f98b2f8c14f4d926b86e57796c553");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -977,15 +993,21 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -1001,16 +1023,14 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-9ea184ba8d40157120b509a7595e43e6"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "row": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-9ea184ba8d40157120b509a7595e43e6": [{"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.6509201460362352}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.8930324381969524}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.8250396895359596}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC97.488", "IC99.9"], "correlation (R^2)": 0.7053494019727014}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC97.488", "IC99.9"], "correlation (R^2)": 0.9183988516016743}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC97.488", "IC99.9"], "correlation (R^2)": 0.8617008351208474}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.441", "IC99.9"], "correlation (R^2)": 0.711925402435687}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.441", "IC99.9"], "correlation (R^2)": 0.9171634248289655}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.441", "IC99.9"], "correlation (R^2)": 0.8645698750046725}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.9", "IC99.985"], "correlation (R^2)": 0.7201426936179625}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.9", "IC99.985"], "correlation (R^2)": 0.9274387549421326}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.9", "IC99.985"], "correlation (R^2)": 0.8745368483010729}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.9", "IC99.998"], "correlation (R^2)": 0.7344275822741407}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.9", "IC99.998"], "correlation (R^2)": 0.9380153798078774}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.9", "IC99.998"], "correlation (R^2)": 0.8901360051660661}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC99.441", "IC99.9", "IC99.985"], "correlation (R^2)": 0.7612621610027513}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC99.441", "IC99.9", "IC99.985"], "correlation (R^2)": 0.9377265298905444}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC99.441", "IC99.9", "IC99.985"], "correlation (R^2)": 0.8953628757629765}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC97.488", "IC99.9", "IC99.998"], "correlation (R^2)": 0.7793980679238988}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC97.488", "IC99.9", "IC99.998"], "correlation (R^2)": 0.9466799369332064}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC97.488", "IC99.9", "IC99.998"], "correlation (R^2)": 0.9019222075286286}, {"epitope": "class 1", "correlation": null, "icxx_set": ["IC91.443", "IC97.488", "IC99.441", "IC99.9", "IC99.985", "IC99.998"], "correlation (R^2)": 0.7667772642571895}, {"epitope": "class 2", "correlation": null, "icxx_set": ["IC91.443", "IC97.488", "IC99.441", "IC99.9", "IC99.985", "IC99.998"], "correlation (R^2)": 0.9532662612101435}, {"epitope": "class 3", "correlation": null, "icxx_set": ["IC91.443", "IC97.488", "IC99.441", "IC99.9", "IC99.985", "IC99.998"], "correlation (R^2)": 0.9108313534334798}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"labelLimit": 300}}, "data": {"name": "data-4b9a43416f7fa7b32b3945271ad9a533"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "row": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "nominal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-4b9a43416f7fa7b32b3945271ad9a533": [{"epitope": "class 1", "correlation (R^2)": 0.6516754583209915, "icxx_set": "IC99.9"}, {"epitope": "class 2", "correlation (R^2)": 0.8936896057376064, "icxx_set": "IC99.9"}, {"epitope": "class 3", "correlation (R^2)": 0.8255677869147199, "icxx_set": "IC99.9"}, {"epitope": "class 1", "correlation (R^2)": 0.7013850887872635, "icxx_set": "IC97.488, IC99.9"}, {"epitope": "class 2", "correlation (R^2)": 0.9182144433570357, "icxx_set": "IC97.488, IC99.9"}, {"epitope": "class 3", "correlation (R^2)": 0.8625440446010227, "icxx_set": "IC97.488, IC99.9"}, {"epitope": "class 1", "correlation (R^2)": 0.6913155849116492, "icxx_set": "IC99.441, IC99.9"}, {"epitope": "class 2", "correlation (R^2)": 0.9196058776861137, "icxx_set": "IC99.441, IC99.9"}, {"epitope": "class 3", "correlation (R^2)": 0.8614007761085187, "icxx_set": "IC99.441, IC99.9"}, {"epitope": "class 1", "correlation (R^2)": 0.7145809233092464, "icxx_set": "IC99.9, IC99.985"}, {"epitope": "class 2", "correlation (R^2)": 0.9273041505155137, "icxx_set": "IC99.9, IC99.985"}, {"epitope": "class 3", "correlation (R^2)": 0.8739887323334262, "icxx_set": "IC99.9, IC99.985"}, {"epitope": "class 1", "correlation (R^2)": 0.7358588552574945, "icxx_set": "IC99.9, IC99.998"}, {"epitope": "class 2", "correlation (R^2)": 0.9379513332367613, "icxx_set": "IC99.9, IC99.998"}, {"epitope": "class 3", "correlation (R^2)": 0.8907875055874762, "icxx_set": "IC99.9, IC99.998"}, {"epitope": "class 1", "correlation (R^2)": 0.7558211733673496, "icxx_set": "IC99.441, IC99.9, IC99.985"}, {"epitope": "class 2", "correlation (R^2)": 0.936760285833938, "icxx_set": "IC99.441, IC99.9, IC99.985"}, {"epitope": "class 3", "correlation (R^2)": 0.891611460750313, "icxx_set": "IC99.441, IC99.9, IC99.985"}, {"epitope": "class 1", "correlation (R^2)": 0.7817413017718214, "icxx_set": "IC97.488, IC99.9, IC99.998"}, {"epitope": "class 2", "correlation (R^2)": 0.9461688311931766, "icxx_set": "IC97.488, IC99.9, IC99.998"}, {"epitope": "class 3", "correlation (R^2)": 0.9015842692046124, "icxx_set": "IC97.488, IC99.9, IC99.998"}, {"epitope": "class 1", "correlation (R^2)": 0.7745810883130307, "icxx_set": "IC91.443, IC97.488, IC99.441, IC99.9, IC99.985, IC99.998"}, {"epitope": "class 2", "correlation (R^2)": 0.9519747100822136, "icxx_set": "IC91.443, IC97.488, IC99.441, IC99.9, IC99.985, IC99.998"}, {"epitope": "class 3", "correlation (R^2)": 0.9002968857194746, "icxx_set": "IC91.443, IC97.488, IC99.441, IC99.9, IC99.985, IC99.998"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>We see that the performance of models fit on data with two or three concentrations is nearly indistinguishable from that of the model fit on data with all six concentrations. Additionally, adding two or three concentrations does lead to a modest improvement in the correlation, especially for the class 1 epitope, which is expected to be the hardest to predict since it has the lowest wildtype activity.</p>
@@ -1020,7 +1040,7 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;icxx_set&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+<span></span><span class="n">ic90_corrs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
 <span class="n">max_ic90</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">conc_sets_to_plot</span><span class="p">:</span>
@@ -1078,12 +1098,13 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-16a13897e80e4918b6fa96f961bc0e7d"></div>
+<div id="altair-viz-50f094239b6748dab08b311f82148241"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-16a13897e80e4918b6fa96f961bc0e7d") {
-      outputDiv = document.getElementById("altair-viz-16a13897e80e4918b6fa96f961bc0e7d");
+    if (outputDiv.id !== "altair-viz-50f094239b6748dab08b311f82148241") {
+      outputDiv = document.getElementById("altair-viz-50f094239b6748dab08b311f82148241");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1092,15 +1113,21 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -1116,16 +1143,14 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-c2b428b3a2256ee7cf1fa0a796f8a84c"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-c2b428b3a2256ee7cf1fa0a796f8a84c": [{"correlation": null, "icxx_set": ["IC99.9"], "correlation (R^2)": 0.9811776752617761}, {"correlation": null, "icxx_set": ["IC97.488", "IC99.9"], "correlation (R^2)": 0.98929395103571}, {"correlation": null, "icxx_set": ["IC99.441", "IC99.9"], "correlation (R^2)": 0.9891546805718594}, {"correlation": null, "icxx_set": ["IC99.9", "IC99.985"], "correlation (R^2)": 0.9880920344088682}, {"correlation": null, "icxx_set": ["IC99.9", "IC99.998"], "correlation (R^2)": 0.9885014819675991}, {"correlation": null, "icxx_set": ["IC99.441", "IC99.9", "IC99.985"], "correlation (R^2)": 0.9928569153419401}, {"correlation": null, "icxx_set": ["IC97.488", "IC99.9", "IC99.998"], "correlation (R^2)": 0.9932998201864298}, {"correlation": null, "icxx_set": ["IC91.443", "IC97.488", "IC99.441", "IC99.9", "IC99.985", "IC99.998"], "correlation (R^2)": 0.9961346332584888}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-79d4a67d9f9ff12eee9ceced366cd044"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-79d4a67d9f9ff12eee9ceced366cd044": [{"correlation (R^2)": 0.9810948637714103, "icxx_set": ["IC99.9"]}, {"correlation (R^2)": 0.9891504710521644, "icxx_set": ["IC97.488", "IC99.9"]}, {"correlation (R^2)": 0.9889763819990575, "icxx_set": ["IC99.441", "IC99.9"]}, {"correlation (R^2)": 0.9880498882309154, "icxx_set": ["IC99.9", "IC99.985"]}, {"correlation (R^2)": 0.9884422568598201, "icxx_set": ["IC99.9", "IC99.998"]}, {"correlation (R^2)": 0.9927174949267213, "icxx_set": ["IC99.441", "IC99.9", "IC99.985"]}, {"correlation (R^2)": 0.9932793337190527, "icxx_set": ["IC97.488", "IC99.9", "IC99.998"]}, {"correlation (R^2)": 0.9960861970328677, "icxx_set": ["IC91.443", "IC97.488", "IC99.441", "IC99.9", "IC99.985", "IC99.998"]}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Fitting with more concentrations maintained the excellent IC90 prediction exhibited by models fit on data with a single concentration.</p>

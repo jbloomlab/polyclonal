@@ -583,12 +583,13 @@ Model on data with 4 average mutations was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-86dfd2223af54fecb73c319319bb405f"></div>
+<div id="altair-viz-70b4b7f2749943d49cfd15bc95e59978"></div>
 <script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-86dfd2223af54fecb73c319319bb405f") {
-      outputDiv = document.getElementById("altair-viz-86dfd2223af54fecb73c319319bb405f");
+    if (outputDiv.id !== "altair-viz-70b4b7f2749943d49cfd15bc95e59978") {
+      outputDiv = document.getElementById("altair-viz-70b4b7f2749943d49cfd15bc95e59978");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -597,15 +598,21 @@ Model on data with 4 average mutations was already fit.
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
-    function loadScript(lib) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = paths[lib];
-        s.async = true;
-        s.onload = () => resolve(paths[lib]);
-        s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
-        document.getElementsByTagName("head")[0].appendChild(s);
-      });
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
     }
 
     function showError(err) {
@@ -621,16 +628,14 @@ Model on data with 4 average mutations was already fit.
     if(typeof define === "function" && define.amd) {
       requirejs.config({paths});
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
-    } else if (typeof vegaEmbed === "function") {
-      displayChart(vegaEmbed);
     } else {
-      loadScript("vega")
-        .then(() => loadScript("vega-lite"))
-        .then(() => loadScript("vega-embed"))
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-1232fa1026a5a8be78b2df72bd70ede2"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "mutation_rate", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "mutation_rate", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-1232fa1026a5a8be78b2df72bd70ede2": [{"epitope": "class 1", "correlation (R^2)": 0.016373875223837507, "mutation_rate": "avg1muts"}, {"epitope": "class 2", "correlation (R^2)": 0.7344986769776277, "mutation_rate": "avg1muts"}, {"epitope": "class 3", "correlation (R^2)": 0.42753030589721297, "mutation_rate": "avg1muts"}, {"epitope": "class 1", "correlation (R^2)": 0.6600938815680705, "mutation_rate": "avg2muts"}, {"epitope": "class 2", "correlation (R^2)": 0.915062544485749, "mutation_rate": "avg2muts"}, {"epitope": "class 3", "correlation (R^2)": 0.8625873717466266, "mutation_rate": "avg2muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7793980679238988, "mutation_rate": "avg3muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9466799369332064, "mutation_rate": "avg3muts"}, {"epitope": "class 3", "correlation (R^2)": 0.9019222075286286, "mutation_rate": "avg3muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7915293948320059, "mutation_rate": "avg4muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9396145102752896, "mutation_rate": "avg4muts"}, {"epitope": "class 3", "correlation (R^2)": 0.9201984463289355, "mutation_rate": "avg4muts"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-2555fa9df6f7d7be339497e2c7c5928c"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "mutation_rate", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "mutation_rate", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-2555fa9df6f7d7be339497e2c7c5928c": [{"epitope": "class 1", "correlation (R^2)": 0.015430507003983296, "mutation_rate": "avg1muts"}, {"epitope": "class 2", "correlation (R^2)": 0.7310292780457298, "mutation_rate": "avg1muts"}, {"epitope": "class 3", "correlation (R^2)": 0.4434374408442581, "mutation_rate": "avg1muts"}, {"epitope": "class 1", "correlation (R^2)": 0.6652956779460807, "mutation_rate": "avg2muts"}, {"epitope": "class 2", "correlation (R^2)": 0.914339449754478, "mutation_rate": "avg2muts"}, {"epitope": "class 3", "correlation (R^2)": 0.86246127371308, "mutation_rate": "avg2muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7817413017718214, "mutation_rate": "avg3muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9461688311931766, "mutation_rate": "avg3muts"}, {"epitope": "class 3", "correlation (R^2)": 0.9015842692046124, "mutation_rate": "avg3muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7886963171748558, "mutation_rate": "avg4muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9408696899527026, "mutation_rate": "avg4muts"}, {"epitope": "class 3", "correlation (R^2)": 0.919382326980428, "mutation_rate": "avg4muts"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <section id="Summary">

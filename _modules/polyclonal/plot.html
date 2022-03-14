@@ -106,7 +106,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    activity_wt_df : pandas.DataFrame</span>
 <span class="sd">        Epitope activities in format of</span>
-<span class="sd">        :attr:`polyclonal.Polyclonal.activity_wt_df`.</span>
+<span class="sd">        :attr:`polyclonal.polyclonal.Polyclonal.activity_wt_df`.</span>
 <span class="sd">    epitope_colors : dict</span>
 <span class="sd">        Maps each epitope name to its color.</span>
 <span class="sd">    epitopes : array-like or None</span>
@@ -173,7 +173,7 @@
 <span class="sd">    -----------</span>
 <span class="sd">    mut_escape_site_summary_df : pandas.DataFrame</span>
 <span class="sd">        Site-level escape in format of</span>
-<span class="sd">        :attr:`polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
+<span class="sd">        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
 <span class="sd">    epitope_colors : dict</span>
 <span class="sd">        Maps each epitope name to its color.</span>
 <span class="sd">    epitopes : array-like or None</span>
@@ -188,8 +188,8 @@
 <span class="sd">    width : float</span>
 <span class="sd">        Width of plot.</span>
 <span class="sd">    init_metric : str</span>
-<span class="sd">        Metric to show initially (others can be selected by dropdown).</span>
-<span class="sd">        One of metrics in :attr:`Polyclonal.site_summary_df`.</span>
+<span class="sd">        Metric to show initially (others can be selected by dropdown). One of</span>
+<span class="sd">        metrics in :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
 <span class="sd">    zoom_bar_width : float</span>
 <span class="sd">        Width of zoom bar</span>
 
@@ -346,7 +346,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    mut_escape_df : pandas.DataFrame</span>
 <span class="sd">        Mutation-level escape in format of</span>
-<span class="sd">        :attr:`polyclonal.Polyclonal.mut_escape_df`.</span>
+<span class="sd">        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`.</span>
 <span class="sd">    alphabet : array-like or None</span>
 <span class="sd">        Alphabet letters (e.g., amino acids) in order to plot them.</span>
 <span class="sd">    epitope_colors : dict</span>
@@ -576,6 +576,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../partition_function.html">Distinct epitopes assumption</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>

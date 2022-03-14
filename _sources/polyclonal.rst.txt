@@ -15,4 +15,5 @@ Submodules
    polyclonal.pdb_utils
    polyclonal.plot
    polyclonal.polyclonal
+   polyclonal.polyclonal_collection
    polyclonal.utils
