@@ -160,14 +160,14 @@ class Polyclonal:
         'zero', set mutation-escapes to zero and activities uniformly spaced
         from 1 to 0. Otherwise draw uniformly from between 0 and 1 using
         specified random number seed.
-    data_mut_escape_overlap : {'exact_match', 'fill_to_data'}
+    data_mut_escape_overlap : {'exact_match', 'fill_to_data', 'prune_to_data'}
         If ``data_to_fit`` and ``mut_escape_df`` (or ``site_escape_df``) both
         specified, what if they don't specify same mutations.
         If 'exact_match', raise error. If 'fill_to_data', then take
         sites / wildtypes / mutations from ``data_to_fit`` and fill init
         values from any not specified in ``mut_escape_df`` as indicated by
-        ``init_missing``--still raise error if values in ``mut_escape_df``
-        are not in ``data_to_fit``.
+        ``init_missing``. If 'prune_to_data', remove any extra mutations
+        from ``mut_escape_df`` that are not in ``data_to_fit``.
 
     Attributes
     ----------
@@ -730,21 +730,22 @@ class Polyclonal:
                         'data_mut_escape_overlap="fill_to_data"'
                     )
             elif data_mut_escape_overlap == "fill_to_data":
-                if set(sites) < set(sites2):
+                # sites are in mut_escape_df, sites2 in data_to_fit
+                if set(sites) <= set(sites2):
                     self.sites = sites2
                 else:
                     raise ValueError(
-                        "`mut_escape_df` has more sites than " "`data_to_fit`"
+                        "`mut_escape_df` has more sites than `data_to_fit`"
                     )
                 if wts.items() <= wts2.items():
                     self.wts = wts2
                 else:
-                    raise ValueError("`mut_escape_df` has wts not in " "`data_to_fit`")
-                if set(muts) < set(muts2):
+                    raise ValueError("`mut_escape_df` has wts not in `data_to_fit`")
+                if set(muts) <= set(muts2):
                     self.mutations = muts2
                 else:
                     raise ValueError(
-                        "`mut_escape_df` has mutations not in " "`data_to_fit`"
+                        "`mut_escape_df` has mutations not in `data_to_fit`"
                     )
                 # take values from `mut_escape_df` and fill missing
                 mut_escape_df = (
@@ -756,6 +757,26 @@ class Polyclonal:
                     )
                     .reset_index()
                 )
+            elif data_mut_escape_overlap == "prune_to_data":
+                # sites are in mut_escape_df, sites2 in data_to_fit
+                if set(sites) >= set(sites2):
+                    self.sites = sites2
+                else:
+                    raise ValueError(
+                        "`mut_escape_df` has fewer sites than `data_to_fit`"
+                    )
+                if wts.items() >= wts2.items():
+                    self.wts = wts2
+                else:
+                    raise ValueError("`mut_escape_df` fewer wts than `data_to_fit`")
+                if set(muts) >= set(muts2):
+                    self.mutations = muts2
+                else:
+                    raise ValueError(
+                        "`mut_escape_df` has fewer mutations than `data_to_fit`"
+                    )
+                mut_escape_df = mut_escape_df.query("mutation in @self.mutations")
+                assert set(mut_escape_df["mutation"]) == set(self.mutations)
             else:
                 raise ValueError(f"invalid {data_mut_escape_overlap=}")
 
@@ -1864,9 +1885,8 @@ class Polyclonal:
 
         map_df = (
             corr_df.rename(columns={"self_epitope": "self_initial_epitope"})
-            .sort_values("correlation")
             .groupby("self_initial_epitope", as_index=False)
-            .first()  # will be row with highest correlation
+            .first()  # will be row with highest correlation after sorting above
             .assign(self_harmonized_epitope=lambda x: x["ref_epitope"])[
                 [
                     "self_initial_epitope",
