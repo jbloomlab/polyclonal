@@ -9,7 +9,6 @@ Defines :class:`PolyclonalCollection` objects for bootstrapping
 """
 
 import multiprocessing
-from collections import Counter
 from functools import partial
 from itertools import repeat
 
@@ -175,14 +174,12 @@ class PolyclonalCollection:
 
     Attributes
     -----------
-    mutations : tuple
-        All mutations for which we have escape values.
-    models : tuple
-        `n_bootstrap_samples` of :class:`~polyclonal.polyclonal.Polyclonal` models.
-    unsampled_mutations : dictionary
-        A dictionary that keeps track of which mutations that are not seen by
-        at least one model. The keys are the mutations and the values are the
-        number of models that did not observe the mutation.
+    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
+        The root polyclonal object passed as a parameter.
+    models : list
+        The bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models,
+        will not be fit until you call :meth:`PolyclonalCollection.fit_models`.
+        After fitting, if any models fail fitting they are set to `None`.
     n_threads: int
         Number of threads for multiprocessing.
 
@@ -199,15 +196,14 @@ class PolyclonalCollection:
         if root_polyclonal.data_to_fit is None:
             raise ValueError("polyclonal object does not have data to fit.")
         self.root_polyclonal = root_polyclonal
-        self.n_bootstrap_samples = n_bootstrap_samples
         if n_threads == -1:
             self.n_threads = multiprocessing.cpu_count()
         else:
             self.n_threads = n_threads
 
-        if self.n_bootstrap_samples > 0:
+        if n_bootstrap_samples > 0:
             # Create distinct seeds for each model
-            seeds = range(seed, seed + self.n_bootstrap_samples)
+            seeds = range(seed, seed + n_bootstrap_samples)
 
             # Create list of bootstrapped polyclonal objects
             with multiprocessing.Pool(self.n_threads) as p:
@@ -219,13 +215,10 @@ class PolyclonalCollection:
             raise ValueError("Please specify a number of bootstrap samples to make.")
 
     def fit_models(self, failures="error", **kwargs):
-        """Fits :class:`~polyclonal.polyclonal.Polyclonal` models.
-        Initializes models with bootstrapped `data_to_fit`, and then fits model.
+        """Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.
 
-        After fitting, re-initialize :class:`~polyclonal.polyclonal.Polyclonal` without
-        data, but with inferred parameters.
-
-        Save the models without attached data to :attr:`PolyclonalCollection.models`.
+        The fit models will then be in :attr:`PolyclonalCollection.models`,
+        with any models that fail fitting set to `None`.
 
         Parameters
         ----------
@@ -266,11 +259,106 @@ class PolyclonalCollection:
                 f"Failed fitting all {len(self.models)} models"
             )
 
-        self.models = [m for m in self.models if m is not None]
         for m in self.models:
-            m.harmonize_epitopes_with(self.root_polyclonal)
+            if m is not None:
+                m.harmonize_epitopes_with(self.root_polyclonal)
 
         return (n_fit, n_failed)
+
+    @property
+    def activity_wt_df_replicates(self):
+        """pandas.DataFrame: Epitope activities for replicates"""
+        return pd.concat(
+            [
+                m.activity_wt_df.assign(bootstrap_replicate=i)
+                for i, m in enumerate(self.models, start=1)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def activity_wt_df(self):
+        """pandas.DataFrame: Epitope activities summarized across replicates."""
+        return self.activity_wt_df_replicates.groupby(
+            "epitope", as_index=False
+        ).aggregate(
+            mean=pd.NamedAgg("activity", "mean"),
+            median=pd.NamedAgg("activity", "median"),
+            std=pd.NamedAgg("activity", "std"),
+        )
+
+    @property
+    def mut_escape_df_replicates(self):
+        """pandas.DataFrame: Mutation escape values for replicates."""
+        return pd.concat(
+            [
+                m.mut_escape_df.assign(bootstrap_replicate=i)
+                for i, m in enumerate(self.models, start=1)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def mut_escape_df(self):
+        """pandas.DataFrame: Mutation escape values summarized across replicates."""
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.mut_escape_df_replicates.groupby(
+                ["epitope", "site", "wildtype", "mutant", "mutation"],
+                as_index=False,
+            )
+            .aggregate(
+                mean=pd.NamedAgg("escape", "mean"),
+                median=pd.NamedAgg("escape", "median"),
+                std=pd.NamedAgg("escape", "std"),
+                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
+            )
+            .assign(
+                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+        )
+
+    @property
+    def mut_escape_site_summary_df_replicates(self):
+        """pandas.DataFrame: Site-level summaries of mutation escape for replicates."""
+        return pd.concat(
+            [
+                m.mut_escape_site_summary_df.assign(bootstrap_replicate=i)
+                for i, m in enumerate(self.models, start=1)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def mut_escape_site_summary_df(self):
+        """pandas.DataFrame: Site summaries of mutation escape across replicates.
+
+        The different site-summary metrics ('mean', 'total positive', etc) are
+        in different rows for each site and epitope. The 'n_bootstrap_replicates'
+        and 'frac_bootstrap_replicates' columns refer to bootstrap replicates
+        with measurements for any mutation at that site.
+        """
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.mut_escape_site_summary_df_replicates.melt(
+                id_vars=["epitope", "site", "wildtype", "bootstrap_replicate"],
+                var_name="metric",
+                value_name="escape",
+            )
+            .groupby(["epitope", "site", "metric"], as_index=False)
+            .aggregate(
+                mean=pd.NamedAgg("escape", "mean"),
+                median=pd.NamedAgg("escape", "median"),
+                std=pd.NamedAgg("escape", "std"),
+                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
+            )
+            .assign(
+                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+        )
 
     def make_predictions(self, variants_df):
         """Make predictions on variants for models that have parameters for
@@ -330,88 +418,8 @@ class PolyclonalCollection:
             ["barcode", "aa_substitutions", "concentration"], as_index=False, sort=False
         ).aggregate(**pred_summary_stats)
 
-    @property
-    def mut_bootstrap_freq_dict(self):
-        """Return a dictionary of the mutations and the percentage of
-        bootstrapped samples they were in.
-        """
-        mutation_dict = Counter()
 
-        for model in self.models:
-            # Update mutation observation counts
-            mutation_dict.update(model.mutations)
+if __name__ == "__main__":
+    import doctest
 
-        mutation_dict_freqs = {
-            key: mutation_dict[key] / self.n_bootstrap_samples
-            for key in mutation_dict.keys()
-        }
-
-        return mutation_dict_freqs
-
-    def summarize_bootstrapped_params(self):
-        """Return a dataframe of summary statistics for `self.mut_escape_df`
-        and `self.activity_wt_df`.
-
-        Returns
-        -------
-        mut_escape_stats_dict : dict
-            A dictionary of dataframes in the format of `self.mut_escape_df`,
-            but instead have a summary statistic for the beta parameter for the
-            coresponding mutation. Statistic is given by the key in the object.
-        activity_wt_stats_dict : dict
-            A dictionary of dataframes in the format of `self.activity_wt_df`,
-            but instead have a summary statistic for the beta parameter for the
-            coresponding mutation. Statistic is given by the key in the object.
-
-        """
-        mut_escape_df_list = []
-        activity_wt_df_list = []
-
-        # Create dictionary of desired summary stats
-        escape_summary_stats = {
-            "site": pd.NamedAgg("site", "first"),
-            "wildtype": pd.NamedAgg("mutant", "first"),
-            "mean": pd.NamedAgg("escape", "mean"),
-            "median": pd.NamedAgg("escape", "median"),
-            "std": pd.NamedAgg("escape", "std"),
-        }
-
-        activity_summary_stats = {
-            "epitope": pd.NamedAgg("epitope", "first"),
-            "mean": pd.NamedAgg("activity", "mean"),
-            "median": pd.NamedAgg("activity", "median"),
-            "std": pd.NamedAgg("activity", "std"),
-        }
-
-        # Grab all dataframes
-        for model in self.models:
-            # Add inferred params
-            mut_escape_df_list.append(model.mut_escape_df)
-            activity_wt_df_list.append(model.activity_wt_df)
-
-        mut_escape_df = pd.concat(mut_escape_df_list)
-        activity_wt_df = pd.concat(activity_wt_df_list)
-
-        mut_escape_df_stats = mut_escape_df.groupby(
-            ["mutation", "epitope"], as_index=False, sort=False
-        ).aggregate(**escape_summary_stats)
-        wt_df_stats = activity_wt_df.groupby("epitope", as_index=False).aggregate(
-            **activity_summary_stats
-        )
-
-        # Create a dictionary for summary stats for both dataframes
-        mut_core_cols = ["mutation", "epitope", "site", "wildtype"]
-
-        mut_escape_stats_dict = {
-            "mean": mut_escape_df_stats.filter(items=mut_core_cols + ["mean"]),
-            "median": mut_escape_df_stats.filter(items=mut_core_cols + ["median"]),
-            "std": mut_escape_df_stats.filter(items=mut_core_cols + ["std"]),
-        }
-
-        activity_wt_stats_dict = {
-            "mean": wt_df_stats.filter(items=["epitope", "mean"]),
-            "median": wt_df_stats.filter(items=["epitope", "median"]),
-            "std": wt_df_stats.filter(items=["epitope", "std"]),
-        }
-
-        return mut_escape_stats_dict, activity_wt_stats_dict
+    doctest.testmod()
