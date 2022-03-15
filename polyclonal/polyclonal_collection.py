@@ -283,9 +283,9 @@ class PolyclonalCollection:
         return self.activity_wt_df_replicates.groupby(
             "epitope", as_index=False
         ).aggregate(
-            mean_activity=pd.NamedAgg("activity", "mean"),
-            median_activity=pd.NamedAgg("activity", "median"),
-            std_activity=pd.NamedAgg("activity", "std"),
+            mean=pd.NamedAgg("activity", "mean"),
+            median=pd.NamedAgg("activity", "median"),
+            std=pd.NamedAgg("activity", "std"),
         )
 
     @property
@@ -310,9 +310,9 @@ class PolyclonalCollection:
                 as_index=False,
             )
             .aggregate(
-                mean_escape=pd.NamedAgg("escape", "mean"),
-                median_escape=pd.NamedAgg("escape", "median"),
-                std_escape=pd.NamedAgg("escape", "std"),
+                mean=pd.NamedAgg("escape", "mean"),
+                median=pd.NamedAgg("escape", "median"),
+                std=pd.NamedAgg("escape", "std"),
                 n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
             )
             .assign(
@@ -334,8 +334,31 @@ class PolyclonalCollection:
 
     @property
     def mut_escape_site_summary_df(self):
-        """pandas.DataFrame: Site summaries of mutation escape across replicates."""
-        raise NotImplementedError
+        """pandas.DataFrame: Site summaries of mutation escape across replicates.
+
+        The different site-summary metrics ('mean', 'total positive', etc) are
+        in different rows for each site and epitope. The 'n_bootstrap_replicates'
+        and 'frac_bootstrap_replicates' columns refer to bootstrap replicates
+        with measurements for any mutation at that site.
+        """
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.mut_escape_site_summary_df_replicates.melt(
+                id_vars=["epitope", "site", "wildtype", "bootstrap_replicate"],
+                var_name="metric",
+                value_name="escape",
+            )
+            .groupby(["epitope", "site", "metric"], as_index=False)
+            .aggregate(
+                mean=pd.NamedAgg("escape", "mean"),
+                median=pd.NamedAgg("escape", "median"),
+                std=pd.NamedAgg("escape", "std"),
+                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
+            )
+            .assign(
+                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+        )
 
     def make_predictions(self, variants_df):
         """Make predictions on variants for models that have parameters for
