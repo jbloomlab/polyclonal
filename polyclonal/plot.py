@@ -62,6 +62,7 @@ def activity_wt_barplot(
     activity_wt_df,
     epitope_colors,
     epitopes=None,
+    stat="activity",
     width=110,
     height_per_bar=25,
 ):
@@ -77,6 +78,9 @@ def activity_wt_barplot(
     epitopes : array-like or None
         Include these epitopes in this order. If `None`, use all epitopes
         in order found in ``activity_wt_df``.
+    stat : str
+        A string of the statistic present in `actvity_wt_df`.
+        Options: ['activity', 'mean', 'median', 'std']
     width : float
         Width of plot.
     height_per_bar : float
@@ -101,7 +105,7 @@ def activity_wt_barplot(
     barplot = (
         alt.Chart(df)
         .encode(
-            x="activity:Q",
+            x=stat + ":Q",
             y="epitope:N",
             color=alt.Color(
                 "epitope:N",
@@ -110,7 +114,7 @@ def activity_wt_barplot(
                 ),
                 legend=None,
             ),
-            tooltip=[alt.Tooltip("epitope:N"), alt.Tooltip("activity:Q", format=".3g")],
+            tooltip=[alt.Tooltip("epitope:N"), alt.Tooltip(stat + ":Q", format=".3g")],
         )
         .mark_bar(size=0.75 * height_per_bar)
         .properties(width=width, height={"step": height_per_bar})
@@ -298,6 +302,7 @@ def mut_escape_heatmap(
     alphabet,
     epitope_colors,
     epitopes=None,
+    stat="escape",
     all_sites=True,
     all_alphabet=True,
     floor_color_at_zero=True,
@@ -318,6 +323,9 @@ def mut_escape_heatmap(
         Maps each epitope name to its color.
     epitopes : array-like or None
         Make plots for these epitopes. If `None`, use all epitopes.
+    stat : str
+        A string of the statistic present in `mut_escape_df`.
+        Options: ['escape', 'mean', 'median', 'std']
     all_sites : bool
         Plot all sites in range from first to last site even if some
         have no data.
@@ -329,7 +337,7 @@ def mut_escape_heatmap(
         values or if minimum is >0.
     share_heatmap_lims : bool
         If `True`, let all epitopes share the same limits in color scale.
-        If `False`, scale each epitopes colors to the min and max escape
+        If `False`, scale each epitopes colors to the min and max stat
         values for that epitope.
     cell_size : float
         Size of cells in heatmap.
@@ -364,8 +372,8 @@ def mut_escape_heatmap(
     wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
 
     df = (
-        df[["epitope", "site", "mutant", "escape"]]
-        .pivot_table(index=["site", "mutant"], values="escape", columns="epitope")
+        df[["epitope", "site", "mutant", stat]]
+        .pivot_table(index=["site", "mutant"], values=stat, columns="epitope")
         .reset_index()
         .merge(
             pd.DataFrame(
