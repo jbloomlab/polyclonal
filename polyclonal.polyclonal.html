@@ -135,13 +135,13 @@ to the epitopes.</p></li>
 ‘zero’, set mutation-escapes to zero and activities uniformly spaced
 from 1 to 0. Otherwise draw uniformly from between 0 and 1 using
 specified random number seed.</p></li>
-<li><p><strong>data_mut_escape_overlap</strong> (<em>{'exact_match'</em><em>, </em><em>'fill_to_data'}</em>) – If <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code> and <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> (or <code class="docutils literal notranslate"><span class="pre">site_escape_df</span></code>) both
+<li><p><strong>data_mut_escape_overlap</strong> (<em>{'exact_match'</em><em>, </em><em>'fill_to_data'</em><em>, </em><em>'prune_to_data'}</em>) – If <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code> and <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> (or <code class="docutils literal notranslate"><span class="pre">site_escape_df</span></code>) both
 specified, what if they don’t specify same mutations.
 If ‘exact_match’, raise error. If ‘fill_to_data’, then take
 sites / wildtypes / mutations from <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code> and fill init
 values from any not specified in <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> as indicated by
-<code class="docutils literal notranslate"><span class="pre">init_missing</span></code>–still raise error if values in <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code>
-are not in <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">init_missing</span></code>. If ‘prune_to_data’, remove any extra mutations
+from <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> that are not in <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -545,6 +545,65 @@ alphabet, and is generated using <a class="reference internal" href="#polyclonal
 <span class="go">4            1.0          w1m w4m       1        0.409</span>
 </pre></div>
 </div>
+<p class="rubric">Example</p>
+<p>Epitope assignments are arbitrary, so you can calculate correlations
+among their mutation-escape values and align them.</p>
+<p>First, correlations of a model to itself:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ref_poly</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">polyclonal</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">  ref_epitope self_epitope  correlation</span>
+<span class="go">0          e1           e1        1.000</span>
+<span class="go">1          e1           e2       -0.907</span>
+<span class="go">2          e2           e1       -0.907</span>
+<span class="go">3          e2           e2        1.000</span>
+</pre></div>
+</div>
+<p>Make another model with epitope assignments inverted and a few mutations missing:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">activity_wt_df</span><span class="o">=</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">activity_wt_df</span>
+<span class="gp">... </span>        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="s2">&quot;e1&quot;</span><span class="p">:</span> <span class="s2">&quot;e2&quot;</span><span class="p">,</span> <span class="s2">&quot;e2&quot;</span><span class="p">:</span> <span class="s2">&quot;e1&quot;</span><span class="p">}))</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span>    <span class="n">mut_escape_df</span><span class="o">=</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">mut_escape_df</span>
+<span class="gp">... </span>        <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;mutation != &#39;A4K&#39;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="s2">&quot;e1&quot;</span><span class="p">:</span> <span class="s2">&quot;e2&quot;</span><span class="p">,</span> <span class="s2">&quot;e2&quot;</span><span class="p">:</span> <span class="s2">&quot;e1&quot;</span><span class="p">}))</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">  ref_epitope self_epitope  correlation</span>
+<span class="go">0          e1           e2        1.000</span>
+<span class="go">1          e1           e1       -0.945</span>
+<span class="go">2          e2           e2       -0.945</span>
+<span class="go">3          e2           e1        1.000</span>
+</pre></div>
+</div>
+<p>Now actually harmonize the epitopes</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">harmonize_epitopes_with</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span>
+<span class="go">  self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
+<span class="go">0                   e1                      e1          e1          1.0</span>
+<span class="go">1                   e2                      e2          e2          1.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">harmonize_epitopes_with</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span>
+<span class="go">  self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
+<span class="go">0                   e1                      e2          e2          1.0</span>
+<span class="go">1                   e2                      e1          e1          1.0</span>
+</pre></div>
+</div>
+<p>The order of the epitopes have been switched after harmonization:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">epitopes</span>
+<span class="go">[&#39;e1&#39;, &#39;e2&#39;]</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">  ref_epitope self_epitope  correlation</span>
+<span class="go">0          e1           e1        1.000</span>
+<span class="go">1          e1           e2       -0.945</span>
+<span class="go">2          e2           e1       -0.945</span>
+<span class="go">3          e2           e2        1.000</span>
+</pre></div>
+</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.DEFAULT_SCIPY_MINIMIZE_KWARGS">
 <span class="sig-name descname"><span class="pre">DEFAULT_SCIPY_MINIMIZE_KWARGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{'method':</span> <span class="pre">'L-BFGS-B',</span> <span class="pre">'options':</span> <span class="pre">{'ftol':</span> <span class="pre">1e-07,</span> <span class="pre">'maxfun':</span> <span class="pre">10000000.0,</span> <span class="pre">'maxiter':</span> <span class="pre">1000000.0}}</span></em><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.DEFAULT_SCIPY_MINIMIZE_KWARGS" title="Permalink to this definition">¶</a></dt>
@@ -622,8 +681,7 @@ values at each site.</p></li>
 <li><p><strong>fit_site_level_first</strong> (<em>bool</em>) – First fit a site-level model, then use those activities /
 escapes to initialize fit of this model. Generally works better.</p></li>
 <li><p><strong>scipy_minimize_kwargs</strong> (<em>dict</em>) – Keyword arguments passed to <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p></li>
-<li><p><strong>log</strong> (<em>None</em><em> or </em><em>writable file-like object</em>) – Where to log output if <code class="docutils literal notranslate"><span class="pre">verbosity</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, use
-<code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code>.</p></li>
+<li><p><strong>log</strong> (<em>None</em><em> or </em><em>writable file-like object</em>) – Where to log output. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, use <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code>.</p></li>
 <li><p><strong>logfreq</strong> (<em>None</em><em> or </em><em>int</em>) – How frequently to write updates on fitting to <code class="docutils literal notranslate"><span class="pre">log</span></code>.</p></li>
 </ul>
 </dd>
@@ -639,21 +697,27 @@ escapes to initialize fit of this model. Generally works better.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with">
 <span class="sig-name descname"><span class="pre">harmonize_epitopes_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_poly</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.harmonize_epitopes_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with" title="Permalink to this definition">¶</a></dt>
-<dd><p>Harmonize epitopes with another polyclonal object.
-Epitopes are unidentifiable, meaning there is no gurantee that we will infer
-the same epitopes across multiple models.
-This function aims to “align” inferred epitopes with two models.</p>
+<dd><p>Harmonize epitope labels with another polyclonal object.</p>
+<p>Epitopes are unidentifiable, meaning there is no guarantee that we will assign
+the same epitope labels across multiple models fit to similar data. This
+function aligns the epitope labels of the current <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object
+with those of another model with the same epitope labels.</p>
+<p>The harmonization is done simply by re-ordering the epitope labels
+in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.epitopes" title="polyclonal.polyclonal.Polyclonal.epitopes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.epitopes</span></code></a>. The epitopes will be matched by label,
+but not necessarily by order in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.epitopes" title="polyclonal.polyclonal.Polyclonal.epitopes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.epitopes</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ref_poly</strong> (<em>:class:Polyclonal</em>) – The reference polyclonal object to align epitopes to.</p>
+<dd class="field-odd"><p><strong>ref_poly</strong> (<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – The reference polyclonal object to align epitope labels with.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Edits <cite>self._params</cite>, <cite>self.mut_escape_df</cite>, and <cite>self.activity_wt_df</cite>
-inplace. These parameters are adjusted so that the epitopes between
-<cite>self</cite> and <cite>ref_poly</cite> are aligned.</p>
+<dd class="field-even"><p>Has columns ‘self_initial_epitope’, ‘self_harmonized_epitope’,
+‘ref_epitope’, ‘correlation’.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>void</p>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#polyclonal.polyclonal.PolyclonalHarmonizeError" title="polyclonal.polyclonal.PolyclonalHarmonizeError"><strong>PolyclonalHarmonizeError</strong></a> – Raise this error if epitopes cannot be harmonized one-to-one.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -677,6 +741,30 @@ each variant. So set to 0.5 for IC50, and 0.9 for IC90.</p></li>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Copy of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> with added column <code class="docutils literal notranslate"><span class="pre">col</span></code> containing icXX.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mut_escape_corr">
+<span class="sig-name descname"><span class="pre">mut_escape_corr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_poly</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_corr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_corr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correlation of mutation-escape values with another model.</p>
+<p>For each epitope, how well is this model’s mutation-escape values
+correlation with another model?</p>
+<p>In the situation where a mutation is only seen by one model, we exclude
+that mutation from correlation calculations (i.e., we omit the rows
+where either <cite>escape_x</cite> and <cite>escape_y</cite> of the merged df contain None.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ref_poly</strong> (<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – The other (reference) polyclonal object with which we calculate the
+correlation of mutation-escape values between all pairwise combinations of
+epitopes.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>corr_df</strong> – Pairwise epitope correlations for escape.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>

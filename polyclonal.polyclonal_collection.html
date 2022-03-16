@@ -41,27 +41,29 @@
 <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> model parameters.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">PolyclonalCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_polyclonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstrap_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">PolyclonalCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_polyclonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstrap_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A container class for multiple <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>root_polyclonal</strong> (<a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – The polyclonal object created with the full dataset to draw bootstrapped
-samples from.</p></li>
+samples from. The bootstrapped samples are also initialized to mutation effects
+and activities of this model, so it is <strong>highly recommended</strong> that this object
+already have been fit to the full dataset.</p></li>
 <li><p><strong>n_bootstrap_samples</strong> (<em>int</em>) – Number of bootstrapped <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> models to fit.</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – Random seed for reproducibility.</p></li>
-<li><p><strong>n_threads</strong> (<em>int</em>) – The number of threads to use for multiprocessing.</p></li>
+<li><p><strong>n_threads</strong> (<em>int</em>) – Number of threads to use for multiprocessing, -1 means all available.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mutations">
-<span class="sig-name descname"><span class="pre">mutations</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mutations" title="Permalink to this definition">¶</a></dt>
-<dd><p>All mutations for which we have escape values.</p>
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.root_polyclonal">
+<span class="sig-name descname"><span class="pre">root_polyclonal</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.root_polyclonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>The root polyclonal object passed as a parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>tuple</p>
+<dd class="field-odd"><p><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -69,44 +71,70 @@ samples from.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.models">
 <span class="sig-name descname"><span class="pre">models</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.models" title="Permalink to this definition">¶</a></dt>
-<dd><p><cite>n_bootstrap_samples</cite> of <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> models.</p>
+<dd><p>The bootstrapped <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> models,
+will not be fit until you call <a class="reference internal" href="#polyclonal.polyclonal_collection.PolyclonalCollection.fit_models" title="polyclonal.polyclonal_collection.PolyclonalCollection.fit_models"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PolyclonalCollection.fit_models()</span></code></a>.
+After fitting, if any models fail fitting they are set to <cite>None</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>tuple</p>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.unsampled_mutations">
-<span class="sig-name descname"><span class="pre">unsampled_mutations</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.unsampled_mutations" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dictionary that keeps track of which mutations that are not seen by
-at least one model. The keys are the mutations and the values are the
-number of models that did not observe the mutation.</p>
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.n_threads">
+<span class="sig-name descname"><span class="pre">n_threads</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.n_threads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of threads for multiprocessing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>dictionary</p>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_df">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">activity_wt_df</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Epitope activities summarized across replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_df_replicates">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">activity_wt_df_replicates</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_df_replicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Epitope activities for replicates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.fit_models">
-<span class="sig-name descname"><span class="pre">fit_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.fit_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.fit_models" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fits <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> models.
-Initializes models with bootstrapped <cite>data_to_fit</cite>, and then fits model.</p>
-<p>After fitting, re-initialize <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> without
-data, but with inferred parameters.</p>
-<p>Save the models without attached data to <a class="reference internal" href="#polyclonal.polyclonal_collection.PolyclonalCollection.models" title="polyclonal.polyclonal_collection.PolyclonalCollection.models"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PolyclonalCollection.models</span></code></a>.</p>
+<span class="sig-name descname"><span class="pre">fit_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'error'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.fit_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.fit_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits bootstrapped <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> models.</p>
+<p>The fit models will then be in <a class="reference internal" href="#polyclonal.polyclonal_collection.PolyclonalCollection.models" title="polyclonal.polyclonal_collection.PolyclonalCollection.models"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PolyclonalCollection.models</span></code></a>,
+with any models that fail fitting set to <cite>None</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>max_attempts</strong> (<em>int</em>) – The maximum number of retries to allow if optimization fails.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>failures</strong> (<em>{&quot;error&quot;</em><em>, </em><em>&quot;tolerate&quot;}</em>) – Tolerate failures in model fitting or raise an error if a failure?
+Always raise an error if all models failed.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit" title="polyclonal.polyclonal.Polyclonal.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">polyclonal.polyclonal.Polyclonal.fit()</span></code></a>.
+If not specified otherwise, <cite>fit_site_level_first</cite> is set to <cite>False</cite>,
+since models are initialized to “good” values from the root object.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>Number of model fits that failed and succeeded.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None</p>
+<dd class="field-odd"><p>(n_fit, n_failed)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -134,10 +162,51 @@ of predictions on <cite>variants_df</cite> and returns them in a list.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_bootstrap_freq_dict">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_bootstrap_freq_dict</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_bootstrap_freq_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dictionary of the mutations and the percentage of
-bootstrapped samples they were in.</p>
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_df</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mutation escape values summarized across replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df_replicates">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_df_replicates</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df_replicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mutation escape values for replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_site_summary_df</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Site summaries of mutation escape across replicates.</p>
+<p>The different site-summary metrics (‘mean’, ‘total positive’, etc) are
+in different rows for each site and epitope. The ‘n_bootstrap_replicates’
+and ‘frac_bootstrap_replicates’ columns refer to bootstrap replicates
+with measurements for any mutation at that site.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_site_summary_df_replicates</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Site-level summaries of mutation escape for replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -160,26 +229,13 @@ associated with each mutation at each concentration.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.summarize_bootstrapped_params">
-<span class="sig-name descname"><span class="pre">summarize_bootstrapped_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.summarize_bootstrapped_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.summarize_bootstrapped_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dataframe of summary statistics for <cite>self.mut_escape_df</cite>
-and <cite>self.activity_wt_df</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><ul class="simple">
-<li><p><strong>mut_escape_stats_dict</strong> (<em>dict</em>) – A dictionary of dataframes in the format of <cite>self.mut_escape_df</cite>,
-but instead have a summary statistic for the beta parameter for the
-coresponding mutation. Statistic is given by the key in the object.</p></li>
-<li><p><strong>activity_wt_stats_dict</strong> (<em>dict</em>) – A dictionary of dataframes in the format of <cite>self.activity_wt_df</cite>,
-but instead have a summary statistic for the beta parameter for the
-coresponding mutation. Statistic is given by the key in the object.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
 </dd></dl>
 
+<dl class="py exception">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollectionFitError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">PolyclonalCollectionFitError</span></span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollectionFitError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollectionFitError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Error fitting in <a class="reference internal" href="#polyclonal.polyclonal_collection.PolyclonalCollection.fit_models" title="polyclonal.polyclonal_collection.PolyclonalCollection.fit_models"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PolyclonalCollection.fit_models()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py function">

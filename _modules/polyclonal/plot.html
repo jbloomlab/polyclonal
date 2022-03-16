@@ -97,6 +97,7 @@
     <span class="n">activity_wt_df</span><span class="p">,</span>
     <span class="n">epitope_colors</span><span class="p">,</span>
     <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>
     <span class="n">height_per_bar</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
 <span class="p">):</span>
@@ -112,6 +113,9 @@
 <span class="sd">    epitopes : array-like or None</span>
 <span class="sd">        Include these epitopes in this order. If `None`, use all epitopes</span>
 <span class="sd">        in order found in ``activity_wt_df``.</span>
+<span class="sd">    stat : str</span>
+<span class="sd">        A string of the statistic present in `actvity_wt_df`.</span>
+<span class="sd">        Options: [&#39;activity&#39;, &#39;mean&#39;, &#39;median&#39;, &#39;std&#39;]</span>
 <span class="sd">    width : float</span>
 <span class="sd">        Width of plot.</span>
 <span class="sd">    height_per_bar : float</span>
@@ -136,7 +140,7 @@
     <span class="n">barplot</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
         <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="s2">&quot;activity:Q&quot;</span><span class="p">,</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">stat</span> <span class="o">+</span> <span class="s2">&quot;:Q&quot;</span><span class="p">,</span>
             <span class="n">y</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
             <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
                 <span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
@@ -145,7 +149,7 @@
                 <span class="p">),</span>
                 <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="p">),</span>
-            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;activity:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">)],</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">stat</span> <span class="o">+</span> <span class="s2">&quot;:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">)],</span>
         <span class="p">)</span>
         <span class="o">.</span><span class="n">mark_bar</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">0.75</span> <span class="o">*</span> <span class="n">height_per_bar</span><span class="p">)</span>
         <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">height_per_bar</span><span class="p">})</span>
@@ -333,6 +337,7 @@
     <span class="n">alphabet</span><span class="p">,</span>
     <span class="n">epitope_colors</span><span class="p">,</span>
     <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
     <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">all_alphabet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">floor_color_at_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -353,6 +358,9 @@
 <span class="sd">        Maps each epitope name to its color.</span>
 <span class="sd">    epitopes : array-like or None</span>
 <span class="sd">        Make plots for these epitopes. If `None`, use all epitopes.</span>
+<span class="sd">    stat : str</span>
+<span class="sd">        A string of the statistic present in `mut_escape_df`.</span>
+<span class="sd">        Options: [&#39;escape&#39;, &#39;mean&#39;, &#39;median&#39;, &#39;std&#39;]</span>
 <span class="sd">    all_sites : bool</span>
 <span class="sd">        Plot all sites in range from first to last site even if some</span>
 <span class="sd">        have no data.</span>
@@ -364,7 +372,7 @@
 <span class="sd">        values or if minimum is &gt;0.</span>
 <span class="sd">    share_heatmap_lims : bool</span>
 <span class="sd">        If `True`, let all epitopes share the same limits in color scale.</span>
-<span class="sd">        If `False`, scale each epitopes colors to the min and max escape</span>
+<span class="sd">        If `False`, scale each epitopes colors to the min and max stat</span>
 <span class="sd">        values for that epitope.</span>
 <span class="sd">    cell_size : float</span>
 <span class="sd">        Size of cells in heatmap.</span>
@@ -399,8 +407,8 @@
     <span class="n">wts</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;escape&quot;</span><span class="p">]]</span>
-        <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="n">stat</span><span class="p">]]</span>
+        <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
         <span class="o">.</span><span class="n">merge</span><span class="p">(</span>
             <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>

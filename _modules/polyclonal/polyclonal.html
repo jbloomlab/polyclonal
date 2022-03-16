@@ -44,6 +44,7 @@
 
 
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">copy</span>  <span class="c1"># noqa: F401</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -194,14 +195,14 @@
 <span class="sd">        &#39;zero&#39;, set mutation-escapes to zero and activities uniformly spaced</span>
 <span class="sd">        from 1 to 0. Otherwise draw uniformly from between 0 and 1 using</span>
 <span class="sd">        specified random number seed.</span>
-<span class="sd">    data_mut_escape_overlap : {&#39;exact_match&#39;, &#39;fill_to_data&#39;}</span>
+<span class="sd">    data_mut_escape_overlap : {&#39;exact_match&#39;, &#39;fill_to_data&#39;, &#39;prune_to_data&#39;}</span>
 <span class="sd">        If ``data_to_fit`` and ``mut_escape_df`` (or ``site_escape_df``) both</span>
 <span class="sd">        specified, what if they don&#39;t specify same mutations.</span>
 <span class="sd">        If &#39;exact_match&#39;, raise error. If &#39;fill_to_data&#39;, then take</span>
 <span class="sd">        sites / wildtypes / mutations from ``data_to_fit`` and fill init</span>
 <span class="sd">        values from any not specified in ``mut_escape_df`` as indicated by</span>
-<span class="sd">        ``init_missing``--still raise error if values in ``mut_escape_df``</span>
-<span class="sd">        are not in ``data_to_fit``.</span>
+<span class="sd">        ``init_missing``. If &#39;prune_to_data&#39;, remove any extra mutations</span>
+<span class="sd">        from ``mut_escape_df`` that are not in ``data_to_fit``.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -545,6 +546,65 @@
 <span class="sd">    3            1.0      w1m w2m w4m       2        0.686</span>
 <span class="sd">    4            1.0          w1m w4m       1        0.409</span>
 
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Epitope assignments are arbitrary, so you can calculate correlations</span>
+<span class="sd">    among their mutation-escape values and align them.</span>
+
+<span class="sd">    First, correlations of a model to itself:</span>
+
+<span class="sd">    &gt;&gt;&gt; ref_poly = copy.deepcopy(polyclonal)</span>
+<span class="sd">    &gt;&gt;&gt; polyclonal.mut_escape_corr(ref_poly).round(3)</span>
+<span class="sd">      ref_epitope self_epitope  correlation</span>
+<span class="sd">    0          e1           e1        1.000</span>
+<span class="sd">    1          e1           e2       -0.907</span>
+<span class="sd">    2          e2           e1       -0.907</span>
+<span class="sd">    3          e2           e2        1.000</span>
+
+<span class="sd">    Make another model with epitope assignments inverted and a few mutations missing:</span>
+
+<span class="sd">    &gt;&gt;&gt; inverted_poly = Polyclonal(</span>
+<span class="sd">    ...     activity_wt_df=(</span>
+<span class="sd">    ...         activity_wt_df</span>
+<span class="sd">    ...         .assign(epitope=lambda x: x[&quot;epitope&quot;].map({&quot;e1&quot;: &quot;e2&quot;, &quot;e2&quot;: &quot;e1&quot;}))</span>
+<span class="sd">    ...     ),</span>
+<span class="sd">    ...     mut_escape_df=(</span>
+<span class="sd">    ...         mut_escape_df</span>
+<span class="sd">    ...         .query(&quot;mutation != &#39;A4K&#39;&quot;)</span>
+<span class="sd">    ...         .assign(epitope=lambda x: x[&quot;epitope&quot;].map({&quot;e1&quot;: &quot;e2&quot;, &quot;e2&quot;: &quot;e1&quot;}))</span>
+<span class="sd">    ...     ),</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; inverted_poly.mut_escape_corr(ref_poly).round(3)</span>
+<span class="sd">      ref_epitope self_epitope  correlation</span>
+<span class="sd">    0          e1           e2        1.000</span>
+<span class="sd">    1          e1           e1       -0.945</span>
+<span class="sd">    2          e2           e2       -0.945</span>
+<span class="sd">    3          e2           e1        1.000</span>
+
+<span class="sd">    Now actually harmonize the epitopes</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal.harmonize_epitopes_with(ref_poly)</span>
+<span class="sd">      self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
+<span class="sd">    0                   e1                      e1          e1          1.0</span>
+<span class="sd">    1                   e2                      e2          e2          1.0</span>
+
+<span class="sd">    &gt;&gt;&gt; inverted_poly.harmonize_epitopes_with(ref_poly)</span>
+<span class="sd">      self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
+<span class="sd">    0                   e1                      e2          e2          1.0</span>
+<span class="sd">    1                   e2                      e1          e1          1.0</span>
+
+<span class="sd">    The order of the epitopes have been switched after harmonization:</span>
+
+<span class="sd">    &gt;&gt;&gt; inverted_poly.epitopes</span>
+<span class="sd">    [&#39;e1&#39;, &#39;e2&#39;]</span>
+
+<span class="sd">    &gt;&gt;&gt; inverted_poly.mut_escape_corr(ref_poly).round(3)</span>
+<span class="sd">      ref_epitope self_epitope  correlation</span>
+<span class="sd">    0          e1           e1        1.000</span>
+<span class="sd">    1          e1           e2       -0.945</span>
+<span class="sd">    2          e2           e1       -0.945</span>
+<span class="sd">    3          e2           e2        1.000</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -705,21 +765,22 @@
                         <span class="s1">&#39;data_mut_escape_overlap=&quot;fill_to_data&quot;&#39;</span>
                     <span class="p">)</span>
             <span class="k">elif</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;fill_to_data&quot;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                <span class="c1"># sites are in mut_escape_df, sites2 in data_to_fit</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;`mut_escape_df` has more sites than &quot;</span> <span class="s2">&quot;`data_to_fit`&quot;</span>
+                        <span class="s2">&quot;`mut_escape_df` has more sites than `data_to_fit`&quot;</span>
                     <span class="p">)</span>
                 <span class="k">if</span> <span class="n">wts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">wts2</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">wts</span> <span class="o">=</span> <span class="n">wts2</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`mut_escape_df` has wts not in &quot;</span> <span class="s2">&quot;`data_to_fit`&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">muts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">set</span><span class="p">(</span><span class="n">muts2</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`mut_escape_df` has wts not in `data_to_fit`&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">muts</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">muts2</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">muts2</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;`mut_escape_df` has mutations not in &quot;</span> <span class="s2">&quot;`data_to_fit`&quot;</span>
+                        <span class="s2">&quot;`mut_escape_df` has mutations not in `data_to_fit`&quot;</span>
                     <span class="p">)</span>
                 <span class="c1"># take values from `mut_escape_df` and fill missing</span>
                 <span class="n">mut_escape_df</span> <span class="o">=</span> <span class="p">(</span>
@@ -731,6 +792,26 @@
                     <span class="p">)</span>
                     <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
                 <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;prune_to_data&quot;</span><span class="p">:</span>
+                <span class="c1"># sites are in mut_escape_df, sites2 in data_to_fit</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;`mut_escape_df` has fewer sites than `data_to_fit`&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">wts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">wts2</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">wts</span> <span class="o">=</span> <span class="n">wts2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`mut_escape_df` fewer wts than `data_to_fit`&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">muts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">muts2</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">muts2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;`mut_escape_df` has fewer mutations than `data_to_fit`&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">mut_escape_df</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;mutation in @self.mutations&quot;</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">data_mut_escape_overlap</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -1266,8 +1347,7 @@
 <span class="sd">        scipy_minimize_kwargs : dict</span>
 <span class="sd">            Keyword arguments passed to ``scipy.optimize.minimize``.</span>
 <span class="sd">        log : None or writable file-like object</span>
-<span class="sd">            Where to log output if ``verbosity &gt; 0``. If ``None``, use</span>
-<span class="sd">            ``sys.stdout``.</span>
+<span class="sd">            Where to log output. If ``None``, use ``sys.stdout``.</span>
 <span class="sd">        logfreq : None or int</span>
 <span class="sd">            How frequently to write updates on fitting to ``log``.</span>
 
@@ -1741,13 +1821,11 @@
         <span class="k">assert</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">all_subs</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span>
         <span class="k">return</span> <span class="n">bmap</span>
 
-    <span class="k">def</span> <span class="nf">_make_correlation_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the correlation of mutation-escape values of all pairwise</span>
-<span class="sd">        combinations of `self`s model and the model inferred by `ref_poly`.</span>
-<span class="sd">        Both inputs must have the same number of epitopes specified.</span>
+<div class="viewcode-block" id="Polyclonal.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Correlation of mutation-escape values with another model.</span>
 
-<span class="sd">        The rows of this matrix index the epitopes in `self`, the columns do the</span>
-<span class="sd">        same for `ref_poly`.</span>
+<span class="sd">        For each epitope, how well is this model&#39;s mutation-escape values</span>
+<span class="sd">        correlation with another model?</span>
 
 <span class="sd">        In the situation where a mutation is only seen by one model, we exclude</span>
 <span class="sd">        that mutation from correlation calculations (i.e., we omit the rows</span>
@@ -1755,16 +1833,20 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ------------</span>
-<span class="sd">        ref_poly : :class:Polyclonal object</span>
-<span class="sd">            The reference polyclonal object to calculate the correlation of</span>
-<span class="sd">            mutation-escape values between all pairwise combinations of</span>
+<span class="sd">        ref_poly : :class:`Polyclonal`</span>
+<span class="sd">            The other (reference) polyclonal object with which we calculate the</span>
+<span class="sd">            correlation of mutation-escape values between all pairwise combinations of</span>
 <span class="sd">            epitopes.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        ---------</span>
 <span class="sd">        corr_df : pandas.DataFrame</span>
-<span class="sd">            A dataframe object with pairwise epitope correlations for escape.</span>
+<span class="sd">            Pairwise epitope correlations for escape.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Both models should have `mut_escape_df` initialized</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both objects must have `mut_escape_df` initialized.&quot;</span><span class="p">)</span>
+
         <span class="n">corr_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">model_ref_e</span><span class="p">,</span> <span class="n">model_self_e</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
             <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
@@ -1793,188 +1875,78 @@
                 <span class="p">]</span>
             <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">corr_df</span>
+        <span class="k">return</span> <span class="n">corr_df</span></div>
 
-    <span class="k">def</span> <span class="nf">_create_max_correlation_mapping_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corr_df</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a binary matrix for mapping epitopes to one another.</span>
+<div class="viewcode-block" id="Polyclonal.harmonize_epitopes_with"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with">[docs]</a>    <span class="k">def</span> <span class="nf">harmonize_epitopes_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Harmonize epitope labels with another polyclonal object.</span>
 
-<span class="sd">        For each epitope, we align it with the reference model epitope with the</span>
-<span class="sd">        highest correlation in escape values.</span>
+<span class="sd">        Epitopes are unidentifiable, meaning there is no guarantee that we will assign</span>
+<span class="sd">        the same epitope labels across multiple models fit to similar data. This</span>
+<span class="sd">        function aligns the epitope labels of the current :class:`Polyclonal` object</span>
+<span class="sd">        with those of another model with the same epitope labels.</span>
+
+<span class="sd">        The harmonization is done simply by re-ordering the epitope labels</span>
+<span class="sd">        in :attr:`Polyclonal.epitopes`. The epitopes will be matched by label,</span>
+<span class="sd">        but not necessarily by order in :attr:`Polyclonal.epitopes`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        -----------</span>
-<span class="sd">        corr_df : pandas.DataFrame</span>
-<span class="sd">            An correlation matrix between the inferred escape probabilities</span>
-<span class="sd">            amongst the epitopes of two models.</span>
+<span class="sd">        ref_poly : :class:`Polyclonal`</span>
+<span class="sd">            The reference polyclonal object to align epitope labels with.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        --------</span>
-<span class="sd">        map_mat : numpy.array</span>
-<span class="sd">            A matrix of 1s and 0s depicting how to shift the epitopes of the</span>
-<span class="sd">            non-reference axis.</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Has columns &#39;self_initial_epitope&#39;, &#39;self_harmonized_epitope&#39;,</span>
+<span class="sd">            &#39;ref_epitope&#39;, &#39;correlation&#39;.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        :class:`PolyclonalHarmonizeError`</span>
+<span class="sd">            Raise this error if epitopes cannot be harmonized one-to-one.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">corr_mat</span> <span class="o">=</span> <span class="n">corr_df</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span>
-            <span class="n">index</span><span class="o">=</span><span class="s2">&quot;self_epitope&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;ref_epitope&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;correlation&quot;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">map_mat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">corr_mat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
+                <span class="s2">&quot;The two models being aligned do not have the same epitope labels: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="si">}</span><span class="s2"> versus </span><span class="si">{</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">corr_mat</span><span class="p">)</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="n">match_epi</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
-            <span class="n">map_mat</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">match_epi</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-
-        <span class="c1"># Check to see if epitope mapping is 1-to-1 before returning</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_check_epitope_mapping_matrix</span><span class="p">(</span><span class="n">map_mat</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">map_mat</span>
-
-    <span class="k">def</span> <span class="nf">_check_epitope_mapping_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">map_mat</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check to ensure an epitope mapping matrix is 1-to-1.</span>
-
-<span class="sd">        Raises a `ValueError` if any of the columns in this matrix have a column</span>
-<span class="sd">        sum that is not one.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        map_mat : numpy.array</span>
-<span class="sd">            A square binary matrix of indicators between `self` and a</span>
-<span class="sd">            reference polyclonal object&#39;s epitopes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">map_mat</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mapping matrix does not have a 1-to-1 mapping.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">map_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">map_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mapping matrix is not square.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">map_mat</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mapping matrix has values other than 0 or 1.&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_make_mapping_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">map_mat</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a dictionary from a mapping matrix to replace values in the</span>
-<span class="sd">        `mut_escape_df` dataframe.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        map_mat : numpy.array</span>
-<span class="sd">            A 2D array from `self._create_max_correlation_mapping_matrix` that aligns</span>
-<span class="sd">            epitopes.</span>
-<span class="sd">        ref_poly : :class:Polyclonal</span>
-<span class="sd">            The reference polyclonal object to align to.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        epi_dict : Dictionary</span>
-<span class="sd">            A dictionary of &#39;self:ref` key-value pairs of &quot;harmoninzed&quot; epitopes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">epi_dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">map_mat</span><span class="p">)):</span>
-            <span class="n">ref_epi_idx</span> <span class="o">=</span> <span class="n">map_mat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
-            <span class="n">epi_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">[</span><span class="n">ref_epi_idx</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">epi_dict</span>
-
-    <span class="k">def</span> <span class="nf">_edit_epitopes_in_mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a new version of `mut_escape_df` with harmonized epitopes.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        mapping_dict : Dictionary</span>
-<span class="sd">            Dictionary of self-reference epitope IDs.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        An edited pandas.DataFrame with edited epitopes corresponding to `mapping_dict`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">mapping_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;`_mapping_dict` not defined.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="n">mapping_dict</span><span class="p">})</span>
-            <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">])</span>
+        <span class="n">corr_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;self_epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation&quot;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
             <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_align_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping_dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reorders corresponding epitope parameters in `self._params`.</span>
+        <span class="n">map_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">corr_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;self_epitope&quot;</span><span class="p">:</span> <span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">first</span><span class="p">()</span>  <span class="c1"># will be row with highest correlation after sorting above</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">self_harmonized_epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;ref_epitope&quot;</span><span class="p">])[</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;self_harmonized_epitope&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;ref_epitope&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;correlation&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">map_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">map_df</span><span class="p">[</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">])</span>
+            <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">map_df</span><span class="p">[</span><span class="s2">&quot;self_harmonized_epitope&quot;</span><span class="p">])</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;epitopes do not match 1-to-1:</span><span class="se">\n</span><span class="si">{</span><span class="n">corr_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        mapping_dict : Dictionary</span>
-<span class="sd">            A dictionary of `self:ref` key-value pairs of &quot;harmonized&quot; epitopes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Get new ordering of epitope indices for _params.</span>
-        <span class="n">new_idxs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span><span class="n">mapping_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_idxs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;Number of WT activity params not equal to number of epitopes.&quot;</span>
-            <span class="p">)</span>
-        <span class="c1"># This will make sure `activity_wt_df()` is aligned in future calls.</span>
-        <span class="n">aligned_activity_wt_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="n">new_idxs</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)]</span> <span class="o">=</span> <span class="n">aligned_activity_wt_vals</span>
-        <span class="c1"># Now edit mut escape df</span>
-        <span class="n">aligned_mut_escape_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edit_epitopes_in_mut_escape_df</span><span class="p">(</span><span class="n">mapping_dict</span><span class="p">)</span>
-        <span class="c1"># Align the params -- now mut_escape_df should be rearranged.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params_from_dfs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">,</span> <span class="n">aligned_mut_escape_df</span><span class="p">)</span>
+        <span class="n">map_dict</span> <span class="o">=</span> <span class="n">map_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">)[</span>
+            <span class="s2">&quot;self_harmonized_epitope&quot;</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">map_dict</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">map_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
 
-<div class="viewcode-block" id="Polyclonal.harmonize_epitopes_with"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with">[docs]</a>    <span class="k">def</span> <span class="nf">harmonize_epitopes_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Harmonize epitopes with another polyclonal object.</span>
-<span class="sd">        Epitopes are unidentifiable, meaning there is no gurantee that we will infer</span>
-<span class="sd">        the same epitopes across multiple models.</span>
-<span class="sd">        This function aims to &quot;align&quot; inferred epitopes with two models.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">=</span> <span class="p">[</span><span class="n">map_dict</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">]</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        ref_poly : :class:Polyclonal</span>
-<span class="sd">            The reference polyclonal object to align epitopes to.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        void</span>
-<span class="sd">            Edits `self._params`, `self.mut_escape_df`, and `self.activity_wt_df`</span>
-<span class="sd">            inplace. These parameters are adjusted so that the epitopes between</span>
-<span class="sd">            `self` and `ref_poly` are aligned.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Checks to ensure `ref_poly` and self are compatible.</span>
-
-        <span class="c1"># Make sure models have same number of params.</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">_params</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;The polyclonal objects have a different number of parameters.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># We must have the same number of epitopes</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;The two models being aligned do not have the same number of &quot;</span>
-                <span class="s2">&quot;epitopes.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Both models should have `mut_escape_df` initialized</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;Both objects must have `mut_escape_df` initialized.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Add another check to ensure both `mut_escape_df`s have needed columns</span>
-        <span class="n">required_cols</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">,</span> <span class="s2">&quot;escape&quot;</span><span class="p">}</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">required_cols</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;The `mut_escape_df` of the object being aligned does not &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;contain all of the required columns: </span><span class="si">{</span><span class="n">required_cols</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">required_cols</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;The `mut_escape_df` of the reference object being aligned to &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;does not contain all of the required columns: </span><span class="si">{</span><span class="n">required_cols</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Step one: get correlation matrix</span>
-        <span class="n">corr_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_correlation_matrix</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span>
-
-        <span class="c1"># Step two: create mapping matrix</span>
-        <span class="n">mapping_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_max_correlation_mapping_matrix</span><span class="p">(</span><span class="n">corr_df</span><span class="p">)</span>
-
-        <span class="c1"># Step three: make epitope mapping dictionary</span>
-        <span class="n">epi_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_mapping_dict</span><span class="p">(</span><span class="n">mapping_mat</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">)</span>
-
-        <span class="c1"># Align params.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_align_params</span><span class="p">(</span><span class="n">epi_dict</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">map_df</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
