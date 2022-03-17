@@ -450,29 +450,28 @@ def mut_escape_heatmap(
     if error_stat is not None:
         if error_stat not in df.columns:
             raise ValueError(f"{error_stat=} not in {df.columns=}")
-        label_df = df.assign(label=lambda x: x.apply(
-            lambda r: f"{r[stat]:.2f} +/- {r[error_stat]:.2f}", axis=1,
-        ))
+        label_df = df.assign(
+            label=lambda x: x.apply(
+                lambda r: f"{r[stat]:.2f} +/- {r[error_stat]:.2f}",
+                axis=1,
+            )
+        )
     else:
         label_df = df.assign(label=lambda x: x[stat].map(lambda s: f"{s:.2f}"))
-    label_df = (
-        label_df
-        .pivot_table(
-            index=index,
-            values="label",
-            columns="epitope",
-            aggfunc=lambda x: " ".join(x),
-        )
-        .rename(columns={e: f"{e} epitope" for e in epitopes})
-    )
+    label_df = label_df.pivot_table(
+        index=index,
+        values="label",
+        columns="epitope",
+        aggfunc=lambda x: " ".join(x),
+    ).rename(columns={e: f"{e} epitope" for e in epitopes})
 
     df = (
-        df
-        .pivot_table(index=index, values=stat, columns="epitope")
+        df.pivot_table(index=index, values=stat, columns="epitope")
         .reset_index()
         .merge(
             pd.DataFrame(
-                itertools.product(*product_cols), columns=index,
+                itertools.product(*product_cols),
+                columns=index,
             ),
             how="right",
         )
