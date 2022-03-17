@@ -133,7 +133,12 @@ def create_bootstrap_sample(
     )
 
 
-def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentration"):
+def _create_bootstrap_polyclonal(
+    root_polyclonal,
+    seed=0,
+    sample_by="barcode",
+    group_by_col="concentration",
+):
     """Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped
     dataset and fits model. The model is initialized to the parameters in
     `root_polyclonal`.
@@ -144,13 +149,14 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
         Initialized :class:`~polyclonal.polyclonal.Polyclonal` object with full dataset.
     seed : int
         Random seed
-    groups: string
-        The column name to group `root_polyclonal.data_to_fit` by,
-        in most cases, this will be `concentration`
+    sample_by : str
+        Passed to :func:`create_bootstrap_sample`.
+    group_by_col: str
+        Passed to :func:`create_bootstrap_sample`.
 
     Returns
     -------
-    polyclonal : class:`~polyclonal.polyclonal.Polyclonal`
+    :class:`~polyclonal.polyclonal.Polyclonal`
         New object from bootstrapped sample of `root_polyclonal.data_to_fit`.
 
     """
@@ -158,7 +164,10 @@ def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentr
         raise ValueError("No data to fit provided in the polyclonal object.")
 
     bootstrap_df = create_bootstrap_sample(
-        df=root_polyclonal.data_to_fit, seed=seed, group_by_col=group_by_col
+        df=root_polyclonal.data_to_fit,
+        seed=seed,
+        sample_by=sample_by,
+        group_by_col=group_by_col,
     )
 
     return polyclonal.Polyclonal(
@@ -212,7 +221,7 @@ def _prob_escape_static(polyclonal_obj, variants_df):
     polyclonal_obj : :class:`~polyclonal.polyclonal.Polyclonal`
         A :class:`~polyclonal.polyclonal.Polyclonal` object to make predictions with.
 
-    vairants_df : pandas.DataFrame
+    variants_df : pandas.DataFrame
         A dataframe of variants to predict escape probabilities for.
 
     Returns
@@ -241,6 +250,9 @@ class PolyclonalCollection:
         Random seed for reproducibility.
     n_threads : int
         Number of threads to use for multiprocessing, -1 means all available.
+    sample_by
+        Passed to :func:`create_bootstrap_sample`. Should generally be 'barcode'
+        if you have same variants at all concentrations, and maybe `None` otherwise.
 
     Attributes
     -----------
@@ -261,6 +273,7 @@ class PolyclonalCollection:
         n_bootstrap_samples,
         n_threads=-1,
         seed=0,
+        sample_by="barcode",
     ):
         """See main class docstring for details."""
         if root_polyclonal.data_to_fit is None:
@@ -279,7 +292,7 @@ class PolyclonalCollection:
             with multiprocessing.Pool(self.n_threads) as p:
                 self.models = p.starmap(
                     _create_bootstrap_polyclonal,
-                    zip(repeat(root_polyclonal), seeds),
+                    zip(repeat(root_polyclonal), seeds, repeat(sample_by)),
                 )
         else:
             raise ValueError("Please specify a number of bootstrap samples to make.")
