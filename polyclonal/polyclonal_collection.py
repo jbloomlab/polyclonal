@@ -15,6 +15,7 @@ from itertools import repeat
 import pandas as pd
 
 import polyclonal
+import polyclonal.plot
 from polyclonal.polyclonal import PolyclonalFitError
 
 
@@ -286,6 +287,27 @@ class PolyclonalCollection:
             mean=pd.NamedAgg("activity", "mean"),
             median=pd.NamedAgg("activity", "median"),
             std=pd.NamedAgg("activity", "std"),
+        )
+
+    def activity_wt_barplot(self, **kwargs):
+        """Bar plot of epitope activities summarized (mean, median) across replicates.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments for :func:`polyclonal.plot.activity_wt_barplot`.
+
+        Returns
+        -------
+        altair.Chart
+            Interactive plot, with error bars showing standard deviation.
+
+        """
+        return polyclonal.plot.activity_wt_barplot(
+            activity_wt_df=self.activity_wt_df,
+            epitope_colors=self.root_polyclonal.epitope_colors,
+            stat=["mean", "median"],
+            error_stat="std",
         )
 
     @property

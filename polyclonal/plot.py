@@ -63,6 +63,7 @@ def activity_wt_barplot(
     epitope_colors,
     epitopes=None,
     stat="activity",
+    error_stat=None,
     width=110,
     height_per_bar=25,
 ):
@@ -78,9 +79,10 @@ def activity_wt_barplot(
     epitopes : array-like or None
         Include these epitopes in this order. If `None`, use all epitopes
         in order found in ``activity_wt_df``.
-    stat : str
-        A string of the statistic present in `actvity_wt_df`.
-        Options: ['activity', 'mean', 'median', 'std']
+    stat : str or array-like
+        Statistic in `activity_wt_df` to plot as activity, or list of dropdown options.
+    error_stat : str or None
+        Statistic in `activity_wt_df` to plot as error for bars.
     width : float
         Width of plot.
     height_per_bar : float
@@ -96,17 +98,45 @@ def activity_wt_barplot(
         epitopes = activity_wt_df["epitope"].tolist()
     elif not set(epitopes).issubset(activity_wt_df["epitope"]):
         raise ValueError("invalid entries in `epitopes`")
-    df = (
-        activity_wt_df.query("epitope in @epitopes")
-        .assign(epitope=lambda x: pd.Categorical(x["epitope"], epitopes, ordered=True))
-        .sort_values("epitope")
-    )
 
-    barplot = (
+    selections = []
+    if isinstance(stat, str):
+        if stat not in activity_wt_df.columns:
+            raise ValueError(f"{stat=} not in {activity_wt_df.columns=}")
+        df = activity_wt_df
+    elif len(stat) > 0:
+        if not set(stat).issubset(activity_wt_df.columns):
+            raise ValueError(f"{stat=} not all in {activity_wt_df.columns=}")
+        df = activity_wt_df.melt(
+            id_vars=["epitope"],
+            value_vars=stat,
+            var_name="statistic",
+            value_name="activity",
+        )
+        selections.append(
+            alt.selection_single(
+                fields=["statistic"],
+                init={"statistic": stat[0]},
+                bind=alt.binding_select(options=stat, name="statistic"),
+            )
+        )
+        stat = "activity"
+    else:
+        raise ValueError(f"invalid {stat=}")
+
+    if error_stat is not None:
+        if error_stat not in activity_wt_df.columns:
+            raise ValueError(f"{error_stat=} not in {activity_wt_df.columns=}")
+        assert not {"_upper", "_lower"}.intersection(activity_wt_df.columns)
+        df = df.merge(activity_wt_df[["epitope", error_stat]]).assign(
+            _lower=lambda x: x[stat] - x[error_stat],
+            _upper=lambda x: x[stat] + x[error_stat],
+        )
+
+    baseplot = (
         alt.Chart(df)
         .encode(
-            x=stat + ":Q",
-            y="epitope:N",
+            y=alt.Y("epitope:N", sort=epitopes),
             color=alt.Color(
                 "epitope:N",
                 scale=alt.Scale(
@@ -114,14 +144,30 @@ def activity_wt_barplot(
                 ),
                 legend=None,
             ),
-            tooltip=[alt.Tooltip("epitope:N"), alt.Tooltip(stat + ":Q", format=".3g")],
+            tooltip=[
+                alt.Tooltip(c, format=".3g") if df[c].dtype == float else c
+                for c in df.columns
+                if c not in ["_upper", "_lower"]
+            ],
         )
-        .mark_bar(size=0.75 * height_per_bar)
         .properties(width=width, height={"step": height_per_bar})
-        .configure_axis(grid=False)
     )
 
-    return barplot
+    barplot = baseplot.encode(x=alt.X(f"{stat}:Q", title=stat)).mark_bar(
+        size=0.75 * height_per_bar
+    )
+
+    if error_stat is not None:
+        barplot = barplot + (
+            baseplot.encode(
+                x="_lower", x2="_upper", color=alt.value("black")
+            ).mark_rule(size=2)
+        )
+
+    for selection in selections:
+        barplot = barplot.add_selection(selection).transform_filter(selection)
+
+    return barplot.configure_axis(grid=False)
 
 
 def mut_escape_lineplot(
