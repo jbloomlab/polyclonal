@@ -99,11 +99,11 @@ def activity_wt_barplot(
     elif not set(epitopes).issubset(activity_wt_df["epitope"]):
         raise ValueError("invalid entries in `epitopes`")
 
-    selections = []
     if isinstance(stat, str):
         if stat not in activity_wt_df.columns:
             raise ValueError(f"{stat=} not in {activity_wt_df.columns=}")
         df = activity_wt_df
+        stat_selection = None
     elif len(stat) > 0:
         if not set(stat).issubset(activity_wt_df.columns):
             raise ValueError(f"{stat=} not all in {activity_wt_df.columns=}")
@@ -113,12 +113,10 @@ def activity_wt_barplot(
             var_name="statistic",
             value_name="activity",
         )
-        selections.append(
-            alt.selection_single(
-                fields=["statistic"],
-                init={"statistic": stat[0]},
-                bind=alt.binding_select(options=stat, name="statistic"),
-            )
+        stat_selection = alt.selection_single(
+            fields=["statistic"],
+            init={"statistic": stat[0]},
+            bind=alt.binding_select(options=stat, name="statistic"),
         )
         stat = "activity"
     else:
@@ -145,7 +143,7 @@ def activity_wt_barplot(
                 legend=None,
             ),
             tooltip=[
-                alt.Tooltip(c, format=".3g") if df[c].dtype == float else c
+                alt.Tooltip(c, format=".2f") if df[c].dtype == float else c
                 for c in df.columns
                 if c not in ["_upper", "_lower"]
             ],
@@ -164,8 +162,8 @@ def activity_wt_barplot(
             ).mark_rule(size=2)
         )
 
-    for selection in selections:
-        barplot = barplot.add_selection(selection).transform_filter(selection)
+    if stat_selection is not None:
+        barplot = barplot.add_selection(stat_selection).transform_filter(stat_selection)
 
     return barplot.configure_axis(grid=False)
 
@@ -422,12 +420,12 @@ def mut_escape_heatmap(
 
     wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
 
-    selections = []
     if isinstance(stat, str):
         if stat not in df:
             raise ValueError(f"{stat=} not in {df.columns=}")
         index = ["site", "mutant"]  # for later pivoting
         product_cols = [sites, alphabet]  # for later filling gaps
+        stat_selection = None
     elif len(stat) > 0:
         if not set(stat).issubset(df.columns):
             raise ValueError(f"{stat=} not in {df.columns=}")
@@ -439,12 +437,10 @@ def mut_escape_heatmap(
         )
         index = ["site", "mutant", "statistic"]  # for later pivoting
         product_cols = [sites, alphabet, stat]  # for later filling gaps
-        selections.append(
-            alt.selection_single(
-                fields=["statistic"],
-                init={"statistic": stat[0]},
-                bind=alt.binding_select(options=stat, name="statistic"),
-            )
+        stat_selection = alt.selection_single(
+            fields=["statistic"],
+            init={"statistic": stat[0]},
+            bind=alt.binding_select(options=stat, name="statistic"),
         )
         stat = "escape"
     else:
@@ -581,7 +577,7 @@ def mut_escape_heatmap(
             .transform_filter(f"!isValid(datum['{epitope}'])")
             .mark_rect(opacity=0.25)
             .encode(
-                alt.Color("escape:N", scale=alt.Scale(scheme="greys"), legend=None),
+                alt.Color(f"{stat}:N", scale=alt.Scale(scheme="greys"), legend=None),
             )
         )
         # mark wildtype cells
@@ -602,6 +598,12 @@ def mut_escape_heatmap(
                 height={"step": cell_size},
             )
         )
+        if stat_selection is not None:
+            charts[-1] = (
+                charts[-1]
+                .add_selection(stat_selection)
+                .transform_filter(stat_selection)
+            )
 
     chart = (
         alt.vconcat(
@@ -611,9 +613,6 @@ def mut_escape_heatmap(
         .configure_axis(labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
     )
-
-    for selection in selections:
-        chart = chart.add_selection(selection).transform_filter(selection)
 
     return chart
 
