@@ -25,43 +25,112 @@ class PolyclonalCollectionFitError(Exception):
     pass
 
 
-def create_bootstrap_sample(df, seed=0, group_by_col="concentration"):
-    """Return a bootstrapped sample of a pandas data frame, maintaining the
-    same number of items when grouped by a given column.
+def create_bootstrap_sample(
+    df,
+    seed=0,
+    group_by_col="concentration",
+    sample_by="barcode",
+):
+    """Bootstrap sample of data frame.
 
     Parameters
     -----------
     df : pandas.DataFrame
-        A dataframe to be bootstrapped
+        Dataframe to be bootstrapped
     seed : int
-        The random seed to use for the sample
-    group_by_col : string, list or None
-        The name of a column to group the dataframe by. In most cases, this will
-        be 'concentration'
+        Random number seed.
+    group_by_col : string or None
+        Group by this column and bootstrap each group separately.
+    sample_by : str or None
+        For each group, sample the same entities in this column. Requires
+        each group to have same unique set of rows for this column.
 
     Returns
     -------
     bootstrap_df : pandas.DataFrame
-         A dataframe that has the same number of rows as `df` as well as the same
-         number of samples per `group_by_col`.
+         Dataframe with same number of rows as `df` and same number of samples
+         per `group_by_col`.
+
+    Example
+    -------
+    >>> df_groups_same_barcode = pd.DataFrame({
+    ...     "aa_substitutions": ["", "M1A", "G2C", "", "M1A", "G2C"],
+    ...     "concentration": [1, 1, 1, 2, 2, 2],
+    ...     "barcode": ["AA", "AC", "AG", "AA", "AC", "AG"],
+    ... })
+
+    Same variants for each concentration:
+
+    >>> create_bootstrap_sample(df_groups_same_barcode)
+      aa_substitutions  concentration barcode
+    0                               1      AA
+    1              M1A              1      AC
+    2                               1      AA
+    3                               2      AA
+    4              M1A              2      AC
+    5                               2      AA
+
+    Different variants for each concentration:
+
+    >>> create_bootstrap_sample(df_groups_same_barcode, sample_by=None, seed=2)
+      aa_substitutions  concentration barcode
+    0                               1      AA
+    1              M1A              1      AC
+    2                               1      AA
+    3              G2C              2      AG
+    4                               2      AA
+    5              M1A              2      AC
+
+    Can't use `sample_by` if concentrations don't have same barcodes:
+
+    >>> create_bootstrap_sample(df_groups_same_barcode.head(5))
+    Traceback (most recent call last):
+     ...
+    ValueError: elements in sample_by='barcode' differ in group_by_col='concentration'
 
     """
-    # Check to make sure group_by_col exists -- raise an error otherwise.
-    if group_by_col is not None and group_by_col not in df.columns:
-        raise KeyError(f"{group_by_col} is not in provided data frame.")
+    # if no group_by_col, make dummy one so we can use same code for both cases
+    dummy_group_by_col = "_dummy_group_by"
+    if dummy_group_by_col in df.columns:
+        raise ValueError(f"{df.columns=} cannot have column {dummy_group_by_col=}")
+    if group_by_col is None:
+        group_by_col = dummy_group_by_col
+    elif group_by_col not in df.columns:
+        raise ValueError(f"{group_by_col=} not in {df.columns=}")
+
+    if sample_by is not None:
+        # check sample_by same for all groups and unique within groups
+        samples_by_group = df.groupby(group_by_col).aggregate(
+            n_rows=pd.NamedAgg(sample_by, "count"),
+            n_unique=pd.NamedAgg(sample_by, "nunique"),
+            samples=pd.NamedAgg(sample_by, set),
+        )
+        if not (samples_by_group["n_rows"] == samples_by_group["n_unique"]).all():
+            raise ValueError(f"elements in {sample_by=} not unique in {group_by_col=}")
+        samples = samples_by_group["samples"].values[0]
+        if any(samples != s for s in samples_by_group["samples"]):
+            raise ValueError(f"elements in {sample_by=} differ in {group_by_col=}")
 
     boot_df = []
+    for i, (_, group) in enumerate(df.groupby(group_by_col)):
+        if sample_by and boot_df:
+            # get same sample_by as in first data frame
+            boot_df.append(
+                boot_df[0][[sample_by]].merge(
+                    group,
+                    how="left",
+                    on=sample_by,
+                    validate="many_to_one",
+                )
+            )
+        else:
+            boot_df.append(
+                group.sample(n=len(group), replace=True, random_state=seed + i)
+            )
 
-    if group_by_col is not None:
-        grouped_df = df.groupby(group_by_col)
-
-        # Sample each concentration separately
-        for _, group in grouped_df:
-            boot_df.append(group.sample(n=len(group), replace=True, random_state=seed))
-    else:
-        boot_df.append(df.sample(n=len(df), replace=True, random_state=seed))
-
-    return pd.concat(boot_df)
+    return pd.concat(boot_df, ignore_index=True).drop(
+        columns=dummy_group_by_col, errors="ignore"
+    )
 
 
 def _create_bootstrap_polyclonal(root_polyclonal, seed=0, group_by_col="concentration"):
