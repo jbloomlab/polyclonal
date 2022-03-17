@@ -376,7 +376,7 @@ def mut_escape_heatmap(
     error_stat : str or None
         Measure of error to display in tooltip.
     addtl_tooltip_stats : list or None
-        Additional stats to show in tooltip.
+        Additional mutation-level stats to show in tooltip.
     all_sites : bool
         Plot all sites in range from first to last site even if some
         have no data.
@@ -514,6 +514,21 @@ def mut_escape_heatmap(
         )
     )
 
+    add_tooltips = []
+    if addtl_tooltip_stats is not None:
+        if not set(addtl_tooltip_stats).issubset(mut_escape_df.columns):
+            raise ValueError(f"{addtl_tooltip_stats=} not in {mut_escape_df.columns=}")
+        df = df.merge(
+            mut_escape_df[["site", "mutant"] + addtl_tooltip_stats].drop_duplicates(),
+            on=["site", "mutant"],
+            how="left",
+            validate="many_to_one",
+        )
+        add_tooltips = [
+            alt.Tooltip(c, format=".2g") if mut_escape_df[c].dtype == float else c
+            for c in addtl_tooltip_stats
+        ]
+
     # select cells
     cell_selector = alt.selection_single(on="mouseover", empty="none")
 
@@ -558,7 +573,7 @@ def mut_escape_heatmap(
             ),
             stroke=alt.value("black"),
             strokeWidth=alt.condition(cell_selector, alt.value(2.5), alt.value(0.2)),
-            tooltip=["mutation"] + [f"{e} epitope:N" for e in epitopes],
+            tooltip=["mutation"] + [f"{e} epitope:N" for e in epitopes] + add_tooltips,
         )
         # nulls for cells with missing data
         nulls = (
