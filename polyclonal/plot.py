@@ -349,6 +349,8 @@ def mut_escape_heatmap(
     epitope_colors,
     epitopes=None,
     stat="escape",
+    error_stat=None,
+    addtl_tooltip_stats=None,
     all_sites=True,
     all_alphabet=True,
     floor_color_at_zero=True,
@@ -369,9 +371,12 @@ def mut_escape_heatmap(
         Maps each epitope name to its color.
     epitopes : array-like or None
         Make plots for these epitopes. If `None`, use all epitopes.
-    stat : str
-        A string of the statistic present in `mut_escape_df`.
-        Options: ['escape', 'mean', 'median', 'std']
+    stat : str or array-like
+        Statistic in `mut_escape_df` to plot as escape, or list of dropdown options.
+    error_stat : str or None
+        Measure of error to display in tooltip.
+    addtl_tooltip_stats : list or None
+        Additional stats to show in tooltip.
     all_sites : bool
         Plot all sites in range from first to last site even if some
         have no data.
@@ -417,8 +422,28 @@ def mut_escape_heatmap(
 
     wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
 
+    # get labels for escape to show on tooltips, potentially with error
+    if error_stat is not None:
+        if error_stat not in df.columns:
+            raise ValueError(f"{error_stat=} not in {df.columns=}")
+        label_df = df.assign(label=lambda x: x.apply(
+            lambda r: f"{r[stat]:.3g} +/- {r[error_stat]:.3g}", axis=1,
+        ))
+    else:
+        label_df = df.assign(label=lambda x: x[stat].map(lambda s: f"{s:.3g}"))
+    label_df = (
+        label_df
+        .pivot_table(
+            index=["site", "mutant"],
+            values="label",
+            columns="epitope",
+            aggfunc=lambda x: " ".join(x),
+        )
+        .rename(columns={e: f"{e} epitope" for e in epitopes})
+    )
+
     df = (
-        df[["epitope", "site", "mutant", stat]]
+        df
         .pivot_table(index=["site", "mutant"], values=stat, columns="epitope")
         .reset_index()
         .merge(
@@ -432,17 +457,18 @@ def mut_escape_heatmap(
             mutation=lambda x: (
                 x["wildtype"].fillna("") + x["site"].astype(str) + x["mutant"]
             ),
-            mutant=lambda x: pd.Categorical(x["mutant"], alphabet, ordered=True),
             # mark wildtype cells with a `x`
             wildtype_char=lambda x: (x["mutant"] == x["wildtype"]).map(
                 {True: "x", False: ""}
             ),
         )
-        .sort_values(["site", "mutant"])
+        .merge(label_df, how="left", on=["site", "mutant"], validate="one_to_one")
     )
     # wildtype has escape of 0 by definition
     for epitope in epitopes:
         df[epitope] = df[epitope].where(df["mutant"] != df["wildtype"], 0)
+        label_col = f"{epitope} epitope"
+        df[label_col] = df[label_col].where(df["mutant"] != df["wildtype"], "0")
 
     # zoom bar to put at top
     zoom_brush = alt.selection_interval(
@@ -469,7 +495,7 @@ def mut_escape_heatmap(
         # base chart
         base = alt.Chart(df).encode(
             x=alt.X("site:O"),
-            y=alt.Y("mutant:O", sort=alt.EncodingSortField("y", order="ascending")),
+            y=alt.Y("mutant:O", sort=alphabet),
         )
         # heatmap for cells with data
         if share_heatmap_lims:
@@ -504,8 +530,7 @@ def mut_escape_heatmap(
             ),
             stroke=alt.value("black"),
             strokeWidth=alt.condition(cell_selector, alt.value(2.5), alt.value(0.2)),
-            tooltip=[alt.Tooltip("mutation:N")]
-            + [alt.Tooltip(f"{epitope}:Q", format=".3g") for epitope in epitopes],
+            tooltip=["mutation"] + [f"{e} epitope:N" for e in epitopes],
         )
         # nulls for cells with missing data
         nulls = (
