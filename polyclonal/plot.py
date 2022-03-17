@@ -422,19 +422,47 @@ def mut_escape_heatmap(
 
     wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
 
+    selections = []
+    if isinstance(stat, str):
+        if stat not in df:
+            raise ValueError(f"{stat=} not in {df.columns=}")
+        index = ["site", "mutant"]  # for later pivoting
+        product_cols = [sites, alphabet]  # for later filling gaps
+    elif len(stat) > 0:
+        if not set(stat).issubset(df.columns):
+            raise ValueError(f"{stat=} not in {df.columns=}")
+        df = df.melt(
+            id_vars=[c for c in df.columns if c not in stat],
+            value_vars=stat,
+            var_name="statistic",
+            value_name="escape",
+        )
+        index = ["site", "mutant", "statistic"]  # for later pivoting
+        product_cols = [sites, alphabet, stat]  # for later filling gaps
+        selections.append(
+            alt.selection_single(
+                fields=["statistic"],
+                init={"statistic": stat[0]},
+                bind=alt.binding_select(options=stat, name="statistic"),
+            )
+        )
+        stat = "escape"
+    else:
+        raise ValueError(f"invalid {stat=}")
+
     # get labels for escape to show on tooltips, potentially with error
     if error_stat is not None:
         if error_stat not in df.columns:
             raise ValueError(f"{error_stat=} not in {df.columns=}")
         label_df = df.assign(label=lambda x: x.apply(
-            lambda r: f"{r[stat]:.3g} +/- {r[error_stat]:.3g}", axis=1,
+            lambda r: f"{r[stat]:.2f} +/- {r[error_stat]:.2f}", axis=1,
         ))
     else:
-        label_df = df.assign(label=lambda x: x[stat].map(lambda s: f"{s:.3g}"))
+        label_df = df.assign(label=lambda x: x[stat].map(lambda s: f"{s:.2f}"))
     label_df = (
         label_df
         .pivot_table(
-            index=["site", "mutant"],
+            index=index,
             values="label",
             columns="epitope",
             aggfunc=lambda x: " ".join(x),
@@ -444,11 +472,11 @@ def mut_escape_heatmap(
 
     df = (
         df
-        .pivot_table(index=["site", "mutant"], values=stat, columns="epitope")
+        .pivot_table(index=index, values=stat, columns="epitope")
         .reset_index()
         .merge(
             pd.DataFrame(
-                itertools.product(sites, alphabet), columns=["site", "mutant"]
+                itertools.product(*product_cols), columns=index,
             ),
             how="right",
         )
@@ -462,7 +490,7 @@ def mut_escape_heatmap(
                 {True: "x", False: ""}
             ),
         )
-        .merge(label_df, how="left", on=["site", "mutant"], validate="one_to_one")
+        .merge(label_df, how="left", on=index, validate="one_to_one")
     )
     # wildtype has escape of 0 by definition
     for epitope in epitopes:
@@ -491,12 +519,12 @@ def mut_escape_heatmap(
 
     # make list of heatmaps for each epitope
     charts = [zoom_bar]
+    # base chart
+    base = alt.Chart(df).encode(
+        x=alt.X("site:O"),
+        y=alt.Y("mutant:O", sort=alphabet),
+    )
     for epitope in epitopes:
-        # base chart
-        base = alt.Chart(df).encode(
-            x=alt.X("site:O"),
-            y=alt.Y("mutant:O", sort=alphabet),
-        )
         # heatmap for cells with data
         if share_heatmap_lims:
             vals = df[list(epitopes)].values
@@ -560,7 +588,7 @@ def mut_escape_heatmap(
             )
         )
 
-    return (
+    chart = (
         alt.vconcat(
             *charts,
             spacing=0,
@@ -568,6 +596,11 @@ def mut_escape_heatmap(
         .configure_axis(labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
     )
+
+    for selection in selections:
+        chart = chart.add_selection(selection).transform_filter(selection)
+
+    return chart
 
 
 if __name__ == "__main__":
