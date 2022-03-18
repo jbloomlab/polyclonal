@@ -273,7 +273,6 @@ def mut_escape_lineplot(
             var_name="metric",
             value_name="escape",
         )
-        statistic_selection = None
         index = ["site", "metric"]
 
     df = (
@@ -326,6 +325,13 @@ def mut_escape_lineplot(
         for epitope in epitopes:
             df[f"{epitope} min"] = df[epitope] - df[f"{epitope} error"]
             df[f"{epitope} max"] = df[epitope] + df[f"{epitope} error"]
+        # selection to show error bars
+        df["error_bars"] = True
+        error_bar_selection = alt.selection_single(
+            fields=["error_bars"],
+            init={"error_bars": True},
+            bind=alt.binding_select(options=[True, False], name="show"),
+        )
     
     # add wildtypes and potential frac_bootstrap_replicates
     addtl_tooltips = []
@@ -377,9 +383,13 @@ def mut_escape_lineplot(
         if bootstrapped_data:
             error_bars = (
                 base.encode(
-                    y=f"{epitope} min", y2=f"{epitope} max",
+                    y=alt.Y(f"{epitope} min", title="escape"),
+                    y2=f"{epitope} max",
+                    opacity=alt.condition(
+                        error_bar_selection, alt.value(0.75), alt.value(0),
+                    ),
                 )
-                .mark_errorbar(color="gray", thickness=1.5, opacity=0.75)
+                .mark_errorbar(color="gray", thickness=1.5)
             )
             combined = background + foreground + foreground_circles + error_bars
         else:
@@ -397,9 +407,9 @@ def mut_escape_lineplot(
                 height=height,
             )
         )
-        if statistic_selection is not None:
+        if bootstrapped_data:
             charts[-1] = (
-                charts[-1].add_selection(statistic_selection)
+                charts[-1].add_selection(statistic_selection, error_bar_selection)
                 .transform_filter(statistic_selection)
             )
 
