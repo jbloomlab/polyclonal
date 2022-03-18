@@ -390,6 +390,7 @@ class PolyclonalCollection:
             epitope_colors=self.root_polyclonal.epitope_colors,
             stat=["mean", "median"],
             error_stat="std",
+            **kwargs,
         )
 
     @property
@@ -430,9 +431,9 @@ class PolyclonalCollection:
         Parameters
         ----------
         min_frac_bootstrap_replicates : None or float
-            Only plot values for mutations found in >= this many bootstrap replicates.
-            Can be used to remove mutations that are rare. Setting to ~0.7 will remove
-            most mutations seen only once, setting to ~0.9 will remove most mutations
+            Only plot values for mutations found in >= this fraction of bootstrap
+            replicates. Will remove mutations that are rare. ~0.7 will remove
+            most mutations seen only once, ~0.9 will remove most mutations
             seen only twice.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
@@ -453,6 +454,7 @@ class PolyclonalCollection:
             stat=["mean", "median"],
             error_stat="std",
             addtl_tooltip_stats=["frac_bootstrap_replicates"],
+            **kwargs,
         )
 
     @property
@@ -483,7 +485,7 @@ class PolyclonalCollection:
                 var_name="metric",
                 value_name="escape",
             )
-            .groupby(["epitope", "site", "metric"], as_index=False)
+            .groupby(["epitope", "site", "wildtype", "metric"], as_index=False)
             .aggregate(
                 mean=pd.NamedAgg("escape", "mean"),
                 median=pd.NamedAgg("escape", "median"),
@@ -493,6 +495,35 @@ class PolyclonalCollection:
             .assign(
                 frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
             )
+        )
+
+    def mut_escape_lineplot(self, min_frac_bootstrap_replicates=None, **kwargs):
+        """Line plots of mutation escape at each site.
+
+        Parameters
+        ----------
+        min_frac_bootstrap_replicates : None or float
+            Only plot values for sites with a measurement in >= this fraction of
+            bootstra replicates. Will remove mutations that are rare. ~0.7 will remove
+            most mutations seen only once, ~0.9 will remove most mutations
+            seen only twice.
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive heat maps.
+
+        """
+        df = self.mut_escape_site_summary_df
+        if min_frac_bootstrap_replicates is not None:
+            df = df.query("frac_bootstrap_replicates >= @min_frac_bootstrap_replicates")
+        return polyclonal.plot.mut_escape_lineplot(
+            mut_escape_site_summary_df=df,
+            bootstrapped_data=True,
+            epitope_colors=self.root_polyclonal.epitope_colors,
+            **kwargs,
         )
 
     def make_predictions(self, variants_df):

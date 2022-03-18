@@ -171,6 +171,7 @@ def activity_wt_barplot(
 def mut_escape_lineplot(
     *,
     mut_escape_site_summary_df,
+    bootstrapped_data=False,
     epitope_colors,
     epitopes=None,
     all_sites=True,
@@ -187,6 +188,9 @@ def mut_escape_lineplot(
     mut_escape_site_summary_df : pandas.DataFrame
         Site-level escape in format of
         :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+    bootstrapped_data : bool
+        `mut_escape_site_summary_df` is from a bootstrapped model,
+        :class:`polyclonal.polyclonal_collection.PolyclonalCollection`.
     epitope_colors : dict
         Maps each epitope name to its color.
     epitopes : array-like or None
@@ -218,39 +222,66 @@ def mut_escape_lineplot(
         raise ValueError("invalid entries in `epitopes`")
 
     df = mut_escape_site_summary_df.query("epitope in @epitopes")
-    escape_metrics = [m for m in df.columns if m not in {"epitope", "site", "wildtype"}]
+    if bootstrapped_data:
+        escape_metrics = df["metric"].unique().tolist()
+    else:
+        escape_metrics = [
+            m for m in df.columns if m not in {"epitope", "site", "wildtype"}
+        ]
 
     sites = df["site"].unique().tolist()
     if all_sites:
         sites = list(range(min(sites), max(sites) + 1))
 
-    df = (
-        df.merge(
-            pd.DataFrame(
-                itertools.product(sites, epitopes), columns=["site", "epitope"]
-            ),
-            on=["site", "epitope"],
-            how="right",
+    # fill any missing sites
+    if bootstrapped_data:
+        fill_df = pd.DataFrame(
+            itertools.product(sites, epitopes, escape_metrics),
+            columns=["site", "epitope", "metric"],
         )
-        .sort_values("site")
-        .melt(
-            id_vars=["epitope", "site", "wildtype"],
+    else:
+        fill_df = pd.DataFrame(
+            itertools.product(sites, epitopes),
+            columns=["site", "epitope"],
+        )
+    df = df.merge(fill_df, how="right")
+
+    if bootstrapped_data:
+        df = df.melt(
+            id_vars=[
+                "epitope",
+                "site",
+                "metric",
+                "std",
+                "frac_bootstrap_replicates",
+            ],
+            value_vars=["mean", "median"],
+            var_name="statistic",
+            value_name="escape",
+        )
+        statistic_selection = alt.selection_single(
+            fields=["statistic"],
+            bind=alt.binding_select(options=df["statistic"].unique()),
+            name="bootstrap",
+            init={"statistic": df["statistic"].unique()[0]},
+        )
+        index = ["site", "metric", "statistic"]
+    else:
+        df = df.melt(
+            id_vars=["epitope", "site"],
+            value_vars=escape_metrics,
             var_name="metric",
             value_name="escape",
         )
-        .pivot_table(
-            index=["site", "wildtype", "metric"],
-            values="escape",
-            columns="epitope",
-            dropna=False,
-        )
-        .reset_index()
-    )
+        index = ["site", "metric"]
 
-    y_axis_dropdown = alt.binding_select(options=escape_metrics)
-    y_axis_selection = alt.selection_single(
+    df = df.pivot_table(
+        index=index, values="escape", columns="epitope", dropna=False
+    ).reset_index()
+
+    metric_selection = alt.selection_single(
         fields=["metric"],
-        bind=y_axis_dropdown,
+        bind=alt.binding_select(options=escape_metrics),
         name="escape",
         init={"metric": init_metric},
     )
@@ -275,25 +306,64 @@ def mut_escape_lineplot(
         type="single", on="mouseover", fields=["site"], empty="none"
     )
 
+    # add error ranges
+    if bootstrapped_data:
+        pivoted_error = (
+            mut_escape_site_summary_df.pivot_table(
+                index=["site", "metric"],
+                columns="epitope",
+                values="std",
+            )
+            .reset_index()
+            .rename(columns={epitope: f"{epitope} error" for epitope in epitopes})
+        )
+        df = df.merge(
+            pivoted_error,
+            on=["site", "metric"],
+            how="left",
+            validate="many_to_one",
+        )
+        for epitope in epitopes:
+            df[f"{epitope} min"] = df[epitope] - df[f"{epitope} error"]
+            df[f"{epitope} max"] = df[epitope] + df[f"{epitope} error"]
+        # selection to show error bars
+        df["error_bars"] = True
+        error_bar_selection = alt.selection_single(
+            fields=["error_bars"],
+            init={"error_bars": True},
+            bind=alt.binding_select(options=[True, False], name="show_error"),
+        )
+
+    # add wildtypes and potential frac_bootstrap_replicates
+    addtl_tooltips = []
+    cols = ["site", "wildtype"]
+    if bootstrapped_data:
+        cols.append("frac_bootstrap_replicates")
+        addtl_tooltips.append(alt.Tooltip("frac_bootstrap_replicates", format=".2f"))
+    df = df.merge(
+        mut_escape_site_summary_df[cols].drop_duplicates(),
+        how="left",
+        on="site",
+        validate="many_to_one",
+    )
+
     charts = []
+    base_all = alt.Chart(df).encode(
+        tooltip=[
+            alt.Tooltip("site:O"),
+            alt.Tooltip("wildtype:N"),
+            *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
+            *addtl_tooltips,
+        ],
+    )
     for epitope in epitopes:
-        base = alt.Chart(df).encode(
+        base = base_all.encode(
             x=alt.X(
                 "site:O",
                 title=("site" if epitope == epitopes[-1] else None),
                 axis=(alt.Axis() if epitope == epitopes[-1] else None),
             ),
-            y=alt.Y(
-                epitope,
-                type="quantitative",
-                title="escape",
-                scale=alt.Scale(),
-            ),
-            tooltip=[
-                alt.Tooltip("site:O"),
-                alt.Tooltip("wildtype:N"),
-                *[alt.Tooltip(f"{epitope}:Q", format=".3g") for epitope in epitopes],
-            ],
+            y=alt.Y(f"{epitope}:Q", title="escape"),
         )
         # in case some sites missing values, background thin transparent
         # over which we put darker foreground for measured points
@@ -311,10 +381,22 @@ def mut_escape_lineplot(
             )
             .add_selection(site_selector)
         )
+        if bootstrapped_data:
+            error_bars = base.encode(
+                y=alt.Y(f"{epitope} min", title="escape"),
+                y2=f"{epitope} max",
+                opacity=alt.condition(
+                    error_bar_selection,
+                    alt.value(0.75),
+                    alt.value(0),
+                ),
+            ).mark_errorbar(color="gray", thickness=1.5)
+            combined = background + foreground + foreground_circles + error_bars
+        else:
+            combined = background + foreground + foreground_circles
         charts.append(
-            (background + foreground + foreground_circles)
-            .add_selection(y_axis_selection)
-            .transform_filter(y_axis_selection)
+            combined.add_selection(metric_selection)
+            .transform_filter(metric_selection)
             .transform_filter(zoom_brush)
             .properties(
                 title=alt.TitleParams(
@@ -324,6 +406,12 @@ def mut_escape_lineplot(
                 height=height,
             )
         )
+        if bootstrapped_data:
+            charts[-1] = (
+                charts[-1]
+                .add_selection(statistic_selection, error_bar_selection)
+                .transform_filter(statistic_selection)
+            )
 
     return (
         alt.vconcat(
@@ -335,6 +423,7 @@ def mut_escape_lineplot(
             ),
             spacing=10,
         )
+        .configure(padding={"left": 15, "top": 5, "right": 5, "bottom": 5})
         .configure_axis(grid=False, labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
     )
