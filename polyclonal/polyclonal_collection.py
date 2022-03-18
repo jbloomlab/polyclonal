@@ -424,6 +424,37 @@ class PolyclonalCollection:
             )
         )
 
+    def mut_escape_heatmap(self, min_frac_bootstrap_replicates=None, **kwargs):
+        """Heatmaps of mutation escape values.
+
+        Parameters
+        ----------
+        min_frac_bootstrap_replicates : None or float
+            Only plot values for mutations found in >= this many bootstrap replicates.
+            Can be used to remove mutations that are rare. Setting to ~0.7 will remove
+            most mutations seen only once, setting to ~0.9 will remove most mutations
+            seen only twice.
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive heat maps.
+
+        """
+        df = self.mut_escape_df
+        if min_frac_bootstrap_replicates is not None:
+            df = df.query("frac_bootstrap_replicates >= @min_frac_bootstrap_replicates")
+        return polyclonal.plot.mut_escape_heatmap(
+            mut_escape_df=df,
+            alphabet=self.root_polyclonal.alphabet,
+            epitope_colors=self.root_polyclonal.epitope_colors,
+            stat=["mean", "median"],
+            error_stat="std",
+            addtl_tooltip_stats=["frac_bootstrap_replicates"],
+        )
+
     @property
     def mut_escape_site_summary_df_replicates(self):
         """pandas.DataFrame: Site-level summaries of mutation escape for replicates."""
