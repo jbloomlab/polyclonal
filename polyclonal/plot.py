@@ -331,7 +331,7 @@ def mut_escape_lineplot(
         error_bar_selection = alt.selection_single(
             fields=["error_bars"],
             init={"error_bars": True},
-            bind=alt.binding_select(options=[True, False], name="show"),
+            bind=alt.binding_select(options=[True, False], name="show_error"),
         )
 
     # add wildtypes and potential frac_bootstrap_replicates
