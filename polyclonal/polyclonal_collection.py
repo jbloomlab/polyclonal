@@ -483,7 +483,7 @@ class PolyclonalCollection:
                 var_name="metric",
                 value_name="escape",
             )
-            .groupby(["epitope", "site", "metric"], as_index=False)
+            .groupby(["epitope", "site", "wildtype", "metric"], as_index=False)
             .aggregate(
                 mean=pd.NamedAgg("escape", "mean"),
                 median=pd.NamedAgg("escape", "median"),
