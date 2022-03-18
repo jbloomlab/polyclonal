@@ -309,7 +309,6 @@ def mut_escape_lineplot(
     )
 
     # add error ranges
-    addtl_tooltips = []
     if bootstrapped_data:
         pivoted_error = (
             mut_escape_site_summary_df.pivot_table(
@@ -318,24 +317,18 @@ def mut_escape_lineplot(
             .reset_index()
             .rename(columns={epitope: f"{epitope} error" for epitope in epitopes})
         )
-        df = (
-            df.merge(
-                pivoted_error,
-                on=["site", "metric"],
-                how="left",
-                validate="many_to_one",
-            )
-            .assign(**{f"{epitope} min": lambda x: x[epitope] - x[f"{epitope} error"]
-                       for epitope in epitopes}
-            )
-            .assign(**{f"{epitope} max": lambda x: x[epitope] + x[f"{epitope} error"]
-                       for epitope in epitopes}
-            )
+        df = df.merge(
+            pivoted_error,
+            on=["site", "metric"],
+            how="left",
+            validate="many_to_one",
         )
-        addtl_tooltips += [alt.Tooltip(f"{e} error", format=".2f") for e in epitopes]
-        print(df)
+        for epitope in epitopes:
+            df[f"{epitope} min"] = df[epitope] - df[f"{epitope} error"]
+            df[f"{epitope} max"] = df[epitope] + df[f"{epitope} error"]
     
     # add wildtypes and potential frac_bootstrap_replicates
+    addtl_tooltips = []
     cols = ["site", "wildtype"]
     if bootstrapped_data:
         cols.append("frac_bootstrap_replicates")
@@ -363,12 +356,7 @@ def mut_escape_lineplot(
                 title=("site" if epitope == epitopes[-1] else None),
                 axis=(alt.Axis() if epitope == epitopes[-1] else None),
             ),
-            y=alt.Y(
-                epitope,
-                type="quantitative",
-                title="escape",
-                scale=alt.Scale(),
-            ),
+            y=alt.Y(f"{epitope}:Q", title="escape"),
         )
         # in case some sites missing values, background thin transparent
         # over which we put darker foreground for measured points
@@ -387,7 +375,13 @@ def mut_escape_lineplot(
             .add_selection(site_selector)
         )
         if bootstrapped_data:
-            combined = background + foreground + foreground_circles
+            error_bars = (
+                base.encode(
+                    y=f"{epitope} min", y2=f"{epitope} max",
+                )
+                .mark_errorbar(color="gray", thickness=1.5, opacity=0.75)
+            )
+            combined = background + foreground + foreground_circles + error_bars
         else:
             combined = background + foreground + foreground_circles
         charts.append(
