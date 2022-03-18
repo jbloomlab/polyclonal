@@ -302,10 +302,38 @@ def mut_escape_lineplot(
         type="single", on="mouseover", fields=["site"], empty="none"
     )
 
+    # add error ranges
+    addtl_tooltips = []
+    if bootstrapped_data:
+        pivoted_error = (
+            mut_escape_site_summary_df.pivot_table(
+                index=["site", "metric"], columns="epitope", values="std",
+            )
+            .reset_index()
+            .rename(columns={epitope: f"{epitope} error" for epitope in epitopes})
+        )
+        df = (
+            df.merge(
+                pivoted_error,
+                on=["site", "metric"],
+                how="left",
+                validate="many_to_one",
+            )
+            .assign(**{f"{epitope} min": lambda x: x[epitope] - x[f"{epitope} error"]
+                       for epitope in epitopes}
+            )
+            .assign(**{f"{epitope} max": lambda x: x[epitope] + x[f"{epitope} error"]
+                       for epitope in epitopes}
+            )
+        )
+        addtl_tooltips += [alt.Tooltip(f"{e} error", format=".2f") for e in epitopes]
+        print(df)
+    
     # add wildtypes and potential frac_bootstrap_replicates
     cols = ["site", "wildtype"]
     if bootstrapped_data:
         cols.append("frac_bootstrap_replicates")
+        addtl_tooltips.append(alt.Tooltip("frac_bootstrap_replicates", format=".2f"))
     df = df.merge(
         mut_escape_site_summary_df[cols].drop_duplicates(),
         how="left",
@@ -314,8 +342,16 @@ def mut_escape_lineplot(
     )
 
     charts = []
+    base_all = alt.Chart(df).encode(
+        tooltip=[
+            alt.Tooltip("site:O"),
+            alt.Tooltip("wildtype:N"),
+            *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
+            *addtl_tooltips,
+        ],
+    )
     for epitope in epitopes:
-        base = alt.Chart(df).encode(
+        base = base_all.encode(
             x=alt.X(
                 "site:O",
                 title=("site" if epitope == epitopes[-1] else None),
@@ -327,14 +363,6 @@ def mut_escape_lineplot(
                 title="escape",
                 scale=alt.Scale(),
             ),
-            tooltip=[
-                alt.Tooltip("site:O"),
-                alt.Tooltip("wildtype:N"),
-                *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
-                *([alt.Tooltip("frac_bootstrap_replicates", format=".2f")]
-                   if bootstrapped_data else []
-                ),
-            ],
         )
         # in case some sites missing values, background thin transparent
         # over which we put darker foreground for measured points
