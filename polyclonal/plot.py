@@ -234,11 +234,17 @@ def mut_escape_lineplot(
         sites = list(range(min(sites), max(sites) + 1))
 
     # fill any missing sites
-    df = df.merge(
-        pd.DataFrame(itertools.product(sites, epitopes), columns=["site", "epitope"]),
-        on=["site", "epitope"],
-        how="right",
-    )
+    if bootstrapped_data:
+        fill_df = pd.DataFrame(
+            itertools.product(sites, epitopes, escape_metrics),
+            columns=["site", "epitope", "metric"],
+        )
+    else:
+        fill_df = pd.DataFrame(
+            itertools.product(sites, epitopes),
+            columns=["site", "epitope"],
+        )
+    df = df.merge(fill_df, how="right")
 
     if bootstrapped_data:
         df = df.melt(
@@ -380,8 +386,12 @@ def mut_escape_lineplot(
             )
             .add_selection(site_selector)
         )
+        if bootstrapped_data:
+            combined = background + foreground + foreground_circles
+        else:
+            combined = background + foreground + foreground_circles
         charts.append(
-            (background + foreground + foreground_circles)
+            combined
             .add_selection(metric_selection)
             .transform_filter(metric_selection)
             .transform_filter(zoom_brush)
