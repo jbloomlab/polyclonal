@@ -14,7 +14,7 @@ install:
 script:
   - flake8
   - black --check .
-  - pytest
+  - travis_wait pytest
 
 branches:
   only:
