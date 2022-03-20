@@ -22,6 +22,7 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
+   RBD_bootstrap
    specify_epitopes
    expt_design
    optimization

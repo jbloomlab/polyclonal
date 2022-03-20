@@ -1,0 +1,61 @@
+epitope,site,wildtype,metric,mean,median,std,n_bootstrap_replicates,frac_bootstrap_replicates
+class 1,417,K,max,3.3,3.3,0.3,5,1.0
+class 1,417,K,mean,2.2,2.2,0.4,5,1.0
+class 1,417,K,min,1.1,1.0,0.6,5,1.0
+class 1,417,K,total negative,0.0,0.0,0.0,5,1.0
+class 1,417,K,total positive,41.5,41.9,7.5,5,1.0
+class 1,446,G,max,2.1,2.1,0.4,5,1.0
+class 1,446,G,mean,0.7,0.7,0.1,5,1.0
+class 1,446,G,min,-0.6,-0.6,0.1,5,1.0
+class 1,446,G,total negative,-1.1,-1.1,0.3,5,1.0
+class 1,446,G,total positive,15.0,14.0,2.6,5,1.0
+class 1,484,E,max,4.8,4.7,0.3,5,1.0
+class 1,484,E,mean,2.8,2.8,0.2,5,1.0
+class 1,484,E,min,0.1,0.1,0.2,5,1.0
+class 1,484,E,total negative,-0.0,0.0,0.0,5,1.0
+class 1,484,E,total positive,53.9,52.3,3.4,5,1.0
+class 1,501,N,max,2.4,2.3,0.3,5,1.0
+class 1,501,N,mean,1.3,1.3,0.2,5,1.0
+class 1,501,N,min,0.3,0.4,0.2,5,1.0
+class 1,501,N,total negative,0.0,0.0,0.0,5,1.0
+class 1,501,N,total positive,21.1,21.5,2.5,5,1.0
+class 2,417,K,max,1.1,1.0,0.4,5,1.0
+class 2,417,K,mean,0.4,0.4,0.1,5,1.0
+class 2,417,K,min,-0.1,-0.2,0.2,5,1.0
+class 2,417,K,total negative,-0.4,-0.3,0.5,5,1.0
+class 2,417,K,total positive,7.2,7.5,2.2,5,1.0
+class 2,446,G,max,2.4,2.6,0.5,5,1.0
+class 2,446,G,mean,0.8,0.8,0.1,5,1.0
+class 2,446,G,min,0.0,-0.1,0.1,5,1.0
+class 2,446,G,total negative,-0.0,-0.1,0.0,5,1.0
+class 2,446,G,total positive,15.8,15.9,2.0,5,1.0
+class 2,484,E,max,6.6,6.6,0.3,5,1.0
+class 2,484,E,mean,5.6,5.7,0.2,5,1.0
+class 2,484,E,min,4.7,4.9,0.6,5,1.0
+class 2,484,E,total negative,0.0,0.0,0.0,5,1.0
+class 2,484,E,total positive,107.0,109.0,4.0,5,1.0
+class 2,501,N,max,1.4,1.4,0.4,5,1.0
+class 2,501,N,mean,0.6,0.6,0.1,5,1.0
+class 2,501,N,min,0.1,0.1,0.1,5,1.0
+class 2,501,N,total negative,-0.0,0.0,0.1,5,1.0
+class 2,501,N,total positive,9.8,9.9,1.1,5,1.0
+class 3,417,K,max,2.0,1.9,0.3,5,1.0
+class 3,417,K,mean,0.9,0.8,0.1,5,1.0
+class 3,417,K,min,-0.0,0.0,0.4,5,1.0
+class 3,417,K,total negative,-0.2,0.0,0.5,5,1.0
+class 3,417,K,total positive,16.9,16.1,1.6,5,1.0
+class 3,446,G,max,5.5,5.4,0.5,5,1.0
+class 3,446,G,mean,4.5,4.6,0.3,5,1.0
+class 3,446,G,min,3.9,4.2,0.4,5,1.0
+class 3,446,G,total negative,0.0,0.0,0.0,5,1.0
+class 3,446,G,total positive,84.7,87.3,5.4,5,1.0
+class 3,484,E,max,1.4,1.4,0.2,5,1.0
+class 3,484,E,mean,0.7,0.7,0.1,5,1.0
+class 3,484,E,min,-0.0,-0.0,0.2,5,1.0
+class 3,484,E,total negative,-0.1,-0.0,0.1,5,1.0
+class 3,484,E,total positive,13.1,12.5,1.9,5,1.0
+class 3,501,N,max,1.7,1.6,0.3,5,1.0
+class 3,501,N,mean,0.8,0.8,0.2,5,1.0
+class 3,501,N,min,0.0,0.0,0.2,5,1.0
+class 3,501,N,total negative,-0.1,0.0,0.1,5,1.0
+class 3,501,N,total positive,13.3,13.1,2.9,5,1.0
