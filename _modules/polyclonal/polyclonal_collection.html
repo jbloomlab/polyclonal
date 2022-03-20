@@ -50,6 +50,7 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">import</span> <span class="nn">polyclonal</span>
+<span class="kn">import</span> <span class="nn">polyclonal.plot</span>
 <span class="kn">from</span> <span class="nn">polyclonal.polyclonal</span> <span class="kn">import</span> <span class="n">PolyclonalFitError</span>
 
 
@@ -59,46 +60,120 @@
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="create_bootstrap_sample"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.create_bootstrap_sample">[docs]</a><span class="k">def</span> <span class="nf">create_bootstrap_sample</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group_by_col</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return a bootstrapped sample of a pandas data frame, maintaining the</span>
-<span class="sd">    same number of items when grouped by a given column.</span>
+<div class="viewcode-block" id="create_bootstrap_sample"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.create_bootstrap_sample">[docs]</a><span class="k">def</span> <span class="nf">create_bootstrap_sample</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">group_by_col</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span>
+    <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bootstrap sample of data frame.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
 <span class="sd">    df : pandas.DataFrame</span>
-<span class="sd">        A dataframe to be bootstrapped</span>
+<span class="sd">        Dataframe to be bootstrapped</span>
 <span class="sd">    seed : int</span>
-<span class="sd">        The random seed to use for the sample</span>
-<span class="sd">    group_by_col : string, list or None</span>
-<span class="sd">        The name of a column to group the dataframe by. In most cases, this will</span>
-<span class="sd">        be &#39;concentration&#39;</span>
+<span class="sd">        Random number seed.</span>
+<span class="sd">    group_by_col : string or None</span>
+<span class="sd">        Group by this column and bootstrap each group separately.</span>
+<span class="sd">    sample_by : str or None</span>
+<span class="sd">        For each group, sample the same entities in this column. Requires</span>
+<span class="sd">        each group to have same unique set of rows for this column.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bootstrap_df : pandas.DataFrame</span>
-<span class="sd">         A dataframe that has the same number of rows as `df` as well as the same</span>
-<span class="sd">         number of samples per `group_by_col`.</span>
+<span class="sd">         Dataframe with same number of rows as `df` and same number of samples</span>
+<span class="sd">         per `group_by_col`.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; df_groups_same_barcode = pd.DataFrame({</span>
+<span class="sd">    ...     &quot;aa_substitutions&quot;: [&quot;&quot;, &quot;M1A&quot;, &quot;G2C&quot;, &quot;&quot;, &quot;M1A&quot;, &quot;G2C&quot;],</span>
+<span class="sd">    ...     &quot;concentration&quot;: [1, 1, 1, 2, 2, 2],</span>
+<span class="sd">    ...     &quot;barcode&quot;: [&quot;AA&quot;, &quot;AC&quot;, &quot;AG&quot;, &quot;AA&quot;, &quot;AC&quot;, &quot;AG&quot;],</span>
+<span class="sd">    ... })</span>
+
+<span class="sd">    Same variants for each concentration:</span>
+
+<span class="sd">    &gt;&gt;&gt; create_bootstrap_sample(df_groups_same_barcode)</span>
+<span class="sd">      aa_substitutions  concentration barcode</span>
+<span class="sd">    0                               1      AA</span>
+<span class="sd">    1              M1A              1      AC</span>
+<span class="sd">    2                               1      AA</span>
+<span class="sd">    3                               2      AA</span>
+<span class="sd">    4              M1A              2      AC</span>
+<span class="sd">    5                               2      AA</span>
+
+<span class="sd">    Different variants for each concentration:</span>
+
+<span class="sd">    &gt;&gt;&gt; create_bootstrap_sample(df_groups_same_barcode, sample_by=None, seed=2)</span>
+<span class="sd">      aa_substitutions  concentration barcode</span>
+<span class="sd">    0                               1      AA</span>
+<span class="sd">    1              M1A              1      AC</span>
+<span class="sd">    2                               1      AA</span>
+<span class="sd">    3              G2C              2      AG</span>
+<span class="sd">    4                               2      AA</span>
+<span class="sd">    5              M1A              2      AC</span>
+
+<span class="sd">    Can&#39;t use `sample_by` if concentrations don&#39;t have same barcodes:</span>
+
+<span class="sd">    &gt;&gt;&gt; create_bootstrap_sample(df_groups_same_barcode.head(5))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">     ...</span>
+<span class="sd">    ValueError: elements in sample_by=&#39;barcode&#39; differ in group_by_col=&#39;concentration&#39;</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Check to make sure group_by_col exists -- raise an error otherwise.</span>
-    <span class="k">if</span> <span class="n">group_by_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">group_by_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">group_by_col</span><span class="si">}</span><span class="s2"> is not in provided data frame.&quot;</span><span class="p">)</span>
+    <span class="c1"># if no group_by_col, make dummy one so we can use same code for both cases</span>
+    <span class="n">dummy_group_by_col</span> <span class="o">=</span> <span class="s2">&quot;_dummy_group_by&quot;</span>
+    <span class="k">if</span> <span class="n">dummy_group_by_col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2"> cannot have column </span><span class="si">{</span><span class="n">dummy_group_by_col</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">group_by_col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">group_by_col</span> <span class="o">=</span> <span class="n">dummy_group_by_col</span>
+    <span class="k">elif</span> <span class="n">group_by_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">group_by_col</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sample_by</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># check sample_by same for all groups and unique within groups</span>
+        <span class="n">samples_by_group</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_by_col</span><span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+            <span class="n">n_rows</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">sample_by</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
+            <span class="n">n_unique</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">sample_by</span><span class="p">,</span> <span class="s2">&quot;nunique&quot;</span><span class="p">),</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">sample_by</span><span class="p">,</span> <span class="nb">set</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">samples_by_group</span><span class="p">[</span><span class="s2">&quot;n_rows&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">samples_by_group</span><span class="p">[</span><span class="s2">&quot;n_unique&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;elements in </span><span class="si">{</span><span class="n">sample_by</span><span class="si">=}</span><span class="s2"> not unique in </span><span class="si">{</span><span class="n">group_by_col</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">samples_by_group</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">samples</span> <span class="o">!=</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">samples_by_group</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;elements in </span><span class="si">{</span><span class="n">sample_by</span><span class="si">=}</span><span class="s2"> differ in </span><span class="si">{</span><span class="n">group_by_col</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">boot_df</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_by_col</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">sample_by</span> <span class="ow">and</span> <span class="n">boot_df</span><span class="p">:</span>
+            <span class="c1"># get same sample_by as in first data frame</span>
+            <span class="n">boot_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">boot_df</span><span class="p">[</span><span class="mi">0</span><span class="p">][[</span><span class="n">sample_by</span><span class="p">]]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                    <span class="n">group</span><span class="p">,</span>
+                    <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                    <span class="n">on</span><span class="o">=</span><span class="n">sample_by</span><span class="p">,</span>
+                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">boot_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">group</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+            <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">group_by_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">grouped_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_by_col</span><span class="p">)</span>
-
-        <span class="c1"># Sample each concentration separately</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">grouped_df</span><span class="p">:</span>
-            <span class="n">boot_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">boot_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">boot_df</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">boot_df</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">dummy_group_by_col</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span>
+    <span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_create_bootstrap_polyclonal</span><span class="p">(</span><span class="n">root_polyclonal</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">group_by_col</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_create_bootstrap_polyclonal</span><span class="p">(</span>
+    <span class="n">root_polyclonal</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
+    <span class="n">group_by_col</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped</span>
 <span class="sd">    dataset and fits model. The model is initialized to the parameters in</span>
 <span class="sd">    `root_polyclonal`.</span>
@@ -109,13 +184,14 @@
 <span class="sd">        Initialized :class:`~polyclonal.polyclonal.Polyclonal` object with full dataset.</span>
 <span class="sd">    seed : int</span>
 <span class="sd">        Random seed</span>
-<span class="sd">    groups: string</span>
-<span class="sd">        The column name to group `root_polyclonal.data_to_fit` by,</span>
-<span class="sd">        in most cases, this will be `concentration`</span>
+<span class="sd">    sample_by : str</span>
+<span class="sd">        Passed to :func:`create_bootstrap_sample`.</span>
+<span class="sd">    group_by_col: str</span>
+<span class="sd">        Passed to :func:`create_bootstrap_sample`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    polyclonal : class:`~polyclonal.polyclonal.Polyclonal`</span>
+<span class="sd">    :class:`~polyclonal.polyclonal.Polyclonal`</span>
 <span class="sd">        New object from bootstrapped sample of `root_polyclonal.data_to_fit`.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -123,7 +199,10 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No data to fit provided in the polyclonal object.&quot;</span><span class="p">)</span>
 
     <span class="n">bootstrap_df</span> <span class="o">=</span> <span class="n">create_bootstrap_sample</span><span class="p">(</span>
-        <span class="n">df</span><span class="o">=</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">group_by_col</span><span class="o">=</span><span class="n">group_by_col</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="n">sample_by</span><span class="o">=</span><span class="n">sample_by</span><span class="p">,</span>
+        <span class="n">group_by_col</span><span class="o">=</span><span class="n">group_by_col</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span>
@@ -177,7 +256,7 @@
 <span class="sd">    polyclonal_obj : :class:`~polyclonal.polyclonal.Polyclonal`</span>
 <span class="sd">        A :class:`~polyclonal.polyclonal.Polyclonal` object to make predictions with.</span>
 
-<span class="sd">    vairants_df : pandas.DataFrame</span>
+<span class="sd">    variants_df : pandas.DataFrame</span>
 <span class="sd">        A dataframe of variants to predict escape probabilities for.</span>
 
 <span class="sd">    Returns</span>
@@ -206,6 +285,9 @@
 <span class="sd">        Random seed for reproducibility.</span>
 <span class="sd">    n_threads : int</span>
 <span class="sd">        Number of threads to use for multiprocessing, -1 means all available.</span>
+<span class="sd">    sample_by</span>
+<span class="sd">        Passed to :func:`create_bootstrap_sample`. Should generally be &#39;barcode&#39;</span>
+<span class="sd">        if you have same variants at all concentrations, and maybe `None` otherwise.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    -----------</span>
@@ -226,6 +308,7 @@
         <span class="n">n_bootstrap_samples</span><span class="p">,</span>
         <span class="n">n_threads</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">root_polyclonal</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -244,7 +327,7 @@
             <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span>
                     <span class="n">_create_bootstrap_polyclonal</span><span class="p">,</span>
-                    <span class="nb">zip</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">root_polyclonal</span><span class="p">),</span> <span class="n">seeds</span><span class="p">),</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">root_polyclonal</span><span class="p">),</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">sample_by</span><span class="p">)),</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please specify a number of bootstrap samples to make.&quot;</span><span class="p">)</span>
@@ -323,6 +406,28 @@
             <span class="n">std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
+<div class="viewcode-block" id="PolyclonalCollection.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bar plot of epitope activities summarized (mean, median) across replicates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments for :func:`polyclonal.plot.activity_wt_barplot`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive plot, with error bars showing standard deviation.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">activity_wt_barplot</span><span class="p">(</span>
+            <span class="n">activity_wt_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">,</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">],</span>
+            <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;std&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape values for replicates.&quot;&quot;&quot;</span>
@@ -355,6 +460,38 @@
             <span class="p">)</span>
         <span class="p">)</span>
 
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frac_bootstrap_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Heatmaps of mutation escape values.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        min_frac_bootstrap_replicates : None or float</span>
+<span class="sd">            Only plot values for mutations found in &gt;= this fraction of bootstrap</span>
+<span class="sd">            replicates. Will remove mutations that are rare. ~0.7 will remove</span>
+<span class="sd">            most mutations seen only once, ~0.9 will remove most mutations</span>
+<span class="sd">            seen only twice.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive heat maps.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span>
+        <span class="k">if</span> <span class="n">min_frac_bootstrap_replicates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;frac_bootstrap_replicates &gt;= @min_frac_bootstrap_replicates&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span>
+            <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">],</span>
+            <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;std&quot;</span><span class="p">,</span>
+            <span class="n">addtl_tooltip_stats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frac_bootstrap_replicates&quot;</span><span class="p">],</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Site-level summaries of mutation escape for replicates.&quot;&quot;&quot;</span>
@@ -383,7 +520,7 @@
                 <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
                 <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
                 <span class="n">mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
                 <span class="n">median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
@@ -394,6 +531,35 @@
                 <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
+
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frac_bootstrap_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Line plots of mutation escape at each site.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        min_frac_bootstrap_replicates : None or float</span>
+<span class="sd">            Only plot values for sites with a measurement in &gt;= this fraction of</span>
+<span class="sd">            bootstra replicates. Will remove mutations that are rare. ~0.7 will remove</span>
+<span class="sd">            most mutations seen only once, ~0.9 will remove most mutations</span>
+<span class="sd">            seen only twice.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive heat maps.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span>
+        <span class="k">if</span> <span class="n">min_frac_bootstrap_replicates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;frac_bootstrap_replicates &gt;= @min_frac_bootstrap_replicates&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_lineplot</span><span class="p">(</span>
+            <span class="n">mut_escape_site_summary_df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">bootstrapped_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.make_predictions"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.make_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">make_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make predictions on variants for models that have parameters for</span>
@@ -501,6 +667,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

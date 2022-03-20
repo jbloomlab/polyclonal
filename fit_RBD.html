@@ -19,7 +19,7 @@
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Specifying epitopes" href="specify_epitopes.html" />
+    <link rel="next" title="Bootstrapping model fits" href="RBD_bootstrap.html" />
     <link rel="prev" title="Simulate experiment" href="simulate_RBD.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -484,87 +484,74 @@ div.rendered_html tbody tr:hover {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 # First fitting site-level model.
-# Starting optimization of 522 parameters at Sun Mar 13 09:14:11 2022.
+# Starting optimization of 522 parameters at Wed Mar 16 20:10:02 2022.
        step   time_sec       loss   fit_loss reg_escape  regspread
-          0   0.058032     9386.8     9386.5    0.29701          0
-        100     5.3388     1383.7     1380.4     3.3849          0
-        200     10.322     1362.7     1358.8     3.8969          0
-        300     15.036     1348.4     1343.6     4.7651          0
-        400     19.819     1343.6     1338.1     5.4453          0
-        500      24.38     1338.8     1332.9     5.9488          0
-        600      29.19     1337.5     1331.2     6.2896          0
-        700     33.977     1336.7     1330.2     6.4398          0
-        800     38.843     1336.2     1329.5     6.6795          0
-        900     43.776     1335.8     1328.9     6.8579          0
-       1000     48.396     1335.6     1328.7     6.8881          0
-       1100     53.194     1335.3     1328.4     6.9007          0
-       1200     57.728     1335.1     1328.2     6.9071          0
-       1300      62.25       1335     1328.1     6.9464          0
-       1400     66.773     1334.6     1327.4     7.1564          0
-       1500     71.127     1334.1     1326.9     7.1477          0
-       1600     75.628     1333.5     1326.4     7.1559          0
-       1700     80.082     1333.3     1326.1     7.1745          0
-       1800     84.453       1333     1325.8     7.2178          0
-       1900     88.927     1332.6     1325.3     7.2493          0
-       2000     93.389     1332.3       1325     7.2898          0
-       2100     97.982       1332     1324.7      7.374          0
-       2200     102.41     1331.9     1324.5     7.4147          0
-       2300     106.75     1331.9     1324.4      7.466          0
-       2341     108.54     1331.8     1324.3     7.4846          0
-# Successfully finished at Sun Mar 13 09:15:59 2022.
-# Starting optimization of 5799 parameters at Sun Mar 13 09:15:59 2022.
+          0   0.070378     9386.8     9386.5    0.29701          0
+        100     5.5381     1383.7     1380.4     3.3849          0
+        200      10.09     1362.7     1358.8     3.8969          0
+        300      14.79     1348.4     1343.6     4.7651          0
+        400     19.621     1343.6     1338.1     5.4453          0
+        500     24.312     1338.8     1332.9     5.9488          0
+        600     29.579     1337.5     1331.2     6.2896          0
+        700     34.304     1336.7     1330.2     6.4398          0
+        800     39.364     1336.2     1329.5     6.6795          0
+        900      44.62     1335.8     1328.9     6.8579          0
+       1000     49.426     1335.6     1328.7     6.8881          0
+       1100     55.113     1335.3     1328.4     6.9007          0
+       1200     60.591     1335.1     1328.2     6.9071          0
+       1300     66.143       1335     1328.1     6.9464          0
+       1400     71.778     1334.6     1327.4     7.1564          0
+       1500     76.713     1334.1     1326.9     7.1477          0
+       1600     81.997     1333.5     1326.4     7.1559          0
+       1700     87.012     1333.3     1326.1     7.1745          0
+       1800     91.563       1333     1325.8     7.2178          0
+       1900     96.509     1332.6     1325.3     7.2493          0
+       2000     101.36     1332.3       1325     7.2898          0
+       2100     106.54       1332     1324.7      7.374          0
+       2200     111.52     1331.9     1324.5     7.4147          0
+       2300     116.18     1331.9     1324.4      7.466          0
+       2341     118.29     1331.8     1324.3     7.4846          0
+# Successfully finished at Wed Mar 16 20:12:00 2022.
+# Starting optimization of 5799 parameters at Wed Mar 16 20:12:01 2022.
        step   time_sec       loss   fit_loss reg_escape  regspread
-          0   0.062707     1816.4     1725.1     91.304  2.112e-29
-        100     8.7054     1025.8     923.49      91.24     11.062
-        200     18.209     1010.1     903.48     90.499     16.093
-        300     27.571     1001.6     896.25     88.175     17.135
-        400     36.796     992.74      889.4     85.392     17.943
-        500     46.537     985.43     886.19     80.946     18.289
-        600     56.565     979.19        885     74.594     19.592
-        700     66.413     970.24      884.3     65.415     20.517
-        800     75.105     962.18      882.5     59.179     20.505
-        900     84.225     956.58     881.77      54.44     20.373
-       1000     93.106     950.33     880.14     49.597     20.601
-       1100     102.31      944.1     876.33     46.594      21.17
-       1200     110.78     940.04     873.08     45.655     21.304
-       1300     119.24     935.72     868.88     44.642     22.199
-       1400     128.18     931.53     864.14     44.324      23.07
-       1500     137.98     927.47     858.62     44.471     24.387
-       1600     147.59     923.88     853.56      44.84     25.482
-       1700     156.88        920     847.09     45.524     27.383
-       1800     166.15      914.8     839.89     46.208     28.708
-       1900     175.88     911.55     835.07     46.925     29.552
-       2000     185.31     906.11     826.96     48.058     31.094
-       2100     194.04     898.79     817.17     49.101     32.525
-       2200     202.77     888.31     803.83     50.415     34.065
-       2300     211.23     871.72     783.36     52.243     36.121
-       2400     219.74      859.5     771.99     52.624     34.881
-       2500     228.12     854.65     766.83     52.936     34.886
-       2600     236.97     850.21     762.57     52.993     34.643
-       2700      245.3     848.06      760.4     53.034     34.632
-       2800     255.31     847.24     759.57     53.137     34.532
-       2900     264.78      846.3     758.82     53.165     34.317
-       3000     273.91     845.96     758.59      53.16     34.203
-       3072     280.22      845.9     758.53     53.157     34.211
-# Successfully finished at Sun Mar 13 09:20:40 2022.
+          0   0.082526     1816.4     1725.1     91.304  2.112e-29
+        100     8.9861     1025.8     923.49      91.24     11.062
+        200     18.867     1010.1     903.48     90.499     16.093
+        300     28.236     1001.6     896.25     88.175     17.135
+        400     37.501     992.74      889.4     85.392     17.943
+        500     47.215     985.43     886.19     80.946     18.289
+        600      56.78     979.19        885     74.594     19.592
+        700     66.435     970.24      884.3     65.415     20.517
+        800     75.849     962.18      882.5     59.179     20.505
+        900     85.117     956.58     881.77      54.44     20.373
+       1000     96.027     950.33     880.14     49.597     20.601
+       1100     107.06      944.1     876.33     46.594      21.17
+       1200     115.88     940.04     873.08     45.655     21.304
+       1300     124.98     935.72     868.88     44.642     22.199
+       1400     134.18     931.53     864.14     44.324      23.07
+       1500      143.5     927.47     858.62     44.471     24.387
+       1600     152.45     923.88     853.56      44.84     25.482
+       1700     161.84        920     847.09     45.524     27.383
+       1800     173.02      914.8     839.89     46.208     28.708
+       1900     182.42     911.55     835.07     46.925     29.552
+       2000     191.38     906.11     826.96     48.058     31.094
+       2100     200.73     898.79     817.17     49.101     32.525
+       2200     209.21     888.31     803.83     50.415     34.065
+       2300     217.77     871.72     783.36     52.243     36.121
+       2400     226.99      859.5     771.99     52.624     34.881
+       2500      236.4     854.65     766.83     52.936     34.886
+       2600     246.92     850.21     762.57     52.993     34.643
+       2700     257.66     848.06      760.4     53.034     34.632
+       2800     267.29     847.24     759.57     53.137     34.532
+       2900     276.41      846.3     758.82     53.165     34.317
+       3000     285.58     845.96     758.59      53.16     34.203
+       3072     291.81      845.9     758.53     53.157     34.211
+# Successfully finished at Wed Mar 16 20:16:52 2022.
 </pre></div></div>
-</div>
-<p>We save this model to a pickle file so it can be used by future notebooks (like the bootstrapping one):</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pickle</span>
-
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;fit_RBD_model.pickle&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">poly_abs</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-</pre></div>
-</div>
 </div>
 <p>We can now visualize the resulting fits for the activities and escape values, and they can be compared back to the earlier “true” results used to simulate the data:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -574,17 +561,17 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-bc355024fe394da6876eacf19aaff62d"></div>
+<div id="altair-viz-4023b6721c4b4f129d7a689987c75603"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-bc355024fe394da6876eacf19aaff62d") {
-      outputDiv = document.getElementById("altair-viz-bc355024fe394da6876eacf19aaff62d");
+    if (outputDiv.id !== "altair-viz-4023b6721c4b4f129d7a689987c75603") {
+      outputDiv = document.getElementById("altair-viz-4023b6721c4b4f129d7a689987c75603");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -630,11 +617,11 @@ div.rendered_html tbody tr:hover {
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-7eafc20a8db2d1180f8e3892cfda0a89"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3"], "range": ["#1f77b4", "#ff7f0e", "#2ca02c"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".3g", "type": "quantitative"}], "x": {"field": "activity", "type": "quantitative"}, "y": {"field": "epitope", "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-7eafc20a8db2d1180f8e3892cfda0a89": [{"epitope": "1", "activity": 1.1242964950798724}, {"epitope": "2", "activity": 3.2154809536469076}, {"epitope": "3", "activity": 1.9656099981918334}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-7eafc20a8db2d1180f8e3892cfda0a89"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3"], "range": ["#1f77b4", "#ff7f0e", "#2ca02c"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".3g", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-7eafc20a8db2d1180f8e3892cfda0a89": [{"epitope": "1", "activity": 1.1242964950798724}, {"epitope": "2", "activity": 3.2154809536469076}, {"epitope": "3", "activity": 1.9656099981918334}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -644,17 +631,17 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-4868a35679274cf1bef35748ca49c323"></div>
+<div id="altair-viz-aa2e380abf4c4d2a9fceb19d38d4ba24"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-4868a35679274cf1bef35748ca49c323") {
-      outputDiv = document.getElementById("altair-viz-4868a35679274cf1bef35748ca49c323");
+    if (outputDiv.id !== "altair-viz-aa2e380abf4c4d2a9fceb19d38d4ba24") {
+      outputDiv = document.getElementById("altair-viz-aa2e380abf4c4d2a9fceb19d38d4ba24");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -704,7 +691,7 @@ div.rendered_html tbody tr:hover {
 </script></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -714,17 +701,17 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-b46082fbb3cd4eb5b971bcfb030b7e9f"></div>
+<div id="altair-viz-75b33bcf99704e2b994b2edf2f262398"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-b46082fbb3cd4eb5b971bcfb030b7e9f") {
-      outputDiv = document.getElementById("altair-viz-b46082fbb3cd4eb5b971bcfb030b7e9f");
+    if (outputDiv.id !== "altair-viz-75b33bcf99704e2b994b2edf2f262398") {
+      outputDiv = document.getElementById("altair-viz-75b33bcf99704e2b994b2edf2f262398");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -775,7 +762,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>For these simulated data, we can also see how well the fit model does on the “true” simulated values from a library with a different (higher) mutation rate. We therefore read in the “exact” simulated data from a library with a different mutation rate:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -790,7 +777,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>First, we will compare the true simulated IC90 values to those predicted by the fit model. We make the comparison on a log scale, and clip IC90s at values &gt;50 as likely to be way outside the dynamic range given the concentrations used:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -841,12 +828,12 @@ Correlation (R^2) is 0.98
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/fit_RBD_15_1.png" src="_images/fit_RBD_15_1.png" />
+<img alt="_images/fit_RBD_13_1.png" src="_images/fit_RBD_13_1.png" />
 </div>
 </div>
 <p>Next we see how well the model predicts the variant-level escape probabilities <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, by reading in exact data from the simulations, and then making predictions of escape probabilities. We both examine and plot the correlations:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -934,12 +921,12 @@ Correlations (R^2) at each concentration:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/fit_RBD_17_2.png" src="_images/fit_RBD_17_2.png" />
+<img alt="_images/fit_RBD_15_2.png" src="_images/fit_RBD_15_2.png" />
 </div>
 </div>
 <p>We also examine the correlation between the “true” and inferred mutation-escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>. In general, it’s necessary to ensure the epitopes match up for this type of comparison as it is arbitrary which epitope in the model is given which name. But above we seeded the epitopes at the site level using <code class="docutils literal notranslate"><span class="pre">site_effects_df</span></code> when we initialized the <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> object, so they match up with class 1, 2, and 3:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1050,17 +1037,17 @@ Correlation (R^2) between predicted and true values:
 </div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-682ca09fb53c4437bfa97d70769a2c9c"></div>
+<div id="altair-viz-117a4c8249174a7ea6a120121122cde1"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-682ca09fb53c4437bfa97d70769a2c9c") {
-      outputDiv = document.getElementById("altair-viz-682ca09fb53c4437bfa97d70769a2c9c");
+    if (outputDiv.id !== "altair-viz-117a4c8249174a7ea6a120121122cde1") {
+      outputDiv = document.getElementById("altair-viz-117a4c8249174a7ea6a120121122cde1");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1154,6 +1141,7 @@ Correlation (R^2) between predicted and true values:
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
@@ -1168,7 +1156,7 @@ Correlation (R^2) between predicted and true values:
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="simulate_RBD.html" title="previous chapter">Simulate experiment</a></li>
-      <li>Next: <a href="specify_epitopes.html" title="next chapter">Specifying epitopes</a></li>
+      <li>Next: <a href="RBD_bootstrap.html" title="next chapter">Bootstrapping model fits</a></li>
   </ul></li>
 </ul>
 </div>

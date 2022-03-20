@@ -41,7 +41,7 @@
 <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> model parameters.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">PolyclonalCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_polyclonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstrap_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">PolyclonalCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_polyclonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstrap_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'barcode'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A container class for multiple <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> objects.</p>
 <dl class="field-list simple">
@@ -54,6 +54,8 @@ already have been fit to the full dataset.</p></li>
 <li><p><strong>n_bootstrap_samples</strong> (<em>int</em>) – Number of bootstrapped <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> models to fit.</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – Random seed for reproducibility.</p></li>
 <li><p><strong>n_threads</strong> (<em>int</em>) – Number of threads to use for multiprocessing, -1 means all available.</p></li>
+<li><p><strong>sample_by</strong> – Passed to <a class="reference internal" href="#polyclonal.polyclonal_collection.create_bootstrap_sample" title="polyclonal.polyclonal_collection.create_bootstrap_sample"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_bootstrap_sample()</span></code></a>. Should generally be ‘barcode’
+if you have same variants at all concentrations, and maybe <cite>None</cite> otherwise.</p></li>
 </ul>
 </dd>
 </dl>
@@ -88,6 +90,23 @@ After fitting, if any models fail fitting they are set to <cite>None</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">
+<span class="sig-name descname"><span class="pre">activity_wt_barplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.activity_wt_barplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bar plot of epitope activities summarized (mean, median) across replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.activity_wt_barplot" title="polyclonal.plot.activity_wt_barplot"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.activity_wt_barplot()</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Interactive plot, with error bars showing standard deviation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>altair.Chart</p>
 </dd>
 </dl>
 </dd></dl>
@@ -183,6 +202,52 @@ of predictions on <cite>variants_df</cite> and returns them in a list.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">
+<span class="sig-name descname"><span class="pre">mut_escape_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_frac_bootstrap_replicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heatmaps of mutation escape values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_frac_bootstrap_replicates</strong> (<em>None</em><em> or </em><em>float</em>) – Only plot values for mutations found in &gt;= this fraction of bootstrap
+replicates. Will remove mutations that are rare. ~0.7 will remove
+most mutations seen only once, ~0.9 will remove most mutations
+seen only twice.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Interactive heat maps.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>altair.Chart</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot">
+<span class="sig-name descname"><span class="pre">mut_escape_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_frac_bootstrap_replicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_lineplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Line plots of mutation escape at each site.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_frac_bootstrap_replicates</strong> (<em>None</em><em> or </em><em>float</em>) – Only plot values for sites with a measurement in &gt;= this fraction of
+bootstra replicates. Will remove mutations that are rare. ~0.7 will remove
+most mutations seen only once, ~0.9 will remove most mutations
+seen only twice.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Interactive heat maps.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>altair.Chart</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_site_summary_df</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df" title="Permalink to this definition">¶</a></dt>
@@ -240,26 +305,63 @@ associated with each mutation at each concentration.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.create_bootstrap_sample">
-<span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">create_bootstrap_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_by_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'concentration'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#create_bootstrap_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.create_bootstrap_sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a bootstrapped sample of a pandas data frame, maintaining the
-same number of items when grouped by a given column.</p>
+<span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal_collection.</span></span><span class="sig-name descname"><span class="pre">create_bootstrap_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_by_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'concentration'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'barcode'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#create_bootstrap_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.create_bootstrap_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bootstrap sample of data frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – A dataframe to be bootstrapped</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed to use for the sample</p></li>
-<li><p><strong>group_by_col</strong> (<em>string</em><em>, </em><em>list</em><em> or </em><em>None</em>) – The name of a column to group the dataframe by. In most cases, this will
-be ‘concentration’</p></li>
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Dataframe to be bootstrapped</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Random number seed.</p></li>
+<li><p><strong>group_by_col</strong> (<em>string</em><em> or </em><em>None</em>) – Group by this column and bootstrap each group separately.</p></li>
+<li><p><strong>sample_by</strong> (<em>str</em><em> or </em><em>None</em>) – For each group, sample the same entities in this column. Requires
+each group to have same unique set of rows for this column.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>bootstrap_df</strong> – A dataframe that has the same number of rows as <cite>df</cite> as well as the same
-number of samples per <cite>group_by_col</cite>.</p>
+<dd class="field-even"><p><strong>bootstrap_df</strong> – Dataframe with same number of rows as <cite>df</cite> and same number of samples
+per <cite>group_by_col</cite>.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df_groups_same_barcode</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>    <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;M1A&quot;</span><span class="p">,</span> <span class="s2">&quot;G2C&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;M1A&quot;</span><span class="p">,</span> <span class="s2">&quot;G2C&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;concentration&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;barcode&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;AA&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;AG&quot;</span><span class="p">,</span> <span class="s2">&quot;AA&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;AG&quot;</span><span class="p">],</span>
+<span class="gp">... </span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Same variants for each concentration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">create_bootstrap_sample</span><span class="p">(</span><span class="n">df_groups_same_barcode</span><span class="p">)</span>
+<span class="go">  aa_substitutions  concentration barcode</span>
+<span class="go">0                               1      AA</span>
+<span class="go">1              M1A              1      AC</span>
+<span class="go">2                               1      AA</span>
+<span class="go">3                               2      AA</span>
+<span class="go">4              M1A              2      AC</span>
+<span class="go">5                               2      AA</span>
+</pre></div>
+</div>
+<p>Different variants for each concentration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">create_bootstrap_sample</span><span class="p">(</span><span class="n">df_groups_same_barcode</span><span class="p">,</span> <span class="n">sample_by</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">  aa_substitutions  concentration barcode</span>
+<span class="go">0                               1      AA</span>
+<span class="go">1              M1A              1      AC</span>
+<span class="go">2                               1      AA</span>
+<span class="go">3              G2C              2      AG</span>
+<span class="go">4                               2      AA</span>
+<span class="go">5              M1A              2      AC</span>
+</pre></div>
+</div>
+<p>Can’t use <cite>sample_by</cite> if concentrations don’t have same barcodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">create_bootstrap_sample</span><span class="p">(</span><span class="n">df_groups_same_barcode</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+ <span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">elements in sample_by=&#39;barcode&#39; differ in group_by_col=&#39;concentration&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -306,6 +408,7 @@ number of samples per <cite>group_by_col</cite>.</p>
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
