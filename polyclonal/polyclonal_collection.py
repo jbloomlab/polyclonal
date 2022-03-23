@@ -608,6 +608,82 @@ class PolyclonalCollection:
             )
         )
 
+    def prob_escape(self, variants_df, **kwargs):
+        """Compute predicted probability of escape :math:`p_v\left(c\right)`.
+
+        Usese all models to make predictions on ``variants_df``.
+
+        Arguments
+        ---------
+        variants_df : pandas.DataFrame
+            Input data frame defining variants. Should have a column
+            named 'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T'). Should also have a
+            column 'concentration' if ``concentrations=None``.
+        **kwargs : Dictionary
+            Keyword args for :func:`polyclonal.polyclonal.prob_escape`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Version of ``variants_df`` with columns named 'concentration'
+            and 'predicted_prob_escape' giving predicted probability of escape
+            :math:`p_v\left(c\right)` for each variant at each concentration,
+            for each bootstrap replicate in `bootstrap_replicate`.
+
+        """
+        return pd.concat(
+            [
+                m.prob_escape(variants_df=variants_df, **kwargs).assign(
+                    bootstrap_replicate=i
+                )
+                for i, m in enumerate(self.models, start=1)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    def prob_escape_replicates(self, variants_df, **kwargs):
+        """Compute summary statistics for predicted probability of escape across
+        models.
+
+        Arguments
+        ---------
+        variants_df : pandas.DataFrame
+            Input data frame defining variants. Should have a column
+            named 'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T'). Should also have a
+            column 'concentration' if ``concentrations=None``.
+        **kwargs : Dictionary
+            Keyword args for :func:`polyclonal.polyclonal.prob_escape`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Version of ``variants_df`` with columns named 'concentration'
+            and 'mean', 'median', and 'std' giving corresponding summary stats
+            of predicted probability of escape :math:`p_v\left(c\right)`
+            for each variant at each concentration across bootstrap replicates.
+
+        """
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.prob_escape(variants_df=variants_df, **kwargs)
+            .groupby(
+                ["barcode", "aa_substitutions", "concentration", "prob_escape"],
+                as_index=False,
+            )
+            .aggregate(
+                mean=pd.NamedAgg("predicted_prob_escape", "mean"),
+                median=pd.NamedAgg("predicted_prob_escape", "median"),
+                std=pd.NamedAgg("predicted_prob_escape", "std"),
+                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "nunique"),
+            )
+            .assign(
+                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+        )
+
 
 if __name__ == "__main__":
     import doctest
