@@ -526,63 +526,87 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    def make_predictions(self, variants_df):
-        """Make predictions on variants for models that have parameters for
-        present mutations.
-        Aggregate and return these predictions into a single data frame.
+    def icXX(self, variants_df, **kwargs):
+        """Concentration at which a given fraction is neutralized (eg, IC50).
 
         Parameters
         ----------
         variants_df : pandas.DataFrame
             Data frame defining variants. Should have column named
-            ‘aa_substitutions’ that defines variants as space-delimited strings
-            of substitutions (e.g., ‘M1A K3T’).
+            'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T').
+        **kwargs : Dictionary
+            Keyword args for :func:`polyclonal.polyclonal.icXX`
 
         Returns
         -------
-        pred_dfs : list of pandas.DataFrame objects
-            For each model in the `PolyclonalCollection`, generates a dataframe
-            of predictions on `variants_df` and returns them in a list.
+        pandas.DataFrame
+            Copy of ``variants_df`` with added column ``col`` containing icXX,
+            and ``bootstrap_replicate`` containing model replicate number.
 
         """
-        with multiprocessing.Pool(self.n_threads) as p:
-            pred_dfs = p.starmap(
-                _prob_escape_static, zip(self.models, repeat(variants_df))
-            )
-        return pred_dfs
+        if "x" not in kwargs:
+            kwargs["x"] = 0.5
+        if "col" not in kwargs:
+            kwargs["col"] = f"IC{int(kwargs['x']*100)}"
 
-    def summarize_bootstraped_predictions(self, pred_list):
-        """Aggregate predictions from all eligible models.
-        Given a list of prediction dataframes, splits each variant up by each
-        mutation, and calculates summary statistics of escape predictions
-        associated with each mutation at each concentration.
+        return pd.concat(
+            [
+                m.icXX(variants_df, **kwargs).assign(bootstrap_replicate=i)
+                for i, m in enumerate(self.models, start=1)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    def icXX_replicates(self, variants_df, **kwargs):
+        """Concentration at which a given fraction is neutralized for replicates.
 
         Parameters
         ----------
-        pred_list : list of pandas.DataFrame objects
+        variants_df : pandas.DataFrame
+            Data frame defining variants. Should have column named
+            'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T').
+        **kwargs : Dictionary
+            Keyword args for :func:`polyclonal.polyclonal.icXX`
 
         Returns
         -------
-        results_df : pandas.DataFrame
-            A dataframe of summary stats for predictions made from each model.
+        pandas.DataFrame
+            Copy of ``variants_df`` with added column ``col`` containing icXX,
+            and summary stats for each variant across all models.
 
         """
-        # Combine all dataframes together
-        results_df = pd.concat(pred_list)
+        if "x" not in kwargs:
+            kwargs["x"] = 0.5
+        if "col" not in kwargs:
+            kwargs["col"] = f"IC{int(kwargs['x']*100)}"
 
-        # Define dictionary of data transformations we want to calculate.ß
-        pred_summary_stats = {
-            "mean_predicted_prob_escape": pd.NamedAgg("predicted_prob_escape", "mean"),
-            "median_predicted_prob_escape": pd.NamedAgg(
-                "predicted_prob_escape", "median"
-            ),
-            "std_predicted_prob_escape": pd.NamedAgg("predicted_prob_escape", "std"),
-            "n_model_predictions": pd.NamedAgg("prob_escape", "count"),
-        }
-
-        return results_df.groupby(
-            ["barcode", "aa_substitutions", "concentration"], as_index=False, sort=False
-        ).aggregate(**pred_summary_stats)
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.icXX(variants_df, **kwargs)
+            .groupby(
+                ["barcode", "aa_substitutions", "concentration"],
+                as_index=False,
+            )
+            .aggregate(
+                mean_IC=pd.NamedAgg(kwargs["col"], "mean"),
+                median_IC=pd.NamedAgg(kwargs["col"], "median"),
+                std_IC=pd.NamedAgg(kwargs["col"], "std"),
+                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "nunique"),
+            )
+            .assign(
+                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+            .rename(
+                columns={
+                    "mean_IC": f"mean_{kwargs['col']}",
+                    "median_IC": f"median_{kwargs['col']}",
+                    "std_IC": f"std_{kwargs['col']}",
+                }
+            )
+        )
 
 
 if __name__ == "__main__":
