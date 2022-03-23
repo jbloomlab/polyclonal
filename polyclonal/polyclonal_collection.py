@@ -609,7 +609,7 @@ class PolyclonalCollection:
         )
 
     def prob_escape(self, variants_df, **kwargs):
-        """Compute predicted probability of escape :math:`p_v\left(c\right)`.
+        r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
 
         Usese all models to make predictions on ``variants_df``.
 
@@ -644,7 +644,7 @@ class PolyclonalCollection:
         )
 
     def prob_escape_replicates(self, variants_df, **kwargs):
-        """Compute summary statistics for predicted probability of escape across
+        r"""Compute summary statistics for predicted probability of escape across
         models.
 
         Arguments
