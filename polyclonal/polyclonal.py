@@ -1143,7 +1143,8 @@ class Polyclonal:
             )
         site_escape_df = (
             polyclonal.utils.site_level_variants(
-                self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"})
+                self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"}),
+                original_alphabet=self.alphabet,
             )
             .rename(columns={"aa_substitutions": "mutation"})
             .groupby(["epitope", "mutation"], as_index=False)
