@@ -1783,7 +1783,11 @@ class Polyclonal:
             allowed_subs=self.mutations,
             alphabet=self.alphabet,
         )
-        assert tuple(bmap.all_subs) == self.mutations
+        if tuple(bmap.all_subs) != self.mutations:
+            raise ValueError(
+                "Different mutations in BinaryMap and self:"
+                f"\n{bmap.all_subs=}\n{self.mutations=}"
+            )
         return bmap
 
     def mut_escape_corr(self, ref_poly):
