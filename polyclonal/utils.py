@@ -10,7 +10,7 @@ Miscellaneous utility functions.
 
 import re
 
-from binarymap.binarymap import AAS_NOSTOP
+from binarymap.binarymap import AAS_NOSTOP, AAS_WITHGAP  # noqa: F401
 
 
 class MutationParser:
@@ -27,6 +27,15 @@ class MutationParser:
     >>> mutparser.parse_mut('A5G')
     ('A', 5, 'G')
 
+    >>> mutparser.parse_mut('K7-')
+    Traceback (most recent call last):
+      ...
+    ValueError: invalid mutation K7-
+
+    >>> mutparser_gap = MutationParser(AAS_WITHGAP)
+    >>> mutparser_gap.parse_mut('K7-')
+    ('K', 7, '-')
+
     """
 
     def __init__(self, alphabet):
@@ -37,6 +46,8 @@ class MutationParser:
                 chars.append(char)
             elif char == "*":
                 chars.append(r"\*")
+            elif char == "-":
+                chars.append(r"\-")
             else:
                 raise ValueError(f"invalid alphabet character: {char}")
         chars = "|".join(chars)
