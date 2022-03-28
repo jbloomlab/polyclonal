@@ -659,6 +659,34 @@ def mut_escape_heatmap(
     # select cells
     cell_selector = alt.selection_single(on="mouseover", empty="none")
 
+    # add selection for minimum  **absolute value** of escape maxed across site
+    if stat_selection is None:
+        df["_max"] = df[epitopes].max().max()
+    else:
+        df = df.merge(
+            df.melt(
+                id_vars="statistic",
+                value_vars=epitopes,
+                var_name="epitope",
+                value_name="escape",
+            )
+            .assign(escape=lambda x: x["escape"].abs())
+            .groupby("statistic", as_index=False)
+            .aggregate(_max=pd.NamedAgg("escape", "max"))
+        )
+    group_cols = ["site"] if stat_selection is None else ["site", "statistic"]
+    df = df.assign(
+        _epitope_max=lambda x: x[epitopes].abs().max(axis=1),
+        _site_max=lambda x: x.groupby(group_cols)["_epitope_max"].transform("max"),
+        percent_max=lambda x: 100 * x["_site_max"] / x["_max"],
+    ).drop(columns=["_max", "_epitope_max", "_site_max"])
+    assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
+    cutoff = alt.selection_single(
+        fields=["percent_max_cutoff"],
+        init={"percent_max_cutoff": 0},
+        bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
+    )
+
     # make list of heatmaps for each epitope
     charts = [zoom_bar]
     # base chart
@@ -719,8 +747,9 @@ def mut_escape_heatmap(
         charts.append(
             (heatmap + nulls + wildtype)
             .interactive()
-            .add_selection(cell_selector)
+            .add_selection(cell_selector, cutoff)
             .transform_filter(zoom_brush)
+            .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
             .properties(
                 title=alt.TitleParams(
                     f"{epitope} epitope", color=epitope_colors[epitope]
