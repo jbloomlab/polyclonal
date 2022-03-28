@@ -178,7 +178,7 @@ def mut_escape_lineplot(
     share_ylims=True,
     height=100,
     width=900,
-    init_metric="mean",
+    init_metric="total positive",
     zoom_bar_width=500,
 ):
     r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
@@ -278,6 +278,9 @@ def mut_escape_lineplot(
     df = df.pivot_table(
         index=index, values="escape", columns="epitope", dropna=False
     ).reset_index()
+
+    if init_metric not in set(df["metric"]):
+        raise ValueError(f"invalid {init_metric=}\noptions: {df['metric'].unique()=}")
 
     metric_selection = alt.selection_single(
         fields=["metric"],
