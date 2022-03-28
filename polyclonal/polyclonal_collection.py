@@ -526,8 +526,9 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    def icXX(self, variants_df, **kwargs):
-        """Concentration at which a given fraction is neutralized (eg, IC50).
+    def icXX_replicates(self, variants_df, **kwargs):
+        """Concentration at which a given fraction is neutralized (eg, IC50) for
+        all replicates.
 
         Parameters
         ----------
@@ -545,11 +546,6 @@ class PolyclonalCollection:
             and ``bootstrap_replicate`` containing model replicate number.
 
         """
-        if "x" not in kwargs:
-            kwargs["x"] = 0.5
-        if "col" not in kwargs:
-            kwargs["col"] = f"IC{int(kwargs['x']*100)}"
-
         return pd.concat(
             [
                 m.icXX(variants_df, **kwargs).assign(bootstrap_replicate=i)
@@ -559,8 +555,9 @@ class PolyclonalCollection:
             ignore_index=True,
         )
 
-    def icXX_replicates(self, variants_df, **kwargs):
-        """Concentration at which a given fraction is neutralized for replicates.
+    def icXX(self, variants_df, **kwargs):
+        """Summary statistics of the predicted concentration at which a given
+        fraction is neutralized across all replicates.
 
         Parameters
         ----------
@@ -578,14 +575,9 @@ class PolyclonalCollection:
             and summary stats for each variant across all models.
 
         """
-        if "x" not in kwargs:
-            kwargs["x"] = 0.5
-        if "col" not in kwargs:
-            kwargs["col"] = f"IC{int(kwargs['x']*100)}"
-
         n_fit = sum(m is not None for m in self.models)
         return (
-            self.icXX(variants_df, **kwargs)
+            self.icXX_replicates(variants_df, **kwargs)
             .groupby(
                 ["barcode", "aa_substitutions", "concentration"],
                 as_index=False,
@@ -599,19 +591,12 @@ class PolyclonalCollection:
             .assign(
                 frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
             )
-            .rename(
-                columns={
-                    "mean_IC": f"mean_{kwargs['col']}",
-                    "median_IC": f"median_{kwargs['col']}",
-                    "std_IC": f"std_{kwargs['col']}",
-                }
-            )
         )
 
-    def prob_escape(self, variants_df, **kwargs):
+    def prob_escape_replicates(self, variants_df, **kwargs):
         r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
 
-        Usese all models to make predictions on ``variants_df``.
+        Uses all models to make predictions on ``variants_df``.
 
         Arguments
         ---------
@@ -643,9 +628,9 @@ class PolyclonalCollection:
             ignore_index=True,
         )
 
-    def prob_escape_replicates(self, variants_df, **kwargs):
+    def prob_escape(self, variants_df, **kwargs):
         r"""Compute summary statistics for predicted probability of escape across
-        models.
+        all replicate models.
 
         Arguments
         ---------
@@ -668,7 +653,7 @@ class PolyclonalCollection:
         """
         n_fit = sum(m is not None for m in self.models)
         return (
-            self.prob_escape(variants_df=variants_df, **kwargs)
+            self.prob_escape_replicates(variants_df=variants_df, **kwargs)
             .groupby(
                 ["barcode", "aa_substitutions", "concentration", "prob_escape"],
                 as_index=False,
