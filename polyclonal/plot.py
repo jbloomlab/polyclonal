@@ -289,6 +289,12 @@ def mut_escape_lineplot(
         init={"metric": init_metric},
     )
 
+    line_selection = alt.selection_single(
+        fields=["show_line"],
+        bind=alt.binding_select(options=[True, False], name="show_line"),
+        init={"show_line": True},
+    )
+
     zoom_brush = alt.selection_interval(
         encodings=["x"],
         mark=alt.BrushConfig(stroke="black", strokeWidth=2),
@@ -376,13 +382,17 @@ def mut_escape_lineplot(
     )
 
     charts = []
-    base_all = alt.Chart(df).encode(
-        tooltip=[
-            alt.Tooltip("site:O"),
-            alt.Tooltip("wildtype:N"),
-            *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
-            *addtl_tooltips,
-        ],
+    base_all = (
+        alt.Chart(df)
+        .transform_calculate(show_line="true")
+        .encode(
+            tooltip=[
+                alt.Tooltip("site:O"),
+                alt.Tooltip("wildtype:N"),
+                *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
+                *addtl_tooltips,
+            ],
+        )
     )
     for epitope in epitopes:
         base = base_all.encode(
@@ -395,10 +405,14 @@ def mut_escape_lineplot(
         )
         # in case some sites missing values, background thin transparent
         # over which we put darker foreground for measured points
-        background = base.transform_filter(f"isValid(datum['{epitope}'])").mark_line(
-            opacity=0.5, size=1, color=epitope_colors[epitope]
+        background = (
+            base.transform_filter(f"isValid(datum['{epitope}'])")
+            .mark_line(size=1, color=epitope_colors[epitope])
+            .encode(opacity=alt.condition(line_selection, alt.value(1), alt.value(0)))
         )
-        foreground = base.mark_line(opacity=1, size=1.5, color=epitope_colors[epitope])
+        foreground = base.mark_line(size=1.5, color=epitope_colors[epitope]).encode(
+            opacity=alt.condition(line_selection, alt.value(1), alt.value(0)),
+        )
         foreground_circles = (
             base.mark_circle(opacity=1, color=epitope_colors[epitope])
             .encode(
@@ -407,7 +421,7 @@ def mut_escape_lineplot(
                     site_selector, alt.value("black"), alt.value(None)
                 ),
             )
-            .add_selection(cutoff, site_selector)
+            .add_selection(cutoff, site_selector, line_selection)
         )
         if bootstrapped_data:
             error_bars = base.encode(
