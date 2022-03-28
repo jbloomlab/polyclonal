@@ -350,6 +350,31 @@ def mut_escape_lineplot(
         validate="many_to_one",
     )
 
+    # add selection for minimum **absolute value** of metrics
+    # first add column that gives the percent of the max for each metric and statistic
+    group_cols = ["metric", "statistic"] if bootstrapped_data else "metric"
+    df = (
+        df.merge(
+            df.melt(
+                id_vars=group_cols,
+                value_vars=epitopes,
+                var_name="epitope",
+                value_name="escape",
+            )
+            .assign(escape=lambda x: x["escape"].abs())
+            .groupby(group_cols, as_index=False)
+            .aggregate(_max=pd.NamedAgg("escape", "max"))
+        )
+        .assign(percent_max=lambda x: 100 * x[epitopes].abs().max(axis=1) / x["_max"])
+        .drop(columns="_max")
+    )
+    assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
+    cutoff = alt.selection_single(
+        fields=["percent_max_cutoff"],
+        init={"percent_max_cutoff": 0},
+        bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
+    )
+
     charts = []
     base_all = alt.Chart(df).encode(
         tooltip=[
@@ -382,7 +407,7 @@ def mut_escape_lineplot(
                     site_selector, alt.value("black"), alt.value(None)
                 ),
             )
-            .add_selection(site_selector)
+            .add_selection(cutoff, site_selector)
         )
         if bootstrapped_data:
             error_bars = base.encode(
@@ -401,6 +426,7 @@ def mut_escape_lineplot(
             combined.add_selection(metric_selection)
             .transform_filter(metric_selection)
             .transform_filter(zoom_brush)
+            .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
             .properties(
                 title=alt.TitleParams(
                     f"{epitope} epitope", color=epitope_colors[epitope]
