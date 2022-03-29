@@ -178,7 +178,7 @@ def mut_escape_lineplot(
     share_ylims=True,
     height=100,
     width=900,
-    init_metric="mean",
+    init_metric="total positive",
     zoom_bar_width=500,
 ):
     r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
@@ -279,11 +279,20 @@ def mut_escape_lineplot(
         index=index, values="escape", columns="epitope", dropna=False
     ).reset_index()
 
+    if init_metric not in set(df["metric"]):
+        raise ValueError(f"invalid {init_metric=}\noptions: {df['metric'].unique()=}")
+
     metric_selection = alt.selection_single(
         fields=["metric"],
         bind=alt.binding_select(options=escape_metrics),
         name="escape",
         init={"metric": init_metric},
+    )
+
+    line_selection = alt.selection_single(
+        fields=["show_line"],
+        bind=alt.binding_select(options=[True, False], name="show_line"),
+        init={"show_line": True},
     )
 
     zoom_brush = alt.selection_interval(
@@ -347,14 +356,43 @@ def mut_escape_lineplot(
         validate="many_to_one",
     )
 
+    # add selection for minimum **absolute value** of metrics
+    # first add column that gives the percent of the max for each metric and statistic
+    group_cols = ["metric", "statistic"] if bootstrapped_data else "metric"
+    df = (
+        df.merge(
+            df.melt(
+                id_vars=group_cols,
+                value_vars=epitopes,
+                var_name="epitope",
+                value_name="escape",
+            )
+            .assign(escape=lambda x: x["escape"].abs())
+            .groupby(group_cols, as_index=False)
+            .aggregate(_max=pd.NamedAgg("escape", "max"))
+        )
+        .assign(percent_max=lambda x: 100 * x[epitopes].abs().max(axis=1) / x["_max"])
+        .drop(columns="_max")
+    )
+    assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
+    cutoff = alt.selection_single(
+        fields=["percent_max_cutoff"],
+        init={"percent_max_cutoff": 0},
+        bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
+    )
+
     charts = []
-    base_all = alt.Chart(df).encode(
-        tooltip=[
-            alt.Tooltip("site:O"),
-            alt.Tooltip("wildtype:N"),
-            *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
-            *addtl_tooltips,
-        ],
+    base_all = (
+        alt.Chart(df)
+        .transform_calculate(show_line="true")
+        .encode(
+            tooltip=[
+                alt.Tooltip("site:O"),
+                alt.Tooltip("wildtype:N"),
+                *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
+                *addtl_tooltips,
+            ],
+        )
     )
     for epitope in epitopes:
         base = base_all.encode(
@@ -367,10 +405,14 @@ def mut_escape_lineplot(
         )
         # in case some sites missing values, background thin transparent
         # over which we put darker foreground for measured points
-        background = base.transform_filter(f"isValid(datum['{epitope}'])").mark_line(
-            opacity=0.5, size=1, color=epitope_colors[epitope]
+        background = (
+            base.transform_filter(f"isValid(datum['{epitope}'])")
+            .mark_line(size=1, color=epitope_colors[epitope])
+            .encode(opacity=alt.condition(line_selection, alt.value(1), alt.value(0)))
         )
-        foreground = base.mark_line(opacity=1, size=1.5, color=epitope_colors[epitope])
+        foreground = base.mark_line(size=1.5, color=epitope_colors[epitope]).encode(
+            opacity=alt.condition(line_selection, alt.value(1), alt.value(0)),
+        )
         foreground_circles = (
             base.mark_circle(opacity=1, color=epitope_colors[epitope])
             .encode(
@@ -379,7 +421,7 @@ def mut_escape_lineplot(
                     site_selector, alt.value("black"), alt.value(None)
                 ),
             )
-            .add_selection(site_selector)
+            .add_selection(cutoff, site_selector, line_selection)
         )
         if bootstrapped_data:
             error_bars = base.encode(
@@ -398,6 +440,7 @@ def mut_escape_lineplot(
             combined.add_selection(metric_selection)
             .transform_filter(metric_selection)
             .transform_filter(zoom_brush)
+            .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
             .properties(
                 title=alt.TitleParams(
                     f"{epitope} epitope", color=epitope_colors[epitope]
@@ -616,6 +659,34 @@ def mut_escape_heatmap(
     # select cells
     cell_selector = alt.selection_single(on="mouseover", empty="none")
 
+    # add selection for minimum  **absolute value** of escape maxed across site
+    if stat_selection is None:
+        df["_max"] = df[epitopes].max().max()
+    else:
+        df = df.merge(
+            df.melt(
+                id_vars="statistic",
+                value_vars=epitopes,
+                var_name="epitope",
+                value_name="escape",
+            )
+            .assign(escape=lambda x: x["escape"].abs())
+            .groupby("statistic", as_index=False)
+            .aggregate(_max=pd.NamedAgg("escape", "max"))
+        )
+    group_cols = ["site"] if stat_selection is None else ["site", "statistic"]
+    df = df.assign(
+        _epitope_max=lambda x: x[epitopes].abs().max(axis=1),
+        _site_max=lambda x: x.groupby(group_cols)["_epitope_max"].transform("max"),
+        percent_max=lambda x: 100 * x["_site_max"] / x["_max"],
+    ).drop(columns=["_max", "_epitope_max", "_site_max"])
+    assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
+    cutoff = alt.selection_single(
+        fields=["percent_max_cutoff"],
+        init={"percent_max_cutoff": 0},
+        bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
+    )
+
     # make list of heatmaps for each epitope
     charts = [zoom_bar]
     # base chart
@@ -676,8 +747,9 @@ def mut_escape_heatmap(
         charts.append(
             (heatmap + nulls + wildtype)
             .interactive()
-            .add_selection(cell_selector)
+            .add_selection(cell_selector, cutoff)
             .transform_filter(zoom_brush)
+            .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
             .properties(
                 title=alt.TitleParams(
                     f"{epitope} epitope", color=epitope_colors[epitope]
