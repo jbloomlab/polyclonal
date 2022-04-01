@@ -537,7 +537,7 @@ class PolyclonalCollection:
             'aa_substitutions' that defines variants as space-delimited
             strings of substitutions (e.g., 'M1A K3T').
         **kwargs : Dictionary
-            Keyword args for :func:`polyclonal.polyclonal.icXX`
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.icXX`
 
         Returns
         -------
@@ -566,7 +566,7 @@ class PolyclonalCollection:
             'aa_substitutions' that defines variants as space-delimited
             strings of substitutions (e.g., 'M1A K3T').
         **kwargs : Dictionary
-            Keyword args for :func:`polyclonal.polyclonal.icXX`
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.icXX`
 
         Returns
         -------
@@ -606,7 +606,7 @@ class PolyclonalCollection:
             strings of substitutions (e.g., 'M1A K3T'). Should also have a
             column 'concentration' if ``concentrations=None``.
         **kwargs : Dictionary
-            Keyword args for :func:`polyclonal.polyclonal.prob_escape`
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.prob_escape`
 
         Returns
         -------
@@ -640,7 +640,7 @@ class PolyclonalCollection:
             strings of substitutions (e.g., 'M1A K3T'). Should also have a
             column 'concentration' if ``concentrations=None``.
         **kwargs : Dictionary
-            Keyword args for :func:`polyclonal.polyclonal.prob_escape`
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.prob_escape`
 
         Returns
         -------
