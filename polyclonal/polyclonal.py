@@ -1143,7 +1143,8 @@ class Polyclonal:
             )
         site_escape_df = (
             polyclonal.utils.site_level_variants(
-                self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"})
+                self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"}),
+                original_alphabet=self.alphabet,
             )
             .rename(columns={"aa_substitutions": "mutation"})
             .groupby(["epitope", "mutation"], as_index=False)
@@ -1783,7 +1784,11 @@ class Polyclonal:
             allowed_subs=self.mutations,
             alphabet=self.alphabet,
         )
-        assert tuple(bmap.all_subs) == self.mutations
+        if tuple(bmap.all_subs) != self.mutations:
+            raise ValueError(
+                "Different mutations in BinaryMap and self:"
+                f"\n{bmap.all_subs=}\n{self.mutations=}"
+            )
         return bmap
 
     def mut_escape_corr(self, ref_poly):
