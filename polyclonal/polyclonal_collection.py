@@ -212,28 +212,6 @@ def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
     return polyclonal_obj
 
 
-def _prob_escape_static(polyclonal_obj, variants_df):
-    """Make escape probability predictions for a dataframe of variants, given a
-    polyclonal object.
-
-    Parameters
-    ----------
-    polyclonal_obj : :class:`~polyclonal.polyclonal.Polyclonal`
-        A :class:`~polyclonal.polyclonal.Polyclonal` object to make predictions with.
-
-    variants_df : pandas.DataFrame
-        A dataframe of variants to predict escape probabilities for.
-
-    Returns
-    -------
-    variants_df : pandas.DataFrame
-        A dataframe of the variants from the input data and corresponding
-        predictions for escape probabilities.
-
-    """
-    return polyclonal_obj.prob_escape(variants_df=variants_df)
-
-
 class PolyclonalCollection:
     r"""A container class for multiple :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
@@ -504,7 +482,7 @@ class PolyclonalCollection:
         ----------
         min_frac_bootstrap_replicates : None or float
             Only plot values for sites with a measurement in >= this fraction of
-            bootstra replicates. Will remove mutations that are rare. ~0.7 will remove
+            bootstrap replicates. Will remove mutations that are rare. ~0.7 will remove
             most mutations seen only once, ~0.9 will remove most mutations
             seen only twice.
         **kwargs
@@ -544,11 +522,15 @@ class PolyclonalCollection:
         pandas.DataFrame
             Copy of ``variants_df`` with added column ``col`` containing icXX,
             and ``bootstrap_replicate`` containing model replicate number.
+            Variants with a mutation lacking in a particular bootstrapped model are
+            missing in that row.
 
         """
         return pd.concat(
             [
-                m.icXX(variants_df, **kwargs).assign(bootstrap_replicate=i)
+                m.icXX(m.filter_variants_by_seen_muts(variants_df), **kwargs).assign(
+                    bootstrap_replicate=i
+                )
                 for i, m in enumerate(self.models, start=1)
                 if m is not None
             ],
@@ -576,12 +558,13 @@ class PolyclonalCollection:
 
         """
         n_fit = sum(m is not None for m in self.models)
+        if "col" in kwargs:
+            col = kwargs["col"]
+        else:
+            col = "IC50"
         return (
             self.icXX_replicates(variants_df, **kwargs)
-            .groupby(
-                ["barcode", "aa_substitutions", "concentration"],
-                as_index=False,
-            )
+            .groupby(variants_df.columns.tolist(), as_index=False)
             .aggregate(
                 mean_IC=pd.NamedAgg(kwargs["col"], "mean"),
                 median_IC=pd.NamedAgg(kwargs["col"], "median"),
@@ -590,6 +573,11 @@ class PolyclonalCollection:
             )
             .assign(
                 frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+            .rename(
+                columns={
+                    f"{stat}_IC": f"{stat}_{col}" for stat in ["mean", "median", "std"]
+                }
             )
         )
 
@@ -613,15 +601,17 @@ class PolyclonalCollection:
         pandas.DataFrame
             Version of ``variants_df`` with columns named 'concentration'
             and 'predicted_prob_escape' giving predicted probability of escape
-            :math:`p_v\left(c\right)` for each variant at each concentration,
-            for each bootstrap replicate in `bootstrap_replicate`.
+            :math:`p_v\left(c\right)` for each variant at each concentration and
+            bootstrap replicate. Variants with a mutation lacking in a particular
+            bootstrapped model are missing in that row.
 
         """
         return pd.concat(
             [
-                m.prob_escape(variants_df=variants_df, **kwargs).assign(
-                    bootstrap_replicate=i
-                )
+                m.prob_escape(
+                    variants_df=m.filter_variants_by_seen_muts(variants_df),
+                    **kwargs,
+                ).assign(bootstrap_replicate=i)
                 for i, m in enumerate(self.models, start=1)
                 if m is not None
             ],
@@ -654,14 +644,14 @@ class PolyclonalCollection:
         n_fit = sum(m is not None for m in self.models)
         return (
             self.prob_escape_replicates(variants_df=variants_df, **kwargs)
-            .groupby(
-                ["barcode", "aa_substitutions", "concentration", "prob_escape"],
-                as_index=False,
-            )
+            .groupby(variants_df.columns.tolist(), as_index=False)
             .aggregate(
-                mean=pd.NamedAgg("predicted_prob_escape", "mean"),
-                median=pd.NamedAgg("predicted_prob_escape", "median"),
-                std=pd.NamedAgg("predicted_prob_escape", "std"),
+                mean_predicted_prob_escape=pd.NamedAgg("predicted_prob_escape", "mean"),
+                median_predicted_prob_escape=pd.NamedAgg(
+                    "predicted_prob_escape",
+                    "median",
+                ),
+                std_predicted_prob_escape=pd.NamedAgg("predicted_prob_escape", "std"),
                 n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "nunique"),
             )
             .assign(
