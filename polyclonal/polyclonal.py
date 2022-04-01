@@ -1053,7 +1053,7 @@ class Polyclonal:
     ):
         r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
 
-        Computed using current mutation-escape values :math:`beta_{m,e}` and
+        Computed using current mutation-escape values :math:`\beta_{m,e}` and
         epitope activities :math:`a_{\rm{wt},e}` stored in this
         :class:`Polyclonal` object.
 
