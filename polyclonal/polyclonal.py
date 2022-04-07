@@ -184,11 +184,17 @@ class Polyclonal:
     epitope_colors : dict
         Maps each epitope to its color.
     data_to_fit : pandas.DataFrame or None
-        Data to fit as passed when initializing this :class:`BinaryMap`.
+        Data to fit as passed when initializing this :class:`Polyclonal` object.
         If using ``collapse_identical_variants``, then identical variants
         are collapsed on columns 'concentration', 'aa_substitutions',
         and 'prob_escape', and a column 'weight' is added to represent number
         of collapsed variants. Also, row-order may be changed.
+    mutations_times_seen : frozendict.frozendict or None
+        If `data_to_fit` is not `None`, keyed by all mutations with escape values
+        and values are number of variants in which the mutation is seen. It is formally
+        calculated as the number of variants with mutation across all concentrations
+        divided by the number of concentrations, so can have non-integer values if
+        there are variants only observed at some concentrations.
 
     Example
     -------
@@ -211,6 +217,8 @@ class Polyclonal:
     ('e1', 'e2')
     >>> polyclonal.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
+    >>> polyclonal.mutations_times_seen is None
+    True
     >>> polyclonal.sites
     (1, 2, 4)
     >>> polyclonal.wts
@@ -377,6 +385,8 @@ class Polyclonal:
 
     >>> polyclonal_data.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
+    >>> polyclonal_data.mutations_times_seen
+    frozendict({'G2A': 6, 'M1C': 6, 'A4K': 4, 'A4L': 3})
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
@@ -386,15 +396,15 @@ class Polyclonal:
     0       1       1.0
     1       2       0.0
     >>> polyclonal_data.mut_escape_df
-      epitope  site wildtype mutant mutation  escape
-    0       1     1        M      C      M1C     0.0
-    1       1     2        G      A      G2A     0.0
-    2       1     4        A      K      A4K     0.0
-    3       1     4        A      L      A4L     0.0
-    4       2     1        M      C      M1C     0.0
-    5       2     2        G      A      G2A     0.0
-    6       2     4        A      K      A4K     0.0
-    7       2     4        A      L      A4L     0.0
+      epitope  site wildtype mutant mutation  escape  times_seen
+    0       1     1        M      C      M1C     0.0           6
+    1       1     2        G      A      G2A     0.0           6
+    2       1     4        A      K      A4K     0.0           4
+    3       1     4        A      L      A4L     0.0           3
+    4       2     1        M      C      M1C     0.0           6
+    5       2     2        G      A      G2A     0.0           6
+    6       2     4        A      K      A4K     0.0           4
+    7       2     4        A      L      A4L     0.0           3
 
     You can initialize to random numbers by setting ``init_missing`` to seed
     (in this example we also don't include all variants for one concentration):
@@ -422,15 +432,15 @@ class Polyclonal:
     ...     collapse_identical_variants="mean",
     ... )
     >>> polyclonal_data3.mut_escape_df
-      epitope  site wildtype mutant mutation  escape
-    0      e1     1        M      C      M1C     4.0
-    1      e1     2        G      A      G2A     0.0
-    2      e1     4        A      K      A4K     0.0
-    3      e1     4        A      L      A4L     0.0
-    4      e2     1        M      C      M1C     0.0
-    5      e2     2        G      A      G2A     0.0
-    6      e2     4        A      K      A4K     0.0
-    7      e2     4        A      L      A4L     0.0
+      epitope  site wildtype mutant mutation  escape  times_seen
+    0      e1     1        M      C      M1C     4.0           6
+    1      e1     2        G      A      G2A     0.0           6
+    2      e1     4        A      K      A4K     0.0           4
+    3      e1     4        A      L      A4L     0.0           3
+    4      e2     1        M      C      M1C     0.0           6
+    5      e2     2        G      A      G2A     0.0           6
+    6      e2     4        A      K      A4K     0.0           4
+    7      e2     4        A      L      A4L     0.0           3
 
     You can initialize **sites** to escape values via ``site_activity_df``:
 
@@ -446,15 +456,15 @@ class Polyclonal:
     ...     collapse_identical_variants="mean",
     ... )
     >>> polyclonal_data4.mut_escape_df
-      epitope  site wildtype mutant mutation  escape
-    0      e1     1        M      C      M1C     1.0
-    1      e1     2        G      A      G2A     0.0
-    2      e1     4        A      K      A4K     0.0
-    3      e1     4        A      L      A4L     0.0
-    4      e2     1        M      C      M1C     0.0
-    5      e2     2        G      A      G2A     0.0
-    6      e2     4        A      K      A4K     2.0
-    7      e2     4        A      L      A4L     2.0
+      epitope  site wildtype mutant mutation  escape  times_seen
+    0      e1     1        M      C      M1C     1.0           6
+    1      e1     2        G      A      G2A     0.0           6
+    2      e1     4        A      K      A4K     0.0           4
+    3      e1     4        A      L      A4L     0.0           3
+    4      e2     1        M      C      M1C     0.0           6
+    5      e2     2        G      A      G2A     0.0           6
+    6      e2     4        A      K      A4K     2.0           4
+    7      e2     4        A      L      A4L     2.0           3
 
     Fit the data using :meth:`Polyclonal.fit`, and make sure the new
     predicted escape probabilities are close to the real ones being fit.
@@ -496,13 +506,13 @@ class Polyclonal:
     ('w', 'm')
     >>> (polyclonal_site.mut_escape_df
     ...  .assign(escape=lambda x: x['escape'].abs()).round(1))
-      epitope  site wildtype mutant mutation  escape
-    0      e1     1        w      m      w1m     2.0
-    1      e1     2        w      m      w2m     3.0
-    2      e1     4        w      m      w4m     0.0
-    3      e2     1        w      m      w1m     0.0
-    4      e2     2        w      m      w2m     0.0
-    5      e2     4        w      m      w4m     2.0
+      epitope  site wildtype mutant mutation  escape  times_seen
+    0      e1     1        w      m      w1m     2.0           5
+    1      e1     2        w      m      w2m     3.0           6
+    2      e1     4        w      m      w4m     0.0           7
+    3      e2     1        w      m      w1m     0.0           5
+    4      e2     2        w      m      w2m     0.0           6
+    5      e2     4        w      m      w4m     2.0           7
     >>> polyclonal_site.data_to_fit.head(n=5).round(3)
        concentration aa_substitutions  weight  prob_escape
     0            1.0                        1        0.032
@@ -652,7 +662,6 @@ class Polyclonal:
                 "initialize both or neither `activity_wt_df` "
                 "and `mut_escape_df` or `site_escape_df`"
             )
-
         if isinstance(epitope_colors, dict):
             self.epitope_colors = {epitope_colors[e] for e in self.epitopes}
         elif len(epitope_colors) < len(self.epitopes):
@@ -677,6 +686,20 @@ class Polyclonal:
         # get wildtype, sites, and mutations
         if data_to_fit is not None:
             wts2, sites2, muts2 = self._muts_from_data_to_fit(data_to_fit)
+            times_seen = (
+                data_to_fit["aa_substitutions"]
+                .str.split()
+                .explode()
+                .dropna()
+                .value_counts()
+                .sort_values(ascending=False)
+                / data_to_fit["concentration"].nunique()
+            )
+            if (times_seen == times_seen.astype(int)).all():
+                times_seen = times_seen.astype(int)
+            self.mutations_times_seen = frozendict.frozendict(times_seen)
+        else:
+            self.mutations_times_seen = None
         if site_escape_df is not None:
             # construct mut_escape_df from site_escape_df and mutations
             # from data_to_fit
@@ -1004,7 +1027,7 @@ class Polyclonal:
         r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation."""
         _, beta = self._a_beta_from_params(self._params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
-        return pd.concat(
+        df = pd.concat(
             [
                 pd.DataFrame(
                     {
@@ -1025,6 +1048,10 @@ class Polyclonal:
         )[
             ["epitope", "site", "wildtype", "mutant", "mutation", "escape"]
         ]
+        if self.mutations_times_seen is not None:
+            df["times_seen"] = df["mutation"].map(self.mutations_times_seen)
+            assert df.notnull().all().all()
+        return df
 
     @property
     def mut_escape_site_summary_df(self):
@@ -1125,7 +1152,7 @@ class Polyclonal:
         ----------
         aggregate_mut_escapes : {'mean'}
             How to aggregate mutation-level escape values to site-level
-            ones in ``mut_effects_df``.
+            ones in ``mut_escape_df``.
         collapse_identical_variants : {"mean", "median", False}
             Same meaning as for :class:`Polyclonal` initialization.
 
