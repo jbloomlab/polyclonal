@@ -1521,6 +1521,7 @@ class Polyclonal:
         outdir=None,
         outfile="{metric}-{epitope}.pdb",
         missing_metric=0,
+        min_times_seen=1,
     ):
         r"""Create PDB files with B factors from a site's mutation escape.
 
