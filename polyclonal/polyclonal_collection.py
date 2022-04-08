@@ -392,9 +392,8 @@ class PolyclonalCollection:
                 as_index=False,
             )
             .aggregate(
-                mean=pd.NamedAgg("escape", "mean"),
-                median=pd.NamedAgg("escape", "median"),
-                std=pd.NamedAgg("escape", "std"),
+                escape_mean=pd.NamedAgg("escape", "mean"),
+                escape_std=pd.NamedAgg("escape", "std"),
                 n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
             )
             .assign(
@@ -403,6 +402,7 @@ class PolyclonalCollection:
                     self.root_polyclonal.mutations_times_seen
                 ),
             )
+            .drop(columns="n_bootstrap_replicates")
         )
 
     def mut_escape_heatmap(self, min_frac_bootstrap_replicates=None, **kwargs):
@@ -431,9 +431,9 @@ class PolyclonalCollection:
             mut_escape_df=df,
             alphabet=self.root_polyclonal.alphabet,
             epitope_colors=self.root_polyclonal.epitope_colors,
-            stat=["mean", "median"],
-            error_stat="std",
-            addtl_tooltip_stats=["frac_bootstrap_replicates"],
+            stat="escape_mean",
+            error_stat="escape_std",
+            addtl_tooltip_stats=["times_seen", "frac_bootstrap_replicates"],
             **kwargs,
         )
 
@@ -478,9 +478,9 @@ class PolyclonalCollection:
         -------
         pandas.DataFrame
             The different site-summary metrics ('mean', 'total positive', etc) are
-            in different rows for each site and epitope. The 'n_bootstrap_replicates'
-            and 'frac_bootstrap_replicates' columns refer to bootstrap replicates
-            with measurements for any mutation at that site.
+            in different rows for each site and epitope. The 'frac_bootstrap_replicates'
+            columns refer to bootstrap replicates with measurements for any mutation
+            at that site.
 
         """
         n_fit = sum(m is not None for m in self.models)
@@ -501,6 +501,7 @@ class PolyclonalCollection:
             .assign(
                 frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
             )
+            .drop(columns="n_bootstrap_replicates")
             .merge(
                 self.root_polyclonal.mut_escape_site_summary_df(
                     min_times_seen=min_times_seen

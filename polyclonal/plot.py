@@ -480,8 +480,8 @@ def mut_escape_heatmap(
         Maps each epitope name to its color.
     epitopes : array-like or None
         Make plots for these epitopes. If `None`, use all epitopes.
-    stat : str or array-like
-        Statistic in `mut_escape_df` to plot as escape, or list of dropdown options.
+    stat : str
+        Statistic in `mut_escape_df` to plot as escape.
     error_stat : str or None
         Measure of error to display in tooltip.
     addtl_tooltip_stats : list or None
@@ -515,6 +515,9 @@ def mut_escape_heatmap(
     elif not set(epitopes).issubset(mut_escape_df["epitope"]):
         raise ValueError("invalid entries in `epitopes`")
 
+    if stat not in mut_escape_df:
+        raise ValueError(f"{stat=} not in {mut_escape_df.columns=}")
+
     df = mut_escape_df.query("epitope in @epitopes")
 
     # get alphabet and sites, expanding to all if needed
@@ -531,32 +534,6 @@ def mut_escape_heatmap(
 
     wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
 
-    if isinstance(stat, str):
-        if stat not in df:
-            raise ValueError(f"{stat=} not in {df.columns=}")
-        index = ["site", "mutant"]  # for later pivoting
-        product_cols = [sites, alphabet]  # for later filling gaps
-        stat_selection = None
-    elif len(stat) > 0:
-        if not set(stat).issubset(df.columns):
-            raise ValueError(f"{stat=} not in {df.columns=}")
-        df = df.melt(
-            id_vars=[c for c in df.columns if c not in stat],
-            value_vars=stat,
-            var_name="statistic",
-            value_name="escape",
-        )
-        index = ["site", "mutant", "statistic"]  # for later pivoting
-        product_cols = [sites, alphabet, stat]  # for later filling gaps
-        stat_selection = alt.selection_single(
-            fields=["statistic"],
-            init={"statistic": stat[0]},
-            bind=alt.binding_select(options=stat, name="statistic"),
-        )
-        stat = "escape"
-    else:
-        raise ValueError(f"invalid {stat=}")
-
     # get labels for escape to show on tooltips, potentially with error
     if error_stat is not None:
         if error_stat not in df.columns:
@@ -570,19 +547,19 @@ def mut_escape_heatmap(
     else:
         label_df = df.assign(label=lambda x: x[stat].map(lambda s: f"{s:.2f}"))
     label_df = label_df.pivot_table(
-        index=index,
+        index=["site", "mutant"],
         values="label",
         columns="epitope",
         aggfunc=lambda x: " ".join(x),
     ).rename(columns={e: f"{e} epitope" for e in epitopes})
 
     df = (
-        df.pivot_table(index=index, values=stat, columns="epitope")
+        df.pivot_table(index=["site", "mutant"], values=stat, columns="epitope")
         .reset_index()
         .merge(
             pd.DataFrame(
-                itertools.product(*product_cols),
-                columns=index,
+                itertools.product(sites, alphabet),
+                columns=["site", "mutant"],
             ),
             how="right",
         )
@@ -596,7 +573,7 @@ def mut_escape_heatmap(
                 {True: "x", False: ""}
             ),
         )
-        .merge(label_df, how="left", on=index, validate="one_to_one")
+        .merge(label_df, how="left", on=["site", "mutant"], validate="one_to_one")
     )
     # wildtype has escape of 0 by definition
     for epitope in epitopes:
@@ -639,24 +616,10 @@ def mut_escape_heatmap(
     cell_selector = alt.selection_single(on="mouseover", empty="none")
 
     # add selection for minimum  **absolute value** of escape maxed across site
-    if stat_selection is None:
-        df["_max"] = df[epitopes].max().max()
-    else:
-        df = df.merge(
-            df.melt(
-                id_vars="statistic",
-                value_vars=epitopes,
-                var_name="epitope",
-                value_name="escape",
-            )
-            .assign(escape=lambda x: x["escape"].abs())
-            .groupby("statistic", as_index=False)
-            .aggregate(_max=pd.NamedAgg("escape", "max"))
-        )
-    group_cols = ["site"] if stat_selection is None else ["site", "statistic"]
+    df["_max"] = df[epitopes].max().max()
     df = df.assign(
         _epitope_max=lambda x: x[epitopes].abs().max(axis=1),
-        _site_max=lambda x: x.groupby(group_cols)["_epitope_max"].transform("max"),
+        _site_max=lambda x: x.groupby("site")["_epitope_max"].transform("max"),
         percent_max=lambda x: 100 * x["_site_max"] / x["_max"],
     ).drop(columns=["_max", "_epitope_max", "_site_max"])
     assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
@@ -737,12 +700,6 @@ def mut_escape_heatmap(
                 height={"step": cell_size},
             )
         )
-        if stat_selection is not None:
-            charts[-1] = (
-                charts[-1]
-                .add_selection(stat_selection)
-                .transform_filter(stat_selection)
-            )
 
     chart = (
         alt.vconcat(
