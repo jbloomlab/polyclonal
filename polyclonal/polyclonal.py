@@ -240,14 +240,16 @@ class Polyclonal:
 
     We can also summarize the mutation-level escape at the site level:
 
-    >>> polyclonal.mut_escape_site_summary_df
-      epitope  site wildtype  mean  total positive  max  min  total negative
-    0      e1     1        M   2.0             2.0  2.0  2.0             0.0
-    1      e1     2        G   3.0             3.0  3.0  3.0             0.0
-    2      e1     4        A   0.0             0.0  0.0  0.0             0.0
-    3      e2     1        M   0.0             0.0  0.0  0.0             0.0
-    4      e2     2        G   0.0             0.0  0.0  0.0             0.0
-    5      e2     4        A   2.0             4.0  2.5  1.5             0.0
+    >>> pd.set_option("display.max_columns", None)
+    >>> pd.set_option("display.width", 89)
+    >>> polyclonal.mut_escape_site_summary_df()
+      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
+    0      e1     1        M   2.0             2.0  2.0  2.0             0.0            1
+    1      e1     2        G   3.0             3.0  3.0  3.0             0.0            1
+    2      e1     4        A   0.0             0.0  0.0  0.0             0.0            2
+    3      e2     1        M   0.0             0.0  0.0  0.0             0.0            1
+    4      e2     2        G   0.0             0.0  0.0  0.0             0.0            1
+    5      e2     4        A   2.0             4.0  2.5  1.5             0.0            2
 
     Note that we can **not** initialize a :class:`Polyclonal` object if we are
     missing escape estimates for any mutations for any epitopes:
@@ -492,6 +494,23 @@ class Polyclonal:
     ...              atol=0.05,
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{model.mut_escape_df}")
+
+    >>> polyclonal_data.mut_escape_site_summary_df().round(1)
+      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
+    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
+    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
+    2       1     4        A   2.0             4.0  2.5  1.5             0.0            2
+    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
+    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
+    5       2     4        A   0.0             0.0  0.0  0.0             0.0            2
+    >>> polyclonal_data.mut_escape_site_summary_df(min_times_seen=4).round(1)
+      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
+    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
+    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
+    2       1     4        A   2.5             2.5  2.5  2.5             0.0            1
+    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
+    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
+    5       2     4        A   0.0             0.0  0.0  0.0             0.0            1
 
     Example
     -------
@@ -1053,18 +1072,32 @@ class Polyclonal:
             assert df.notnull().all().all()
         return df
 
-    @property
-    def mut_escape_site_summary_df(self):
-        r"""pandas.DataFrame: Site-level summaries of mutation escape."""
+    def mut_escape_site_summary_df(self, min_times_seen=1):
+        """Site-level summaries of mutation escape.
+
+        Parameters
+        ----------
+        min_times_seen : int
+            Only include in summaries mutations seen in at least this many variants.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        """
         escape_metrics = {
             "mean": pd.NamedAgg("escape", "mean"),
             "total positive": pd.NamedAgg("escape_gt_0", "sum"),
             "max": pd.NamedAgg("escape", "max"),
             "min": pd.NamedAgg("escape", "min"),
             "total negative": pd.NamedAgg("escape_lt_0", "sum"),
+            "n mutations": pd.NamedAgg("mutation", "count"),
         }
+        mut_df = self.mut_escape_df
+        if self.mutations_times_seen is not None:
+            mut_df = mut_df.query("times_seen >= @min_times_seen")
         return (
-            self.mut_escape_df.assign(
+            mut_df.assign(
                 escape_gt_0=lambda x: x["escape"].clip(lower=0),
                 escape_lt_0=lambda x: x["escape"].clip(upper=0),
             )
@@ -1499,7 +1532,7 @@ class Polyclonal:
             Single chain or list of them to re-color.
         metric : str
             Which site-level summary metric to use. Can be any metric in
-            :attr:`Polyclonal.mut_escape_site_summary_df`.
+            :meth:`Polyclonal.mut_escape_site_summary_df`.
         outdir : str
             Output directory for created PDB files.
         outfile : str
@@ -1510,6 +1543,8 @@ class Polyclonal:
             If a float, reassign B factors for all missing sites to this value.
             If a dict, should be keyed by chain and assign all missing sites in
             each chain to indicated value.
+        min_times_seen : int
+            Value passed to :meth:`Polyclonal.mut_escape_site_summary_df`.
 
         Returns
         -------
@@ -1517,7 +1552,7 @@ class Polyclonal:
             Gives name of created B-factor re-colored PDB for each epitope.
 
         """
-        df = self.mut_escape_site_summary_df
+        df = self.mut_escape_site_summary_df(min_times_seen=min_times_seen)
         if (metric in df.columns) and (metric not in {"epitope", "site", "wildtype"}):
             metric_col = metric
         if isinstance(chains, str) and len(chains) == 1:
@@ -1544,11 +1579,13 @@ class Polyclonal:
             )
         return pd.DataFrame(result_files, columns=["epitope", "PDB file"])
 
-    def mut_escape_lineplot(self, **kwargs):
+    def mut_escape_lineplot(self, min_times_seen=1, **kwargs):
         r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
 
         Parameters
         ----------
+        min_times_seen : int
+            Value passed to :meth:`Polyclonal.mut_escape_site_summary_df`.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`.
 
@@ -1558,7 +1595,9 @@ class Polyclonal:
             Interactive plot.
 
         """
-        kwargs["mut_escape_site_summary_df"] = self.mut_escape_site_summary_df
+        kwargs["mut_escape_site_summary_df"] = self.mut_escape_site_summary_df(
+            min_times_seen=min_times_seen,
+        )
         if "epitope_colors" not in kwargs:
             kwargs["epitope_colors"] = self.epitope_colors
         return polyclonal.plot.mut_escape_lineplot(**kwargs)
