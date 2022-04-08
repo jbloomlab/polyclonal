@@ -512,6 +512,16 @@ class Polyclonal:
     4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
     5       2     4        A   0.0             0.0  0.0  0.0             0.0            1
 
+    You can also exclude mutations to specific characters (typically you would want to
+    do this for stop codons and/or gaps):
+
+    >>> polyclonal_data.mut_escape_site_summary_df(exclude_chars={"C", "K"}).round(1)
+      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
+    0       1     2        G   0.0             0.0  0.0  0.0             0.0            1
+    1       1     4        A   1.5             1.5  1.5  1.5             0.0            1
+    2       2     2        G   3.0             3.0  3.0  3.0             0.0            1
+    3       2     4        A   0.0             0.0  0.0  0.0             0.0            1
+
     Example
     -------
     You can convert a :class:`Polyclonal` model into a site-level model via
@@ -1116,7 +1126,13 @@ class Polyclonal:
         assert (df["wildtype"] != df["mutant"]).all()
         return df
 
-    def mut_escape_site_summary_df(self, min_times_seen=1, mutation_whitelist=None):
+    def mut_escape_site_summary_df(
+        self,
+        *,
+        min_times_seen=1,
+        mutation_whitelist=None,
+        exclude_chars=frozenset(["*"]),
+    ):
         """Site-level summaries of mutation escape.
 
         Parameters
@@ -1125,6 +1141,10 @@ class Polyclonal:
             Only include in summaries mutations seen in at least this many variants.
         mutation_whitelist : None or set
             Only include in summaries these mutations.
+        exclude_chars : set or list
+            Exclude mutations to these characters when calculating site summaries.
+            Useful if you want to ignore stop codons (``*``), and perhaps in some
+            cases also gaps (``-``).
 
         Returns
         -------
@@ -1139,7 +1159,7 @@ class Polyclonal:
             "total negative": pd.NamedAgg("escape_lt_0", "sum"),
             "n mutations": pd.NamedAgg("mutation", "count"),
         }
-        mut_df = self.mut_escape_df
+        mut_df = self.mut_escape_df.query("mutant not in @exclude_chars")
         if self.mutations_times_seen is not None:
             mut_df = mut_df.query("times_seen >= @min_times_seen")
         if mutation_whitelist is not None:

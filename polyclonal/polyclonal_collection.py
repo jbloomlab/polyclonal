@@ -12,6 +12,8 @@ import multiprocessing
 from functools import partial
 from itertools import repeat
 
+import frozendict
+
 import pandas as pd
 
 import polyclonal
@@ -405,16 +407,13 @@ class PolyclonalCollection:
             .drop(columns="n_bootstrap_replicates")
         )
 
-    def mut_escape_heatmap(self, min_frac_bootstrap_replicates=None, **kwargs):
+    def mut_escape_heatmap(self, min_times_seen=1, **kwargs):
         """Heatmaps of mutation escape values.
 
         Parameters
         ----------
-        min_frac_bootstrap_replicates : None or float
-            Only plot values for mutations found in >= this fraction of bootstrap
-            replicates. Will remove mutations that are rare. ~0.7 will remove
-            most mutations seen only once, ~0.9 will remove most mutations
-            seen only twice.
+        min_times_seen : int
+            Only plot values for mutations seen in >= this many variants in full dataset.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
 
@@ -425,39 +424,48 @@ class PolyclonalCollection:
 
         """
         df = self.mut_escape_df
-        if min_frac_bootstrap_replicates is not None:
-            df = df.query("frac_bootstrap_replicates >= @min_frac_bootstrap_replicates")
+        if min_times_seen is not None:
+            df = df.query("times_seen >= @min_times_seen")
         return polyclonal.plot.mut_escape_heatmap(
             mut_escape_df=df,
             alphabet=self.root_polyclonal.alphabet,
             epitope_colors=self.root_polyclonal.epitope_colors,
             stat="escape_mean",
             error_stat="escape_std",
-            addtl_tooltip_stats=["times_seen", "frac_bootstrap_replicates"],
+            addtl_tooltip_stats=["times_seen"],
             **kwargs,
         )
 
-    def mut_escape_site_summary_df_replicates(self, min_times_seen=1):
+    def mut_escape_site_summary_df_replicates(self, **kwargs):
         """Site-level summaries of mutation escape for replicates.
 
         Parameters
         ----------
-        min_times_seen : int
-            Only include mutations seen at least this many times in full data.
+        **kwargs
+            Keyword arguments to
+            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+            Note that `min_times_seen` refers to times seen in full data set,
+            not individual bootstrap replicates.
 
         Returns
         -------
         pandas.DataFrame
 
         """
-        whitelist = {
-            mut
-            for (mut, n) in self.root_polyclonal.mutations_times_seen.items()
-            if n >= min_times_seen
-        }
+        if "min_times_seen" in kwargs:
+            whitelist = {
+                mut
+                for (mut, n) in self.root_polyclonal.mutations_times_seen.items()
+                if n >= kwargs["min_times_seen"]
+            }
+            del kwargs["min_times_seen"]
+            if "mutation_whitelist" in kwargs:
+                kwargs["mutation_whitelist"] = whitelist.union(kwargs["mutation_list"])
+            else:
+                kwargs["mutation_whitelist"] = whitelist
         return pd.concat(
             [
-                m.mut_escape_site_summary_df(mutation_whitelist=whitelist)
+                m.mut_escape_site_summary_df(**kwargs)
                 .assign(bootstrap_replicate=i)
                 .drop(columns="n mutations")
                 for i, m in enumerate(self.models, start=1)
@@ -466,13 +474,16 @@ class PolyclonalCollection:
             ignore_index=True,
         )
 
-    def mut_escape_site_summary_df(self, min_times_seen=1):
+    def mut_escape_site_summary_df(self, **kwargs):
         """Site-level summaries of mutation escape across replicates.
 
         Parameters
         ----------
-        min_times_seen : int
-            Only include mutations seen at least this many times in full data.
+        **kwargs
+            Keyword arguments to
+            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+            Note that `min_times_seen` refers to times seen in full data set,
+            not individual bootstrap replicates.
 
         Returns
         -------
@@ -485,7 +496,7 @@ class PolyclonalCollection:
         """
         n_fit = sum(m is not None for m in self.models)
         return (
-            self.mut_escape_site_summary_df_replicates(min_times_seen=min_times_seen)
+            self.mut_escape_site_summary_df_replicates(**kwargs)
             .melt(
                 id_vars=["epitope", "site", "wildtype", "bootstrap_replicate"],
                 var_name="metric",
@@ -502,26 +513,29 @@ class PolyclonalCollection:
             )
             .drop(columns="n_bootstrap_replicates")
             .merge(
-                self.root_polyclonal.mut_escape_site_summary_df(
-                    min_times_seen=min_times_seen
-                )[["site", "n mutations"]].drop_duplicates(),
+                self.root_polyclonal.mut_escape_site_summary_df(**kwargs)[
+                    ["site", "n mutations"]
+                ].drop_duplicates(),
                 on="site",
                 how="left",
                 validate="many_to_one",
             )
         )
 
-    def mut_escape_lineplot(self, min_frac_bootstrap_replicates=None, **kwargs):
+    def mut_escape_lineplot(
+        self,
+        *,
+        mut_escape_site_summary_df_kwargs=frozendict.frozendict(),
+        mut_escape_heatmap_kwargs=frozendict.frozendict(),
+    ):
         """Line plots of mutation escape at each site.
 
         Parameters
         ----------
-        min_frac_bootstrap_replicates : None or float
-            Only plot values for sites with a measurement in >= this fraction of
-            bootstrap replicates. Will remove mutations that are rare. ~0.7 will remove
-            most mutations seen only once, ~0.9 will remove most mutations
-            seen only twice.
-        **kwargs
+        mut_escape_site_summary_df_kwargs : dict
+            Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
+            It is often useful to set `times_seen` to >1.
+        mut_escape_heatmap_kwargs : dict
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
 
         Returns
@@ -530,14 +544,12 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
-        df = self.mut_escape_site_summary_df()
-        if min_frac_bootstrap_replicates is not None:
-            df = df.query("frac_bootstrap_replicates >= @min_frac_bootstrap_replicates")
+        df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
         return polyclonal.plot.mut_escape_lineplot(
             mut_escape_site_summary_df=df,
             bootstrapped_data=True,
             epitope_colors=self.root_polyclonal.epitope_colors,
-            **kwargs,
+            **mut_escape_heatmap_kwargs,
         )
 
     def icXX_replicates(self, variants_df, **kwargs):
