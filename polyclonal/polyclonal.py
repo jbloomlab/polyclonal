@@ -1070,15 +1070,18 @@ class Polyclonal:
         if self.mutations_times_seen is not None:
             df["times_seen"] = df["mutation"].map(self.mutations_times_seen)
             assert df.notnull().all().all()
+        assert (df["wildtype"] != df["mutant"]).all()
         return df
 
-    def mut_escape_site_summary_df(self, min_times_seen=1):
+    def mut_escape_site_summary_df(self, min_times_seen=1, mutation_whitelist=None):
         """Site-level summaries of mutation escape.
 
         Parameters
         ----------
         min_times_seen : int
             Only include in summaries mutations seen in at least this many variants.
+        mutation_whitelist : None or set
+            Only include in summaries these mutations.
 
         Returns
         -------
@@ -1096,6 +1099,8 @@ class Polyclonal:
         mut_df = self.mut_escape_df
         if self.mutations_times_seen is not None:
             mut_df = mut_df.query("times_seen >= @min_times_seen")
+        if mutation_whitelist is not None:
+            mut_df = mut_df.query("mutation in @mutation_whitelist")
         return (
             mut_df.assign(
                 escape_gt_0=lambda x: x["escape"].clip(lower=0),
