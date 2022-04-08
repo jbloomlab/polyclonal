@@ -79,8 +79,8 @@ def activity_wt_barplot(
     epitopes : array-like or None
         Include these epitopes in this order. If `None`, use all epitopes
         in order found in ``activity_wt_df``.
-    stat : str or array-like
-        Statistic in `activity_wt_df` to plot as activity, or list of dropdown options.
+    stat : str
+        Statistic in `activity_wt_df` to plot as activity.
     error_stat : str or None
         Statistic in `activity_wt_df` to plot as error for bars.
     width : float
@@ -99,37 +99,19 @@ def activity_wt_barplot(
     elif not set(epitopes).issubset(activity_wt_df["epitope"]):
         raise ValueError("invalid entries in `epitopes`")
 
-    if isinstance(stat, str):
-        if stat not in activity_wt_df.columns:
-            raise ValueError(f"{stat=} not in {activity_wt_df.columns=}")
-        df = activity_wt_df
-        stat_selection = None
-    elif len(stat) > 0:
-        if not set(stat).issubset(activity_wt_df.columns):
-            raise ValueError(f"{stat=} not all in {activity_wt_df.columns=}")
-        df = activity_wt_df.melt(
-            id_vars=["epitope"],
-            value_vars=stat,
-            var_name="statistic",
-            value_name="activity",
-        )
-        stat_selection = alt.selection_single(
-            fields=["statistic"],
-            init={"statistic": stat[0]},
-            bind=alt.binding_select(options=stat, name="statistic"),
-        )
-        stat = "activity"
-    else:
-        raise ValueError(f"invalid {stat=}")
+    if stat not in activity_wt_df.columns:
+        raise ValueError(f"{stat=} not in {activity_wt_df.columns=}")
 
     if error_stat is not None:
         if error_stat not in activity_wt_df.columns:
             raise ValueError(f"{error_stat=} not in {activity_wt_df.columns=}")
         assert not {"_upper", "_lower"}.intersection(activity_wt_df.columns)
-        df = df.merge(activity_wt_df[["epitope", error_stat]]).assign(
+        df = activity_wt_df.assign(
             _lower=lambda x: x[stat] - x[error_stat],
             _upper=lambda x: x[stat] + x[error_stat],
         )
+    else:
+        df = activity_wt_df
 
     baseplot = (
         alt.Chart(df)
@@ -161,9 +143,6 @@ def activity_wt_barplot(
                 x="_lower", x2="_upper", color=alt.value("black")
             ).mark_rule(size=2)
         )
-
-    if stat_selection is not None:
-        barplot = barplot.add_selection(stat_selection).transform_filter(stat_selection)
 
     return barplot.configure_axis(grid=False)
 

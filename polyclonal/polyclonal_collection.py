@@ -344,13 +344,12 @@ class PolyclonalCollection:
         return self.activity_wt_df_replicates.groupby(
             "epitope", as_index=False
         ).aggregate(
-            mean=pd.NamedAgg("activity", "mean"),
-            median=pd.NamedAgg("activity", "median"),
-            std=pd.NamedAgg("activity", "std"),
+            activity_mean=pd.NamedAgg("activity", "mean"),
+            activity_std=pd.NamedAgg("activity", "std"),
         )
 
     def activity_wt_barplot(self, **kwargs):
-        """Bar plot of epitope activities summarized (mean, median) across replicates.
+        """Bar plot of epitope activities mean across replicates.
 
         Parameters
         ----------
@@ -366,8 +365,8 @@ class PolyclonalCollection:
         return polyclonal.plot.activity_wt_barplot(
             activity_wt_df=self.activity_wt_df,
             epitope_colors=self.root_polyclonal.epitope_colors,
-            stat=["mean", "median"],
-            error_stat="std",
+            stat="activity_mean",
+            error_stat="activity_std",
             **kwargs,
         )
 
