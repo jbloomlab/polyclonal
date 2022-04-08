@@ -387,8 +387,8 @@ class Polyclonal:
 
     >>> polyclonal_data.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
-    >>> polyclonal_data.mutations_times_seen
-    frozendict({'G2A': 6, 'M1C': 6, 'A4K': 4, 'A4L': 3})
+    >>> dict(polyclonal_data.mutations_times_seen)
+    {'G2A': 6, 'M1C': 6, 'A4K': 4, 'A4L': 3}
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
