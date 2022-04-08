@@ -12,8 +12,6 @@ import multiprocessing
 from functools import partial
 from itertools import repeat
 
-import frozendict
-
 import pandas as pd
 
 import polyclonal
@@ -525,8 +523,8 @@ class PolyclonalCollection:
     def mut_escape_lineplot(
         self,
         *,
-        mut_escape_site_summary_df_kwargs=frozendict.frozendict(),
-        mut_escape_heatmap_kwargs=frozendict.frozendict(),
+        mut_escape_site_summary_df_kwargs=None,
+        mut_escape_heatmap_kwargs=None,
     ):
         """Line plots of mutation escape at each site.
 
@@ -544,6 +542,10 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
+        if mut_escape_site_summary_df_kwargs is None:
+            mut_escape_site_summary_df_kwargs = {}
+        if mut_escape_heatmap_kwargs is None:
+            mut_escape_heatmap_kwargs = {}
         df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
         return polyclonal.plot.mut_escape_lineplot(
             mut_escape_site_summary_df=df,
