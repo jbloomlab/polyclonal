@@ -599,6 +599,49 @@ class Polyclonal:
     2          e2           e1       -0.945
     3          e2           e2        1.000
 
+    Example
+    -------
+    Filter variants by how often they are seen in data:
+
+    >>> polyclonal_data.filter_variants_by_seen_muts(variants_df)
+    ... # doctest: +NORMALIZE_WHITESPACE
+       barcode aa_substitutions
+    0       AA
+    1       AC              M1C
+    2       AG              G2A
+    3       AT              A4K
+    4       TA              A4L
+    5       CA          M1C G2A
+    6       CG          M1C A4K
+    7       CC          G2A A4K
+    8       TC          G2A A4L
+    9       CT      M1C G2A A4K
+    10      TG      M1C G2A A4L
+    11      GA              M1C
+
+    >>> polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=5)
+    ... # doctest: +NORMALIZE_WHITESPACE
+      barcode aa_substitutions
+    0      AA
+    1      AC              M1C
+    2      AG              G2A
+    3      CA          M1C G2A
+    4      GA              M1C
+
+    >>> polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=4)
+    ... # doctest: +NORMALIZE_WHITESPACE
+      barcode aa_substitutions
+    0      AA
+    1      AC              M1C
+    2      AG              G2A
+    3      AT              A4K
+    4      CA          M1C G2A
+    5      CG          M1C A4K
+    6      CC          G2A A4K
+    7      CT      M1C G2A A4K
+    8      GA              M1C
+
+
     """
 
     def __init__(
@@ -1629,13 +1672,22 @@ class Polyclonal:
             kwargs["alphabet"] = self.alphabet
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
-    def filter_variants_by_seen_muts(self, variants_df, subs_col="aa_substitutions"):
+    def filter_variants_by_seen_muts(
+        self,
+        variants_df,
+        min_times_seen=1,
+        subs_col="aa_substitutions",
+    ):
         """Remove variants that contain mutations not seen during model fitting.
 
         Parameters
         ----------
         variants_df : pandas.DataFrame
             Contains variants as rows.
+        min_times_seen : int
+            Require mutations to be seen >= this many times in data used to fit model.
+        subs_col : str
+            Column in `variants_df` with mutations in each variant.
 
         Returns
         -------
@@ -1652,8 +1704,17 @@ class Polyclonal:
         if filter_col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have column {filter_col}")
 
+        if min_times_seen == 1:
+            allowed_muts = self.mutations
+        elif self.mutations_times_seen is not None:
+            allowed_muts = {
+                m for (m, n) in self.mutations_times_seen.items() if n >= min_times_seen
+            }
+        else:
+            raise ValueError(f"Cannot use {min_times_seen=} without data to fit")
+
         variants_df[filter_col] = variants_df[subs_col].map(
-            lambda s: set(s.split()).issubset(self.mutations)
+            lambda s: set(s.split()).issubset(allowed_muts)
         )
 
         return (
