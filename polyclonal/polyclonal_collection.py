@@ -493,9 +493,8 @@ class PolyclonalCollection:
             )
             .groupby(["epitope", "site", "wildtype", "metric"], as_index=False)
             .aggregate(
-                mean=pd.NamedAgg("escape", "mean"),
-                median=pd.NamedAgg("escape", "median"),
-                std=pd.NamedAgg("escape", "std"),
+                escape_mean=pd.NamedAgg("escape", "mean"),
+                escape_std=pd.NamedAgg("escape", "std"),
                 n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
             )
             .assign(

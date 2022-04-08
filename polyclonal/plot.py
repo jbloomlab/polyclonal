@@ -208,43 +208,10 @@ def mut_escape_lineplot(
             m for m in df.columns if m not in {"epitope", "site", "wildtype"}
         ]
 
-    sites = df["site"].unique().tolist()
-    if all_sites:
-        sites = list(range(min(sites), max(sites) + 1))
-
-    # fill any missing sites
     if bootstrapped_data:
-        fill_df = pd.DataFrame(
-            itertools.product(sites, epitopes, escape_metrics),
-            columns=["site", "epitope", "metric"],
-        )
-    else:
-        fill_df = pd.DataFrame(
-            itertools.product(sites, epitopes),
-            columns=["site", "epitope"],
-        )
-    df = df.merge(fill_df, how="right")
-
-    if bootstrapped_data:
-        df = df.melt(
-            id_vars=[
-                "epitope",
-                "site",
-                "metric",
-                "std",
-                "frac_bootstrap_replicates",
-            ],
-            value_vars=["mean", "median"],
-            var_name="statistic",
-            value_name="escape",
-        )
-        statistic_selection = alt.selection_single(
-            fields=["statistic"],
-            bind=alt.binding_select(options=df["statistic"].unique()),
-            name="bootstrap",
-            init={"statistic": df["statistic"].unique()[0]},
-        )
-        index = ["site", "metric", "statistic"]
+        df = df.rename(columns={"escape_mean": "escape"})[
+            ["epitope", "site", "metric", "escape"]
+        ]
     else:
         df = df.melt(
             id_vars=["epitope", "site"],
@@ -252,10 +219,20 @@ def mut_escape_lineplot(
             var_name="metric",
             value_name="escape",
         )
-        index = ["site", "metric"]
+
+    sites = df["site"].unique().tolist()
+    if all_sites:
+        sites = list(range(min(sites), max(sites) + 1))
+
+    # fill any missing sites
+    fill_df = pd.DataFrame(
+        itertools.product(sites, epitopes, escape_metrics),
+        columns=["site", "epitope", "metric"],
+    )
+    df = df.merge(fill_df, how="right")
 
     df = df.pivot_table(
-        index=index, values="escape", columns="epitope", dropna=False
+        index=["site", "metric"], values="escape", columns="epitope", dropna=False
     ).reset_index()
 
     if init_metric not in set(df["metric"]):
@@ -300,7 +277,7 @@ def mut_escape_lineplot(
             mut_escape_site_summary_df.pivot_table(
                 index=["site", "metric"],
                 columns="epitope",
-                values="std",
+                values="escape_std",
             )
             .reset_index()
             .rename(columns={epitope: f"{epitope} error" for epitope in epitopes})
@@ -337,17 +314,16 @@ def mut_escape_lineplot(
 
     # add selection for minimum **absolute value** of metrics
     # first add column that gives the percent of the max for each metric and statistic
-    group_cols = ["metric", "statistic"] if bootstrapped_data else "metric"
     df = (
         df.merge(
             df.melt(
-                id_vars=group_cols,
+                id_vars="metric",
                 value_vars=epitopes,
                 var_name="epitope",
                 value_name="escape",
             )
             .assign(escape=lambda x: x["escape"].abs())
-            .groupby(group_cols, as_index=False)
+            .groupby("metric", as_index=False)
             .aggregate(_max=pd.NamedAgg("escape", "max"))
         )
         .assign(percent_max=lambda x: 100 * x[epitopes].abs().max(axis=1) / x["_max"])
@@ -429,11 +405,7 @@ def mut_escape_lineplot(
             )
         )
         if bootstrapped_data:
-            charts[-1] = (
-                charts[-1]
-                .add_selection(statistic_selection, error_bar_selection)
-                .transform_filter(statistic_selection)
-            )
+            charts[-1] = charts[-1].add_selection(error_bar_selection)
 
     return (
         alt.vconcat(
