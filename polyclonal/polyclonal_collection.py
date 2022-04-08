@@ -373,10 +373,10 @@ class PolyclonalCollection:
 
     @property
     def mut_escape_df_replicates(self):
-        """pandas.DataFrame: Mutation escape values for replicates."""
+        """pandas.DataFrame: Mutation escape by replicate."""
         return pd.concat(
             [
-                m.mut_escape_df.assign(bootstrap_replicate=i)
+                m.mut_escape_df.assign(bootstrap_replicate=i).drop(columns="times_seen")
                 for i, m in enumerate(self.models, start=1)
                 if m is not None
             ],
@@ -385,7 +385,7 @@ class PolyclonalCollection:
 
     @property
     def mut_escape_df(self):
-        """pandas.DataFrame: Mutation escape values summarized across replicates."""
+        """pandas.DataFrame: Mutation escape summarized across replicates."""
         n_fit = sum(m is not None for m in self.models)
         return (
             self.mut_escape_df_replicates.groupby(
@@ -400,6 +400,9 @@ class PolyclonalCollection:
             )
             .assign(
                 frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+                times_seen=lambda x: x["mutation"].map(
+                    self.root_polyclonal.mutations_times_seen
+                ),
             )
         )
 
@@ -435,30 +438,56 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    @property
-    def mut_escape_site_summary_df_replicates(self):
-        """pandas.DataFrame: Site-level summaries of mutation escape for replicates."""
+    def mut_escape_site_summary_df_replicates(self, min_times_seen=1):
+        """Site-level summaries of mutation escape for replicates.
+
+        Parameters
+        ----------
+        min_times_seen : int
+            Only include mutations seen at least this many times in full data.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        """
+        whitelist = {
+            mut
+            for (mut, n) in self.root_polyclonal.mutations_times_seen.items()
+            if n >= min_times_seen
+        }
         return pd.concat(
             [
-                m.mut_escape_site_summary_df.assign(bootstrap_replicate=i)
+                m.mut_escape_site_summary_df(mutation_whitelist=whitelist)
+                .assign(bootstrap_replicate=i)
+                .drop(columns="n mutations")
                 for i, m in enumerate(self.models, start=1)
                 if m is not None
             ],
             ignore_index=True,
         )
 
-    @property
-    def mut_escape_site_summary_df(self):
-        """pandas.DataFrame: Site summaries of mutation escape across replicates.
+    def mut_escape_site_summary_df(self, min_times_seen=1):
+        """Site-level summaries of mutation escape across replicates.
 
-        The different site-summary metrics ('mean', 'total positive', etc) are
-        in different rows for each site and epitope. The 'n_bootstrap_replicates'
-        and 'frac_bootstrap_replicates' columns refer to bootstrap replicates
-        with measurements for any mutation at that site.
+        Parameters
+        ----------
+        min_times_seen : int
+            Only include mutations seen at least this many times in full data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The different site-summary metrics ('mean', 'total positive', etc) are
+            in different rows for each site and epitope. The 'n_bootstrap_replicates'
+            and 'frac_bootstrap_replicates' columns refer to bootstrap replicates
+            with measurements for any mutation at that site.
+
         """
         n_fit = sum(m is not None for m in self.models)
         return (
-            self.mut_escape_site_summary_df_replicates.melt(
+            self.mut_escape_site_summary_df_replicates(min_times_seen=min_times_seen)
+            .melt(
                 id_vars=["epitope", "site", "wildtype", "bootstrap_replicate"],
                 var_name="metric",
                 value_name="escape",
@@ -472,6 +501,14 @@ class PolyclonalCollection:
             )
             .assign(
                 frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+            )
+            .merge(
+                self.root_polyclonal.mut_escape_site_summary_df(
+                    min_times_seen=min_times_seen
+                )[["site", "n mutations"]].drop_duplicates(),
+                on="site",
+                how="left",
+                validate="many_to_one",
             )
         )
 
@@ -494,7 +531,7 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
-        df = self.mut_escape_site_summary_df
+        df = self.mut_escape_site_summary_df()
         if min_frac_bootstrap_replicates is not None:
             df = df.query("frac_bootstrap_replicates >= @min_frac_bootstrap_replicates")
         return polyclonal.plot.mut_escape_lineplot(

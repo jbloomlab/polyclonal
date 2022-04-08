@@ -3,4 +3,4 @@ exclude = build, dist, docs/_build, notebooks/.*, notebooks/, optimization_bench
 ignore = E121,E123,E126,E203,E226,E24,E704,W503,W504,D205,D400,RST210,RST303,RST304
 application-import-names = polyclonal
 per-file-ignores = polyclonal/polyclonal.py:RST307
-max-line-length = 88
+max-line-length = 89
