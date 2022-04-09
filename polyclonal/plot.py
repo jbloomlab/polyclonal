@@ -205,7 +205,9 @@ def mut_escape_lineplot(
         escape_metrics = df["metric"].unique().tolist()
     else:
         escape_metrics = [
-            m for m in df.columns if m not in {"epitope", "site", "wildtype"}
+            m
+            for m in df.columns
+            if m not in {"epitope", "site", "wildtype", "n mutations"}
         ]
 
     if bootstrapped_data:
@@ -238,17 +240,17 @@ def mut_escape_lineplot(
     if init_metric not in set(df["metric"]):
         raise ValueError(f"invalid {init_metric=}\noptions: {df['metric'].unique()=}")
 
-    metric_selection = alt.selection_single(
+    metric_selection = alt.selection_point(
         fields=["metric"],
         bind=alt.binding_select(options=escape_metrics),
         name="escape",
-        init={"metric": init_metric},
+        value=[{"metric": init_metric}],
     )
 
-    line_selection = alt.selection_single(
+    line_selection = alt.selection_point(
         fields=["show_line"],
         bind=alt.binding_select(options=[True, False], name="show_line"),
-        init={"show_line": True},
+        value=[{"show_line": True}],
     )
 
     zoom_brush = alt.selection_interval(
@@ -259,7 +261,7 @@ def mut_escape_lineplot(
         alt.Chart(df)
         .mark_rect(color="gray")
         .encode(x="site:O")
-        .add_selection(zoom_brush)
+        .add_parameter(zoom_brush)
         .properties(
             width=zoom_bar_width,
             height=15,
@@ -267,8 +269,10 @@ def mut_escape_lineplot(
         )
     )
 
-    site_selector = alt.selection(
-        type="single", on="mouseover", fields=["site"], empty="none"
+    site_selector = alt.selection_point(
+        on="mouseover",
+        fields=["site"],
+        empty=False,
     )
 
     # add error ranges
@@ -293,9 +297,9 @@ def mut_escape_lineplot(
             df[f"{epitope} max"] = df[epitope] + df[f"{epitope} error"]
         # selection to show error bars
         df["error_bars"] = True
-        error_bar_selection = alt.selection_single(
+        error_bar_selection = alt.selection_point(
             fields=["error_bars"],
-            init={"error_bars": True},
+            init=[{"error_bars": True}],
             bind=alt.binding_select(options=[True, False], name="show_error"),
         )
 
@@ -330,9 +334,9 @@ def mut_escape_lineplot(
         .drop(columns="_max")
     )
     assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
-    cutoff = alt.selection_single(
+    cutoff = alt.selection_point(
         fields=["percent_max_cutoff"],
-        init={"percent_max_cutoff": 0},
+        value=[{"percent_max_cutoff": 0}],
         bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
     )
 
@@ -376,7 +380,7 @@ def mut_escape_lineplot(
                     site_selector, alt.value("black"), alt.value(None)
                 ),
             )
-            .add_selection(cutoff, site_selector, line_selection)
+            .add_parameter(cutoff, site_selector, line_selection)
         )
         if bootstrapped_data:
             error_bars = base.encode(
@@ -392,7 +396,7 @@ def mut_escape_lineplot(
         else:
             combined = background + foreground + foreground_circles
         charts.append(
-            combined.add_selection(metric_selection)
+            combined.add_parameter(metric_selection)
             .transform_filter(metric_selection)
             .transform_filter(zoom_brush)
             .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
@@ -405,7 +409,7 @@ def mut_escape_lineplot(
             )
         )
         if bootstrapped_data:
-            charts[-1] = charts[-1].add_selection(error_bar_selection)
+            charts[-1] = charts[-1].add_parameter(error_bar_selection)
 
     return (
         alt.vconcat(
@@ -417,7 +421,7 @@ def mut_escape_lineplot(
             ),
             spacing=10,
         )
-        .configure(padding={"left": 15, "top": 5, "right": 5, "bottom": 5})
+        .configure(padding={"left": 15, "top": 5, "right": 5, "bottom": 12})
         .configure_axis(grid=False, labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
     )
@@ -561,7 +565,7 @@ def mut_escape_heatmap(
         alt.Chart(df)
         .mark_rect(color="gray")
         .encode(x="site:O")
-        .add_selection(zoom_brush)
+        .add_parameter(zoom_brush)
         .properties(
             width=zoom_bar_width,
             height=15,
@@ -585,7 +589,7 @@ def mut_escape_heatmap(
         ]
 
     # select cells
-    cell_selector = alt.selection_single(on="mouseover", empty="none")
+    cell_selector = alt.selection_point(on="mouseover", empty=False)
 
     # add selection for minimum  **absolute value** of escape maxed across site
     df["_max"] = df[epitopes].max().max()
@@ -595,9 +599,9 @@ def mut_escape_heatmap(
         percent_max=lambda x: 100 * x["_site_max"] / x["_max"],
     ).drop(columns=["_max", "_epitope_max", "_site_max"])
     assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
-    cutoff = alt.selection_single(
+    cutoff = alt.selection_point(
         fields=["percent_max_cutoff"],
-        init={"percent_max_cutoff": 0},
+        value=[{"percent_max_cutoff": 0}],
         bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
     )
 
@@ -661,7 +665,7 @@ def mut_escape_heatmap(
         charts.append(
             (heatmap + nulls + wildtype)
             .interactive()
-            .add_selection(cell_selector, cutoff)
+            .add_parameter(cell_selector, cutoff)
             .transform_filter(zoom_brush)
             .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
             .properties(
