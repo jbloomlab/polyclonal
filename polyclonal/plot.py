@@ -344,7 +344,7 @@ def mut_escape_lineplot(
             )
             .assign(escape=lambda x: x["escape"].abs())
             .groupby("metric", as_index=False)
-            .aggregate(_max=pd.NamedAgg("escape", "max"))
+            .aggregate(_max=pd.NamedAgg("escape", lambda s: s.abs().max()))
         )
         .assign(percent_max=lambda x: 100 * x[epitopes].abs().max(axis=1) / x["_max"])
         .drop(columns="_max")
@@ -452,7 +452,7 @@ def mut_escape_heatmap(
     error_stat=None,
     addtl_tooltip_stats=None,
     all_alphabet=True,
-    floor_color_at_zero=True,
+    floor_at_zero=True,
     share_heatmap_lims=True,
     cell_size=12,
     zoom_bar_width=500,
@@ -480,9 +480,10 @@ def mut_escape_heatmap(
     all_alphabet : bool
         Plot all letters in the alphabet (e.g., amino acids) even if some
         have no data.
-    floor_color_at_zero : bool
-        Set lower limit to color scale as zero, even if there are negative
-        values or if minimum is >0.
+    floor_at_zero : bool
+        Set lower limit for color scale to zero, even if there are negative
+        escape values or if minimum is >0. If True, then the *percent_max_cutoff*
+        slider is also floored the same way.
     share_heatmap_lims : bool
         If `True`, let all epitopes share the same limits in color scale.
         If `False`, scale each epitopes colors to the min and max stat
@@ -493,7 +494,8 @@ def mut_escape_heatmap(
         Width of zoom bar
     init_min_times_seen : int
         Initial cutoff for minimum times a mutation must be seen slider. Slider
-        only shown if 'times_seen' in `addtl_tooltip_stats`.
+        only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
+        the percent max cutoff values.
 
     Returns
     -------
@@ -637,13 +639,26 @@ def mut_escape_heatmap(
     # select cells
     cell_selector = alt.selection_point(on="mouseover", empty=False)
 
-    # add selection for minimum  **absolute value** of escape maxed across site
-    df["_max"] = df[epitopes].max().max()
-    df = df.assign(
-        _epitope_max=lambda x: x[epitopes].abs().max(axis=1),
-        _site_max=lambda x: x.groupby("site")["_epitope_max"].transform("max"),
-        percent_max=lambda x: 100 * x["_site_max"] / x["_max"],
-    ).drop(columns=["_max", "_epitope_max", "_site_max"])
+    # add selection for minimum  **absolute value** of escape maxed across site.
+    # we do the calculation just for mutations at init_min_times_seen times seen
+    if "times_seen" in df.columns:
+        df_percent_max = df.query("times_seen >= @init_min_times_seen")
+    else:
+        df_percent_max = df.copy()
+    if floor_at_zero:
+        for e in epitopes:
+            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=1)})
+    _max = df_percent_max[epitopes].abs().max().max()
+    df_percent_max = (
+        df_percent_max.assign(_epitope_max=lambda x: x[epitopes].abs().max(axis=1))
+        .groupby("site", as_index=False)
+        .aggregate(_site_max=pd.NamedAgg("_epitope_max", "max"))
+        .assign(percent_max=lambda x: 100 * x["_site_max"] / _max)
+        .drop(columns="_site_max")
+    )
+    df = df.merge(df_percent_max, on="site", how="left", validate="many_to_one").assign(
+        percent_max=lambda x: x["percent_max"].fillna(0)
+    )
     assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
     percent_max_cutoff = alt.selection_point(
         fields=["percent_max_cutoff"],
@@ -672,7 +687,7 @@ def mut_escape_heatmap(
         else:
             vals = df[epitope].values
         escape_max = numpy.nanmax(vals)
-        if floor_color_at_zero:
+        if floor_at_zero:
             escape_min = 0
         else:
             escape_min = numpy.nanmin(vals)
