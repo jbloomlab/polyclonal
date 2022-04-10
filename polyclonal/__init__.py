@@ -13,6 +13,16 @@ into the package namespace:
 
  - :mod:`~polyclonal.polyclonal_collection.PolyclonalCollection`
 
+It also imports the following alphabets:
+
+ - :const:`~polyclonal.alphabets.AAS`
+
+ - :const:`~polyclonal.alphabets.AAS_WITHSTOP`
+
+ - :const:`~polyclonal.alphabets.AAS_WITHGAP`
+
+ - :const:`~polyclonal.alphabets.AAS_WITHSTOP_WITHGAP`
+
 """
 
 __author__ = "`the Bloom lab <https://research.fhcrc.org/bloom/en.html>`_"
@@ -20,5 +30,9 @@ __email__ = "jbloom@fredhutch.org"
 __version__ = "0.1"
 __url__ = "https://github.com/jbloomlab/polyclonal"
 
-from polyclonal.polyclonal import Polyclonal  # noqa: F401
-from polyclonal.polyclonal_collection import PolyclonalCollection  # noqa: F401
+from polyclonal.alphabets import AAS
+from polyclonal.alphabets import AAS_WITHGAP
+from polyclonal.alphabets import AAS_WITHSTOP
+from polyclonal.alphabets import AAS_WITHSTOP_WITHGAP
+from polyclonal.polyclonal import Polyclonal
+from polyclonal.polyclonal_collection import PolyclonalCollection

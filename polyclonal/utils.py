@@ -10,7 +10,7 @@ Miscellaneous utility functions.
 
 import re
 
-from binarymap.binarymap import AAS_NOSTOP, AAS_WITHGAP  # noqa: F401
+import polyclonal
 
 
 class MutationParser:
@@ -23,7 +23,7 @@ class MutationParser:
 
     Example
     -------
-    >>> mutparser = MutationParser(AAS_NOSTOP)
+    >>> mutparser = MutationParser(polyclonal.AAS)
     >>> mutparser.parse_mut('A5G')
     ('A', 5, 'G')
 
@@ -32,7 +32,7 @@ class MutationParser:
       ...
     ValueError: invalid mutation K7-
 
-    >>> mutparser_gap = MutationParser(AAS_WITHGAP)
+    >>> mutparser_gap = MutationParser(polyclonal.AAS_WITHGAP)
     >>> mutparser_gap.parse_mut('K7-')
     ('K', 7, '-')
 
@@ -67,7 +67,7 @@ class MutationParser:
 def site_level_variants(
     df,
     *,
-    original_alphabet=AAS_NOSTOP,
+    original_alphabet=polyclonal.AAS,
     wt_char="w",
     mut_char="m",
 ):
