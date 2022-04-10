@@ -405,13 +405,11 @@ class PolyclonalCollection:
             .drop(columns="n_bootstrap_replicates")
         )
 
-    def mut_escape_heatmap(self, min_times_seen=1, **kwargs):
+    def mut_escape_heatmap(self, **kwargs):
         """Heatmaps of mutation escape values.
 
         Parameters
         ----------
-        min_times_seen : int
-            Only plot values for mutations seen in >= this many variants in full dataset.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
 
@@ -421,16 +419,14 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
-        df = self.mut_escape_df
-        if min_times_seen is not None:
-            df = df.query("times_seen >= @min_times_seen")
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = ["times_seen"]
         return polyclonal.plot.mut_escape_heatmap(
-            mut_escape_df=df,
+            mut_escape_df=self.mut_escape_df,
             alphabet=self.root_polyclonal.alphabet,
             epitope_colors=self.root_polyclonal.epitope_colors,
             stat="escape_mean",
             error_stat="escape_std",
-            addtl_tooltip_stats=["times_seen"],
             **kwargs,
         )
 
@@ -524,7 +520,7 @@ class PolyclonalCollection:
         self,
         *,
         mut_escape_site_summary_df_kwargs=None,
-        mut_escape_heatmap_kwargs=None,
+        mut_escape_lineplot_kwargs=None,
     ):
         """Line plots of mutation escape at each site.
 
@@ -533,8 +529,8 @@ class PolyclonalCollection:
         mut_escape_site_summary_df_kwargs : dict
             Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
             It is often useful to set `times_seen` to >1.
-        mut_escape_heatmap_kwargs : dict
-            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+        mut_escape_lineplot_kwargs : dict
+            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`
 
         Returns
         -------
@@ -544,14 +540,16 @@ class PolyclonalCollection:
         """
         if mut_escape_site_summary_df_kwargs is None:
             mut_escape_site_summary_df_kwargs = {}
-        if mut_escape_heatmap_kwargs is None:
-            mut_escape_heatmap_kwargs = {}
+        if mut_escape_lineplot_kwargs is None:
+            mut_escape_lineplot_kwargs = {}
+        if "addtl_tooltip_stats" not in mut_escape_lineplot_kwargs:
+            mut_escape_lineplot_kwargs["addtl_tooltip_stats"] = ["n mutations"]
         df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
         return polyclonal.plot.mut_escape_lineplot(
             mut_escape_site_summary_df=df,
             bootstrapped_data=True,
             epitope_colors=self.root_polyclonal.epitope_colors,
-            **mut_escape_heatmap_kwargs,
+            **mut_escape_lineplot_kwargs,
         )
 
     def icXX_replicates(self, variants_df, **kwargs):

@@ -113,24 +113,20 @@ def activity_wt_barplot(
     else:
         df = activity_wt_df
 
-    baseplot = (
-        alt.Chart(df)
-        .encode(
-            y=alt.Y("epitope:N", sort=epitopes),
-            color=alt.Color(
-                "epitope:N",
-                scale=alt.Scale(
-                    domain=epitopes, range=[epitope_colors[e] for e in epitopes]
-                ),
-                legend=None,
+    baseplot = alt.Chart(df).encode(
+        y=alt.Y("epitope:N", sort=epitopes),
+        color=alt.Color(
+            "epitope:N",
+            scale=alt.Scale(
+                domain=epitopes, range=[epitope_colors[e] for e in epitopes]
             ),
-            tooltip=[
-                alt.Tooltip(c, format=".2f") if df[c].dtype == float else c
-                for c in df.columns
-                if c not in ["_upper", "_lower"]
-            ],
-        )
-        .properties(width=width, height={"step": height_per_bar})
+            legend=None,
+        ),
+        tooltip=[
+            alt.Tooltip(c, format=".2f") if df[c].dtype == float else c
+            for c in df.columns
+            if c not in ["_upper", "_lower"]
+        ],
     )
 
     barplot = baseplot.encode(x=alt.X(f"{stat}:Q", title=stat)).mark_bar(
@@ -144,13 +140,16 @@ def activity_wt_barplot(
             ).mark_rule(size=2)
         )
 
-    return barplot.configure_axis(grid=False)
+    return barplot.configure_axis(grid=False).properties(
+        width=width, height={"step": height_per_bar}
+    )
 
 
 def mut_escape_lineplot(
     *,
     mut_escape_site_summary_df,
     bootstrapped_data=False,
+    addtl_tooltip_stats=None,
     epitope_colors,
     epitopes=None,
     all_sites=True,
@@ -170,6 +169,8 @@ def mut_escape_lineplot(
     bootstrapped_data : bool
         `mut_escape_site_summary_df` is from a bootstrapped model,
         :class:`polyclonal.polyclonal_collection.PolyclonalCollection`.
+    addtl_tooltip_stats : list or None
+        Additional mutation-level stats to show in tooltip.
     epitope_colors : dict
         Maps each epitope name to its color.
     epitopes : array-like or None
@@ -205,7 +206,9 @@ def mut_escape_lineplot(
         escape_metrics = df["metric"].unique().tolist()
     else:
         escape_metrics = [
-            m for m in df.columns if m not in {"epitope", "site", "wildtype"}
+            m
+            for m in df.columns
+            if m not in {"epitope", "site", "wildtype", "n mutations"}
         ]
 
     if bootstrapped_data:
@@ -238,17 +241,17 @@ def mut_escape_lineplot(
     if init_metric not in set(df["metric"]):
         raise ValueError(f"invalid {init_metric=}\noptions: {df['metric'].unique()=}")
 
-    metric_selection = alt.selection_single(
+    metric_selection = alt.selection_point(
         fields=["metric"],
         bind=alt.binding_select(options=escape_metrics),
         name="escape",
-        init={"metric": init_metric},
+        value=[{"metric": init_metric}],
     )
 
-    line_selection = alt.selection_single(
+    line_selection = alt.selection_point(
         fields=["show_line"],
         bind=alt.binding_select(options=[True, False], name="show_line"),
-        init={"show_line": True},
+        value=[{"show_line": True}],
     )
 
     zoom_brush = alt.selection_interval(
@@ -256,10 +259,10 @@ def mut_escape_lineplot(
         mark=alt.BrushConfig(stroke="black", strokeWidth=2),
     )
     zoom_bar = (
-        alt.Chart(df)
+        alt.Chart(df[["site"]].drop_duplicates())
         .mark_rect(color="gray")
         .encode(x="site:O")
-        .add_selection(zoom_brush)
+        .add_parameter(zoom_brush)
         .properties(
             width=zoom_bar_width,
             height=15,
@@ -267,8 +270,10 @@ def mut_escape_lineplot(
         )
     )
 
-    site_selector = alt.selection(
-        type="single", on="mouseover", fields=["site"], empty="none"
+    site_selector = alt.selection_point(
+        on="mouseover",
+        fields=["site"],
+        empty=False,
     )
 
     # add error ranges
@@ -293,24 +298,39 @@ def mut_escape_lineplot(
             df[f"{epitope} max"] = df[epitope] + df[f"{epitope} error"]
         # selection to show error bars
         df["error_bars"] = True
-        error_bar_selection = alt.selection_single(
+        error_bar_selection = alt.selection_point(
             fields=["error_bars"],
-            init={"error_bars": True},
+            init=[{"error_bars": True}],
             bind=alt.binding_select(options=[True, False], name="show_error"),
         )
 
-    # add wildtypes and potential frac_bootstrap_replicates
-    addtl_tooltips = []
-    cols = ["site", "wildtype"]
-    if bootstrapped_data:
-        cols.append("frac_bootstrap_replicates")
-        addtl_tooltips.append(alt.Tooltip("frac_bootstrap_replicates", format=".2f"))
+    # add wildtypes
     df = df.merge(
-        mut_escape_site_summary_df[cols].drop_duplicates(),
+        mut_escape_site_summary_df[["site", "wildtype"]].drop_duplicates(),
         how="left",
         on="site",
         validate="many_to_one",
     )
+
+    # add any additional tooltips
+    addtl_tooltips = []
+    if addtl_tooltip_stats is not None:
+        for c in addtl_tooltip_stats:
+            if c not in mut_escape_site_summary_df.columns:
+                raise ValueError(
+                    f"`addtl_tooltip_stat` {c} not in `mut_escape_site_summary_df`"
+                )
+            df = df.merge(
+                mut_escape_site_summary_df[["site", c]].drop_duplicates(),
+                how="left",
+                on="site",
+                validate="many_to_one",
+            )
+            addtl_tooltips.append(
+                alt.Tooltip(c, format=".2f")
+                if mut_escape_site_summary_df[c].dtype == float
+                else c
+            )
 
     # add selection for minimum **absolute value** of metrics
     # first add column that gives the percent of the max for each metric and statistic
@@ -330,9 +350,9 @@ def mut_escape_lineplot(
         .drop(columns="_max")
     )
     assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
-    cutoff = alt.selection_single(
+    cutoff = alt.selection_point(
         fields=["percent_max_cutoff"],
-        init={"percent_max_cutoff": 0},
+        value=[{"percent_max_cutoff": 0}],
         bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
     )
 
@@ -358,14 +378,13 @@ def mut_escape_lineplot(
             ),
             y=alt.Y(f"{epitope}:Q", title="escape"),
         )
-        # in case some sites missing values, background thin transparent
-        # over which we put darker foreground for measured points
+        # in case some sites missing values, we need foreground and background
         background = (
             base.transform_filter(f"isValid(datum['{epitope}'])")
             .mark_line(size=1, color=epitope_colors[epitope])
             .encode(opacity=alt.condition(line_selection, alt.value(1), alt.value(0)))
         )
-        foreground = base.mark_line(size=1.5, color=epitope_colors[epitope]).encode(
+        foreground = base.mark_line(size=1, color=epitope_colors[epitope]).encode(
             opacity=alt.condition(line_selection, alt.value(1), alt.value(0)),
         )
         foreground_circles = (
@@ -376,7 +395,7 @@ def mut_escape_lineplot(
                     site_selector, alt.value("black"), alt.value(None)
                 ),
             )
-            .add_selection(cutoff, site_selector, line_selection)
+            .add_parameter(cutoff, site_selector, line_selection)
         )
         if bootstrapped_data:
             error_bars = base.encode(
@@ -392,7 +411,7 @@ def mut_escape_lineplot(
         else:
             combined = background + foreground + foreground_circles
         charts.append(
-            combined.add_selection(metric_selection)
+            combined.add_parameter(metric_selection)
             .transform_filter(metric_selection)
             .transform_filter(zoom_brush)
             .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
@@ -405,7 +424,7 @@ def mut_escape_lineplot(
             )
         )
         if bootstrapped_data:
-            charts[-1] = charts[-1].add_selection(error_bar_selection)
+            charts[-1] = charts[-1].add_parameter(error_bar_selection)
 
     return (
         alt.vconcat(
@@ -417,7 +436,7 @@ def mut_escape_lineplot(
             ),
             spacing=10,
         )
-        .configure(padding={"left": 15, "top": 5, "right": 5, "bottom": 5})
+        .configure(padding={"left": 15, "top": 5, "right": 5, "bottom": 12})
         .configure_axis(grid=False, labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
     )
@@ -432,12 +451,12 @@ def mut_escape_heatmap(
     stat="escape",
     error_stat=None,
     addtl_tooltip_stats=None,
-    all_sites=True,
     all_alphabet=True,
     floor_color_at_zero=True,
     share_heatmap_lims=True,
-    cell_size=13,
+    cell_size=12,
     zoom_bar_width=500,
+    init_min_times_seen=1,
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -458,9 +477,6 @@ def mut_escape_heatmap(
         Measure of error to display in tooltip.
     addtl_tooltip_stats : list or None
         Additional mutation-level stats to show in tooltip.
-    all_sites : bool
-        Plot all sites in range from first to last site even if some
-        have no data.
     all_alphabet : bool
         Plot all letters in the alphabet (e.g., amino acids) even if some
         have no data.
@@ -475,6 +491,9 @@ def mut_escape_heatmap(
         Size of cells in heatmap.
     zoom_bar_width : float
         Width of zoom bar
+    init_min_times_seen : int
+        Initial cutoff for minimum times a mutation must be seen slider. Slider
+        only shown if 'times_seen' in `addtl_tooltip_stats`.
 
     Returns
     -------
@@ -492,7 +511,7 @@ def mut_escape_heatmap(
 
     df = mut_escape_df.query("epitope in @epitopes")
 
-    # get alphabet and sites, expanding to all if needed
+    # get alphabet
     extrachars = set(df["mutant"]).union(set(df["wildtype"])) - set(alphabet)
     if extrachars:
         raise ValueError(
@@ -500,68 +519,64 @@ def mut_escape_heatmap(
         )
     if not all_alphabet:
         alphabet = [c for c in alphabet if c in set(df["mutant"]) + set(df["wildtype"])]
-    sites = df["site"].unique().tolist()
-    if all_sites:
-        sites = list(range(min(sites), max(sites) + 1))
-
-    wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
 
     # get labels for escape to show on tooltips, potentially with error
     if error_stat is not None:
         if error_stat not in df.columns:
             raise ValueError(f"{error_stat=} not in {df.columns=}")
-        label_df = df.assign(
-            label=lambda x: x.apply(
-                lambda r: f"{r[stat]:.2f} +/- {r[error_stat]:.2f}",
-                axis=1,
+        label_df = (
+            df.assign(
+                label=lambda x: x.apply(
+                    lambda r: f"{r[stat]:.2f} +/- {r[error_stat]:.2f}",
+                    axis=1,
+                )
             )
+            .pivot_table(
+                index=["site", "mutant"],
+                values="label",
+                columns="epitope",
+                aggfunc=lambda x: " ".join(x),
+            )
+            .rename(columns={e: f"{e} epitope" for e in epitopes})
         )
+        escape_tooltips = [f"{e} epitope" for e in epitopes]
     else:
-        label_df = df.assign(label=lambda x: x[stat].map(lambda s: f"{s:.2f}"))
-    label_df = label_df.pivot_table(
-        index=["site", "mutant"],
-        values="label",
-        columns="epitope",
-        aggfunc=lambda x: " ".join(x),
-    ).rename(columns={e: f"{e} epitope" for e in epitopes})
+        escape_tooltips = [
+            alt.Tooltip(e, format=".2f", title=f"{e} epitope") for e in epitopes
+        ]
 
-    df = (
-        df.pivot_table(index=["site", "mutant"], values=stat, columns="epitope")
+    # add mutation labels and wildtypes
+    wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
+    assert (df["wildtype"] != df["mutant"]).all()
+    df = df.pivot_table(
+        index=["site", "mutant"], values=stat, columns="epitope"
+    ).reset_index()
+    wt_df = (
+        pd.Series(wts)
+        .rename_axis("site")
+        .to_frame("mutant")
         .reset_index()
-        .merge(
-            pd.DataFrame(
-                itertools.product(sites, alphabet),
-                columns=["site", "mutant"],
-            ),
-            how="right",
-        )
-        .assign(
-            wildtype=lambda x: x["site"].map(wts),
-            mutation=lambda x: (
-                x["wildtype"].fillna("") + x["site"].astype(str) + x["mutant"]
-            ),
-            # mark wildtype cells with a `x`
-            wildtype_char=lambda x: (x["mutant"] == x["wildtype"]).map(
-                {True: "x", False: ""}
-            ),
-        )
-        .merge(label_df, how="left", on=["site", "mutant"], validate="one_to_one")
+        .assign(**{e: 0 for e in epitopes})
     )
-    # wildtype has escape of 0 by definition
-    for epitope in epitopes:
-        df[epitope] = df[epitope].where(df["mutant"] != df["wildtype"], 0)
-        label_col = f"{epitope} epitope"
-        df[label_col] = df[label_col].where(df["mutant"] != df["wildtype"], "0")
+    if error_stat is not None:
+        df = df.merge(
+            label_df, how="left", on=["site", "mutant"], validate="one_to_one"
+        )
+        wt_df = wt_df.assign(**{f"{e} epitope": "0" for e in epitopes})
+    df = pd.concat([df, wt_df], ignore_index=True).assign(
+        mutation=lambda x: (x["site"].map(wts) + x["site"].astype(str) + x["mutant"]),
+        is_wildtype=lambda x: x["site"].map(wts) == x["mutant"],
+    )
 
     # zoom bar to put at top
     zoom_brush = alt.selection_interval(
         encodings=["x"], mark=alt.BrushConfig(stroke="black", strokeWidth=2)
     )
     zoom_bar = (
-        alt.Chart(df)
+        alt.Chart(df[["site"]].drop_duplicates())
         .mark_rect(color="gray")
         .encode(x="site:O")
-        .add_selection(zoom_brush)
+        .add_parameter(zoom_brush)
         .properties(
             width=zoom_bar_width,
             height=15,
@@ -579,13 +594,48 @@ def mut_escape_heatmap(
             how="left",
             validate="many_to_one",
         )
-        add_tooltips = [
-            alt.Tooltip(c, format=".2g") if mut_escape_df[c].dtype == float else c
-            for c in addtl_tooltip_stats
-        ]
+        for c in addtl_tooltip_stats:
+            if c != "times_seen":
+                add_tooltips.append(
+                    alt.Tooltip(c, format=".2g")
+                    if mut_escape_df[c].dtype == float
+                    else c
+                )
+            else:
+                # we must handle 'times_seen' differently to make it work with slider
+                # for wildtype values, where it is assigned a dummy value below
+                add_tooltips.append("times seen")
+
+    if addtl_tooltip_stats is not None and "times_seen" in addtl_tooltip_stats:
+        # set times seen for wildtype to max at site for slider to work
+        site_max_times_seen = df.groupby("site")["times_seen"].max()
+        df = df.assign(
+            times_seen=lambda x: x.apply(
+                lambda r: site_max_times_seen[r["site"]]
+                if r["is_wildtype"]
+                else r["times_seen"],
+                axis=1,
+            )
+        )
+        if (df["times_seen"] == df["times_seen"].astype(int)).all():
+            df["times_seen"] = df["times_seen"].astype(int)
+        df["times seen"] = df["times_seen"].astype(str).where(~df["is_wildtype"], "na")
+        # make selection slider, max is greater of median or mean across variants
+        times_seen_cutoff = alt.selection_point(
+            fields=["times_seen"],
+            value=[{"times_seen": init_min_times_seen}],
+            bind=alt.binding_range(
+                min=1,
+                max=int(max(df["times_seen"].median(), df["times_seen"].mean())),
+                step=1,
+                name="min_times_seen",
+            ),
+        )
+    else:
+        times_seen_cutoff = None
 
     # select cells
-    cell_selector = alt.selection_single(on="mouseover", empty="none")
+    cell_selector = alt.selection_point(on="mouseover", empty=False)
 
     # add selection for minimum  **absolute value** of escape maxed across site
     df["_max"] = df[epitopes].max().max()
@@ -595,9 +645,9 @@ def mut_escape_heatmap(
         percent_max=lambda x: 100 * x["_site_max"] / x["_max"],
     ).drop(columns=["_max", "_epitope_max", "_site_max"])
     assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
-    cutoff = alt.selection_single(
+    percent_max_cutoff = alt.selection_point(
         fields=["percent_max_cutoff"],
-        init={"percent_max_cutoff": 0},
+        value=[{"percent_max_cutoff": 0}],
         bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
     )
 
@@ -606,10 +656,17 @@ def mut_escape_heatmap(
     # base chart
     base = alt.Chart(df).encode(
         x=alt.X("site:O"),
-        y=alt.Y("mutant:O", sort=alphabet),
+        y=alt.Y("mutant:O", sort=alphabet, scale=alt.Scale(domain=alphabet)),
     )
+    # for inexplicable reason, this dummy chart is needed below for coloring to work
+    dummy = base.mark_rect(opacity=0).encode(color=alt.Color("dummy:N", legend=None))
+    # wildtype marks
+    wildtype = base.transform_filter(alt.datum.is_wildtype).mark_text(
+        color="black",
+        text="x",
+    )
+    # now make heatmaps
     for epitope in epitopes:
-        # heatmap for cells with data
         if share_heatmap_lims:
             vals = df[list(epitopes)].values
         else:
@@ -642,28 +699,16 @@ def mut_escape_heatmap(
             ),
             stroke=alt.value("black"),
             strokeWidth=alt.condition(cell_selector, alt.value(2.5), alt.value(0.2)),
-            tooltip=["mutation"] + [f"{e} epitope:N" for e in epitopes] + add_tooltips,
-        )
-        # nulls for cells with missing data
-        nulls = (
-            base.mark_rect()
-            .transform_filter(f"!isValid(datum['{epitope}'])")
-            .mark_rect(opacity=0.25)
-            .encode(
-                alt.Color(f"{stat}:N", scale=alt.Scale(scheme="greys"), legend=None),
-            )
-        )
-        # mark wildtype cells
-        wildtype = base.mark_text(color="black").encode(
-            text=alt.Text("wildtype_char:N")
+            tooltip=["mutation"] + escape_tooltips + add_tooltips,
         )
         # combine the elements
         charts.append(
-            (heatmap + nulls + wildtype)
-            .interactive()
-            .add_selection(cell_selector, cutoff)
+            (heatmap + dummy + wildtype)
+            .add_parameter(cell_selector, percent_max_cutoff)
             .transform_filter(zoom_brush)
-            .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
+            .transform_filter(
+                alt.datum.percent_max >= percent_max_cutoff.percent_max_cutoff
+            )
             .properties(
                 title=alt.TitleParams(
                     f"{epitope} epitope", color=epitope_colors[epitope]
@@ -672,6 +717,12 @@ def mut_escape_heatmap(
                 height={"step": cell_size},
             )
         )
+        if times_seen_cutoff:
+            charts[-1] = (
+                charts[-1]
+                .add_parameter(times_seen_cutoff)
+                .transform_filter(alt.datum.times_seen >= times_seen_cutoff.times_seen)
+            )
 
     chart = (
         alt.vconcat(
@@ -680,6 +731,7 @@ def mut_escape_heatmap(
         )
         .configure_axis(labelOverlap="parity")
         .configure_title(anchor="start", fontSize=14)
+        .configure_view(fill="gray", fillOpacity=0.25)
     )
 
     return chart
