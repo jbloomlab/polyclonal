@@ -63,6 +63,7 @@
 <span class="kn">import</span> <span class="nn">scipy.optimize</span>
 <span class="kn">import</span> <span class="nn">scipy.special</span>
 
+<span class="kn">import</span> <span class="nn">polyclonal</span>
 <span class="kn">import</span> <span class="nn">polyclonal.pdb_utils</span>
 <span class="kn">import</span> <span class="nn">polyclonal.plot</span>
 <span class="kn">import</span> <span class="nn">polyclonal.utils</span>
@@ -698,7 +699,7 @@
         <span class="n">site_escape_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">n_epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">alphabet</span><span class="o">=</span><span class="n">binarymap</span><span class="o">.</span><span class="n">binarymap</span><span class="o">.</span><span class="n">AAS_NOSTOP</span><span class="p">,</span>
+        <span class="n">alphabet</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS</span><span class="p">,</span>
         <span class="n">epitope_colors</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">TAB10_COLORS_NOGRAY</span><span class="p">,</span>
         <span class="n">init_missing</span><span class="o">=</span><span class="s2">&quot;zero&quot;</span><span class="p">,</span>
         <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;exact_match&quot;</span><span class="p">,</span>
@@ -1443,7 +1444,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">loss_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-        <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
         <span class="n">reg_escape_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">reg_spread_weight</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
         <span class="n">fit_site_level_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1539,7 +1540,7 @@
                         <span class="p">{</span>
                             <span class="s2">&quot;fit_loss&quot;</span><span class="p">:</span> <span class="n">fitloss</span><span class="p">,</span>
                             <span class="s2">&quot;reg_escape&quot;</span><span class="p">:</span> <span class="n">regescape</span><span class="p">,</span>
-                            <span class="s2">&quot;regspread&quot;</span><span class="p">:</span> <span class="n">regspread</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_spread&quot;</span><span class="p">:</span> <span class="n">regspread</span><span class="p">,</span>
                         <span class="p">},</span>
                     <span class="p">)</span>
                 <span class="k">return</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="k">if</span> <span class="n">breakdown</span> <span class="k">else</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -2159,6 +2160,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_REGN10933_mAb.html">Real antibody data example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

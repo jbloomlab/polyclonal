@@ -379,7 +379,7 @@
             <span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">_max</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">_max</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
         <span class="p">)</span>
         <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">percent_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;_max&quot;</span><span class="p">)</span>
@@ -487,7 +487,7 @@
     <span class="n">error_stat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">addtl_tooltip_stats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">all_alphabet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">floor_color_at_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">floor_at_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">share_heatmap_lims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">cell_size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
     <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
@@ -515,9 +515,10 @@
 <span class="sd">    all_alphabet : bool</span>
 <span class="sd">        Plot all letters in the alphabet (e.g., amino acids) even if some</span>
 <span class="sd">        have no data.</span>
-<span class="sd">    floor_color_at_zero : bool</span>
-<span class="sd">        Set lower limit to color scale as zero, even if there are negative</span>
-<span class="sd">        values or if minimum is &gt;0.</span>
+<span class="sd">    floor_at_zero : bool</span>
+<span class="sd">        Set lower limit for color scale to zero, even if there are negative</span>
+<span class="sd">        escape values or if minimum is &gt;0. If True, then the *percent_max_cutoff*</span>
+<span class="sd">        slider is also floored the same way.</span>
 <span class="sd">    share_heatmap_lims : bool</span>
 <span class="sd">        If `True`, let all epitopes share the same limits in color scale.</span>
 <span class="sd">        If `False`, scale each epitopes colors to the min and max stat</span>
@@ -528,7 +529,8 @@
 <span class="sd">        Width of zoom bar</span>
 <span class="sd">    init_min_times_seen : int</span>
 <span class="sd">        Initial cutoff for minimum times a mutation must be seen slider. Slider</span>
-<span class="sd">        only shown if &#39;times_seen&#39; in `addtl_tooltip_stats`.</span>
+<span class="sd">        only shown if &#39;times_seen&#39; in `addtl_tooltip_stats`. Also used for calculating</span>
+<span class="sd">        the percent max cutoff values.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -672,13 +674,26 @@
     <span class="c1"># select cells</span>
     <span class="n">cell_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span> <span class="n">empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="c1"># add selection for minimum  **absolute value** of escape maxed across site</span>
-    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-        <span class="n">_epitope_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-        <span class="n">_site_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;_epitope_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">),</span>
-        <span class="n">percent_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_site_max&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">],</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">,</span> <span class="s2">&quot;_epitope_max&quot;</span><span class="p">,</span> <span class="s2">&quot;_site_max&quot;</span><span class="p">])</span>
+    <span class="c1"># add selection for minimum  **absolute value** of escape maxed across site.</span>
+    <span class="c1"># we do the calculation just for mutations at init_min_times_seen times seen</span>
+    <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">df_percent_max</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;times_seen &gt;= @init_min_times_seen&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df_percent_max</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">floor_at_zero</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
+            <span class="n">df_percent_max</span> <span class="o">=</span> <span class="n">df_percent_max</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">)})</span>
+    <span class="n">_max</span> <span class="o">=</span> <span class="n">df_percent_max</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">df_percent_max</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df_percent_max</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">_epitope_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">_site_max</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;_epitope_max&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">percent_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_site_max&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">_max</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;_site_max&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_percent_max</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="n">percent_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">),</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
     <span class="n">percent_max_cutoff</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
         <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">],</span>
@@ -707,7 +722,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
         <span class="n">escape_max</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">floor_color_at_zero</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">floor_at_zero</span><span class="p">:</span>
             <span class="n">escape_min</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">escape_min</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
@@ -820,6 +835,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_REGN10933_mAb.html">Real antibody data example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

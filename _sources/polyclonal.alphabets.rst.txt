@@ -1,0 +1,4 @@
+.. automodule:: polyclonal.alphabets
+   :members:
+   :undoc-members:
+   :show-inheritance:
