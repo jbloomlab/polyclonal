@@ -28,6 +28,7 @@ import pandas as pd
 import scipy.optimize
 import scipy.special
 
+import polyclonal
 import polyclonal.pdb_utils
 import polyclonal.plot
 import polyclonal.utils
@@ -663,7 +664,7 @@ class Polyclonal:
         site_escape_df=None,
         n_epitopes=None,
         collapse_identical_variants=False,
-        alphabet=binarymap.binarymap.AAS_NOSTOP,
+        alphabet=polyclonal.AAS,
         epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
         init_missing="zero",
         data_mut_escape_overlap="exact_match",
