@@ -405,13 +405,11 @@ class PolyclonalCollection:
             .drop(columns="n_bootstrap_replicates")
         )
 
-    def mut_escape_heatmap(self, min_times_seen=1, **kwargs):
+    def mut_escape_heatmap(self, **kwargs):
         """Heatmaps of mutation escape values.
 
         Parameters
         ----------
-        min_times_seen : int
-            Only plot values for mutations seen in >= this many variants in full dataset.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
 
@@ -421,11 +419,8 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
-        df = self.mut_escape_df
-        if min_times_seen is not None:
-            df = df.query("times_seen >= @min_times_seen")
         return polyclonal.plot.mut_escape_heatmap(
-            mut_escape_df=df,
+            mut_escape_df=self.mut_escape_df,
             alphabet=self.root_polyclonal.alphabet,
             epitope_colors=self.root_polyclonal.epitope_colors,
             stat="escape_mean",
