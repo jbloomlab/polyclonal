@@ -1409,7 +1409,7 @@ class Polyclonal:
         self,
         *,
         loss_delta=0.1,
-        reg_escape_weight=0.01,
+        reg_escape_weight=0.02,
         reg_escape_delta=0.1,
         reg_spread_weight=0.25,
         fit_site_level_first=True,
@@ -1505,7 +1505,7 @@ class Polyclonal:
                         {
                             "fit_loss": fitloss,
                             "reg_escape": regescape,
-                            "regspread": regspread,
+                            "reg_spread": regspread,
                         },
                     )
                 return self_.last_loss if breakdown else self_.last_loss[:2]
