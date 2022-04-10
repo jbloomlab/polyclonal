@@ -45,7 +45,7 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">from</span> <span class="nn">binarymap.binarymap</span> <span class="kn">import</span> <span class="n">AAS_NOSTOP</span>
+<span class="kn">from</span> <span class="nn">binarymap.binarymap</span> <span class="kn">import</span> <span class="n">AAS_NOSTOP</span><span class="p">,</span> <span class="n">AAS_WITHGAP</span>  <span class="c1"># noqa: F401</span>
 
 
 <div class="viewcode-block" id="MutationParser"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.MutationParser">[docs]</a><span class="k">class</span> <span class="nc">MutationParser</span><span class="p">:</span>
@@ -62,6 +62,15 @@
 <span class="sd">    &gt;&gt;&gt; mutparser.parse_mut(&#39;A5G&#39;)</span>
 <span class="sd">    (&#39;A&#39;, 5, &#39;G&#39;)</span>
 
+<span class="sd">    &gt;&gt;&gt; mutparser.parse_mut(&#39;K7-&#39;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">      ...</span>
+<span class="sd">    ValueError: invalid mutation K7-</span>
+
+<span class="sd">    &gt;&gt;&gt; mutparser_gap = MutationParser(AAS_WITHGAP)</span>
+<span class="sd">    &gt;&gt;&gt; mutparser_gap.parse_mut(&#39;K7-&#39;)</span>
+<span class="sd">    (&#39;K&#39;, 7, &#39;-&#39;)</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">):</span>
@@ -72,6 +81,8 @@
                 <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
                 <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\*&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+                <span class="n">chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\-&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid alphabet character: </span><span class="si">{</span><span class="n">char</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">chars</span> <span class="o">=</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
@@ -245,9 +256,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../partition_function.html">Distinct epitopes assumption</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>

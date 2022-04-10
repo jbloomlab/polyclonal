@@ -219,11 +219,17 @@
 <span class="sd">    epitope_colors : dict</span>
 <span class="sd">        Maps each epitope to its color.</span>
 <span class="sd">    data_to_fit : pandas.DataFrame or None</span>
-<span class="sd">        Data to fit as passed when initializing this :class:`BinaryMap`.</span>
+<span class="sd">        Data to fit as passed when initializing this :class:`Polyclonal` object.</span>
 <span class="sd">        If using ``collapse_identical_variants``, then identical variants</span>
 <span class="sd">        are collapsed on columns &#39;concentration&#39;, &#39;aa_substitutions&#39;,</span>
 <span class="sd">        and &#39;prob_escape&#39;, and a column &#39;weight&#39; is added to represent number</span>
 <span class="sd">        of collapsed variants. Also, row-order may be changed.</span>
+<span class="sd">    mutations_times_seen : frozendict.frozendict or None</span>
+<span class="sd">        If `data_to_fit` is not `None`, keyed by all mutations with escape values</span>
+<span class="sd">        and values are number of variants in which the mutation is seen. It is formally</span>
+<span class="sd">        calculated as the number of variants with mutation across all concentrations</span>
+<span class="sd">        divided by the number of concentrations, so can have non-integer values if</span>
+<span class="sd">        there are variants only observed at some concentrations.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
@@ -246,6 +252,8 @@
 <span class="sd">    (&#39;e1&#39;, &#39;e2&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal.mutations</span>
 <span class="sd">    (&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; polyclonal.mutations_times_seen is None</span>
+<span class="sd">    True</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal.sites</span>
 <span class="sd">    (1, 2, 4)</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal.wts</span>
@@ -267,14 +275,16 @@
 
 <span class="sd">    We can also summarize the mutation-level escape at the site level:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal.mut_escape_site_summary_df</span>
-<span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative</span>
-<span class="sd">    0      e1     1        M   2.0             2.0  2.0  2.0             0.0</span>
-<span class="sd">    1      e1     2        G   3.0             3.0  3.0  3.0             0.0</span>
-<span class="sd">    2      e1     4        A   0.0             0.0  0.0  0.0             0.0</span>
-<span class="sd">    3      e2     1        M   0.0             0.0  0.0  0.0             0.0</span>
-<span class="sd">    4      e2     2        G   0.0             0.0  0.0  0.0             0.0</span>
-<span class="sd">    5      e2     4        A   2.0             4.0  2.5  1.5             0.0</span>
+<span class="sd">    &gt;&gt;&gt; pd.set_option(&quot;display.max_columns&quot;, None)</span>
+<span class="sd">    &gt;&gt;&gt; pd.set_option(&quot;display.width&quot;, 89)</span>
+<span class="sd">    &gt;&gt;&gt; polyclonal.mut_escape_site_summary_df()</span>
+<span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="sd">    0      e1     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
+<span class="sd">    1      e1     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="sd">    2      e1     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
+<span class="sd">    3      e2     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    4      e2     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    5      e2     4        A   2.0             4.0  2.5  1.5             0.0            2</span>
 
 <span class="sd">    Note that we can **not** initialize a :class:`Polyclonal` object if we are</span>
 <span class="sd">    missing escape estimates for any mutations for any epitopes:</span>
@@ -412,6 +422,8 @@
 
 <span class="sd">    &gt;&gt;&gt; polyclonal_data.mutations</span>
 <span class="sd">    (&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; dict(polyclonal_data.mutations_times_seen)</span>
+<span class="sd">    {&#39;G2A&#39;: 6, &#39;M1C&#39;: 6, &#39;A4K&#39;: 4, &#39;A4L&#39;: 3}</span>
 
 <span class="sd">    The activities are evenly spaced from 1 to 0, while the mutation escapes</span>
 <span class="sd">    are all initialized to zero:</span>
@@ -421,15 +433,15 @@
 <span class="sd">    0       1       1.0</span>
 <span class="sd">    1       2       0.0</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_df</span>
-<span class="sd">      epitope  site wildtype mutant mutation  escape</span>
-<span class="sd">    0       1     1        M      C      M1C     0.0</span>
-<span class="sd">    1       1     2        G      A      G2A     0.0</span>
-<span class="sd">    2       1     4        A      K      A4K     0.0</span>
-<span class="sd">    3       1     4        A      L      A4L     0.0</span>
-<span class="sd">    4       2     1        M      C      M1C     0.0</span>
-<span class="sd">    5       2     2        G      A      G2A     0.0</span>
-<span class="sd">    6       2     4        A      K      A4K     0.0</span>
-<span class="sd">    7       2     4        A      L      A4L     0.0</span>
+<span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="sd">    0       1     1        M      C      M1C     0.0           6</span>
+<span class="sd">    1       1     2        G      A      G2A     0.0           6</span>
+<span class="sd">    2       1     4        A      K      A4K     0.0           4</span>
+<span class="sd">    3       1     4        A      L      A4L     0.0           3</span>
+<span class="sd">    4       2     1        M      C      M1C     0.0           6</span>
+<span class="sd">    5       2     2        G      A      G2A     0.0           6</span>
+<span class="sd">    6       2     4        A      K      A4K     0.0           4</span>
+<span class="sd">    7       2     4        A      L      A4L     0.0           3</span>
 
 <span class="sd">    You can initialize to random numbers by setting ``init_missing`` to seed</span>
 <span class="sd">    (in this example we also don&#39;t include all variants for one concentration):</span>
@@ -457,15 +469,15 @@
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal_data3.mut_escape_df</span>
-<span class="sd">      epitope  site wildtype mutant mutation  escape</span>
-<span class="sd">    0      e1     1        M      C      M1C     4.0</span>
-<span class="sd">    1      e1     2        G      A      G2A     0.0</span>
-<span class="sd">    2      e1     4        A      K      A4K     0.0</span>
-<span class="sd">    3      e1     4        A      L      A4L     0.0</span>
-<span class="sd">    4      e2     1        M      C      M1C     0.0</span>
-<span class="sd">    5      e2     2        G      A      G2A     0.0</span>
-<span class="sd">    6      e2     4        A      K      A4K     0.0</span>
-<span class="sd">    7      e2     4        A      L      A4L     0.0</span>
+<span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="sd">    0      e1     1        M      C      M1C     4.0           6</span>
+<span class="sd">    1      e1     2        G      A      G2A     0.0           6</span>
+<span class="sd">    2      e1     4        A      K      A4K     0.0           4</span>
+<span class="sd">    3      e1     4        A      L      A4L     0.0           3</span>
+<span class="sd">    4      e2     1        M      C      M1C     0.0           6</span>
+<span class="sd">    5      e2     2        G      A      G2A     0.0           6</span>
+<span class="sd">    6      e2     4        A      K      A4K     0.0           4</span>
+<span class="sd">    7      e2     4        A      L      A4L     0.0           3</span>
 
 <span class="sd">    You can initialize **sites** to escape values via ``site_activity_df``:</span>
 
@@ -481,15 +493,15 @@
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal_data4.mut_escape_df</span>
-<span class="sd">      epitope  site wildtype mutant mutation  escape</span>
-<span class="sd">    0      e1     1        M      C      M1C     1.0</span>
-<span class="sd">    1      e1     2        G      A      G2A     0.0</span>
-<span class="sd">    2      e1     4        A      K      A4K     0.0</span>
-<span class="sd">    3      e1     4        A      L      A4L     0.0</span>
-<span class="sd">    4      e2     1        M      C      M1C     0.0</span>
-<span class="sd">    5      e2     2        G      A      G2A     0.0</span>
-<span class="sd">    6      e2     4        A      K      A4K     2.0</span>
-<span class="sd">    7      e2     4        A      L      A4L     2.0</span>
+<span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="sd">    0      e1     1        M      C      M1C     1.0           6</span>
+<span class="sd">    1      e1     2        G      A      G2A     0.0           6</span>
+<span class="sd">    2      e1     4        A      K      A4K     0.0           4</span>
+<span class="sd">    3      e1     4        A      L      A4L     0.0           3</span>
+<span class="sd">    4      e2     1        M      C      M1C     0.0           6</span>
+<span class="sd">    5      e2     2        G      A      G2A     0.0           6</span>
+<span class="sd">    6      e2     4        A      K      A4K     2.0           4</span>
+<span class="sd">    7      e2     4        A      L      A4L     2.0           3</span>
 
 <span class="sd">    Fit the data using :meth:`Polyclonal.fit`, and make sure the new</span>
 <span class="sd">    predicted escape probabilities are close to the real ones being fit.</span>
@@ -518,6 +530,33 @@
 <span class="sd">    ...              ):</span>
 <span class="sd">    ...          raise ValueError(f&quot;wrong escapes\n{model.mut_escape_df}&quot;)</span>
 
+<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_site_summary_df().round(1)</span>
+<span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    2       1     4        A   2.0             4.0  2.5  1.5             0.0            2</span>
+<span class="sd">    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
+<span class="sd">    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="sd">    5       2     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
+<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_site_summary_df(min_times_seen=4).round(1)</span>
+<span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    2       1     4        A   2.5             2.5  2.5  2.5             0.0            1</span>
+<span class="sd">    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
+<span class="sd">    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="sd">    5       2     4        A   0.0             0.0  0.0  0.0             0.0            1</span>
+
+<span class="sd">    You can also exclude mutations to specific characters (typically you would want to</span>
+<span class="sd">    do this for stop codons and/or gaps):</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_site_summary_df(exclude_chars={&quot;C&quot;, &quot;K&quot;}).round(1)</span>
+<span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="sd">    0       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    1       1     4        A   1.5             1.5  1.5  1.5             0.0            1</span>
+<span class="sd">    2       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="sd">    3       2     4        A   0.0             0.0  0.0  0.0             0.0            1</span>
+
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 <span class="sd">    You can convert a :class:`Polyclonal` model into a site-level model via</span>
@@ -531,13 +570,13 @@
 <span class="sd">    (&#39;w&#39;, &#39;m&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; (polyclonal_site.mut_escape_df</span>
 <span class="sd">    ...  .assign(escape=lambda x: x[&#39;escape&#39;].abs()).round(1))</span>
-<span class="sd">      epitope  site wildtype mutant mutation  escape</span>
-<span class="sd">    0      e1     1        w      m      w1m     2.0</span>
-<span class="sd">    1      e1     2        w      m      w2m     3.0</span>
-<span class="sd">    2      e1     4        w      m      w4m     0.0</span>
-<span class="sd">    3      e2     1        w      m      w1m     0.0</span>
-<span class="sd">    4      e2     2        w      m      w2m     0.0</span>
-<span class="sd">    5      e2     4        w      m      w4m     2.0</span>
+<span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="sd">    0      e1     1        w      m      w1m     2.0           5</span>
+<span class="sd">    1      e1     2        w      m      w2m     3.0           6</span>
+<span class="sd">    2      e1     4        w      m      w4m     0.0           7</span>
+<span class="sd">    3      e2     1        w      m      w1m     0.0           5</span>
+<span class="sd">    4      e2     2        w      m      w2m     0.0           6</span>
+<span class="sd">    5      e2     4        w      m      w4m     2.0           7</span>
 <span class="sd">    &gt;&gt;&gt; polyclonal_site.data_to_fit.head(n=5).round(3)</span>
 <span class="sd">       concentration aa_substitutions  weight  prob_escape</span>
 <span class="sd">    0            1.0                        1        0.032</span>
@@ -604,6 +643,49 @@
 <span class="sd">    1          e1           e2       -0.945</span>
 <span class="sd">    2          e2           e1       -0.945</span>
 <span class="sd">    3          e2           e2        1.000</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Filter variants by how often they are seen in data:</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal_data.filter_variants_by_seen_muts(variants_df)</span>
+<span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">       barcode aa_substitutions</span>
+<span class="sd">    0       AA</span>
+<span class="sd">    1       AC              M1C</span>
+<span class="sd">    2       AG              G2A</span>
+<span class="sd">    3       AT              A4K</span>
+<span class="sd">    4       TA              A4L</span>
+<span class="sd">    5       CA          M1C G2A</span>
+<span class="sd">    6       CG          M1C A4K</span>
+<span class="sd">    7       CC          G2A A4K</span>
+<span class="sd">    8       TC          G2A A4L</span>
+<span class="sd">    9       CT      M1C G2A A4K</span>
+<span class="sd">    10      TG      M1C G2A A4L</span>
+<span class="sd">    11      GA              M1C</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=5)</span>
+<span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">      barcode aa_substitutions</span>
+<span class="sd">    0      AA</span>
+<span class="sd">    1      AC              M1C</span>
+<span class="sd">    2      AG              G2A</span>
+<span class="sd">    3      CA          M1C G2A</span>
+<span class="sd">    4      GA              M1C</span>
+
+<span class="sd">    &gt;&gt;&gt; polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=4)</span>
+<span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">      barcode aa_substitutions</span>
+<span class="sd">    0      AA</span>
+<span class="sd">    1      AC              M1C</span>
+<span class="sd">    2      AG              G2A</span>
+<span class="sd">    3      AT              A4K</span>
+<span class="sd">    4      CA          M1C G2A</span>
+<span class="sd">    5      CG          M1C A4K</span>
+<span class="sd">    6      CC          G2A A4K</span>
+<span class="sd">    7      CT      M1C G2A A4K</span>
+<span class="sd">    8      GA              M1C</span>
+
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -687,7 +769,6 @@
                 <span class="s2">&quot;initialize both or neither `activity_wt_df` &quot;</span>
                 <span class="s2">&quot;and `mut_escape_df` or `site_escape_df`&quot;</span>
             <span class="p">)</span>
-
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">epitope_colors</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span> <span class="o">=</span> <span class="p">{</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">}</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">epitope_colors</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
@@ -712,6 +793,20 @@
         <span class="c1"># get wildtype, sites, and mutations</span>
         <span class="k">if</span> <span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">wts2</span><span class="p">,</span> <span class="n">sites2</span><span class="p">,</span> <span class="n">muts2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_muts_from_data_to_fit</span><span class="p">(</span><span class="n">data_to_fit</span><span class="p">)</span>
+            <span class="n">times_seen</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">data_to_fit</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span>
+                <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">explode</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="o">/</span> <span class="n">data_to_fit</span><span class="p">[</span><span class="s2">&quot;concentration&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">times_seen</span> <span class="o">==</span> <span class="n">times_seen</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="n">times_seen</span> <span class="o">=</span> <span class="n">times_seen</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="o">=</span> <span class="n">frozendict</span><span class="o">.</span><span class="n">frozendict</span><span class="p">(</span><span class="n">times_seen</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">site_escape_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># construct mut_escape_df from site_escape_df and mutations</span>
             <span class="c1"># from data_to_fit</span>
@@ -1039,7 +1134,7 @@
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation.&quot;&quot;&quot;</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
                     <span class="p">{</span>
@@ -1060,25 +1155,58 @@
         <span class="p">)[</span>
             <span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">,</span> <span class="s2">&quot;escape&quot;</span><span class="p">]</span>
         <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">df</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">df</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Site-level summaries of mutation escape.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Polyclonal.mut_escape_site_summary_df"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">mutation_whitelist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">exclude_chars</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;*&quot;</span><span class="p">]),</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        min_times_seen : int</span>
+<span class="sd">            Only include in summaries mutations seen in at least this many variants.</span>
+<span class="sd">        mutation_whitelist : None or set</span>
+<span class="sd">            Only include in summaries these mutations.</span>
+<span class="sd">        exclude_chars : set or list</span>
+<span class="sd">            Exclude mutations to these characters when calculating site summaries.</span>
+<span class="sd">            Useful if you want to ignore stop codons (``*``), and perhaps in some</span>
+<span class="sd">            cases also gaps (``-``).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">escape_metrics</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
             <span class="s2">&quot;total positive&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape_gt_0&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">),</span>
             <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">),</span>
             <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">),</span>
             <span class="s2">&quot;total negative&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape_lt_0&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n mutations&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
         <span class="p">}</span>
+        <span class="n">mut_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;mutant not in @exclude_chars&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mut_df</span> <span class="o">=</span> <span class="n">mut_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;times_seen &gt;= @min_times_seen&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mutation_whitelist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mut_df</span> <span class="o">=</span> <span class="n">mut_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;mutation in @mutation_whitelist&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">mut_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
                 <span class="n">escape_gt_0</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
                 <span class="n">escape_lt_0</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">**</span><span class="n">escape_metrics</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Polyclonal.prob_escape"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.prob_escape">[docs]</a>    <span class="k">def</span> <span class="nf">prob_escape</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1088,7 +1216,7 @@
     <span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute predicted probability of escape :math:`p_v\left(c\right)`.</span>
 
-<span class="sd">        Computed using current mutation-escape values :math:`beta_{m,e}` and</span>
+<span class="sd">        Computed using current mutation-escape values :math:`\beta_{m,e}` and</span>
 <span class="sd">        epitope activities :math:`a_{\rm{wt},e}` stored in this</span>
 <span class="sd">        :class:`Polyclonal` object.</span>
 
@@ -1160,7 +1288,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        aggregate_mut_escapes : {&#39;mean&#39;}</span>
 <span class="sd">            How to aggregate mutation-level escape values to site-level</span>
-<span class="sd">            ones in ``mut_effects_df``.</span>
+<span class="sd">            ones in ``mut_escape_df``.</span>
 <span class="sd">        collapse_identical_variants : {&quot;mean&quot;, &quot;median&quot;, False}</span>
 <span class="sd">            Same meaning as for :class:`Polyclonal` initialization.</span>
 
@@ -1178,7 +1306,8 @@
             <span class="p">)</span>
         <span class="n">site_escape_df</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">site_level_variants</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;mutation&quot;</span><span class="p">:</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;mutation&quot;</span><span class="p">:</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">}),</span>
+                <span class="n">original_alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">:</span> <span class="s2">&quot;mutation&quot;</span><span class="p">})</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1495,6 +1624,7 @@
         <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">outfile</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{metric}</span><span class="s2">-</span><span class="si">{epitope}</span><span class="s2">.pdb&quot;</span><span class="p">,</span>
         <span class="n">missing_metric</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create PDB files with B factors from a site&#39;s mutation escape.</span>
 
@@ -1506,7 +1636,7 @@
 <span class="sd">            Single chain or list of them to re-color.</span>
 <span class="sd">        metric : str</span>
 <span class="sd">            Which site-level summary metric to use. Can be any metric in</span>
-<span class="sd">            :attr:`Polyclonal.mut_escape_site_summary_df`.</span>
+<span class="sd">            :meth:`Polyclonal.mut_escape_site_summary_df`.</span>
 <span class="sd">        outdir : str</span>
 <span class="sd">            Output directory for created PDB files.</span>
 <span class="sd">        outfile : str</span>
@@ -1517,6 +1647,8 @@
 <span class="sd">            If a float, reassign B factors for all missing sites to this value.</span>
 <span class="sd">            If a dict, should be keyed by chain and assign all missing sites in</span>
 <span class="sd">            each chain to indicated value.</span>
+<span class="sd">        min_times_seen : int</span>
+<span class="sd">            Value passed to :meth:`Polyclonal.mut_escape_site_summary_df`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1524,7 +1656,7 @@
 <span class="sd">            Gives name of created B-factor re-colored PDB for each epitope.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">min_times_seen</span><span class="o">=</span><span class="n">min_times_seen</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">metric</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">}):</span>
             <span class="n">metric_col</span> <span class="o">=</span> <span class="n">metric</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chains</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">chains</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1551,11 +1683,13 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result_files</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;PDB file&quot;</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Polyclonal.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Polyclonal.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Line plots of mutation escape :math:`\beta_{m,e}` at each site.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        min_times_seen : int</span>
+<span class="sd">            Value passed to :meth:`Polyclonal.mut_escape_site_summary_df`.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`.</span>
 
@@ -1565,9 +1699,13 @@
 <span class="sd">            Interactive plot.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mut_escape_site_summary_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mut_escape_site_summary_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span>
+            <span class="n">min_times_seen</span><span class="o">=</span><span class="n">min_times_seen</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="s2">&quot;epitope_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;epitope_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
+        <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_lineplot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Polyclonal.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1589,15 +1727,26 @@
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;epitope_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
         <span class="k">if</span> <span class="s2">&quot;alphabet&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Polyclonal.filter_variants_by_seen_muts"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts">[docs]</a>    <span class="k">def</span> <span class="nf">filter_variants_by_seen_muts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="n">subs_col</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Polyclonal.filter_variants_by_seen_muts"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts">[docs]</a>    <span class="k">def</span> <span class="nf">filter_variants_by_seen_muts</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">variants_df</span><span class="p">,</span>
+        <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">subs_col</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Remove variants that contain mutations not seen during model fitting.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        variants_df : pandas.DataFrame</span>
 <span class="sd">            Contains variants as rows.</span>
+<span class="sd">        min_times_seen : int</span>
+<span class="sd">            Require mutations to be seen &gt;= this many times in data used to fit model.</span>
+<span class="sd">        subs_col : str</span>
+<span class="sd">            Column in `variants_df` with mutations in each variant.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1614,8 +1763,17 @@
         <span class="k">if</span> <span class="n">filter_col</span> <span class="ow">in</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`variants_df` cannot have column </span><span class="si">{</span><span class="n">filter_col</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">min_times_seen</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">allowed_muts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">allowed_muts</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">m</span> <span class="k">for</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="n">min_times_seen</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot use </span><span class="si">{</span><span class="n">min_times_seen</span><span class="si">=}</span><span class="s2"> without data to fit&quot;</span><span class="p">)</span>
+
         <span class="n">variants_df</span><span class="p">[</span><span class="n">filter_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">variants_df</span><span class="p">[</span><span class="n">subs_col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
+            <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">allowed_muts</span><span class="p">)</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">(</span>
@@ -1818,7 +1976,11 @@
             <span class="n">allowed_subs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">,</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">all_subs</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span>
+        <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">all_subs</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Different mutations in BinaryMap and self:&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">bmap</span><span class="o">.</span><span class="n">all_subs</span><span class="si">=}</span><span class="se">\n</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="si">=}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">bmap</span>
 
 <div class="viewcode-block" id="Polyclonal.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
@@ -1996,6 +2158,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

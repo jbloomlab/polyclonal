@@ -54,6 +54,17 @@
 <span class="go">(&#39;A&#39;, 5, &#39;G&#39;)</span>
 </pre></div>
 </div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s1">&#39;K7-&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">invalid mutation K7-</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_gap</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span><span class="n">AAS_WITHGAP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_gap</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s1">&#39;K7-&#39;</span><span class="p">)</span>
+<span class="go">(&#39;K&#39;, 7, &#39;-&#39;)</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.utils.MutationParser.parse_mut">
 <span class="sig-name descname"><span class="pre">parse_mut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#MutationParser.parse_mut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.MutationParser.parse_mut" title="Permalink to this definition">¶</a></dt>

@@ -114,8 +114,8 @@
 <span class="sd">    epitopes : array-like or None</span>
 <span class="sd">        Include these epitopes in this order. If `None`, use all epitopes</span>
 <span class="sd">        in order found in ``activity_wt_df``.</span>
-<span class="sd">    stat : str or array-like</span>
-<span class="sd">        Statistic in `activity_wt_df` to plot as activity, or list of dropdown options.</span>
+<span class="sd">    stat : str</span>
+<span class="sd">        Statistic in `activity_wt_df` to plot as activity.</span>
 <span class="sd">    error_stat : str or None</span>
 <span class="sd">        Statistic in `activity_wt_df` to plot as error for bars.</span>
 <span class="sd">    width : float</span>
@@ -134,56 +134,34 @@
     <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid entries in `epitopes`&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">activity_wt_df</span>
-        <span class="n">stat_selection</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2"> not all in </span><span class="si">{</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
-            <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
-            <span class="n">value_vars</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span>
-            <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;statistic&quot;</span><span class="p">,</span>
-            <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">stat_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span>
-            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;statistic&quot;</span><span class="p">],</span>
-            <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;statistic&quot;</span><span class="p">:</span> <span class="n">stat</span><span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
-            <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;statistic&quot;</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="n">stat</span> <span class="o">=</span> <span class="s2">&quot;activity&quot;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">error_stat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">error_stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">error_stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="p">{</span><span class="s2">&quot;_upper&quot;</span><span class="p">,</span> <span class="s2">&quot;_lower&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">[[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">error_stat</span><span class="p">]])</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
             <span class="n">_lower</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="n">error_stat</span><span class="p">],</span>
             <span class="n">_upper</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="n">error_stat</span><span class="p">],</span>
         <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">activity_wt_df</span>
 
-    <span class="n">baseplot</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-            <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">epitopes</span><span class="p">),</span>
-            <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
-                <span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
-                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
-                    <span class="n">domain</span><span class="o">=</span><span class="n">epitopes</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]</span>
-                <span class="p">),</span>
-                <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">baseplot</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">epitopes</span><span class="p">),</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
+            <span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span>
+                <span class="n">domain</span><span class="o">=</span><span class="n">epitopes</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]</span>
             <span class="p">),</span>
-            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
-                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span> <span class="k">else</span> <span class="n">c</span>
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
-                <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_upper&quot;</span><span class="p">,</span> <span class="s2">&quot;_lower&quot;</span><span class="p">]</span>
-            <span class="p">],</span>
-        <span class="p">)</span>
-        <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">height_per_bar</span><span class="p">})</span>
+            <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span> <span class="k">else</span> <span class="n">c</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_upper&quot;</span><span class="p">,</span> <span class="s2">&quot;_lower&quot;</span><span class="p">]</span>
+        <span class="p">],</span>
     <span class="p">)</span>
 
     <span class="n">barplot</span> <span class="o">=</span> <span class="n">baseplot</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">stat</span><span class="p">))</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">(</span>
@@ -197,23 +175,23 @@
             <span class="p">)</span><span class="o">.</span><span class="n">mark_rule</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">stat_selection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">barplot</span> <span class="o">=</span> <span class="n">barplot</span><span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">stat_selection</span><span class="p">)</span><span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">stat_selection</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">barplot</span><span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">barplot</span><span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">height_per_bar</span><span class="p">}</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.mut_escape_lineplot">[docs]</a><span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">mut_escape_site_summary_df</span><span class="p">,</span>
     <span class="n">bootstrapped_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">addtl_tooltip_stats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">epitope_colors</span><span class="p">,</span>
     <span class="n">epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">share_ylims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span>
-    <span class="n">init_metric</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">init_metric</span><span class="o">=</span><span class="s2">&quot;total positive&quot;</span><span class="p">,</span>
     <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Line plots of mutation escape :math:`\beta_{m,e}` at each site.</span>
@@ -226,6 +204,8 @@
 <span class="sd">    bootstrapped_data : bool</span>
 <span class="sd">        `mut_escape_site_summary_df` is from a bootstrapped model,</span>
 <span class="sd">        :class:`polyclonal.polyclonal_collection.PolyclonalCollection`.</span>
+<span class="sd">    addtl_tooltip_stats : list or None</span>
+<span class="sd">        Additional mutation-level stats to show in tooltip.</span>
 <span class="sd">    epitope_colors : dict</span>
 <span class="sd">        Maps each epitope name to its color.</span>
 <span class="sd">    epitopes : array-like or None</span>
@@ -261,46 +241,15 @@
         <span class="n">escape_metrics</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">escape_metrics</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">}</span>
+            <span class="n">m</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;n mutations&quot;</span><span class="p">}</span>
         <span class="p">]</span>
 
-    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">all_sites</span><span class="p">:</span>
-        <span class="n">sites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sites</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-
-    <span class="c1"># fill any missing sites</span>
     <span class="k">if</span> <span class="n">bootstrapped_data</span><span class="p">:</span>
-        <span class="n">fill_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">epitopes</span><span class="p">,</span> <span class="n">escape_metrics</span><span class="p">),</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">fill_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">epitopes</span><span class="p">),</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">fill_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">bootstrapped_data</span><span class="p">:</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
-            <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span>
-                <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;site&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;metric&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;std&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;frac_bootstrap_replicates&quot;</span><span class="p">,</span>
-            <span class="p">],</span>
-            <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">],</span>
-            <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;statistic&quot;</span><span class="p">,</span>
-            <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">statistic_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span>
-            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;statistic&quot;</span><span class="p">],</span>
-            <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;statistic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()),</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bootstrap&quot;</span><span class="p">,</span>
-            <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;statistic&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;statistic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()[</span><span class="mi">0</span><span class="p">]},</span>
-        <span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="s2">&quot;statistic&quot;</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;escape_mean&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span><span class="p">})[</span>
+            <span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="s2">&quot;escape&quot;</span><span class="p">]</span>
+        <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
             <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">],</span>
@@ -308,17 +257,36 @@
             <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
             <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">]</span>
+
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">all_sites</span><span class="p">:</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sites</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># fill any missing sites</span>
+    <span class="n">fill_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">epitopes</span><span class="p">,</span> <span class="n">escape_metrics</span><span class="p">),</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">fill_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
-        <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
 
-    <span class="n">metric_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span>
+    <span class="k">if</span> <span class="n">init_metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">init_metric</span><span class="si">=}</span><span class="se">\n</span><span class="s2">options: </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">metric_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
         <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">],</span>
         <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">escape_metrics</span><span class="p">),</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
-        <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">init_metric</span><span class="p">},</span>
+        <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">init_metric</span><span class="p">}],</span>
+    <span class="p">)</span>
+
+    <span class="n">line_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;show_line&quot;</span><span class="p">],</span>
+        <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;show_line&quot;</span><span class="p">),</span>
+        <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;show_line&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}],</span>
     <span class="p">)</span>
 
     <span class="n">zoom_brush</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_interval</span><span class="p">(</span>
@@ -326,10 +294,10 @@
         <span class="n">mark</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">BrushConfig</span><span class="p">(</span><span class="n">stroke</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">strokeWidth</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">zoom_bar</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">())</span>
         <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;site:O&quot;</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
         <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
             <span class="n">width</span><span class="o">=</span><span class="n">zoom_bar_width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
@@ -337,8 +305,10 @@
         <span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="n">site_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection</span><span class="p">(</span>
-        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">],</span> <span class="n">empty</span><span class="o">=</span><span class="s2">&quot;none&quot;</span>
+    <span class="n">site_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+        <span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">],</span>
+        <span class="n">empty</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># add error ranges</span>
@@ -347,7 +317,7 @@
             <span class="n">mut_escape_site_summary_df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
                 <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span>
                 <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
-                <span class="n">values</span><span class="o">=</span><span class="s2">&quot;std&quot;</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="s2">&quot;escape_std&quot;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
             <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">epitope</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> error&quot;</span> <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">})</span>
@@ -363,33 +333,76 @@
             <span class="n">df</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> error&quot;</span><span class="p">]</span>
         <span class="c1"># selection to show error bars</span>
         <span class="n">df</span><span class="p">[</span><span class="s2">&quot;error_bars&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">error_bar_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span>
+        <span class="n">error_bar_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
             <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;error_bars&quot;</span><span class="p">],</span>
-            <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;error_bars&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">init</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;error_bars&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}],</span>
             <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;show_error&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
-    <span class="c1"># add wildtypes and potential frac_bootstrap_replicates</span>
-    <span class="n">addtl_tooltips</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">bootstrapped_data</span><span class="p">:</span>
-        <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;frac_bootstrap_replicates&quot;</span><span class="p">)</span>
-        <span class="n">addtl_tooltips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;frac_bootstrap_replicates&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">))</span>
+    <span class="c1"># add wildtypes</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-        <span class="n">mut_escape_site_summary_df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(),</span>
+        <span class="n">mut_escape_site_summary_df</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(),</span>
         <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
         <span class="n">on</span><span class="o">=</span><span class="s2">&quot;site&quot;</span><span class="p">,</span>
         <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
+    <span class="c1"># add any additional tooltips</span>
+    <span class="n">addtl_tooltips</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">addtl_tooltip_stats</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">addtl_tooltip_stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mut_escape_site_summary_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;`addtl_tooltip_stat` </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> not in `mut_escape_site_summary_df`&quot;</span>
+                <span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                <span class="n">mut_escape_site_summary_df</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(),</span>
+                <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                <span class="n">on</span><span class="o">=</span><span class="s2">&quot;site&quot;</span><span class="p">,</span>
+                <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">addtl_tooltips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mut_escape_site_summary_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span>
+                <span class="k">else</span> <span class="n">c</span>
+            <span class="p">)</span>
+
+    <span class="c1"># add selection for minimum **absolute value** of metrics</span>
+    <span class="c1"># first add column that gives the percent of the max for each metric and statistic</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+                <span class="n">id_vars</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
+                <span class="n">value_vars</span><span class="o">=</span><span class="n">epitopes</span><span class="p">,</span>
+                <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+                <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">_max</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">percent_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;_max&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">),</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">],</span>
+        <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}],</span>
+        <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_range</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
     <span class="n">charts</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">base_all</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
-            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;site:O&quot;</span><span class="p">),</span>
-            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;wildtype:N&quot;</span><span class="p">),</span>
-            <span class="o">*</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">],</span>
-            <span class="o">*</span><span class="n">addtl_tooltips</span><span class="p">,</span>
-        <span class="p">],</span>
+    <span class="n">base_all</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">transform_calculate</span><span class="p">(</span><span class="n">show_line</span><span class="o">=</span><span class="s2">&quot;true&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;site:O&quot;</span><span class="p">),</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;wildtype:N&quot;</span><span class="p">),</span>
+                <span class="o">*</span><span class="p">[</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">],</span>
+                <span class="o">*</span><span class="n">addtl_tooltips</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
         <span class="n">base</span> <span class="o">=</span> <span class="n">base_all</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
@@ -400,12 +413,15 @@
             <span class="p">),</span>
             <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="c1"># in case some sites missing values, background thin transparent</span>
-        <span class="c1"># over which we put darker foreground for measured points</span>
-        <span class="n">background</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span>
-            <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span>
+        <span class="c1"># in case some sites missing values, we need foreground and background</span>
+        <span class="n">background</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">base</span><span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">line_selection</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
         <span class="p">)</span>
-        <span class="n">foreground</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
+        <span class="n">foreground</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_line</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">line_selection</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+        <span class="p">)</span>
         <span class="n">foreground_circles</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">base</span><span class="o">.</span><span class="n">mark_circle</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">])</span>
             <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
@@ -414,7 +430,7 @@
                     <span class="n">site_selector</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
                 <span class="p">),</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">site_selector</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">site_selector</span><span class="p">,</span> <span class="n">line_selection</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">bootstrapped_data</span><span class="p">:</span>
             <span class="n">error_bars</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
@@ -430,9 +446,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">combined</span> <span class="o">=</span> <span class="n">background</span> <span class="o">+</span> <span class="n">foreground</span> <span class="o">+</span> <span class="n">foreground_circles</span>
         <span class="n">charts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">combined</span><span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">metric_selection</span><span class="p">)</span>
+            <span class="n">combined</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">metric_selection</span><span class="p">)</span>
             <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">metric_selection</span><span class="p">)</span>
             <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="o">.</span><span class="n">percent_max</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="o">.</span><span class="n">percent_max_cutoff</span><span class="p">)</span>
             <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">TitleParams</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span>
@@ -442,11 +459,7 @@
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">bootstrapped_data</span><span class="p">:</span>
-            <span class="n">charts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">charts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">statistic_selection</span><span class="p">,</span> <span class="n">error_bar_selection</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">statistic_selection</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">charts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">charts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">error_bar_selection</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">alt</span><span class="o">.</span><span class="n">vconcat</span><span class="p">(</span>
@@ -458,7 +471,7 @@
             <span class="p">),</span>
             <span class="n">spacing</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">padding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;top&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;bottom&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+        <span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">padding</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s2">&quot;top&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;bottom&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
         <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelOverlap</span><span class="o">=</span><span class="s2">&quot;parity&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">configure_title</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
     <span class="p">)</span></div>
@@ -473,12 +486,12 @@
     <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
     <span class="n">error_stat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">addtl_tooltip_stats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">all_sites</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">all_alphabet</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">floor_color_at_zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">share_heatmap_lims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">cell_size</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
+    <span class="n">cell_size</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
     <span class="n">zoom_bar_width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">init_min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.</span>
 
@@ -493,15 +506,12 @@
 <span class="sd">        Maps each epitope name to its color.</span>
 <span class="sd">    epitopes : array-like or None</span>
 <span class="sd">        Make plots for these epitopes. If `None`, use all epitopes.</span>
-<span class="sd">    stat : str or array-like</span>
-<span class="sd">        Statistic in `mut_escape_df` to plot as escape, or list of dropdown options.</span>
+<span class="sd">    stat : str</span>
+<span class="sd">        Statistic in `mut_escape_df` to plot as escape.</span>
 <span class="sd">    error_stat : str or None</span>
 <span class="sd">        Measure of error to display in tooltip.</span>
 <span class="sd">    addtl_tooltip_stats : list or None</span>
 <span class="sd">        Additional mutation-level stats to show in tooltip.</span>
-<span class="sd">    all_sites : bool</span>
-<span class="sd">        Plot all sites in range from first to last site even if some</span>
-<span class="sd">        have no data.</span>
 <span class="sd">    all_alphabet : bool</span>
 <span class="sd">        Plot all letters in the alphabet (e.g., amino acids) even if some</span>
 <span class="sd">        have no data.</span>
@@ -516,6 +526,9 @@
 <span class="sd">        Size of cells in heatmap.</span>
 <span class="sd">    zoom_bar_width : float</span>
 <span class="sd">        Width of zoom bar</span>
+<span class="sd">    init_min_times_seen : int</span>
+<span class="sd">        Initial cutoff for minimum times a mutation must be seen slider. Slider</span>
+<span class="sd">        only shown if &#39;times_seen&#39; in `addtl_tooltip_stats`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -528,9 +541,12 @@
     <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid entries in `epitopes`&quot;</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mut_escape_df</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="n">df</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;epitope in @epitopes&quot;</span><span class="p">)</span>
 
-    <span class="c1"># get alphabet and sites, expanding to all if needed</span>
+    <span class="c1"># get alphabet</span>
     <span class="n">extrachars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">extrachars</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -538,94 +554,64 @@
         <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">all_alphabet</span><span class="p">:</span>
         <span class="n">alphabet</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">alphabet</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">])]</span>
-    <span class="n">sites</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">all_sites</span><span class="p">:</span>
-        <span class="n">sites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sites</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-
-    <span class="n">wts</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stat</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">]</span>  <span class="c1"># for later pivoting</span>
-        <span class="n">product_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">sites</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">]</span>  <span class="c1"># for later filling gaps</span>
-        <span class="n">stat_selection</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
-            <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stat</span><span class="p">],</span>
-            <span class="n">value_vars</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span>
-            <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;statistic&quot;</span><span class="p">,</span>
-            <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;statistic&quot;</span><span class="p">]</span>  <span class="c1"># for later pivoting</span>
-        <span class="n">product_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">sites</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">,</span> <span class="n">stat</span><span class="p">]</span>  <span class="c1"># for later filling gaps</span>
-        <span class="n">stat_selection</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span>
-            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;statistic&quot;</span><span class="p">],</span>
-            <span class="n">init</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;statistic&quot;</span><span class="p">:</span> <span class="n">stat</span><span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
-            <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_select</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;statistic&quot;</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="n">stat</span> <span class="o">=</span> <span class="s2">&quot;escape&quot;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">stat</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># get labels for escape to show on tooltips, potentially with error</span>
     <span class="k">if</span> <span class="n">error_stat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">error_stat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">error_stat</span><span class="si">=}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">label_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-            <span class="n">label</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-                <span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> +/- </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">error_stat</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">label_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> +/- </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">error_stat</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">)</span>
+            <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+                <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span>
+                <span class="n">values</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+                <span class="n">aggfunc</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> epitope&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">})</span>
         <span class="p">)</span>
+        <span class="n">escape_tooltips</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> epitope&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">label_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">stat</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
-    <span class="n">label_df</span> <span class="o">=</span> <span class="n">label_df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
-        <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
-        <span class="n">values</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span>
-        <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
-        <span class="n">aggfunc</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> epitope&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">})</span>
+        <span class="n">escape_tooltips</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2f&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span>
+        <span class="p">]</span>
 
-    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">)</span>
+    <span class="c1"># add mutation labels and wildtypes</span>
+    <span class="n">wts</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">values</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">wt_df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">wts</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">rename_axis</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="s2">&quot;mutant&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-                <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">product_cols</span><span class="p">),</span>
-                <span class="n">columns</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">how</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-            <span class="n">wildtype</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">wts</span><span class="p">),</span>
-            <span class="n">mutation</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
-                <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span>
-            <span class="p">),</span>
-            <span class="c1"># mark wildtype cells with a `x`</span>
-            <span class="n">wildtype_char</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-                <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
-            <span class="p">),</span>
-        <span class="p">)</span>
-        <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">label_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">})</span>
     <span class="p">)</span>
-    <span class="c1"># wildtype has escape of 0 by definition</span>
-    <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">label_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">label_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">label_col</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">],</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">error_stat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">label_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span>
+        <span class="p">)</span>
+        <span class="n">wt_df</span> <span class="o">=</span> <span class="n">wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">})</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">wt_df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="n">mutation</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">wts</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]),</span>
+        <span class="n">is_wildtype</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">wts</span><span class="p">)</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
 
     <span class="c1"># zoom bar to put at top</span>
     <span class="n">zoom_brush</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_interval</span><span class="p">(</span>
         <span class="n">encodings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">mark</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">BrushConfig</span><span class="p">(</span><span class="n">stroke</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">strokeWidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">zoom_bar</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">())</span>
         <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;site:O&quot;</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
         <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
             <span class="n">width</span><span class="o">=</span><span class="n">zoom_bar_width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
@@ -643,23 +629,79 @@
             <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
             <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">add_tooltips</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2g&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">mut_escape_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span> <span class="k">else</span> <span class="n">c</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">addtl_tooltip_stats</span>
-        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">addtl_tooltip_stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s2">&quot;times_seen&quot;</span><span class="p">:</span>
+                <span class="n">add_tooltips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.2g&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">mut_escape_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span>
+                    <span class="k">else</span> <span class="n">c</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># we must handle &#39;times_seen&#39; differently to make it work with slider</span>
+                <span class="c1"># for wildtype values, where it is assigned a dummy value below</span>
+                <span class="n">add_tooltips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;times seen&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">addtl_tooltip_stats</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="n">addtl_tooltip_stats</span><span class="p">:</span>
+        <span class="c1"># set times seen for wildtype to max at site for slider to work</span>
+        <span class="n">site_max_times_seen</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">times_seen</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">site_max_times_seen</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;is_wildtype&quot;</span><span class="p">]</span>
+                <span class="k">else</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">],</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;is_wildtype&quot;</span><span class="p">],</span> <span class="s2">&quot;na&quot;</span><span class="p">)</span>
+        <span class="c1"># make selection slider, max is greater of median or mean across variants</span>
+        <span class="n">times_seen_cutoff</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">],</span>
+            <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;times_seen&quot;</span><span class="p">:</span> <span class="n">init_min_times_seen</span><span class="p">}],</span>
+            <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_range</span><span class="p">(</span>
+                <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="nb">max</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">(),</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())),</span>
+                <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;min_times_seen&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">times_seen_cutoff</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># select cells</span>
-    <span class="n">cell_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_single</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span> <span class="n">empty</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
+    <span class="n">cell_selector</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;mouseover&quot;</span><span class="p">,</span> <span class="n">empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># add selection for minimum  **absolute value** of escape maxed across site</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="n">_epitope_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">epitopes</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">_site_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)[</span><span class="s2">&quot;_epitope_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">),</span>
+        <span class="n">percent_max</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_site_max&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">],</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_max&quot;</span><span class="p">,</span> <span class="s2">&quot;_epitope_max&quot;</span><span class="p">,</span> <span class="s2">&quot;_site_max&quot;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">),</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;percent_max&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">percent_max_cutoff</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">],</span>
+        <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}],</span>
+        <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_range</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;percent_max_cutoff&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="c1"># make list of heatmaps for each epitope</span>
     <span class="n">charts</span> <span class="o">=</span> <span class="p">[</span><span class="n">zoom_bar</span><span class="p">]</span>
     <span class="c1"># base chart</span>
     <span class="n">base</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
         <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;site:O&quot;</span><span class="p">),</span>
-        <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;mutant:O&quot;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">alphabet</span><span class="p">),</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;mutant:O&quot;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">alphabet</span><span class="p">)),</span>
     <span class="p">)</span>
+    <span class="c1"># for inexplicable reason, this dummy chart is needed below for coloring to work</span>
+    <span class="n">dummy</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s2">&quot;dummy:N&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+    <span class="c1"># wildtype marks</span>
+    <span class="n">wildtype</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="o">.</span><span class="n">is_wildtype</span><span class="p">)</span><span class="o">.</span><span class="n">mark_text</span><span class="p">(</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># now make heatmaps</span>
     <span class="k">for</span> <span class="n">epitope</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">:</span>
-        <span class="c1"># heatmap for cells with data</span>
         <span class="k">if</span> <span class="n">share_heatmap_lims</span><span class="p">:</span>
             <span class="n">vals</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">epitopes</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span>
         <span class="k">else</span><span class="p">:</span>
@@ -692,27 +734,16 @@
             <span class="p">),</span>
             <span class="n">stroke</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">),</span>
             <span class="n">strokeWidth</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">condition</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mf">2.5</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)),</span>
-            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> epitope:N&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">epitopes</span><span class="p">]</span> <span class="o">+</span> <span class="n">add_tooltips</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="c1"># nulls for cells with missing data</span>
-        <span class="n">nulls</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">base</span><span class="o">.</span><span class="n">mark_rect</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;!isValid(datum[&#39;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2">&#39;])&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">mark_rect</span><span class="p">(</span><span class="n">opacity</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-                <span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">:N&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;greys&quot;</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="c1"># mark wildtype cells</span>
-        <span class="n">wildtype</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">mark_text</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
-            <span class="n">text</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;wildtype_char:N&quot;</span><span class="p">)</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">escape_tooltips</span> <span class="o">+</span> <span class="n">add_tooltips</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># combine the elements</span>
         <span class="n">charts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">heatmap</span> <span class="o">+</span> <span class="n">nulls</span> <span class="o">+</span> <span class="n">wildtype</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">heatmap</span> <span class="o">+</span> <span class="n">dummy</span> <span class="o">+</span> <span class="n">wildtype</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">cell_selector</span><span class="p">,</span> <span class="n">percent_max_cutoff</span><span class="p">)</span>
             <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">zoom_brush</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="o">.</span><span class="n">percent_max</span> <span class="o">&gt;=</span> <span class="n">percent_max_cutoff</span><span class="o">.</span><span class="n">percent_max_cutoff</span>
+            <span class="p">)</span>
             <span class="o">.</span><span class="n">properties</span><span class="p">(</span>
                 <span class="n">title</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">TitleParams</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epitope</span><span class="si">}</span><span class="s2"> epitope&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">epitope</span><span class="p">]</span>
@@ -721,11 +752,11 @@
                 <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">cell_size</span><span class="p">},</span>
             <span class="p">)</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">stat_selection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">times_seen_cutoff</span><span class="p">:</span>
             <span class="n">charts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">charts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="o">.</span><span class="n">add_selection</span><span class="p">(</span><span class="n">stat_selection</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">stat_selection</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">times_seen_cutoff</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="o">.</span><span class="n">times_seen</span> <span class="o">&gt;=</span> <span class="n">times_seen_cutoff</span><span class="o">.</span><span class="n">times_seen</span><span class="p">)</span>
             <span class="p">)</span>
 
     <span class="n">chart</span> <span class="o">=</span> <span class="p">(</span>
@@ -735,6 +766,7 @@
         <span class="p">)</span>
         <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">labelOverlap</span><span class="o">=</span><span class="s2">&quot;parity&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">configure_title</span><span class="p">(</span><span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">fontSize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">configure_view</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">fillOpacity</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">chart</span></div>

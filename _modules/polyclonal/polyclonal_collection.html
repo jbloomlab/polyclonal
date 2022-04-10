@@ -247,28 +247,6 @@
     <span class="k">return</span> <span class="n">polyclonal_obj</span>
 
 
-<span class="k">def</span> <span class="nf">_prob_escape_static</span><span class="p">(</span><span class="n">polyclonal_obj</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Make escape probability predictions for a dataframe of variants, given a</span>
-<span class="sd">    polyclonal object.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    polyclonal_obj : :class:`~polyclonal.polyclonal.Polyclonal`</span>
-<span class="sd">        A :class:`~polyclonal.polyclonal.Polyclonal` object to make predictions with.</span>
-
-<span class="sd">    variants_df : pandas.DataFrame</span>
-<span class="sd">        A dataframe of variants to predict escape probabilities for.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    variants_df : pandas.DataFrame</span>
-<span class="sd">        A dataframe of the variants from the input data and corresponding</span>
-<span class="sd">        predictions for escape probabilities.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">polyclonal_obj</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">)</span>
-
-
 <div class="viewcode-block" id="PolyclonalCollection"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalCollection</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A container class for multiple :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
 
@@ -401,13 +379,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
             <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
-            <span class="n">mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
-            <span class="n">median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
-            <span class="n">std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+            <span class="n">activity_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+            <span class="n">activity_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="PolyclonalCollection.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Bar plot of epitope activities summarized (mean, median) across replicates.</span>
+        <span class="sd">&quot;&quot;&quot;Bar plot of epitope activities mean across replicates.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -423,17 +400,17 @@
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">activity_wt_barplot</span><span class="p">(</span>
             <span class="n">activity_wt_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">,</span>
             <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
-            <span class="n">stat</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">],</span>
-            <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;std&quot;</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;activity_mean&quot;</span><span class="p">,</span>
+            <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;activity_std&quot;</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape values for replicates.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape by replicate.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;times_seen&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="p">],</span>
@@ -442,7 +419,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape values summarized across replicates.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape summarized across replicates.&quot;&quot;&quot;</span>
         <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
@@ -450,26 +427,24 @@
                 <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
-                <span class="n">mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
-                <span class="n">median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
-                <span class="n">std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+                <span class="n">escape_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+                <span class="n">escape_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
                 <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
                 <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
+                <span class="n">times_seen</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">mutations_times_seen</span>
+                <span class="p">),</span>
             <span class="p">)</span>
+            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">)</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="PolyclonalCollection.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frac_bootstrap_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Heatmaps of mutation escape values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        min_frac_bootstrap_replicates : None or float</span>
-<span class="sd">            Only plot values for mutations found in &gt;= this fraction of bootstrap</span>
-<span class="sd">            replicates. Will remove mutations that are rare. ~0.7 will remove</span>
-<span class="sd">            most mutations seen only once, ~0.9 will remove most mutations</span>
-<span class="sd">            seen only twice.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`</span>
 
@@ -479,71 +454,118 @@
 <span class="sd">            Interactive heat maps.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span>
-        <span class="k">if</span> <span class="n">min_frac_bootstrap_replicates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;frac_bootstrap_replicates &gt;= @min_frac_bootstrap_replicates&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span>
-            <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
+            <span class="n">mut_escape_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">,</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
             <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
-            <span class="n">stat</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">],</span>
-            <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;std&quot;</span><span class="p">,</span>
-            <span class="n">addtl_tooltip_stats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frac_bootstrap_replicates&quot;</span><span class="p">],</span>
+            <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;escape_mean&quot;</span><span class="p">,</span>
+            <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;escape_std&quot;</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Site-level summaries of mutation escape for replicates.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_site_summary_df_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape for replicates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments to</span>
+<span class="sd">            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
+<span class="sd">            Note that `min_times_seen` refers to times seen in full data set,</span>
+<span class="sd">            not individual bootstrap replicates.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;min_times_seen&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">whitelist</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">mut</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">mut</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_times_seen&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_times_seen&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;mutation_whitelist&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mutation_whitelist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">whitelist</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mutation_list&quot;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mutation_whitelist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">whitelist</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n mutations&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="p">],</span>
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Site summaries of mutation escape across replicates.</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_site_summary_df"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape across replicates.</span>
 
-<span class="sd">        The different site-summary metrics (&#39;mean&#39;, &#39;total positive&#39;, etc) are</span>
-<span class="sd">        in different rows for each site and epitope. The &#39;n_bootstrap_replicates&#39;</span>
-<span class="sd">        and &#39;frac_bootstrap_replicates&#39; columns refer to bootstrap replicates</span>
-<span class="sd">        with measurements for any mutation at that site.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments to</span>
+<span class="sd">            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
+<span class="sd">            Note that `min_times_seen` refers to times seen in full data set,</span>
+<span class="sd">            not individual bootstrap replicates.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            The different site-summary metrics (&#39;mean&#39;, &#39;total positive&#39;, etc) are</span>
+<span class="sd">            in different rows for each site and epitope. The &#39;frac_bootstrap_replicates&#39;</span>
+<span class="sd">            columns refer to bootstrap replicates with measurements for any mutation</span>
+<span class="sd">            at that site.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df_replicates</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">melt</span><span class="p">(</span>
                 <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">],</span>
                 <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
                 <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
-                <span class="n">mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
-                <span class="n">median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
-                <span class="n">std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+                <span class="n">escape_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+                <span class="n">escape_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
                 <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
                 <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="p">)</span>
+            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span>
+                    <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(),</span>
+                <span class="n">on</span><span class="o">=</span><span class="s2">&quot;site&quot;</span><span class="p">,</span>
+                <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PolyclonalCollection.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frac_bootstrap_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">mut_escape_site_summary_df_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">mut_escape_lineplot_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Line plots of mutation escape at each site.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        min_frac_bootstrap_replicates : None or float</span>
-<span class="sd">            Only plot values for sites with a measurement in &gt;= this fraction of</span>
-<span class="sd">            bootstra replicates. Will remove mutations that are rare. ~0.7 will remove</span>
-<span class="sd">            most mutations seen only once, ~0.9 will remove most mutations</span>
-<span class="sd">            seen only twice.</span>
-<span class="sd">        **kwargs</span>
-<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`</span>
+<span class="sd">        mut_escape_site_summary_df_kwargs : dict</span>
+<span class="sd">            Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.</span>
+<span class="sd">            It is often useful to set `times_seen` to &gt;1.</span>
+<span class="sd">        mut_escape_lineplot_kwargs : dict</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -551,73 +573,174 @@
 <span class="sd">            Interactive heat maps.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span>
-        <span class="k">if</span> <span class="n">min_frac_bootstrap_replicates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;frac_bootstrap_replicates &gt;= @min_frac_bootstrap_replicates&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mut_escape_site_summary_df_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mut_escape_site_summary_df_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">mut_escape_lineplot_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mut_escape_lineplot_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mut_escape_lineplot_kwargs</span><span class="p">:</span>
+            <span class="n">mut_escape_lineplot_kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">mut_escape_site_summary_df_kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_lineplot</span><span class="p">(</span>
             <span class="n">mut_escape_site_summary_df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
             <span class="n">bootstrapped_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">mut_escape_lineplot_kwargs</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PolyclonalCollection.make_predictions"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.make_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">make_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Make predictions on variants for models that have parameters for</span>
-<span class="sd">        present mutations.</span>
-<span class="sd">        Aggregate and return these predictions into a single data frame.</span>
+<div class="viewcode-block" id="PolyclonalCollection.icXX_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">icXX_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Concentration at which a given fraction is neutralized (eg, IC50) for</span>
+<span class="sd">        all replicates.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        variants_df : pandas.DataFrame</span>
 <span class="sd">            Data frame defining variants. Should have column named</span>
-<span class="sd">            ‘aa_substitutions’ that defines variants as space-delimited strings</span>
-<span class="sd">            of substitutions (e.g., ‘M1A K3T’).</span>
+<span class="sd">            &#39;aa_substitutions&#39; that defines variants as space-delimited</span>
+<span class="sd">            strings of substitutions (e.g., &#39;M1A K3T&#39;).</span>
+<span class="sd">        **kwargs : Dictionary</span>
+<span class="sd">            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.icXX`</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        pred_dfs : list of pandas.DataFrame objects</span>
-<span class="sd">            For each model in the `PolyclonalCollection`, generates a dataframe</span>
-<span class="sd">            of predictions on `variants_df` and returns them in a list.</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Copy of ``variants_df`` with added column ``col`` containing icXX,</span>
+<span class="sd">            and ``bootstrap_replicate`` containing model replicate number.</span>
+<span class="sd">            Variants with a mutation lacking in a particular bootstrapped model are</span>
+<span class="sd">            missing in that row.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-            <span class="n">pred_dfs</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span>
-                <span class="n">_prob_escape_static</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">variants_df</span><span class="p">))</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="n">pred_dfs</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">],</span>
+            <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PolyclonalCollection.summarize_bootstraped_predictions"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.summarize_bootstraped_predictions">[docs]</a>    <span class="k">def</span> <span class="nf">summarize_bootstraped_predictions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred_list</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Aggregate predictions from all eligible models.</span>
-<span class="sd">        Given a list of prediction dataframes, splits each variant up by each</span>
-<span class="sd">        mutation, and calculates summary statistics of escape predictions</span>
-<span class="sd">        associated with each mutation at each concentration.</span>
+<div class="viewcode-block" id="PolyclonalCollection.icXX"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX">[docs]</a>    <span class="k">def</span> <span class="nf">icXX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Summary statistics of the predicted concentration at which a given</span>
+<span class="sd">        fraction is neutralized across all replicates.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        pred_list : list of pandas.DataFrame objects</span>
+<span class="sd">        variants_df : pandas.DataFrame</span>
+<span class="sd">            Data frame defining variants. Should have column named</span>
+<span class="sd">            &#39;aa_substitutions&#39; that defines variants as space-delimited</span>
+<span class="sd">            strings of substitutions (e.g., &#39;M1A K3T&#39;).</span>
+<span class="sd">        **kwargs : Dictionary</span>
+<span class="sd">            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.icXX`</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        results_df : pandas.DataFrame</span>
-<span class="sd">            A dataframe of summary stats for predictions made from each model.</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Copy of ``variants_df`` with added column ``col`` containing icXX,</span>
+<span class="sd">            and summary stats for each variant across all models.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Combine all dataframes together</span>
-        <span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">pred_list</span><span class="p">)</span>
+        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;col&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="s2">&quot;IC50&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">icXX_replicates</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+                <span class="n">mean_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">],</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+                <span class="n">median_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">],</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
+                <span class="n">std_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">],</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+                <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;nunique&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">_IC&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
-        <span class="c1"># Define dictionary of data transformations we want to calculate.ß</span>
-        <span class="n">pred_summary_stats</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;mean_predicted_prob_escape&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
-            <span class="s2">&quot;median_predicted_prob_escape&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span>
-                <span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;std_predicted_prob_escape&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
-            <span class="s2">&quot;n_model_predictions&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
-        <span class="p">}</span>
+<div class="viewcode-block" id="PolyclonalCollection.prob_escape_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">prob_escape_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute predicted probability of escape :math:`p_v\left(c\right)`.</span>
 
-        <span class="k">return</span> <span class="n">results_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span> <span class="s2">&quot;concentration&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">**</span><span class="n">pred_summary_stats</span><span class="p">)</span></div></div>
+<span class="sd">        Uses all models to make predictions on ``variants_df``.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        variants_df : pandas.DataFrame</span>
+<span class="sd">            Input data frame defining variants. Should have a column</span>
+<span class="sd">            named &#39;aa_substitutions&#39; that defines variants as space-delimited</span>
+<span class="sd">            strings of substitutions (e.g., &#39;M1A K3T&#39;). Should also have a</span>
+<span class="sd">            column &#39;concentration&#39; if ``concentrations=None``.</span>
+<span class="sd">        **kwargs : Dictionary</span>
+<span class="sd">            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.prob_escape`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Version of ``variants_df`` with columns named &#39;concentration&#39;</span>
+<span class="sd">            and &#39;predicted_prob_escape&#39; giving predicted probability of escape</span>
+<span class="sd">            :math:`p_v\left(c\right)` for each variant at each concentration and</span>
+<span class="sd">            bootstrap replicate. Variants with a mutation lacking in a particular</span>
+<span class="sd">            bootstrapped model are missing in that row.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
+                    <span class="n">variants_df</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">),</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">],</span>
+            <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolyclonalCollection.prob_escape"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape">[docs]</a>    <span class="k">def</span> <span class="nf">prob_escape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute summary statistics for predicted probability of escape across</span>
+<span class="sd">        all replicate models.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        variants_df : pandas.DataFrame</span>
+<span class="sd">            Input data frame defining variants. Should have a column</span>
+<span class="sd">            named &#39;aa_substitutions&#39; that defines variants as space-delimited</span>
+<span class="sd">            strings of substitutions (e.g., &#39;M1A K3T&#39;). Should also have a</span>
+<span class="sd">            column &#39;concentration&#39; if ``concentrations=None``.</span>
+<span class="sd">        **kwargs : Dictionary</span>
+<span class="sd">            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.prob_escape`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Version of ``variants_df`` with columns named &#39;concentration&#39;</span>
+<span class="sd">            and &#39;mean&#39;, &#39;median&#39;, and &#39;std&#39; giving corresponding summary stats</span>
+<span class="sd">            of predicted probability of escape :math:`p_v\left(c\right)`</span>
+<span class="sd">            for each variant at each concentration across bootstrap replicates.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prob_escape_replicates</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+                <span class="n">mean_predicted_prob_escape</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+                <span class="n">median_predicted_prob_escape</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span>
+                    <span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">std_predicted_prob_escape</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+                <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;nunique&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>

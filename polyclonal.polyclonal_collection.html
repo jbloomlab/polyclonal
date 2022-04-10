@@ -15,6 +15,8 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="utils" href="polyclonal.utils.html" />
@@ -97,7 +99,7 @@ After fitting, if any models fail fitting they are set to <cite>None</cite>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">
 <span class="sig-name descname"><span class="pre">activity_wt_barplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.activity_wt_barplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bar plot of epitope activities summarized (mean, median) across replicates.</p>
+<dd><p>Bar plot of epitope activities mean across replicates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.activity_wt_barplot" title="polyclonal.plot.activity_wt_barplot"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.activity_wt_barplot()</span></code></a>.</p>
@@ -159,23 +161,51 @@ since models are initialized to “good” values from the root object.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.make_predictions">
-<span class="sig-name descname"><span class="pre">make_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.make_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.make_predictions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make predictions on variants for models that have parameters for
-present mutations.
-Aggregate and return these predictions into a single data frame.</p>
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.icXX">
+<span class="sig-name descname"><span class="pre">icXX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.icXX"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.icXX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summary statistics of the predicted concentration at which a given
+fraction is neutralized across all replicates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Data frame defining variants. Should have column named
-‘aa_substitutions’ that defines variants as space-delimited strings
-of substitutions (e.g., ‘M1A K3T’).</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Data frame defining variants. Should have column named
+‘aa_substitutions’ that defines variants as space-delimited
+strings of substitutions (e.g., ‘M1A K3T’).</p></li>
+<li><p><strong>**kwargs</strong> (<em>Dictionary</em>) – Keyword args for <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.icXX" title="polyclonal.polyclonal.Polyclonal.icXX"><code class="xref py py-func docutils literal notranslate"><span class="pre">icXX()</span></code></a></p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>pred_dfs</strong> – For each model in the <cite>PolyclonalCollection</cite>, generates a dataframe
-of predictions on <cite>variants_df</cite> and returns them in a list.</p>
+<dd class="field-even"><p>Copy of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> with added column <code class="docutils literal notranslate"><span class="pre">col</span></code> containing icXX,
+and summary stats for each variant across all models.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of pandas.DataFrame objects</p>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.icXX_replicates">
+<span class="sig-name descname"><span class="pre">icXX_replicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.icXX_replicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.icXX_replicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concentration at which a given fraction is neutralized (eg, IC50) for
+all replicates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Data frame defining variants. Should have column named
+‘aa_substitutions’ that defines variants as space-delimited
+strings of substitutions (e.g., ‘M1A K3T’).</p></li>
+<li><p><strong>**kwargs</strong> (<em>Dictionary</em>) – Keyword args for <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.icXX" title="polyclonal.polyclonal.Polyclonal.icXX"><code class="xref py py-func docutils literal notranslate"><span class="pre">icXX()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Copy of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> with added column <code class="docutils literal notranslate"><span class="pre">col</span></code> containing icXX,
+and <code class="docutils literal notranslate"><span class="pre">bootstrap_replicate</span></code> containing model replicate number.
+Variants with a mutation lacking in a particular bootstrapped model are
+missing in that row.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -183,7 +213,7 @@ of predictions on <cite>variants_df</cite> and returns them in a list.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_df</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mutation escape values summarized across replicates.</p>
+<dd><p>Mutation escape summarized across replicates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
@@ -194,7 +224,7 @@ of predictions on <cite>variants_df</cite> and returns them in a list.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df_replicates">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_df_replicates</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df_replicates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mutation escape values for replicates.</p>
+<dd><p>Mutation escape by replicate.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
@@ -204,17 +234,11 @@ of predictions on <cite>variants_df</cite> and returns them in a list.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">
-<span class="sig-name descname"><span class="pre">mut_escape_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_frac_bootstrap_replicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mut_escape_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heatmaps of mutation escape values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>min_frac_bootstrap_replicates</strong> (<em>None</em><em> or </em><em>float</em>) – Only plot values for mutations found in &gt;= this fraction of bootstrap
-replicates. Will remove mutations that are rare. ~0.7 will remove
-most mutations seen only once, ~0.9 will remove most mutations
-seen only twice.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a></p></li>
-</ul>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a></p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Interactive heat maps.</p>
@@ -227,16 +251,14 @@ seen only twice.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot">
-<span class="sig-name descname"><span class="pre">mut_escape_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_frac_bootstrap_replicates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_lineplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mut_escape_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_site_summary_df_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_lineplot_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_lineplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Line plots of mutation escape at each site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>min_frac_bootstrap_replicates</strong> (<em>None</em><em> or </em><em>float</em>) – Only plot values for sites with a measurement in &gt;= this fraction of
-bootstra replicates. Will remove mutations that are rare. ~0.7 will remove
-most mutations seen only once, ~0.9 will remove most mutations
-seen only twice.</p></li>
-<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a></p></li>
+<li><p><strong>mut_escape_site_summary_df_kwargs</strong> (<em>dict</em>) – Keyword args for <a class="reference internal" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df" title="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_site_summary_df()</span></code></a>.
+It is often useful to set <cite>times_seen</cite> to &gt;1.</p></li>
+<li><p><strong>mut_escape_lineplot_kwargs</strong> (<em>dict</em>) – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_lineplot" title="polyclonal.plot.mut_escape_lineplot"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_lineplot()</span></code></a></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -248,45 +270,97 @@ seen only twice.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
+<dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_site_summary_df</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Site summaries of mutation escape across replicates.</p>
-<p>The different site-summary metrics (‘mean’, ‘total positive’, etc) are
-in different rows for each site and epitope. The ‘n_bootstrap_replicates’
-and ‘frac_bootstrap_replicates’ columns refer to bootstrap replicates
-with measurements for any mutation at that site.</p>
+<span class="sig-name descname"><span class="pre">mut_escape_site_summary_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_site_summary_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Site-level summaries of mutation escape across replicates.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>pandas.DataFrame</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments to
+<span class="math notranslate nohighlight">\(~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df\)</span>.
+Note that <cite>min_times_seen</cite> refers to times seen in full data set,
+not individual bootstrap replicates.</p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_site_summary_df_replicates</span></span><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Site-level summaries of mutation escape for replicates.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The different site-summary metrics (‘mean’, ‘total positive’, etc) are
+in different rows for each site and epitope. The ‘frac_bootstrap_replicates’
+columns refer to bootstrap replicates with measurements for any mutation
+at that site.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.summarize_bootstraped_predictions">
-<span class="sig-name descname"><span class="pre">summarize_bootstraped_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pred_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.summarize_bootstraped_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.summarize_bootstraped_predictions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Aggregate predictions from all eligible models.
-Given a list of prediction dataframes, splits each variant up by each
-mutation, and calculates summary statistics of escape predictions
-associated with each mutation at each concentration.</p>
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates">
+<span class="sig-name descname"><span class="pre">mut_escape_site_summary_df_replicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.mut_escape_site_summary_df_replicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Site-level summaries of mutation escape for replicates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pred_list</strong> (<em>list of pandas.DataFrame objects</em>) – </p>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments to
+<span class="math notranslate nohighlight">\(~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df\)</span>.
+Note that <cite>min_times_seen</cite> refers to times seen in full data set,
+not individual bootstrap replicates.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>results_df</strong> – A dataframe of summary stats for predictions made from each model.</p>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape">
+<span class="sig-name descname"><span class="pre">prob_escape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.prob_escape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute summary statistics for predicted probability of escape across
+all replicate models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Input data frame defining variants. Should have a column
+named ‘aa_substitutions’ that defines variants as space-delimited
+strings of substitutions (e.g., ‘M1A K3T’). Should also have a
+column ‘concentration’ if <code class="docutils literal notranslate"><span class="pre">concentrations=None</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Dictionary</em>) – Keyword args for <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.prob_escape" title="polyclonal.polyclonal.Polyclonal.prob_escape"><code class="xref py py-func docutils literal notranslate"><span class="pre">prob_escape()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Version of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> with columns named ‘concentration’
+and ‘mean’, ‘median’, and ‘std’ giving corresponding summary stats
+of predicted probability of escape <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>
+for each variant at each concentration across bootstrap replicates.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape_replicates">
+<span class="sig-name descname"><span class="pre">prob_escape_replicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal_collection.html#PolyclonalCollection.prob_escape_replicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape_replicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute predicted probability of escape <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>.</p>
+<p>Uses all models to make predictions on <code class="docutils literal notranslate"><span class="pre">variants_df</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Input data frame defining variants. Should have a column
+named ‘aa_substitutions’ that defines variants as space-delimited
+strings of substitutions (e.g., ‘M1A K3T’). Should also have a
+column ‘concentration’ if <code class="docutils literal notranslate"><span class="pre">concentrations=None</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Dictionary</em>) – Keyword args for <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.prob_escape" title="polyclonal.polyclonal.Polyclonal.prob_escape"><code class="xref py py-func docutils literal notranslate"><span class="pre">prob_escape()</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Version of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> with columns named ‘concentration’
+and ‘predicted_prob_escape’ giving predicted probability of escape
+<span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> for each variant at each concentration and
+bootstrap replicate. Variants with a mutation lacking in a particular
+bootstrapped model are missing in that row.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>

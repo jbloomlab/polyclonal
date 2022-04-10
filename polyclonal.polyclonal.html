@@ -214,7 +214,7 @@ from <code class="docutils literal notranslate"><span class="pre">mut_escape_df<
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.data_to_fit">
 <span class="sig-name descname"><span class="pre">data_to_fit</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.data_to_fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Data to fit as passed when initializing this <code class="xref py py-class docutils literal notranslate"><span class="pre">BinaryMap</span></code>.
+<dd><p>Data to fit as passed when initializing this <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object.
 If using <code class="docutils literal notranslate"><span class="pre">collapse_identical_variants</span></code>, then identical variants
 are collapsed on columns ‘concentration’, ‘aa_substitutions’,
 and ‘prob_escape’, and a column ‘weight’ is added to represent number
@@ -222,6 +222,21 @@ of collapsed variants. Also, row-order may be changed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>pandas.DataFrame or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mutations_times_seen">
+<span class="sig-name descname"><span class="pre">mutations_times_seen</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mutations_times_seen" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <cite>data_to_fit</cite> is not <cite>None</cite>, keyed by all mutations with escape values
+and values are number of variants in which the mutation is seen. It is formally
+calculated as the number of variants with mutation across all concentrations
+divided by the number of concentrations, so can have non-integer values if
+there are variants only observed at some concentrations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>frozendict.frozendict or None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -245,6 +260,8 @@ we know the activities and mutation-level escape values ahead of time:</p>
 <span class="go">(&#39;e1&#39;, &#39;e2&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mutations</span>
 <span class="go">(&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">sites</span>
 <span class="go">(1, 2, 4)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">wts</span>
@@ -266,14 +283,16 @@ we know the activities and mutation-level escape values ahead of time:</p>
 </pre></div>
 </div>
 <p>We can also summarize the mutation-level escape at the site level:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span>
-<span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative</span>
-<span class="go">0      e1     1        M   2.0             2.0  2.0  2.0             0.0</span>
-<span class="go">1      e1     2        G   3.0             3.0  3.0  3.0             0.0</span>
-<span class="go">2      e1     4        A   0.0             0.0  0.0  0.0             0.0</span>
-<span class="go">3      e2     1        M   0.0             0.0  0.0  0.0             0.0</span>
-<span class="go">4      e2     2        G   0.0             0.0  0.0  0.0             0.0</span>
-<span class="go">5      e2     4        A   2.0             4.0  2.5  1.5             0.0</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.width&quot;</span><span class="p">,</span> <span class="mi">89</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">()</span>
+<span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="go">0      e1     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
+<span class="go">1      e1     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="go">2      e1     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
+<span class="go">3      e2     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">4      e2     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">5      e2     4        A   2.0             4.0  2.5  1.5             0.0            2</span>
 </pre></div>
 </div>
 <p>Note that we can <strong>not</strong> initialize a <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object if we are
@@ -411,6 +430,8 @@ these are the real values:</p>
 <p>The mutations are those in <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code>:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mutations</span>
 <span class="go">(&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dict</span><span class="p">(</span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">)</span>
+<span class="go">{&#39;G2A&#39;: 6, &#39;M1C&#39;: 6, &#39;A4K&#39;: 4, &#39;A4L&#39;: 3}</span>
 </pre></div>
 </div>
 <p>The activities are evenly spaced from 1 to 0, while the mutation escapes
@@ -420,15 +441,15 @@ are all initialized to zero:</p>
 <span class="go">0       1       1.0</span>
 <span class="go">1       2       0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_df</span>
-<span class="go">  epitope  site wildtype mutant mutation  escape</span>
-<span class="go">0       1     1        M      C      M1C     0.0</span>
-<span class="go">1       1     2        G      A      G2A     0.0</span>
-<span class="go">2       1     4        A      K      A4K     0.0</span>
-<span class="go">3       1     4        A      L      A4L     0.0</span>
-<span class="go">4       2     1        M      C      M1C     0.0</span>
-<span class="go">5       2     2        G      A      G2A     0.0</span>
-<span class="go">6       2     4        A      K      A4K     0.0</span>
-<span class="go">7       2     4        A      L      A4L     0.0</span>
+<span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="go">0       1     1        M      C      M1C     0.0           6</span>
+<span class="go">1       1     2        G      A      G2A     0.0           6</span>
+<span class="go">2       1     4        A      K      A4K     0.0           4</span>
+<span class="go">3       1     4        A      L      A4L     0.0           3</span>
+<span class="go">4       2     1        M      C      M1C     0.0           6</span>
+<span class="go">5       2     2        G      A      G2A     0.0           6</span>
+<span class="go">6       2     4        A      K      A4K     0.0           4</span>
+<span class="go">7       2     4        A      L      A4L     0.0           3</span>
 </pre></div>
 </div>
 <p>You can initialize to random numbers by setting <code class="docutils literal notranslate"><span class="pre">init_missing</span></code> to seed
@@ -456,15 +477,15 @@ are all initialized to zero:</p>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data3</span><span class="o">.</span><span class="n">mut_escape_df</span>
-<span class="go">  epitope  site wildtype mutant mutation  escape</span>
-<span class="go">0      e1     1        M      C      M1C     4.0</span>
-<span class="go">1      e1     2        G      A      G2A     0.0</span>
-<span class="go">2      e1     4        A      K      A4K     0.0</span>
-<span class="go">3      e1     4        A      L      A4L     0.0</span>
-<span class="go">4      e2     1        M      C      M1C     0.0</span>
-<span class="go">5      e2     2        G      A      G2A     0.0</span>
-<span class="go">6      e2     4        A      K      A4K     0.0</span>
-<span class="go">7      e2     4        A      L      A4L     0.0</span>
+<span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="go">0      e1     1        M      C      M1C     4.0           6</span>
+<span class="go">1      e1     2        G      A      G2A     0.0           6</span>
+<span class="go">2      e1     4        A      K      A4K     0.0           4</span>
+<span class="go">3      e1     4        A      L      A4L     0.0           3</span>
+<span class="go">4      e2     1        M      C      M1C     0.0           6</span>
+<span class="go">5      e2     2        G      A      G2A     0.0           6</span>
+<span class="go">6      e2     4        A      K      A4K     0.0           4</span>
+<span class="go">7      e2     4        A      L      A4L     0.0           3</span>
 </pre></div>
 </div>
 <p>You can initialize <strong>sites</strong> to escape values via <code class="docutils literal notranslate"><span class="pre">site_activity_df</span></code>:</p>
@@ -480,15 +501,15 @@ are all initialized to zero:</p>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data4</span><span class="o">.</span><span class="n">mut_escape_df</span>
-<span class="go">  epitope  site wildtype mutant mutation  escape</span>
-<span class="go">0      e1     1        M      C      M1C     1.0</span>
-<span class="go">1      e1     2        G      A      G2A     0.0</span>
-<span class="go">2      e1     4        A      K      A4K     0.0</span>
-<span class="go">3      e1     4        A      L      A4L     0.0</span>
-<span class="go">4      e2     1        M      C      M1C     0.0</span>
-<span class="go">5      e2     2        G      A      G2A     0.0</span>
-<span class="go">6      e2     4        A      K      A4K     2.0</span>
-<span class="go">7      e2     4        A      L      A4L     2.0</span>
+<span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="go">0      e1     1        M      C      M1C     1.0           6</span>
+<span class="go">1      e1     2        G      A      G2A     0.0           6</span>
+<span class="go">2      e1     4        A      K      A4K     0.0           4</span>
+<span class="go">3      e1     4        A      L      A4L     0.0           3</span>
+<span class="go">4      e2     1        M      C      M1C     0.0           6</span>
+<span class="go">5      e2     2        G      A      G2A     0.0           6</span>
+<span class="go">6      e2     4        A      K      A4K     2.0           4</span>
+<span class="go">7      e2     4        A      L      A4L     2.0           3</span>
 </pre></div>
 </div>
 <p>Fit the data using <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.fit" title="polyclonal.polyclonal.Polyclonal.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.fit()</span></code></a>, and make sure the new
@@ -518,6 +539,34 @@ toy example:</p>
 <span class="gp">... </span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrong escapes</span><span class="se">\n</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="go">0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">2       1     4        A   2.0             4.0  2.5  1.5             0.0            2</span>
+<span class="go">3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
+<span class="go">4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="go">5       2     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">min_times_seen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="go">0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">2       1     4        A   2.5             2.5  2.5  2.5             0.0            1</span>
+<span class="go">3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
+<span class="go">4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="go">5       2     4        A   0.0             0.0  0.0  0.0             0.0            1</span>
+</pre></div>
+</div>
+<p>You can also exclude mutations to specific characters (typically you would want to
+do this for stop codons and/or gaps):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">exclude_chars</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">})</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
+<span class="go">0       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="go">1       1     4        A   1.5             1.5  1.5  1.5             0.0            1</span>
+<span class="go">2       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
+<span class="go">3       2     4        A   0.0             0.0  0.0  0.0             0.0            1</span>
+</pre></div>
+</div>
 <p class="rubric">Example</p>
 <p>You can convert a <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> model into a site-level model via
 the transformation of <a class="reference internal" href="polyclonal.utils.html#polyclonal.utils.site_level_variants" title="polyclonal.utils.site_level_variants"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.utils.site_level_variants()</span></code></a>. The
@@ -529,13 +578,13 @@ alphabet, and is generated using <a class="reference internal" href="#polyclonal
 <span class="go">(&#39;w&#39;, &#39;m&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">polyclonal_site</span><span class="o">.</span><span class="n">mut_escape_df</span>
 <span class="gp">... </span> <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-<span class="go">  epitope  site wildtype mutant mutation  escape</span>
-<span class="go">0      e1     1        w      m      w1m     2.0</span>
-<span class="go">1      e1     2        w      m      w2m     3.0</span>
-<span class="go">2      e1     4        w      m      w4m     0.0</span>
-<span class="go">3      e2     1        w      m      w1m     0.0</span>
-<span class="go">4      e2     2        w      m      w2m     0.0</span>
-<span class="go">5      e2     4        w      m      w4m     2.0</span>
+<span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
+<span class="go">0      e1     1        w      m      w1m     2.0           5</span>
+<span class="go">1      e1     2        w      m      w2m     3.0           6</span>
+<span class="go">2      e1     4        w      m      w4m     0.0           7</span>
+<span class="go">3      e2     1        w      m      w1m     0.0           5</span>
+<span class="go">4      e2     2        w      m      w2m     0.0           6</span>
+<span class="go">5      e2     4        w      m      w4m     2.0           7</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_site</span><span class="o">.</span><span class="n">data_to_fit</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">   concentration aa_substitutions  weight  prob_escape</span>
 <span class="go">0            1.0                        1        0.032</span>
@@ -604,6 +653,49 @@ among their mutation-escape values and align them.</p>
 <span class="go">3          e2           e2        1.000</span>
 </pre></div>
 </div>
+<p class="rubric">Example</p>
+<p>Filter variants by how often they are seen in data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span>
+<span class="gp">... </span>
+<span class="go">   barcode aa_substitutions</span>
+<span class="go">0       AA</span>
+<span class="go">1       AC              M1C</span>
+<span class="go">2       AG              G2A</span>
+<span class="go">3       AT              A4K</span>
+<span class="go">4       TA              A4L</span>
+<span class="go">5       CA          M1C G2A</span>
+<span class="go">6       CG          M1C A4K</span>
+<span class="go">7       CC          G2A A4K</span>
+<span class="go">8       TC          G2A A4L</span>
+<span class="go">9       CT      M1C G2A A4K</span>
+<span class="go">10      TG      M1C G2A A4L</span>
+<span class="go">11      GA              M1C</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">... </span>
+<span class="go">  barcode aa_substitutions</span>
+<span class="go">0      AA</span>
+<span class="go">1      AC              M1C</span>
+<span class="go">2      AG              G2A</span>
+<span class="go">3      CA          M1C G2A</span>
+<span class="go">4      GA              M1C</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">... </span>
+<span class="go">  barcode aa_substitutions</span>
+<span class="go">0      AA</span>
+<span class="go">1      AC              M1C</span>
+<span class="go">2      AG              G2A</span>
+<span class="go">3      AT              A4K</span>
+<span class="go">4      CA          M1C G2A</span>
+<span class="go">5      CG          M1C A4K</span>
+<span class="go">6      CC          G2A A4K</span>
+<span class="go">7      CT      M1C G2A A4K</span>
+<span class="go">8      GA              M1C</span>
+</pre></div>
+</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.DEFAULT_SCIPY_MINIMIZE_KWARGS">
 <span class="sig-name descname"><span class="pre">DEFAULT_SCIPY_MINIMIZE_KWARGS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">{'method':</span> <span class="pre">'L-BFGS-B',</span> <span class="pre">'options':</span> <span class="pre">{'ftol':</span> <span class="pre">1e-07,</span> <span class="pre">'maxfun':</span> <span class="pre">10000000.0,</span> <span class="pre">'maxiter':</span> <span class="pre">1000000.0}}</span></em><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.DEFAULT_SCIPY_MINIMIZE_KWARGS" title="Permalink to this definition">¶</a></dt>
@@ -645,11 +737,15 @@ among their mutation-escape values and align them.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts">
-<span class="sig-name descname"><span class="pre">filter_variants_by_seen_muts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subs_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aa_substitutions'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.filter_variants_by_seen_muts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">filter_variants_by_seen_muts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_times_seen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subs_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'aa_substitutions'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.filter_variants_by_seen_muts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove variants that contain mutations not seen during model fitting.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Contains variants as rows.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variants_df</strong> (<em>pandas.DataFrame</em>) – Contains variants as rows.</p></li>
+<li><p><strong>min_times_seen</strong> (<em>int</em>) – Require mutations to be seen &gt;= this many times in data used to fit model.</p></li>
+<li><p><strong>subs_col</strong> (<em>str</em>) – Column in <cite>variants_df</cite> with mutations in each variant.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>variants_df</strong> – Copy of input dataframe, with rows of variants
@@ -802,11 +898,14 @@ epitopes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mut_escape_lineplot">
-<span class="sig-name descname"><span class="pre">mut_escape_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_lineplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_lineplot" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mut_escape_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_times_seen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_lineplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_lineplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Line plots of mutation escape <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> at each site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_lineplot" title="polyclonal.plot.mut_escape_lineplot"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_lineplot()</span></code></a>.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_times_seen</strong> (<em>int</em>) – Value passed to <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_site_summary_df()</span></code></a>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_lineplot" title="polyclonal.plot.mut_escape_lineplot"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_lineplot()</span></code></a>.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Interactive plot.</p>
@@ -819,7 +918,7 @@ epitopes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mut_escape_pdb_b_factor">
-<span class="sig-name descname"><span class="pre">mut_escape_pdb_b_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_pdbfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{metric}-{epitope}.pdb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_pdb_b_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_pdb_b_factor" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mut_escape_pdb_b_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_pdbfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'{metric}-{epitope}.pdb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_times_seen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_pdb_b_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_pdb_b_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create PDB files with B factors from a site’s mutation escape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -827,7 +926,7 @@ epitopes.</p>
 <li><p><strong>input_pdbfile</strong> (<em>str</em>) – Path to input PDB file.</p></li>
 <li><p><strong>chains</strong> (<em>str</em><em> or </em><em>array-like</em>) – Single chain or list of them to re-color.</p></li>
 <li><p><strong>metric</strong> (<em>str</em>) – Which site-level summary metric to use. Can be any metric in
-<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_site_summary_df</span></code></a>.</p></li>
+<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_site_summary_df()</span></code></a>.</p></li>
 <li><p><strong>outdir</strong> (<em>str</em>) – Output directory for created PDB files.</p></li>
 <li><p><strong>outfile</strong> (<em>str</em>) – Output file name, with formatting used to replace metric and
 epitope in curly brackets.</p></li>
@@ -835,6 +934,7 @@ epitope in curly brackets.</p></li>
 If a float, reassign B factors for all missing sites to this value.
 If a dict, should be keyed by chain and assign all missing sites in
 each chain to indicated value.</p></li>
+<li><p><strong>min_times_seen</strong> (<em>int</em>) – Value passed to <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_site_summary_df()</span></code></a>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -846,12 +946,24 @@ each chain to indicated value.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
+<dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mut_escape_site_summary_df</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mut_escape_site_summary_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_times_seen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_whitelist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_chars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">frozenset({'*'})</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_site_summary_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Site-level summaries of mutation escape.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_times_seen</strong> (<em>int</em>) – Only include in summaries mutations seen in at least this many variants.</p></li>
+<li><p><strong>mutation_whitelist</strong> (<em>None</em><em> or </em><em>set</em>) – Only include in summaries these mutations.</p></li>
+<li><p><strong>exclude_chars</strong> (<em>set</em><em> or </em><em>list</em>) – Exclude mutations to these characters when calculating site summaries.
+Useful if you want to ignore stop codons (<code class="docutils literal notranslate"><span class="pre">*</span></code>), and perhaps in some
+cases also gaps (<code class="docutils literal notranslate"><span class="pre">-</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
 </dd>
 </dl>
@@ -861,7 +973,7 @@ each chain to indicated value.</p></li>
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.prob_escape">
 <span class="sig-name descname"><span class="pre">prob_escape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentrations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.prob_escape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.prob_escape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute predicted probability of escape <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>.</p>
-<p>Computed using current mutation-escape values <span class="math notranslate nohighlight">\(beta_{m,e}\)</span> and
+<p>Computed using current mutation-escape values <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> and
 epitope activities <span class="math notranslate nohighlight">\(a_{\rm{wt},e}\)</span> stored in this
 <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object.</p>
 <dl class="field-list simple">
@@ -893,7 +1005,7 @@ and ‘predicted_prob_escape’ giving predicted probability of escape
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>aggregate_mut_escapes</strong> (<em>{'mean'}</em>) – How to aggregate mutation-level escape values to site-level
-ones in <code class="docutils literal notranslate"><span class="pre">mut_effects_df</span></code>.</p></li>
+ones in <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code>.</p></li>
 <li><p><strong>collapse_identical_variants</strong> (<em>{&quot;mean&quot;</em><em>, </em><em>&quot;median&quot;</em><em>, </em><em>False}</em>) – Same meaning as for <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> initialization.</p></li>
 </ul>
 </dd>

@@ -888,42 +888,7 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span>
-
-<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># seed for reproducible output</span>
-
-
-<span class="k">def</span> <span class="nf">add_subtract_mutation</span><span class="p">(</span><span class="n">subs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Sometimes add or subtract a mutation.&quot;&quot;&quot;</span>
-    <span class="n">subs</span> <span class="o">=</span> <span class="n">subs</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-    <span class="n">sub_sites</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sub</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="p">]</span>
-    <span class="n">rand</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">rand</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>  <span class="c1"># add mutation with 1% probability</span>
-        <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
-        <span class="k">while</span> <span class="nb">int</span><span class="p">(</span><span class="n">mut</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">in</span> <span class="n">sub_sites</span><span class="p">:</span>
-            <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
-        <span class="n">subs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mut</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">rand</span> <span class="o">&gt;</span> <span class="mf">0.99</span> <span class="ow">and</span> <span class="n">subs</span><span class="p">:</span>  <span class="c1"># subtract mutation with 1% probability</span>
-        <span class="n">subs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subs</span><span class="p">)))</span>
-    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subs</span><span class="p">)</span>
-
-
-<span class="c1"># only keep needed columns in variants_escape</span>
-<span class="n">variants_escape</span> <span class="o">=</span> <span class="n">variants_escape</span><span class="p">[</span>
-    <span class="p">[</span><span class="s2">&quot;library&quot;</span><span class="p">,</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span> <span class="s2">&quot;concentration&quot;</span><span class="p">,</span> <span class="s2">&quot;prob_escape&quot;</span><span class="p">]</span>
-<span class="p">]</span>
-
-<span class="c1"># simulate noisy variants</span>
-<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="n">variants_escape</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-    <span class="c1"># add Gaussian noise with standard deviation of 0.05</span>
-    <span class="n">prob_escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
-        <span class="n">x</span><span class="p">[</span><span class="s2">&quot;prob_escape&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-    <span class="c1"># add rare sequencing errors to variants</span>
-    <span class="n">aa_substitutions</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_subtract_mutation</span><span class="p">),</span>
-<span class="p">)</span>
-
-<span class="n">noisy_variants_escape</span>
+<span></span><span class="n">variants_escape</span>
 </pre></div>
 </div>
 </div>
@@ -951,7 +916,9 @@ There are 1932 allowed amino-acid mutations.
     <tr style="text-align: right;">
       <th></th>
       <th>library</th>
+      <th>barcode</th>
       <th>aa_substitutions</th>
+      <th>n_aa_substitutions</th>
       <th>concentration</th>
       <th>prob_escape</th>
     </tr>
@@ -960,40 +927,52 @@ There are 1932 allowed amino-acid mutations.
     <tr>
       <th>0</th>
       <td>avg1muts</td>
+      <td>AAAAACGCGGTCACTT</td>
       <td></td>
+      <td>0</td>
       <td>0.125</td>
-      <td>0.166783</td>
+      <td>0.085566</td>
     </tr>
     <tr>
       <th>1</th>
       <td>avg1muts</td>
+      <td>AAAAAGCACCATAACG</td>
       <td></td>
+      <td>0</td>
       <td>0.125</td>
-      <td>0.054978</td>
+      <td>0.085566</td>
     </tr>
     <tr>
       <th>2</th>
       <td>avg1muts</td>
+      <td>AAAAAGGGAGCTAAAC</td>
       <td></td>
+      <td>0</td>
       <td>0.125</td>
-      <td>0.059157</td>
+      <td>0.085566</td>
     </tr>
     <tr>
       <th>3</th>
       <td>avg1muts</td>
+      <td>AAAAAGTCGGATGGGC</td>
       <td></td>
+      <td>0</td>
       <td>0.125</td>
-      <td>0.031918</td>
+      <td>0.085566</td>
     </tr>
     <tr>
       <th>4</th>
       <td>avg1muts</td>
+      <td>AAAAAGTCTTAGGGAA</td>
       <td></td>
+      <td>0</td>
       <td>0.125</td>
-      <td>0.128836</td>
+      <td>0.085566</td>
     </tr>
     <tr>
       <th>...</th>
+      <td>...</td>
+      <td>...</td>
       <td>...</td>
       <td>...</td>
       <td>...</td>
@@ -1002,52 +981,99 @@ There are 1932 allowed amino-acid mutations.
     <tr>
       <th>719995</th>
       <td>avg2muts</td>
+      <td>CCGGGTACTAAAAAGG</td>
       <td>Y508W</td>
+      <td>1</td>
       <td>4.000</td>
-      <td>0.046410</td>
+      <td>0.000161</td>
     </tr>
     <tr>
       <th>719996</th>
       <td>avg3muts</td>
+      <td>CCCTGCACCCCACATA</td>
       <td>Y508W</td>
+      <td>1</td>
       <td>4.000</td>
-      <td>0.022680</td>
+      <td>0.000161</td>
     </tr>
     <tr>
       <th>719997</th>
       <td>avg4muts</td>
+      <td>GTGATTTAGCGTCTCG</td>
       <td>Y508W</td>
+      <td>1</td>
       <td>4.000</td>
-      <td>0.030200</td>
+      <td>0.000161</td>
     </tr>
     <tr>
       <th>719998</th>
       <td>avg4muts</td>
+      <td>GGGAAATTAGACTTTC</td>
       <td>Y508W C525F</td>
+      <td>2</td>
       <td>4.000</td>
-      <td>0.036181</td>
+      <td>0.000655</td>
     </tr>
     <tr>
       <th>719999</th>
       <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
       <td>Y508W G526L</td>
+      <td>2</td>
       <td>4.000</td>
-      <td>0.000000</td>
+      <td>0.000672</td>
     </tr>
   </tbody>
 </table>
-<p>720000 rows × 4 columns</p>
+<p>720000 rows × 6 columns</p>
 </div></div>
 </div>
-<p>For both the exact and noisy data frames, we will also compute the IC90 for each variant based on the simulated antibody mix:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span>
 
-<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">noisy_variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
+<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># seed for reproducible output</span>
+
+
+<span class="k">def</span> <span class="nf">add_subtract_mutation</span><span class="p">(</span><span class="n">subs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sometimes add or subtract a mutation.&quot;&quot;&quot;</span>
+    <span class="n">subs</span> <span class="o">=</span> <span class="n">subs</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">sub_sites</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sub</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="p">]</span>
+    <span class="n">rand</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">rand</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>  <span class="c1"># add mutation with 1% probability</span>
+        <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">int</span><span class="p">(</span><span class="n">mut</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">in</span> <span class="n">sub_sites</span><span class="p">:</span>
+            <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
+        <span class="n">subs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mut</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">rand</span> <span class="o">&gt;</span> <span class="mf">0.99</span> <span class="ow">and</span> <span class="n">subs</span><span class="p">:</span>  <span class="c1"># subtract mutation with 1% probability</span>
+        <span class="n">subs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subs</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subs</span><span class="p">)</span>
+
+
+<span class="c1"># only keep needed columns in variants_escape</span>
+<span class="n">variants_escape</span> <span class="o">=</span> <span class="n">variants_escape</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n_aa_substitutions&quot;</span><span class="p">)</span>
+
+<span class="c1"># simulate noisy variants</span>
+<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">variants_escape</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="c1"># add Gaussian noise with standard deviation of 0.05</span>
+        <span class="n">prob_escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">x</span><span class="p">[</span><span class="s2">&quot;prob_escape&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="c1"># add rare sequencing errors to variants</span>
+    <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">variants_df</span><span class="p">[[</span><span class="s2">&quot;library&quot;</span><span class="p">,</span> <span class="s2">&quot;barcode&quot;</span><span class="p">,</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">aa_substitutions</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_subtract_mutation</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+        <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;library&quot;</span><span class="p">,</span> <span class="s2">&quot;barcode&quot;</span><span class="p">],</span>
+        <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 
 <span class="n">noisy_variants_escape</span>
 </pre></div>
@@ -1077,52 +1103,52 @@ There are 1932 allowed amino-acid mutations.
     <tr style="text-align: right;">
       <th></th>
       <th>library</th>
-      <th>aa_substitutions</th>
+      <th>barcode</th>
       <th>concentration</th>
       <th>prob_escape</th>
-      <th>IC90</th>
+      <th>aa_substitutions</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAACGCGGTCACTT</td>
       <td>0.125</td>
       <td>0.166783</td>
-      <td>0.112813</td>
+      <td></td>
     </tr>
     <tr>
       <th>1</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGCACCATAACG</td>
       <td>0.125</td>
       <td>0.054978</td>
-      <td>0.112813</td>
+      <td></td>
     </tr>
     <tr>
       <th>2</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGGGAGCTAAAC</td>
       <td>0.125</td>
       <td>0.059157</td>
-      <td>0.112813</td>
+      <td></td>
     </tr>
     <tr>
       <th>3</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGTCGGATGGGC</td>
       <td>0.125</td>
       <td>0.031918</td>
-      <td>0.112813</td>
+      <td></td>
     </tr>
     <tr>
       <th>4</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGTCTTAGGGAA</td>
       <td>0.125</td>
       <td>0.128836</td>
-      <td>0.112813</td>
+      <td></td>
     </tr>
     <tr>
       <th>...</th>
@@ -1135,46 +1161,196 @@ There are 1932 allowed amino-acid mutations.
     <tr>
       <th>719995</th>
       <td>avg2muts</td>
-      <td>Y473E L518F D427L</td>
+      <td>CCGGGTACTAAAAAGG</td>
       <td>4.000</td>
-      <td>0.002918</td>
-      <td>1.159910</td>
+      <td>0.046410</td>
+      <td>Y508W</td>
     </tr>
     <tr>
       <th>719996</th>
-      <td>avg1muts</td>
-      <td>Y473S G413Q</td>
+      <td>avg3muts</td>
+      <td>CCCTGCACCCCACATA</td>
       <td>4.000</td>
-      <td>0.000000</td>
-      <td>0.577999</td>
+      <td>0.022680</td>
+      <td>Y508W</td>
     </tr>
     <tr>
       <th>719997</th>
-      <td>avg1muts</td>
-      <td>Y473V P479R F392W</td>
+      <td>avg4muts</td>
+      <td>GTGATTTAGCGTCTCG</td>
       <td>4.000</td>
-      <td>0.160248</td>
-      <td>1.454528</td>
+      <td>0.030200</td>
+      <td>Y508W</td>
     </tr>
     <tr>
       <th>719998</th>
-      <td>avg3muts</td>
-      <td>Y489Q N501Y</td>
+      <td>avg4muts</td>
+      <td>GGGAAATTAGACTTTC</td>
       <td>4.000</td>
-      <td>0.000000</td>
-      <td>0.588084</td>
+      <td>0.036181</td>
+      <td>Y508W C525F</td>
     </tr>
     <tr>
       <th>719999</th>
-      <td>avg2muts</td>
-      <td>Y505N H519T</td>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
       <td>4.000</td>
       <td>0.000000</td>
-      <td>0.350485</td>
+      <td>Y508W G526L</td>
     </tr>
   </tbody>
 </table>
 <p>720000 rows × 5 columns</p>
+</div></div>
+</div>
+<p>For both the exact and noisy data frames, we will also compute the IC90 for each variant based on the simulated antibody mix:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
+
+<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">noisy_variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
+
+<span class="n">noisy_variants_escape</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>library</th>
+      <th>barcode</th>
+      <th>concentration</th>
+      <th>prob_escape</th>
+      <th>aa_substitutions</th>
+      <th>IC90</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>avg1muts</td>
+      <td>AAAAACGCGGTCACTT</td>
+      <td>0.125</td>
+      <td>0.166783</td>
+      <td></td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>avg1muts</td>
+      <td>AAAAAGCACCATAACG</td>
+      <td>0.125</td>
+      <td>0.054978</td>
+      <td></td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>avg1muts</td>
+      <td>AAAAAGGGAGCTAAAC</td>
+      <td>0.125</td>
+      <td>0.059157</td>
+      <td></td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>avg1muts</td>
+      <td>AAAAAGTCGGATGGGC</td>
+      <td>0.125</td>
+      <td>0.031918</td>
+      <td></td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>avg1muts</td>
+      <td>AAAAAGTCTTAGGGAA</td>
+      <td>0.125</td>
+      <td>0.128836</td>
+      <td></td>
+      <td>0.112813</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>719995</th>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>0.250</td>
+      <td>0.259334</td>
+      <td>Y508W G526L</td>
+      <td>0.412228</td>
+    </tr>
+    <tr>
+      <th>719996</th>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>0.500</td>
+      <td>0.072636</td>
+      <td>Y508W G526L</td>
+      <td>0.412228</td>
+    </tr>
+    <tr>
+      <th>719997</th>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>1.000</td>
+      <td>0.000000</td>
+      <td>Y508W G526L</td>
+      <td>0.412228</td>
+    </tr>
+    <tr>
+      <th>719998</th>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>2.000</td>
+      <td>0.081478</td>
+      <td>Y508W G526L</td>
+      <td>0.412228</td>
+    </tr>
+    <tr>
+      <th>719999</th>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>4.000</td>
+      <td>0.000000</td>
+      <td>Y508W G526L</td>
+      <td>0.412228</td>
+    </tr>
+  </tbody>
+</table>
+<p>720000 rows × 6 columns</p>
 </div></div>
 </div>
 <p>We will write these data frames giving the variants <span class="math notranslate nohighlight">\(v\)</span> and their probabilities of escape <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> at each serum concentration <span class="math notranslate nohighlight">\(c\)</span> to CSV files:</p>
@@ -1184,7 +1360,7 @@ There are 1932 allowed amino-acid mutations.
 </ul>
 <p>The goal is to infer the properties of the escape mutations and the serum, <span class="math notranslate nohighlight">\(a_{\rm{wt},e}\)</span> and <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, from these data, which are what would be measured in a deep mutational scanning experiment.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
