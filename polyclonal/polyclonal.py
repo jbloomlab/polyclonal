@@ -1669,6 +1669,8 @@ class Polyclonal:
         )
         if "epitope_colors" not in kwargs:
             kwargs["epitope_colors"] = self.epitope_colors
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = ["n mutations"]
         return polyclonal.plot.mut_escape_lineplot(**kwargs)
 
     def mut_escape_heatmap(self, **kwargs):
@@ -1690,6 +1692,8 @@ class Polyclonal:
             kwargs["epitope_colors"] = self.epitope_colors
         if "alphabet" not in kwargs:
             kwargs["alphabet"] = self.alphabet
+        if ("addtl_tooltip_stats" not in kwargs) and self.data_to_fit is not None:
+            kwargs["addtl_tooltip_stats"] = ["times_seen"]
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
 
     def filter_variants_by_seen_muts(

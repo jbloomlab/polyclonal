@@ -113,24 +113,20 @@ def activity_wt_barplot(
     else:
         df = activity_wt_df
 
-    baseplot = (
-        alt.Chart(df)
-        .encode(
-            y=alt.Y("epitope:N", sort=epitopes),
-            color=alt.Color(
-                "epitope:N",
-                scale=alt.Scale(
-                    domain=epitopes, range=[epitope_colors[e] for e in epitopes]
-                ),
-                legend=None,
+    baseplot = alt.Chart(df).encode(
+        y=alt.Y("epitope:N", sort=epitopes),
+        color=alt.Color(
+            "epitope:N",
+            scale=alt.Scale(
+                domain=epitopes, range=[epitope_colors[e] for e in epitopes]
             ),
-            tooltip=[
-                alt.Tooltip(c, format=".2f") if df[c].dtype == float else c
-                for c in df.columns
-                if c not in ["_upper", "_lower"]
-            ],
-        )
-        .properties(width=width, height={"step": height_per_bar})
+            legend=None,
+        ),
+        tooltip=[
+            alt.Tooltip(c, format=".2f") if df[c].dtype == float else c
+            for c in df.columns
+            if c not in ["_upper", "_lower"]
+        ],
     )
 
     barplot = baseplot.encode(x=alt.X(f"{stat}:Q", title=stat)).mark_bar(
@@ -144,13 +140,16 @@ def activity_wt_barplot(
             ).mark_rule(size=2)
         )
 
-    return barplot.configure_axis(grid=False)
+    return barplot.configure_axis(grid=False).properties(
+        width=width, height={"step": height_per_bar}
+    )
 
 
 def mut_escape_lineplot(
     *,
     mut_escape_site_summary_df,
     bootstrapped_data=False,
+    addtl_tooltip_stats=None,
     epitope_colors,
     epitopes=None,
     all_sites=True,
@@ -170,6 +169,8 @@ def mut_escape_lineplot(
     bootstrapped_data : bool
         `mut_escape_site_summary_df` is from a bootstrapped model,
         :class:`polyclonal.polyclonal_collection.PolyclonalCollection`.
+    addtl_tooltip_stats : list or None
+        Additional mutation-level stats to show in tooltip.
     epitope_colors : dict
         Maps each epitope name to its color.
     epitopes : array-like or None
@@ -311,6 +312,26 @@ def mut_escape_lineplot(
         validate="many_to_one",
     )
 
+    # add any additional tooltips
+    addtl_tooltips = []
+    if addtl_tooltip_stats is not None:
+        for c in addtl_tooltip_stats:
+            if c not in mut_escape_site_summary_df.columns:
+                raise ValueError(
+                    f"`addtl_tooltip_stat` {c} not in `mut_escape_site_summary_df`"
+                )
+            df = df.merge(
+                mut_escape_site_summary_df[["site", c]].drop_duplicates(),
+                how="left",
+                on="site",
+                validate="many_to_one",
+            )
+            addtl_tooltips.append(
+                alt.Tooltip(c, format=".2f")
+                if mut_escape_site_summary_df[c].dtype == float
+                else c
+            )
+
     # add selection for minimum **absolute value** of metrics
     # first add column that gives the percent of the max for each metric and statistic
     df = (
@@ -344,6 +365,7 @@ def mut_escape_lineplot(
                 alt.Tooltip("site:O"),
                 alt.Tooltip("wildtype:N"),
                 *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
+                *addtl_tooltips,
             ],
         )
     )
@@ -356,14 +378,13 @@ def mut_escape_lineplot(
             ),
             y=alt.Y(f"{epitope}:Q", title="escape"),
         )
-        # in case some sites missing values, background thin transparent
-        # over which we put darker foreground for measured points
+        # in case some sites missing values, we need foreground and background
         background = (
             base.transform_filter(f"isValid(datum['{epitope}'])")
             .mark_line(size=1, color=epitope_colors[epitope])
             .encode(opacity=alt.condition(line_selection, alt.value(1), alt.value(0)))
         )
-        foreground = base.mark_line(size=1.5, color=epitope_colors[epitope]).encode(
+        foreground = base.mark_line(size=1, color=epitope_colors[epitope]).encode(
             opacity=alt.condition(line_selection, alt.value(1), alt.value(0)),
         )
         foreground_circles = (
@@ -585,7 +606,7 @@ def mut_escape_heatmap(
                 # for wildtype values, where it is assigned a dummy value below
                 add_tooltips.append("times seen")
 
-    if "times_seen" in addtl_tooltip_stats:
+    if addtl_tooltip_stats is not None and "times_seen" in addtl_tooltip_stats:
         # set times seen for wildtype to max at site for slider to work
         site_max_times_seen = df.groupby("site")["times_seen"].max()
         df = df.assign(
@@ -610,6 +631,8 @@ def mut_escape_heatmap(
                 name="min_times_seen",
             ),
         )
+    else:
+        times_seen_cutoff = None
 
     # select cells
     cell_selector = alt.selection_point(on="mouseover", empty=False)
@@ -681,12 +704,11 @@ def mut_escape_heatmap(
         # combine the elements
         charts.append(
             (heatmap + dummy + wildtype)
-            .add_parameter(cell_selector, percent_max_cutoff, times_seen_cutoff)
+            .add_parameter(cell_selector, percent_max_cutoff)
             .transform_filter(zoom_brush)
             .transform_filter(
                 alt.datum.percent_max >= percent_max_cutoff.percent_max_cutoff
             )
-            .transform_filter(alt.datum.times_seen >= times_seen_cutoff.times_seen)
             .properties(
                 title=alt.TitleParams(
                     f"{epitope} epitope", color=epitope_colors[epitope]
@@ -695,6 +717,12 @@ def mut_escape_heatmap(
                 height={"step": cell_size},
             )
         )
+        if times_seen_cutoff:
+            charts[-1] = (
+                charts[-1]
+                .add_parameter(times_seen_cutoff)
+                .transform_filter(alt.datum.times_seen >= times_seen_cutoff.times_seen)
+            )
 
     chart = (
         alt.vconcat(
