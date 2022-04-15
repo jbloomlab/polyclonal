@@ -680,6 +680,20 @@ class Polyclonal:
         self.alphabet = tuple(alphabet)
         self._mutparser = polyclonal.utils.MutationParser(alphabet)
 
+        # get any epitope labels as str, not int
+        if activity_wt_df is not None:
+            activity_wt_df = activity_wt_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+        if site_escape_df is not None:
+            site_escape_df = site_escape_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+        if mut_escape_df is not None:
+            mut_escape_df = mut_escape_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+
         if site_escape_df is not None:
             if mut_escape_df is not None:
                 raise ValueError(
