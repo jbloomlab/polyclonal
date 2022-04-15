@@ -720,7 +720,7 @@ class Polyclonal:
                 raise ValueError("duplicate epitopes in `activity_wt_df`")
 
         elif (activity_wt_df is None) and (mut_escape_df is None):
-            if not isinstance(n_epitopes, int) and n_epitopes > 0:
+            if not (isinstance(n_epitopes, int) and n_epitopes > 0):
                 raise ValueError(
                     "`n_epitopes` must be int > 1 if no " "`activity_wt_df`"
                 )
