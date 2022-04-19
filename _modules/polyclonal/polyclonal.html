@@ -511,8 +511,11 @@
 
 <span class="sd">    &gt;&gt;&gt; for model in [polyclonal_data, polyclonal_data2,</span>
 <span class="sd">    ...               polyclonal_data3, polyclonal_data4]:</span>
-<span class="sd">    ...     opt_res = model.fit(reg_escape_weight=0.001,</span>
-<span class="sd">    ...                         reg_spread_weight=0.001)</span>
+<span class="sd">    ...     opt_res = model.fit(</span>
+<span class="sd">    ...         reg_escape_weight=0.001,</span>
+<span class="sd">    ...         reg_spread_weight=0.001,</span>
+<span class="sd">    ...         reg_activity_weight=0.0001,</span>
+<span class="sd">    ...     )</span>
 <span class="sd">    ...     pred_df = model.prob_escape(variants_df=data_to_fit)</span>
 <span class="sd">    ...     if not numpy.allclose(pred_df[&#39;prob_escape&#39;],</span>
 <span class="sd">    ...                           pred_df[&#39;predicted_prob_escape&#39;],</span>
@@ -715,6 +718,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mutparser</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">MutationParser</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
+        <span class="c1"># get any epitope labels as str, not int</span>
+        <span class="k">if</span> <span class="n">activity_wt_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">activity_wt_df</span> <span class="o">=</span> <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">site_escape_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">site_escape_df</span> <span class="o">=</span> <span class="n">site_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mut_escape_df</span> <span class="o">=</span> <span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="p">)</span>
+
         <span class="k">if</span> <span class="n">site_escape_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -741,7 +758,7 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;duplicate epitopes in `activity_wt_df`&quot;</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="p">(</span><span class="n">activity_wt_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_epitopes</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n_epitopes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">n_epitopes</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n_epitopes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;`n_epitopes` must be int &gt; 1 if no &quot;</span> <span class="s2">&quot;`activity_wt_df`&quot;</span>
                 <span class="p">)</span>
@@ -1401,6 +1418,24 @@
         <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
+    <span class="k">def</span> <span class="nf">_reg_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on activity and its gradient.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for activity regularization not &gt;= 0&quot;</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">dh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled_pseudo_huber</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">dh</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dh</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">weight</span>
+        <span class="k">assert</span> <span class="n">dh</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dh</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">))])</span>
+        <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
+
     <span class="k">def</span> <span class="nf">_reg_spread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Regularization on spread of escape at each site and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1447,6 +1482,8 @@
         <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
         <span class="n">reg_escape_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">reg_spread_weight</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+        <span class="n">reg_activity_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">reg_activity_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">fit_site_level_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">scipy_minimize_kwargs</span><span class="o">=</span><span class="n">DEFAULT_SCIPY_MINIMIZE_KWARGS</span><span class="p">,</span>
         <span class="n">log</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1471,6 +1508,11 @@
 <span class="sd">        reg_spread_weight : float</span>
 <span class="sd">            Strength of regularization on variance of :math:`\beta_{m,e}`</span>
 <span class="sd">            values at each site.</span>
+<span class="sd">        reg_activity_weight : float</span>
+<span class="sd">            Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.</span>
+<span class="sd">            Only positive values regularized.</span>
+<span class="sd">        reg_activity_delta : float</span>
+<span class="sd">            Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.</span>
 <span class="sd">        fit_site_level_first : bool</span>
 <span class="sd">            First fit a site-level model, then use those activities /</span>
 <span class="sd">            escapes to initialize fit of this model. Generally works better.</span>
@@ -1531,8 +1573,13 @@
                         <span class="n">params</span><span class="p">,</span> <span class="n">reg_escape_weight</span><span class="p">,</span> <span class="n">reg_escape_delta</span>
                     <span class="p">)</span>
                     <span class="n">regspread</span><span class="p">,</span> <span class="n">dregspread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_spread</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">reg_spread_weight</span><span class="p">)</span>
-                    <span class="n">loss</span> <span class="o">=</span> <span class="n">fitloss</span> <span class="o">+</span> <span class="n">regescape</span> <span class="o">+</span> <span class="n">regspread</span>
-                    <span class="n">dloss</span> <span class="o">=</span> <span class="n">dfitloss</span> <span class="o">+</span> <span class="n">dregescape</span> <span class="o">+</span> <span class="n">dregspread</span>
+                    <span class="n">regactivity</span><span class="p">,</span> <span class="n">dregactivity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_activity</span><span class="p">(</span>
+                        <span class="n">params</span><span class="p">,</span>
+                        <span class="n">reg_activity_weight</span><span class="p">,</span>
+                        <span class="n">reg_activity_delta</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">loss</span> <span class="o">=</span> <span class="n">fitloss</span> <span class="o">+</span> <span class="n">regescape</span> <span class="o">+</span> <span class="n">regspread</span> <span class="o">+</span> <span class="n">regactivity</span>
+                    <span class="n">dloss</span> <span class="o">=</span> <span class="n">dfitloss</span> <span class="o">+</span> <span class="n">dregescape</span> <span class="o">+</span> <span class="n">dregspread</span> <span class="o">+</span> <span class="n">dregactivity</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">last_params</span> <span class="o">=</span> <span class="n">params</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="n">loss</span><span class="p">,</span>
@@ -1541,6 +1588,7 @@
                             <span class="s2">&quot;fit_loss&quot;</span><span class="p">:</span> <span class="n">fitloss</span><span class="p">,</span>
                             <span class="s2">&quot;reg_escape&quot;</span><span class="p">:</span> <span class="n">regescape</span><span class="p">,</span>
                             <span class="s2">&quot;reg_spread&quot;</span><span class="p">:</span> <span class="n">regspread</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_activity&quot;</span><span class="p">:</span> <span class="n">regactivity</span><span class="p">,</span>
                         <span class="p">},</span>
                     <span class="p">)</span>
                 <span class="k">return</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="k">if</span> <span class="n">breakdown</span> <span class="k">else</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -1565,11 +1613,11 @@
                         <span class="n">loss</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">breakdown</span> <span class="o">=</span> <span class="n">lossreg</span><span class="o">.</span><span class="n">loss_reg</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">header</span><span class="p">:</span>
                             <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="s2">&quot;time_sec&quot;</span><span class="p">,</span> <span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-                            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:&gt;11}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:&gt;13}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                         <span class="n">sec</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">self_</span><span class="o">.</span><span class="n">start</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
                             <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                                <span class="s2">&quot;</span><span class="si">{:&gt;11.5g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                                <span class="s2">&quot;</span><span class="si">{:&gt;13.5g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                                 <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">self_</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
                             <span class="p">)</span>
                             <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
