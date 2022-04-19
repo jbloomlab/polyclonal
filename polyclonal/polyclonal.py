@@ -476,8 +476,11 @@ class Polyclonal:
 
     >>> for model in [polyclonal_data, polyclonal_data2,
     ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(reg_escape_weight=0.001,
-    ...                         reg_spread_weight=0.001)
+    ...     opt_res = model.fit(
+    ...         reg_escape_weight=0.001,
+    ...         reg_spread_weight=0.001,
+    ...         reg_activity_weight=0.0001,
+    ...     )
     ...     pred_df = model.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
@@ -1380,6 +1383,24 @@ class Polyclonal:
         assert reg >= 0
         return reg, dreg
 
+    def _reg_activity(self, params, weight, delta):
+        """Regularization on activity and its gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for activity regularization not >= 0")
+        a, _ = self._a_beta_from_params(params)
+        h, dh = self._scaled_pseudo_huber(delta, a, True)
+        h = numpy.where(a > 0, h, 0.0)
+        dh = numpy.where(a > 0, dh, 0.0)
+        reg = h.sum() * weight
+        assert dh.shape == a.shape == (len(self.epitopes),)
+        dreg = weight * numpy.concatenate([dh, numpy.zeros(len(params) - len(a))])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        assert reg >= 0
+        return reg, dreg
+
     def _reg_spread(self, params, weight):
         """Regularization on spread of escape at each site and its gradient."""
         if weight == 0:
@@ -1426,6 +1447,8 @@ class Polyclonal:
         reg_escape_weight=0.02,
         reg_escape_delta=0.1,
         reg_spread_weight=0.25,
+        reg_activity_weight=1.0,
+        reg_activity_delta=0.1,
         fit_site_level_first=True,
         scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
         log=None,
@@ -1450,6 +1473,11 @@ class Polyclonal:
         reg_spread_weight : float
             Strength of regularization on variance of :math:`\beta_{m,e}`
             values at each site.
+        reg_activity_weight : float
+            Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
+            Only positive values regularized.
+        reg_activity_delta : float
+            Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
@@ -1510,8 +1538,13 @@ class Polyclonal:
                         params, reg_escape_weight, reg_escape_delta
                     )
                     regspread, dregspread = self._reg_spread(params, reg_spread_weight)
-                    loss = fitloss + regescape + regspread
-                    dloss = dfitloss + dregescape + dregspread
+                    regactivity, dregactivity = self._reg_activity(
+                        params,
+                        reg_activity_weight,
+                        reg_activity_delta,
+                    )
+                    loss = fitloss + regescape + regspread + regactivity
+                    dloss = dfitloss + dregescape + dregspread + dregactivity
                     self_.last_params = params
                     self_.last_loss = (
                         loss,
@@ -1520,6 +1553,7 @@ class Polyclonal:
                             "fit_loss": fitloss,
                             "reg_escape": regescape,
                             "reg_spread": regspread,
+                            "reg_activity": regactivity,
                         },
                     )
                 return self_.last_loss if breakdown else self_.last_loss[:2]
@@ -1544,11 +1578,11 @@ class Polyclonal:
                         loss, _, breakdown = lossreg.loss_reg(params, True)
                         if header:
                             cols = ["step", "time_sec", "loss", *breakdown.keys()]
-                            log.write("".join("{:>11}".format(x) for x in cols) + "\n")
+                            log.write("".join("{:>13}".format(x) for x in cols) + "\n")
                         sec = time.time() - self_.start
                         log.write(
                             "".join(
-                                "{:>11.5g}".format(x)
+                                "{:>13.5g}".format(x)
                                 for x in [self_.i, sec, loss, *breakdown.values()]
                             )
                             + "\n"
