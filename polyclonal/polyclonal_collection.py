@@ -528,7 +528,7 @@ class PolyclonalCollection:
         ----------
         mut_escape_site_summary_df_kwargs : dict
             Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
-            It is often useful to set `times_seen` to >1.
+            It is often useful to set `min_times_seen` to >1.
         mut_escape_lineplot_kwargs : dict
             Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`
 
