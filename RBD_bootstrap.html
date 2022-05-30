@@ -1276,7 +1276,9 @@ Fitting took 41.6 seconds, finished at Mon Apr 18 15:50:58 2022
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span>
+<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">ggplot</span><span class="p">(</span><span class="n">pred_ic90s</span><span class="p">)</span>
     <span class="o">+</span> <span class="n">aes</span><span class="p">(</span><span class="s2">&quot;IC90&quot;</span><span class="p">,</span> <span class="s2">&quot;mean_predicted_IC90&quot;</span><span class="p">)</span>
     <span class="o">+</span> <span class="n">geom_point</span><span class="p">()</span>
