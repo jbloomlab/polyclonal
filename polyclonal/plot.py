@@ -457,6 +457,8 @@ def mut_escape_heatmap(
     cell_size=12,
     zoom_bar_width=500,
     init_min_times_seen=1,
+    epitope_label_suffix=" epitope",
+    diverging_colors=False,
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -465,7 +467,7 @@ def mut_escape_heatmap(
     mut_escape_df : pandas.DataFrame
         Mutation-level escape in format of
         :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`.
-    alphabet : array-like or None
+    alphabet : array-like
         Alphabet letters (e.g., amino acids) in order to plot them.
     epitope_colors : dict
         Maps each epitope name to its color.
@@ -496,6 +498,12 @@ def mut_escape_heatmap(
         Initial cutoff for minimum times a mutation must be seen slider. Slider
         only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
         the percent max cutoff values.
+    epitope_label_suffix : str
+        Suffix epitope labels with this.q
+    diverging_colors : bool
+        If `False`, colors in ``epitope_colors`` are assumed to be the upper color for
+        white-to-<color> scale. If `True`, they are instead diverging color schemes with
+        0 as white. Valid diverging schemes: https://vega.github.io/vega/docs/schemes/
 
     Returns
     -------
@@ -539,12 +547,13 @@ def mut_escape_heatmap(
                 columns="epitope",
                 aggfunc=lambda x: " ".join(x),
             )
-            .rename(columns={e: f"{e} epitope" for e in epitopes})
+            .rename(columns={e: f"{e}{epitope_label_suffix}" for e in epitopes})
         )
-        escape_tooltips = [f"{e} epitope" for e in epitopes]
+        escape_tooltips = [f"{e}{epitope_label_suffix}" for e in epitopes]
     else:
         escape_tooltips = [
-            alt.Tooltip(e, format=".2f", title=f"{e} epitope") for e in epitopes
+            alt.Tooltip(e, format=".2f", title=f"{e}{epitope_label_suffix}")
+            for e in epitopes
         ]
 
     # add mutation labels and wildtypes
@@ -647,13 +656,18 @@ def mut_escape_heatmap(
         df_percent_max = df.copy()
     if floor_at_zero:
         for e in epitopes:
-            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=1)})
-    _max = df_percent_max[epitopes].abs().max().max()
+            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=0)})
+    _max = df_percent_max[epitopes].max().max()
+    _min = df_percent_max[epitopes].min().min()
     df_percent_max = (
-        df_percent_max.assign(_epitope_max=lambda x: x[epitopes].abs().max(axis=1))
+        df_percent_max.assign(_epitope_max=lambda x: x[epitopes].max(axis=1))
         .groupby("site", as_index=False)
         .aggregate(_site_max=pd.NamedAgg("_epitope_max", "max"))
-        .assign(percent_max=lambda x: 100 * x["_site_max"] / _max)
+        .assign(
+            percent_max=lambda x: (100 * (x["_site_max"] - _min) / (_max - _min)).clip(
+                lower=0
+            )
+        )
         .drop(columns="_site_max")
     )
     df = df.merge(df_percent_max, on="site", how="left", validate="many_to_one").assign(
@@ -697,11 +711,16 @@ def mut_escape_heatmap(
             color=alt.Color(
                 epitope,
                 type="quantitative",
-                scale=alt.Scale(
-                    range=color_gradient_hex("white", epitope_colors[epitope], 10),
-                    type="linear",
-                    domain=(escape_min, escape_max),
-                    clamp=True,
+                # diverging color scales: https://stackoverflow.com/a/70296527
+                scale=(
+                    alt.Scale(domainMid=0, scheme=epitope_colors[epitope])
+                    if diverging_colors
+                    else alt.Scale(
+                        range=color_gradient_hex("white", epitope_colors[epitope], 20),
+                        type="linear",
+                        domain=(escape_min, escape_max),
+                        clamp=True,
+                    )
                 ),
                 legend=alt.Legend(
                     orient="left",
@@ -726,7 +745,8 @@ def mut_escape_heatmap(
             )
             .properties(
                 title=alt.TitleParams(
-                    f"{epitope} epitope", color=epitope_colors[epitope]
+                    f"{epitope}{epitope_label_suffix}",
+                    color="black" if diverging_colors else epitope_colors[epitope],
                 ),
                 width={"step": cell_size},
                 height={"step": cell_size},
