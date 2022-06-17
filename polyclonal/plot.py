@@ -457,6 +457,7 @@ def mut_escape_heatmap(
     cell_size=12,
     zoom_bar_width=500,
     init_min_times_seen=1,
+    epitope_label_suffix=" epitope",
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -465,7 +466,7 @@ def mut_escape_heatmap(
     mut_escape_df : pandas.DataFrame
         Mutation-level escape in format of
         :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`.
-    alphabet : array-like or None
+    alphabet : array-like
         Alphabet letters (e.g., amino acids) in order to plot them.
     epitope_colors : dict
         Maps each epitope name to its color.
@@ -496,6 +497,8 @@ def mut_escape_heatmap(
         Initial cutoff for minimum times a mutation must be seen slider. Slider
         only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
         the percent max cutoff values.
+    epitope_label_suffix : str
+        Suffix epitope labels with this.
 
     Returns
     -------
@@ -539,12 +542,13 @@ def mut_escape_heatmap(
                 columns="epitope",
                 aggfunc=lambda x: " ".join(x),
             )
-            .rename(columns={e: f"{e} epitope" for e in epitopes})
+            .rename(columns={e: f"{e}{epitope_label_suffix}" for e in epitopes})
         )
-        escape_tooltips = [f"{e} epitope" for e in epitopes]
+        escape_tooltips = [f"{e}{epitope_label_suffix}" for e in epitopes]
     else:
         escape_tooltips = [
-            alt.Tooltip(e, format=".2f", title=f"{e} epitope") for e in epitopes
+            alt.Tooltip(e, format=".2f", title=f"{e}{epitope_label_suffix}")
+            for e in epitopes
         ]
 
     # add mutation labels and wildtypes
@@ -698,7 +702,7 @@ def mut_escape_heatmap(
                 epitope,
                 type="quantitative",
                 scale=alt.Scale(
-                    range=color_gradient_hex("white", epitope_colors[epitope], 10),
+                    range=color_gradient_hex("white", epitope_colors[epitope], 20),
                     type="linear",
                     domain=(escape_min, escape_max),
                     clamp=True,
@@ -726,7 +730,7 @@ def mut_escape_heatmap(
             )
             .properties(
                 title=alt.TitleParams(
-                    f"{epitope} epitope", color=epitope_colors[epitope]
+                    f"{epitope}{epitope_label_suffix}", color=epitope_colors[epitope]
                 ),
                 width={"step": cell_size},
                 height={"step": cell_size},
