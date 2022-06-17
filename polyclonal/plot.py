@@ -458,6 +458,7 @@ def mut_escape_heatmap(
     zoom_bar_width=500,
     init_min_times_seen=1,
     epitope_label_suffix=" epitope",
+    diverging_colors=False,
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -498,7 +499,11 @@ def mut_escape_heatmap(
         only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
         the percent max cutoff values.
     epitope_label_suffix : str
-        Suffix epitope labels with this.
+        Suffix epitope labels with this.q
+    diverging_colors : bool
+        If `False`, colors in ``epitope_colors`` are assumed to be the upper color for
+        white-to-<color> scale. If `True`, they are instead diverging color schemes with
+        0 as white. Valid diverging schemes: https://vega.github.io/vega/docs/schemes/
 
     Returns
     -------
@@ -706,11 +711,16 @@ def mut_escape_heatmap(
             color=alt.Color(
                 epitope,
                 type="quantitative",
-                scale=alt.Scale(
-                    range=color_gradient_hex("white", epitope_colors[epitope], 20),
-                    type="linear",
-                    domain=(escape_min, escape_max),
-                    clamp=True,
+                # diverging color scales: https://stackoverflow.com/a/70296527
+                scale=(
+                    alt.Scale(domainMid=0, scheme=epitope_colors[epitope])
+                    if diverging_colors else
+                    alt.Scale(
+                        range=color_gradient_hex("white", epitope_colors[epitope], 20),
+                        type="linear",
+                        domain=(escape_min, escape_max),
+                        clamp=True,
+                    )
                 ),
                 legend=alt.Legend(
                     orient="left",
@@ -735,7 +745,8 @@ def mut_escape_heatmap(
             )
             .properties(
                 title=alt.TitleParams(
-                    f"{epitope}{epitope_label_suffix}", color=epitope_colors[epitope]
+                    f"{epitope}{epitope_label_suffix}",
+                    color="black" if diverging_colors else epitope_colors[epitope],
                 ),
                 width={"step": cell_size},
                 height={"step": cell_size},
