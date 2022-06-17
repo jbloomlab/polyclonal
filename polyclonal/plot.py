@@ -651,13 +651,18 @@ def mut_escape_heatmap(
         df_percent_max = df.copy()
     if floor_at_zero:
         for e in epitopes:
-            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=1)})
-    _max = df_percent_max[epitopes].abs().max().max()
+            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=0)})
+    _max = df_percent_max[epitopes].max().max()
+    _min = df_percent_max[epitopes].min().min()
     df_percent_max = (
-        df_percent_max.assign(_epitope_max=lambda x: x[epitopes].abs().max(axis=1))
+        df_percent_max.assign(_epitope_max=lambda x: x[epitopes].max(axis=1))
         .groupby("site", as_index=False)
         .aggregate(_site_max=pd.NamedAgg("_epitope_max", "max"))
-        .assign(percent_max=lambda x: 100 * x["_site_max"] / _max)
+        .assign(
+            percent_max=lambda x: (
+                100 * (x["_site_max"] - _min) / (_max - _min)
+            ).clip(lower=0)
+        )
         .drop(columns="_site_max")
     )
     df = df.merge(df_percent_max, on="site", how="left", validate="many_to_one").assign(
