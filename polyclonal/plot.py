@@ -664,9 +664,9 @@ def mut_escape_heatmap(
         .groupby("site", as_index=False)
         .aggregate(_site_max=pd.NamedAgg("_epitope_max", "max"))
         .assign(
-            percent_max=lambda x: (
-                100 * (x["_site_max"] - _min) / (_max - _min)
-            ).clip(lower=0)
+            percent_max=lambda x: (100 * (x["_site_max"] - _min) / (_max - _min)).clip(
+                lower=0
+            )
         )
         .drop(columns="_site_max")
     )
@@ -714,8 +714,8 @@ def mut_escape_heatmap(
                 # diverging color scales: https://stackoverflow.com/a/70296527
                 scale=(
                     alt.Scale(domainMid=0, scheme=epitope_colors[epitope])
-                    if diverging_colors else
-                    alt.Scale(
+                    if diverging_colors
+                    else alt.Scale(
                         range=color_gradient_hex("white", epitope_colors[epitope], 20),
                         type="linear",
                         domain=(escape_min, escape_max),
