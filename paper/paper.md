@@ -58,12 +58,14 @@ Thus, this package fulfills the need for a predictive and interpretable model of
 # Implementation
 
 ## Biophysical model
-
+<!-- ZT: This section is super long (795/1644 words), and we have a 1000 word limit, we could probably strip a lot of the details out of this section. -->
 Consider a viral protein bound by polyclonal antibodies, such as might be found in sera.
 We want to determine the contribution of each mutation to escaping these polyclonal antibodies, being cognizant of the fact that different antibodies target different epitopes.
 
+<!-- ZT: Since this is a super broad journal, we can probably simplify/shorten some of these text.-->
 The actual experimental measurable is as follows: at each concentration $c$ of the antibody mixture, we measure $p_v\left(c\right)$, which is the fraction of all variants $v$ of the viral protein that escape binding or neutralization by all antibodies in the mix.
 
+<!-- ZT: Perhaps we could state model assumptions in a short list, and removig or shortening some of the redundant info. -->
 We assume that antibodies in the mix can bind to one of $E$ epitopes on the protein.
 Let $U_e\left(v,c\right)$ be the fraction of the time that epitope $e$ is not bound on variant $v$ when the mix is at concentration $c$.
 Then assuming antibodies bind independently without competition, the overall experimentally measured fraction of variants that escape binding at concentration $c$ is:
@@ -73,7 +75,9 @@ p_v\left(c\right) = \prod_{e=1}^E U_e\left(v, c\right),
 $$
 where $e$ ranges over the $E$ epitopes.
 
+<!-- ZT: We may not even need this unbound fractions section for a JoSS paper's scope -- thoughts? -->
 Next, we can decompose $U_e\left(v,c\right)$ in terms of underlying physical properties like the relative concentrations of antibodies targeting different epitopes, and the affinities of these antibodies ([Einav et al. 2020](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007830)).
+<!-- ZT: I think we can eliminate a lot of this text with the assumptions list stated earlier, and then just roll with barebones equations (i.e., to save on word count, we may not need to prove the relationship between the HIll coefficents and phi) -- thoughts? -->
 If we assume that there is no competition among antibodies binding to different epitopes, that all antibodies targeting a given epitope have same affinity, and that there is no cooperativity in antibody binding (Hill coefficient of antibody binding is one), then the fraction of all variants $v$ that are not bound by an antibody targeting epitope $e$ at concentration $c$ is given by a Hill equation:
 $$
 \begin{eqnarray}
@@ -93,6 +97,7 @@ There are two quantities of biological interest:
 1. The activity of antibodies binding epitope $e$ in the unmutated ("wildtype") protein background, which will be denoted as $a_{\rm{wt}, e}$.
 2. The extent of escape mediated by each amino-acid mutation $m$ on binding of antibodies targeting epitope $e$, which will be denoted as $\beta_{m,e}$.
 
+<!-- ZT: Actually -- I think this is really all we may need to say in terms of modeling given the word limit and scope. -->
 In order to infer these quantities, we assume that mutations have additive effects on the free energy of binding ([Otwinowski et al. 2018](https://academic.oup.com/mbe/article/35/10/2345/5063899?login=true)) for antibodies targeting any given epitope $e$.
 Specifically, let $a_{\rm{wt}, e}$ be the total activity against the "wildtype" protein of antibodies targeting epitope $e$, with larger values of $a_{\rm{wt}, e}$ indicating stronger antibody binding (or neutralization) at this epitope.
 Let $\beta_{m,e}$ be the extent to which mutation $m$ (where $1 \le m \le M$) reduces binding by antibodies targeting epitope $e$, with larger values of $\beta_{m,e}$ corresponding to more escape from binding (a value of 0 means the mutation has no effect on antibodies targeting this epitope).
@@ -107,10 +112,13 @@ These equations relate the quantities of biological interest ($a_{\rm{wt}, e}$ a
 
 ## Optimization
 By default, [polyclonal](https://github.com/jbloomlab/polyclonal) uses the gradient-based L-BFGS-B method in `scipy.optimize.minimize` to minimize a Pseudo-Huber loss function on the difference between predicted and measured escape fractions for each variant ($p_v(c)$).
+
+<!-- ZT: I think this is more important than the below section, but this could also go and probably work well if we really need to chop down on WC. -->
 We recommend using the default option of first fitting a "site-level" model, in which all mutations are lumped together so there are just two characters (wildtype and mutant).
 The escape values from this initial site-level fitting are then used to initialize the full mutation-level escape values which are then further optimized.
 This option is implemented via the `fit_site_level_first` parameter in `Polyclonal.fit`.
 
+<!-- ZT: This paragraph could be another primary candidate to cut to make WC. -->
 If there are multiple variants with the same mutations, users can choose whether to treat each as independent measurements or "collapse" them to a single variant that is then given a weight proportional to the number of constituent variants that is used when calculating the loss.
 Collapsing is implemented by default via `collapse_identical_variants` during the initialization of a `Polyclonal` object.
 In most cases, collapsing speeds up fitting without substantially changing fitting results.
