@@ -73,7 +73,8 @@ p_v\left(c\right) = \prod_{e=1}^E U_e\left(v, c\right),
 $$
 where $e$ ranges over the $E$ epitopes.
 
-Next, we can decompose $U_e\left(v,c\right)$ in terms of underlying physical properties like the relative concentrations of antibodies targeting different epitopes, and the affinities of these antibodies ([Einav et al. 2020](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007830)). If we assume that there is no competition among antibodies binding to different epitopes, that all antibodies targeting a given epitope have same affinity, and that there is no cooperativity in antibody binding (Hill coefficient of antibody binding is one), then the fraction of all variants $v$ that are not bound by an antibody targeting epitope $e$ at concentration $c$ is given by a Hill equation:
+Next, we can decompose $U_e\left(v,c\right)$ in terms of underlying physical properties like the relative concentrations of antibodies targeting different epitopes, and the affinities of these antibodies ([Einav et al. 2020](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007830)).
+If we assume that there is no competition among antibodies binding to different epitopes, that all antibodies targeting a given epitope have same affinity, and that there is no cooperativity in antibody binding (Hill coefficient of antibody binding is one), then the fraction of all variants $v$ that are not bound by an antibody targeting epitope $e$ at concentration $c$ is given by a Hill equation:
 $$
 \begin{eqnarray}
 U_e\left(v, c\right) &=& \frac{1}{1 + \frac{c f_e}{K_{d,e}\left(v\right)}} \\
@@ -112,7 +113,8 @@ This option is implemented via the `fit_site_level_first` parameter in `Polyclon
 
 If there are multiple variants with the same mutations, users can choose whether to treat each as independent measurements or "collapse" them to a single variant that is then given a weight proportional to the number of constituent variants that is used when calculating the loss.
 Collapsing is implemented by default via `collapse_identical_variants` during the initialization of a `Polyclonal` object.
-In most cases, collapsing speeds up fitting without substantially changing fitting results. However, users should not collapse if performing bootstrapping.
+In most cases, collapsing speeds up fitting without substantially changing fitting results.
+However, users should not collapse if performing bootstrapping.
 
 Lastly, [polyclonal](https://github.com/jbloomlab/polyclonal) models are regularized based on three biologically motivated assumptions:
 
