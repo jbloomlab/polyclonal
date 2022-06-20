@@ -29,11 +29,13 @@ bibliography: paper.bib
 
 # Summary
 
-Viral evolution is driven by mutations that escape antibody recognition.
-However, multiple mutations are often required for viruses to fully escape antibodies in sera, which are polyclonal and can target several distinct epitopes on a viral protein.
-Understanding the mechanistic relationship between viral protein sequence and polyclonal antibody escape is critical for interpreting viral adaptation to host immunity.
-Here we introduce [polyclonal](https://github.com/jbloomlab/polyclonal), a Python package for fitting biophysical models of polyclonal antibody escape to data from deep mutational scanning of multiply-mutated viral protein variants.
-This model can reveal the locations of epitopes that are recognized by antibodies and infer the specific mutations that impede their recognition, providing a detailed picture on how antibody immunity is eroded.
+Emerging viral variants stem from mutations that escape pre-existing antibody immunity. 
+However, we remain limited in our ability to forecast these events. 
+Deep mutational scanning experiments can measure antibody escape for tens of thousands of viral variants, but these represent an infinitesimal fraction of sequence space. 
+Here we introduce [polyclonal](https://github.com/jbloomlab/polyclonal), a Python package that enables antibody escape prediction of viral variants containing arbitrary mutation combinations that were not experimentally measured.
+Specifically, [polyclonal](https://github.com/jbloomlab/polyclonal) uses gradient-based optimization to fit a biophysical model to deep mutational scanning data of sparsely sampled viral variants with multiple mutations. 
+Notably, the model's inferred parameters describe the locations and dominances of epitopes that are recognized by antibodies, as well as the effects of specific mutations that impede their recognition. 
+Overall, [polyclonal](https://github.com/jbloomlab/polyclonal) is an asset to viral surveillance that provides a detailed picture on how antibody immunity is eroded.
 
 # Statement of need
 
