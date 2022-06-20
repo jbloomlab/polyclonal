@@ -9,6 +9,8 @@ Defines fitting functions for the loss function in JAX.
 
 import jax
 
+import numpy
+
 import polyclonal.loss as loss
 import polyclonal.optimization as optimization
 
@@ -48,3 +50,31 @@ def prox_grad_of_polyclonal(
         trivial_prox,
         verbose=True,
     )
+
+
+class JaxCost:
+    def __init__(
+        self,
+        poly_abs,
+        loss_delta=0.1,
+        reg_escape_weight=0.01,
+        reg_escape_delta=0.1,
+        reg_spread_weight=0.25,
+    ):
+        bv_sparses = loss.bv_sparses_of_polyclonal(poly_abs)
+        (matrix_to_mean, coeff_positions) = loss.spread_matrices_of_polyclonal(poly_abs)
+        self.cost_and_grad = jax.value_and_grad(loss.cost)
+        self.args = [
+            poly_abs,
+            bv_sparses,
+            loss_delta,
+            reg_escape_weight,
+            reg_escape_delta,
+            reg_spread_weight,
+            matrix_to_mean,
+            coeff_positions,
+        ]
+
+    def value_and_grad(self, params):
+        value, grad = self.cost_and_grad(params, *(self.args))
+        return float(value), numpy.array(grad, order="F", copy=False)
