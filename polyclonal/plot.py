@@ -461,6 +461,7 @@ def mut_escape_heatmap(
     epitope_label_suffix=" epitope",
     diverging_colors=False,
     max_min_times_seen=None,
+    addtl_slider_stats=None,
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -501,14 +502,17 @@ def mut_escape_heatmap(
         Initial cutoff for minimum times a mutation must be seen slider. Slider
         only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
         the percent max cutoff values.
-    max_min_times_seen : int or None
-        Maximum value for min times seen slider, or `None` for default.
     epitope_label_suffix : str
         Suffix epitope labels with this.q
     diverging_colors : bool
         If `False`, colors in ``epitope_colors`` are assumed to be the upper color for
         white-to-<color> scale. If `True`, they are instead diverging color schemes with
         0 as white. Valid diverging schemes: https://vega.github.io/vega/docs/schemes/
+    max_min_times_seen : int or None
+        Maximum value for min times seen slider, or `None` for default.
+    addtl_slider_stats : None or dict
+        If you want additional sliders, key by other numeric properties in
+        ``addtl_tooltip_stats`` and value is initial setting.
 
     Returns
     -------
@@ -664,7 +668,7 @@ def mut_escape_heatmap(
             fields=["times_seen"],
             value=[{"times_seen": init_min_times_seen}],
             bind=alt.binding_range(
-                min=1,
+                min=math.floor(df["times_seen"].min()),
                 max=max_min_times_seen,
                 step=1,
                 name="min_times_seen",
@@ -672,6 +676,26 @@ def mut_escape_heatmap(
         )
     else:
         times_seen_cutoff = None
+
+    addtl_sliders = {}
+    if addtl_slider_stats is not None:
+        for slider_stat, init_slider_stat in addtl_slider_stats.items():
+            if not (addtl_tooltip_stats and slider_stat in addtl_tooltip_stats):
+                raise ValueError(
+                    f"addtl_slider_stat {slider_stat} not in addtl_tooltip_stats"
+                )
+            assert slider_stat in df.columns
+            addtl_sliders[slider_stat] = alt.selection_point(
+                fields=[slider_stat],
+                value=[{slider_stat: init_slider_stat}],
+                name=slider_stat,
+                bind=alt.binding_range(
+                    min=df[slider_stat].min(),
+                    max=df[slider_stat].max(),
+                    step=1,
+                    name=slider_stat,
+                ),
+            )
 
     # select cells
     cell_selector = alt.selection_point(on="mouseover", empty=False)
@@ -785,6 +809,12 @@ def mut_escape_heatmap(
                 charts[-1]
                 .add_parameter(times_seen_cutoff)
                 .transform_filter(alt.datum.times_seen >= times_seen_cutoff.times_seen)
+            )
+        for slider_stat, slider in addtl_sliders.items():
+            charts[-1] = (
+            charts[-1]
+            .add_parameter(slider)
+            .transform_filter(f"datum.{slider_stat} >= {slider_stat}.{slider_stat}")
             )
 
     chart = (
