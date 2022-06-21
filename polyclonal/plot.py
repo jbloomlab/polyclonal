@@ -466,7 +466,8 @@ def mut_escape_heatmap(
     ----------
     mut_escape_df : pandas.DataFrame
         Mutation-level escape in format of
-        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`.
+        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`. Any
+        wildtype entries should be set to 0 or are auto-filled to 0.
     alphabet : array-like
         Alphabet letters (e.g., amino acids) in order to plot them.
     epitope_colors : dict
@@ -556,27 +557,40 @@ def mut_escape_heatmap(
             for e in epitopes
         ]
 
-    # add mutation labels and wildtypes
-    wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
-    assert (df["wildtype"] != df["mutant"]).all()
+    # add wildtypes not already in data frame, setting effects to 0
+    existing_wts = set(df.query("mutant == wildtype")["site"])
+    if any(df.query("mutant == wildtype")[stat] != 0):
+        raise ValueError("some sites have wildtype != 0")
+    all_wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
+    missing_wts = {r: wt for r, wt in all_wts.items() if r not in existing_wts}
     df = df.pivot_table(
         index=["site", "mutant"], values=stat, columns="epitope"
     ).reset_index()
-    wt_df = (
-        pd.Series(wts)
-        .rename_axis("site")
-        .to_frame("mutant")
-        .reset_index()
-        .assign(**{e: 0 for e in epitopes})
-    )
+    if missing_wts:
+        missing_wt_df = (
+            pd.Series(missing_wts)
+            .rename_axis("site")
+            .to_frame("mutant")
+            .reset_index()
+            .assign(**{e: 0 for e in epitopes})
+        )
     if error_stat is not None:
         df = df.merge(
             label_df, how="left", on=["site", "mutant"], validate="one_to_one"
         )
-        wt_df = wt_df.assign(**{f"{e} epitope": "0" for e in epitopes})
-    df = pd.concat([df, wt_df], ignore_index=True).assign(
-        mutation=lambda x: (x["site"].map(wts) + x["site"].astype(str) + x["mutant"]),
-        is_wildtype=lambda x: x["site"].map(wts) == x["mutant"],
+        if missing_wts:
+            missing_wt_df = missing_wt_df.assign(
+                **{f"{e} epitope": "0" for e in epitopes}
+            )
+    if len(missing_wts):
+        df = pd.concat([df, missing_wt_df], ignore_index=True)
+
+    # add mutations and indicate which sites are wildtype
+    df = df.assign(
+        mutation=lambda x: (
+            x["site"].map(all_wts) + x["site"].astype(str) + x["mutant"]
+        ),
+        is_wildtype=lambda x: x["site"].map(all_wts) == x["mutant"],
     )
 
     # zoom bar to put at top
