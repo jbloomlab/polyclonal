@@ -9,6 +9,7 @@ Plotting functions.
 
 
 import itertools
+import math
 
 import altair as alt
 
@@ -459,6 +460,7 @@ def mut_escape_heatmap(
     init_min_times_seen=1,
     epitope_label_suffix=" epitope",
     diverging_colors=False,
+    max_min_times_seen=None,
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -499,6 +501,8 @@ def mut_escape_heatmap(
         Initial cutoff for minimum times a mutation must be seen slider. Slider
         only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
         the percent max cutoff values.
+    max_min_times_seen : int or None
+        Maximum value for min times seen slider, or `None` for default.
     epitope_label_suffix : str
         Suffix epitope labels with this.q
     diverging_colors : bool
@@ -642,16 +646,26 @@ def mut_escape_heatmap(
                 axis=1,
             )
         )
+        # note "times seen" is value in tooltip, "times_seen" for slider
         if (df["times_seen"] == df["times_seen"].astype(int)).all():
-            df["times_seen"] = df["times_seen"].astype(int)
-        df["times seen"] = df["times_seen"].astype(str).where(~df["is_wildtype"], "na")
-        # make selection slider, max is greater of median or mean across variants
+            df["times seen"] = df["times_seen"].astype(int).astype(str)
+        else:
+            df["times seen"] = df["times_seen"].map(lambda x: f"{x:.1f}")
+        df["times seen"] = df["times seen"].where(~df["is_wildtype"], "na")
+        # make time_seen selection slider, default
+        # max is greater of median or mean across variants
+        if max_min_times_seen is None:
+            max_min_times_seen = math.ceil(max(
+                df["times_seen"].median(),
+                df["times_seen"].mean(),
+                init_min_times_seen,
+            ))
         times_seen_cutoff = alt.selection_point(
             fields=["times_seen"],
             value=[{"times_seen": init_min_times_seen}],
             bind=alt.binding_range(
                 min=1,
-                max=int(max(df["times_seen"].median(), df["times_seen"].mean())),
+                max=max_min_times_seen,
                 step=1,
                 name="min_times_seen",
             ),
