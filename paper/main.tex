@@ -51,19 +51,136 @@
 
 \hyphenation{Ge-nome Ge-nomes hyper-mut-ation through-put}
 
-\title{Template}
+\title{A Biophysical Model of Viral Escape from Polyclonal Antibodies}
 \author{You}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Abstract here.
+Emerging viral variants stem from mutations that escape antibody immunity. 
+However, we remain limited in our ability to forecast these dire events. 
+Deep mutational scanning can measure the antibody escape probabilities of thousands of viral variants, but these represent an infinitesimal fraction of sequence space.
+Here, we introduce a biophysical model that can be fit on deep mutational scanning data of viral variants with multiple mutations. 
+We show that this model can accurately predict the antibody escape probabilities of viral variants containing arbitrary mutation combinations.
+Notably, it achieves this by inferring the binding activities of antibodies targeting distinct epitopes on the viral protein and the extent to which each mutation reduces these binding activities. 
+Overall, this model is an asset to viral surveillance that paints a detailed picture on how antibody immunity is eroded.
 \end{abstract}
 
-
 \section*{Introduction}
-Hooray for Joe~\cite{Felsenstein1981-zs}.
+
+In order to replicate, viruses must enter host cells. 
+They commonly achieve this via viral proteins that decorate the viral surface. 
+However, these viral proteins are also heavily targeted by antibodies, and this imposed selection drives viruses to acquire mutations that escape antibody recognition (Hensley et al. 2009). 
+To study the evolutionary dynamics of this cat-and-mouse game, deep mutational scanning (DMS) has emerged as a powerful approach, enabling us to assay the effects of thousands of single mutations to viral proteins on antibody escape (Doud et al. 2018, Lee et al. 2019, Greaney et al. 2021). 
+Briefly, DMS involves generating a library of viral protein variants that contain all possible single amino acid mutations, incubating this library with antibodies, and using deep sequencing to identify which variants escape antibody binding or neutralization.
+While these studies have greatly informed our understanding of viral evolution, the next frontier of DMS experiments revolves around variants with multiple amino acid mutations.
+One major reason for pursuing this next step is that single mutations are often insufficient for antibody escape, as antibodies in sera are polyclonal and can target multiple distinct epitopes on a viral protein (Lee et al. 2019). 
+While a single mutation may contribute to antibody escape at one epitope, other antibodies can still bind at unaffected epitopes. 
+On the other hand, if all epitopes are sufficiently mutated, it could lead to escape from all antibodies composing the sera.
+
+Unfortunately, unlike in single-mutant DMS experiments, the presence of multiple mutations presents an analytical challenge.
+First, it is infeasible to assay all combinations of mutations to viral proteins.
+To illustrate, the number of all possible viral protein genotypes is greater than the number of atoms in the universe (Sewall Wright. 1932).
+Second, mutations can be epistatic, manifesting nonlinear and context-dependent effects on antibody escape. 
+However, while this epistasis is ostensibly idiosyncratic, it must be grounded in biophysical rules that govern the interactions between antibodies and the viral protein epitopes they bind. 
+Given these, there is a need for computational models that can be fit on a small fraction of assayed multi-mutants to predict the antibody escape potential of any arbitrary multi-mutant viral variant.
+
+Here, we formalize a biophysical model that addresses these challenges. 
+This model is rooted on the principle that antigenic mutations at distinct epitopes have a \textit{multiplicative} effect on antibody escape when combined, whereas antigenic mutations at the same epitope have an \textit{additive} or \textit{redundant} effect. 
+By observing thousands of multi-mutant examples in a DMS experiment, it learns how mutations interact and contribute to antibody escape at the epitope-level. 
+Due to the absence of an available dataset, we first simulated a realistic multi-mutant DMS dataset using a hypothetical polyclonal sera sample containing antibodies targeting three major neutralizing epitopes on the SARS-CoV-2 receptor-binding domain (RBD). 
+Using this simulated dataset, we demonstrate that our model reliably infers the true mutation effects and antibody binding activities at each epitope.
+Lastly, we clarify the experimental conditions for DMS that lead to the best model performance. 
+
+\section*{Results}
+
+\subsection*{A biophysical model of viral escape}
+
+\textbf{Main text:}
+\begin{itemize}
+	\item Introduction to experimental workflow and data (Fig. 1A)
+	\item Full mathematical description and "mental picture" of the model (Fig. 1B-E)
+	\item At end, briefly mention statistical mechanics model and validity of distinct epitopes assumption (Fig. S1) 
+	\item Quickly weave in relation to global epistasis models
+\end{itemize}
+
+
+\noindent\textbf{Figure 1:}
+\begin{itemize}
+	\item A. Experimental workflow figure (showing variants in library have multiple mutations at same/different epitopes)
+	\item B. Single mutation in dominant epitope: 4 curves for escape fraction overall, and unbound fractions at epitopes 1-3. (emphasize big effect in overall neutralization curve)
+	\item C. Single mutation in subdominant epitope: 4 curves for escape fraction overall, and unbound fractions at epitopes 1-3. (emphasize small effect in overall neutralization curve)
+	\item D. Multiple mutation in same epitope: 4 curves for escape fraction overall, and unbound fractions at epitopes 1-3. (emphasize additive/redundant effects)
+	\item E. Multiple mutation in multiple epitopes: 4 curves for escape fraction overall, and unbound fractions at epitopes 1-3. (emphasize multiplicative effects)
+	\item *B-E will be figures generated by Will. They will be generated from the simulated RBD data, but presented as toy examples as the RBD hasn't been introduced yet at this point and I think it will be less confusing. 
+\end{itemize}
+
+\subsection*{Simulating a realistic multi-mutant DMS dataset}
+
+\textbf{Main text:}
+\begin{itemize}
+	\item Rationale for simulating data (no available data, allows us to benchmark model, identify ideal experimental conditions)
+	\item Description of data and how it was simulated (Fig. 2A-C)
+\end{itemize}
+
+
+\noindent\textbf{Figure 2:}
+\begin{itemize}
+	\item A. Summary boxplot of escape fractions in the simulated RBD DMS dataset
+	\item B. Barplot of true wildtype epitope activities
+	\item C. Heatmap of true mutation effects at each epitope 
+	\item D. Protein structure view of mutation effects at each epitope
+\end{itemize}
+
+\subsection*{Parameter inference and performance using simulated data}
+
+\textbf{Main text:}
+\begin{itemize}
+	\item Description of model fitting and regularization, with focus on the biological rationale
+	\item Description of how model performs on simulated RBD data (Fig. 3A-D)
+	\item Description of how to figure out number of epitopes (Fig. S2)
+	\item Description of rationale for bootstrapping (maybe a supplemental figure here?) 
+\end{itemize}
+
+
+\noindent\textbf{Figure 3:}
+\begin{itemize}
+	\item A. Predicted vs. actual escape fraction scatter plot
+	\item B. Predicted vs. actual IC99 plot
+	\item C. True vs. inferred wildtype epitope activities
+	\item D. True vs. inferred mutation effects at each epitope
+\end{itemize}
+
+\subsection*{Experimental design considerations}
+
+\textbf{Main text:}
+\begin{itemize}
+	\item Discussion on how various aspects of experimental design affect model inference/prediction (Fig. 4A-C)
+\end{itemize}
+
+
+\noindent\textbf{Figure 4:}
+\begin{itemize}
+	\item A. Correlation of predicted vs. actual beta coefficients with varying library size
+	\item B. Correlation of predicted vs. actual beta coefficients with varying mutation rate
+	\item C. Correlation of predicted vs. actual beta coefficients with varying concentrations
+\end{itemize}
+
+\subsection*{Supplemental Figures:}
+\textbf{Figures:}
+\begin{itemize}
+	\item 1. Using statistical mechanics to evaluate distinct epitopes assumption
+	\item 2. How to figure out number of epitopes?
+\end{itemize}
+
+\subsection*{Methods:}
+\begin{itemize}
+	\item Simulating RBD data
+	\item Model fitting and optimization
+	\item Full regularization details
+	\item Bootstrapping
+\end{itemize}
 
 % \begin{figure}[h]
 % \centering
