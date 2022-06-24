@@ -659,11 +659,13 @@ def mut_escape_heatmap(
         # make time_seen selection slider, default
         # max is greater of median or mean across variants
         if max_min_times_seen is None:
-            max_min_times_seen = math.ceil(max(
-                df["times_seen"].median(),
-                df["times_seen"].mean(),
-                init_min_times_seen,
-            ))
+            max_min_times_seen = math.ceil(
+                max(
+                    df["times_seen"].median(),
+                    df["times_seen"].mean(),
+                    init_min_times_seen,
+                )
+            )
         times_seen_cutoff = alt.selection_point(
             fields=["times_seen"],
             value=[{"times_seen": init_min_times_seen}],
@@ -812,9 +814,9 @@ def mut_escape_heatmap(
             )
         for slider_stat, slider in addtl_sliders.items():
             charts[-1] = (
-            charts[-1]
-            .add_parameter(slider)
-            .transform_filter(f"datum.{slider_stat} >= {slider_stat}.{slider_stat}")
+                charts[-1]
+                .add_parameter(slider)
+                .transform_filter(f"datum.{slider_stat} >= {slider_stat}.{slider_stat}")
             )
 
     chart = (
