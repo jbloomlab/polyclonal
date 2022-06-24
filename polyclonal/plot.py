@@ -9,6 +9,7 @@ Plotting functions.
 
 
 import itertools
+import math
 
 import altair as alt
 
@@ -459,6 +460,8 @@ def mut_escape_heatmap(
     init_min_times_seen=1,
     epitope_label_suffix=" epitope",
     diverging_colors=False,
+    max_min_times_seen=None,
+    addtl_slider_stats=None,
 ):
     r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
@@ -466,7 +469,8 @@ def mut_escape_heatmap(
     ----------
     mut_escape_df : pandas.DataFrame
         Mutation-level escape in format of
-        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`.
+        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`. Any
+        wildtype entries should be set to 0 or are auto-filled to 0.
     alphabet : array-like
         Alphabet letters (e.g., amino acids) in order to plot them.
     epitope_colors : dict
@@ -504,6 +508,11 @@ def mut_escape_heatmap(
         If `False`, colors in ``epitope_colors`` are assumed to be the upper color for
         white-to-<color> scale. If `True`, they are instead diverging color schemes with
         0 as white. Valid diverging schemes: https://vega.github.io/vega/docs/schemes/
+    max_min_times_seen : int or None
+        Maximum value for min times seen slider, or `None` for default.
+    addtl_slider_stats : None or dict
+        If you want additional sliders, key by other numeric properties in
+        ``addtl_tooltip_stats`` and value is initial setting.
 
     Returns
     -------
@@ -556,27 +565,40 @@ def mut_escape_heatmap(
             for e in epitopes
         ]
 
-    # add mutation labels and wildtypes
-    wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
-    assert (df["wildtype"] != df["mutant"]).all()
+    # add wildtypes not already in data frame, setting effects to 0
+    existing_wts = set(df.query("mutant == wildtype")["site"])
+    if any(df.query("mutant == wildtype")[stat] != 0):
+        raise ValueError("some sites have wildtype != 0")
+    all_wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
+    missing_wts = {r: wt for r, wt in all_wts.items() if r not in existing_wts}
     df = df.pivot_table(
         index=["site", "mutant"], values=stat, columns="epitope"
     ).reset_index()
-    wt_df = (
-        pd.Series(wts)
-        .rename_axis("site")
-        .to_frame("mutant")
-        .reset_index()
-        .assign(**{e: 0 for e in epitopes})
-    )
+    if missing_wts:
+        missing_wt_df = (
+            pd.Series(missing_wts)
+            .rename_axis("site")
+            .to_frame("mutant")
+            .reset_index()
+            .assign(**{e: 0 for e in epitopes})
+        )
     if error_stat is not None:
         df = df.merge(
             label_df, how="left", on=["site", "mutant"], validate="one_to_one"
         )
-        wt_df = wt_df.assign(**{f"{e} epitope": "0" for e in epitopes})
-    df = pd.concat([df, wt_df], ignore_index=True).assign(
-        mutation=lambda x: (x["site"].map(wts) + x["site"].astype(str) + x["mutant"]),
-        is_wildtype=lambda x: x["site"].map(wts) == x["mutant"],
+        if missing_wts:
+            missing_wt_df = missing_wt_df.assign(
+                **{f"{e} epitope": "0" for e in epitopes}
+            )
+    if len(missing_wts):
+        df = pd.concat([df, missing_wt_df], ignore_index=True)
+
+    # add mutations and indicate which sites are wildtype
+    df = df.assign(
+        mutation=lambda x: (
+            x["site"].map(all_wts) + x["site"].astype(str) + x["mutant"]
+        ),
+        is_wildtype=lambda x: x["site"].map(all_wts) == x["mutant"],
     )
 
     # zoom bar to put at top
@@ -628,22 +650,54 @@ def mut_escape_heatmap(
                 axis=1,
             )
         )
+        # note "times seen" is value in tooltip, "times_seen" for slider
         if (df["times_seen"] == df["times_seen"].astype(int)).all():
-            df["times_seen"] = df["times_seen"].astype(int)
-        df["times seen"] = df["times_seen"].astype(str).where(~df["is_wildtype"], "na")
-        # make selection slider, max is greater of median or mean across variants
+            df["times seen"] = df["times_seen"].astype(int).astype(str)
+        else:
+            df["times seen"] = df["times_seen"].map(lambda x: f"{x:.1f}")
+        df["times seen"] = df["times seen"].where(~df["is_wildtype"], "na")
+        # make time_seen selection slider, default
+        # max is greater of median or mean across variants
+        if max_min_times_seen is None:
+            max_min_times_seen = math.ceil(
+                max(
+                    df["times_seen"].median(),
+                    df["times_seen"].mean(),
+                    init_min_times_seen,
+                )
+            )
         times_seen_cutoff = alt.selection_point(
             fields=["times_seen"],
             value=[{"times_seen": init_min_times_seen}],
             bind=alt.binding_range(
-                min=1,
-                max=int(max(df["times_seen"].median(), df["times_seen"].mean())),
+                min=math.floor(df["times_seen"].min()),
+                max=max_min_times_seen,
                 step=1,
                 name="min_times_seen",
             ),
         )
     else:
         times_seen_cutoff = None
+
+    addtl_sliders = {}
+    if addtl_slider_stats is not None:
+        for slider_stat, init_slider_stat in addtl_slider_stats.items():
+            if not (addtl_tooltip_stats and slider_stat in addtl_tooltip_stats):
+                raise ValueError(
+                    f"addtl_slider_stat {slider_stat} not in addtl_tooltip_stats"
+                )
+            assert slider_stat in df.columns
+            addtl_sliders[slider_stat] = alt.selection_point(
+                fields=[slider_stat],
+                value=[{slider_stat: init_slider_stat}],
+                name=slider_stat,
+                bind=alt.binding_range(
+                    min=df[slider_stat].min(),
+                    max=df[slider_stat].max(),
+                    step=1,
+                    name=slider_stat,
+                ),
+            )
 
     # select cells
     cell_selector = alt.selection_point(on="mouseover", empty=False)
@@ -757,6 +811,12 @@ def mut_escape_heatmap(
                 charts[-1]
                 .add_parameter(times_seen_cutoff)
                 .transform_filter(alt.datum.times_seen >= times_seen_cutoff.times_seen)
+            )
+        for slider_stat, slider in addtl_sliders.items():
+            charts[-1] = (
+                charts[-1]
+                .add_parameter(slider)
+                .transform_filter(f"datum.{slider_stat} >= {slider_stat}.{slider_stat}")
             )
 
     chart = (
