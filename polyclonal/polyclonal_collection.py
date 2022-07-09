@@ -20,7 +20,7 @@ from polyclonal.polyclonal import PolyclonalFitError
 
 
 class PolyclonalCollectionFitError(Exception):
-    """Error fitting in :meth:`PolyclonalCollection.fit_models`."""
+    """Error fitting models."""
 
     pass
 
@@ -181,35 +181,63 @@ def _create_bootstrap_polyclonal(
     )
 
 
-def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
-    """Fit the model in a :class:`~polyclonal.polyclonal.Polyclonal` object.
-
-    A wrapper method for fitting models with `multiprocessing`. If optimization
-    optimization fails, :class:`~polyclonal.polyclonal.Polyclonal` objects will throw a
-    :class:`~polyclonal.polyclonal.PolyclonalFitError`.
-
-    We catch this error and proceed with the program by returning `None` for the
-    model that failed optimization.
-
-    Parameters
-    ----------
-    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
-        An initialized :class:`~polyclonal.polyclonal.Polyclonal` object.
-    **kwargs
-        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`
-
-    Returns
-    -------
-    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
-        `polyclonal_obj` but with optimized model parameters after fitting.
-
-    """
+def _fit_func(model, **kwargs):
+    """Fit model as utility function for `fit_models`."""
     try:
-        _ = polyclonal_obj.fit(**kwargs)
+        _ = model.fit(**kwargs)
+        return model
     except PolyclonalFitError:
         return None
 
-    return polyclonal_obj
+
+def fit_models(models, n_threads, failures="error", **kwargs):
+    """Fit collection of :class:`~polyclonal.polyclonal.Polyclonal` models.
+
+    Enables fitting of multiple models simultaneously using multiple threads.
+
+    Parameters
+    ----------
+    models : list
+        List of :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
+    n_threads : int
+        Number of threads (CPUs, cores) to use for fitting. Set to -1 to use
+        all CPUs available.
+    failures : {"error", "tolerate"}
+        What if fitting fails for a model? If "error" then raise an error,
+        if "ignore" then just return `None` for models that failed optimization.
+    **kwargs
+        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.
+
+    Returns
+    -------
+    (n_fit, n_failed, fit_models)
+        Number of models that fit successfully, number of models that failed,
+        and list of the fit models. Since :class:`~polyclonal.polyclonal.Polyclonal` are
+        mutable, you can also access the fit models in their original data structure.
+
+    """
+    if n_threads == -1:
+        n_threads = multiprocessing.cpu_count()
+
+    with multiprocessing.Pool(n_threads) as p:
+        fit_models = p.map(partial(_fit_func, **kwargs), models)
+
+    assert len(fit_models) == len(models)
+
+    # Check to see if any models failed optimization
+    n_failed = sum(model is None for model in fit_models)
+    if failures == "error":
+        if n_failed:
+            raise PolyclonalCollectionFitError(
+                f"Failed fitting {n_failed} of {len(models)} models"
+            )
+    elif failures != "tolerate":
+        raise ValueError(f"invalid {failures=}")
+    n_fit = len(fit_models) - n_failed
+    if n_fit == 0:
+        raise PolyclonalCollectionFitError(f"Failed fitting all {len(models)} models")
+
+    return n_fit, n_failed, fit_models
 
 
 class PolyclonalCollection:
@@ -297,28 +325,15 @@ class PolyclonalCollection:
             Number of model fits that failed and succeeded.
 
         """
-        # Initial pass over all models
         if "fit_site_level_first" not in kwargs:
             kwargs["fit_site_level_first"] = False
-        with multiprocessing.Pool(self.n_threads) as p:
-            self.models = p.map(
-                partial(_fit_polyclonal_model_static, **kwargs), self.models
-            )
 
-        # Check to see how many models failed optimization
-        n_failed = sum(model is None for model in self.models)
-        if failures == "error":
-            if n_failed:
-                raise PolyclonalCollectionFitError(
-                    f"Failed fitting {n_failed} of {len(self.models)} models"
-                )
-        elif failures != "tolerate":
-            raise ValueError(f"invalid {failures=}")
-        n_fit = len(self.models) - n_failed
-        if n_fit == 0:
-            raise PolyclonalCollectionFitError(
-                f"Failed fitting all {len(self.models)} models"
-            )
+        n_fit, n_failed, self.models = fit_models(
+            self.models,
+            self.n_threads,
+            failures,
+            **kwargs,
+        )
 
         for m in self.models:
             if m is not None:
