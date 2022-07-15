@@ -3,11 +3,17 @@
 polyclonal_collection
 ======================
 
-Defines :class:`PolyclonalCollection` objects for bootstrapping
-:mod:`~polyclonal.polyclonal.Polyclonal` model parameters.
+Defines :class:`PolyclonalCollection` for handling collections of multiple
+:mod:`~polyclonal.polyclonal.Polyclonal` objects.
+
+:class:`PolyclonalCollection` is a base class for the following specific use-case
+classes:
+
+ - :class:`PolyclonalBootstrap` for bootstrapping a model.
 
 """
 
+import copy
 import multiprocessing
 from functools import partial
 from itertools import repeat
@@ -241,7 +247,418 @@ def fit_models(models, n_threads, failures="error", **kwargs):
 
 
 class PolyclonalCollection:
-    r"""A container class for multiple :class:`~polyclonal.polyclonal.Polyclonal` objects.
+    r"""Handle a collection of :class:`~polyclonal.polyclonal.Polyclonal` objects.
+
+    Parameters
+    -----------
+    models : list
+        List of :class:`~polyclonal.polyclonal.Polyclonal` models in collection.
+        In some use cases, an etry can be `None` if a model doesn't exist or is invalid
+        in some way.
+    model_descriptors : list
+        A list of same length as `models` with each entry being a dict keyed
+        by descriptors and values being the descriptor for that model. All models
+        must have same descriptor labels. Eg, ``[{"replicate": 1}, {"replicate": 2}]```,
+        and each model must have unique descriptors.
+
+    Attributes
+    -----------
+    models : list
+        Shallow copy of `models` list provided as an initialization parameter.
+    model_descriptors : dict
+        Deep copy of `model_descriptors` dict provided as an initialization parameter.
+    descriptor_names : list
+        The names that key the entries in :attr:`PolyclonalCollection.model_descriptors`.
+    epitope_colors : dict
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
+        extracted from :attr:`PolyclonalCollection.models`.
+    alphabet : array-like
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.alphabet`,
+        extracted from :attr:`PolyclonalCollection.models`.
+
+    """
+
+    def __init__(self, models, model_descriptors):
+        """See main class docstring for details."""
+        if not (len(models) > 0 and len([m for m in models if m is not None])):
+            raise ValueError(f"No non-None models:\n{models=}")
+        self.models = copy.copy(models)
+
+        if len(model_descriptors) != len(models):
+            raise ValueError(f"{len(model_descriptors)=} not equal to {len(models)=}")
+        self.descriptor_names = None
+        for descriptors in model_descriptors:
+            if self.descriptor_names is None:
+                self.descriptor_names = list(descriptors.keys())
+            elif set(self.descriptor_names) != set(descriptors.keys()):
+                raise ValueError("`model_descriptors` don't all have same keys")
+        self.model_descriptors = copy.deepcopy(model_descriptors)
+        if len(pd.DataFrame.drop_duplicates()) != len(models):
+            raise ValueError("some models have the same descriptors")
+
+        for attr in ["epitope_colors", "alphabet"]:
+            for model in self.models:
+                if model is not None:
+                    if not hasattr(self, attr):
+                        setattr(self, attr, copy.copy(getattr(model, attr)))
+                    elif getattr(self, attr) != getattr(model, attr):
+                        raise ValueError(f"{attr} not the same for all models")
+
+    @property
+    def activity_wt_df_replicates(self):
+        """pandas.DataFrame: Epitope activities for all models."""
+        return pd.concat(
+            [
+                m.activity_wt_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def activity_wt_df(self):
+        """pandas.DataFrame: Epitope activities summarized across models."""
+        return self.activity_wt_df_replicates.groupby(
+            "epitope", as_index=False
+        ).aggregate(
+            activity_mean=pd.NamedAgg("activity", "mean"),
+            activity_std=pd.NamedAgg("activity", "std"),
+        )
+
+    def activity_wt_barplot(self, **kwargs):
+        """Bar plot of epitope activities mean across models.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments for :func:`polyclonal.plot.activity_wt_barplot`.
+
+        Returns
+        -------
+        altair.Chart
+            Interactive plot, with error bars showing standard deviation.
+
+        """
+        return polyclonal.plot.activity_wt_barplot(
+            activity_wt_df=self.activity_wt_df,
+            epitope_colors=self.epitope_colors,
+            stat="activity_mean",
+            error_stat="activity_std",
+            **kwargs,
+        )
+
+    @property
+    def mut_escape_df_replicates(self):
+        """pandas.DataFrame: Mutation escape by model."""
+        return pd.concat(
+            [
+                m.mut_escape_df.assign(**desc)
+                for m, desc in zip(self.models, self.descriptors)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def mut_escape_df(self):
+        """pandas.DataFrame: Mutation escape summarized across models."""
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.mut_escape_df_replicates.groupby(
+                ["epitope", "site", "wildtype", "mutant", "mutation"],
+                as_index=False,
+            )
+            .aggregate(
+                escape_mean=pd.NamedAgg("escape", "mean"),
+                escape_std=pd.NamedAgg("escape", "std"),
+                n_models=pd.NamedAgg("escape", "count"),
+                times_seen=pd.NamedAgg("times_seen", "mean")
+            )
+            .assign(
+                frac_models=lambda x: x["n_models"] / n_fit,
+            )
+        )
+
+    def mut_escape_heatmap(self, **kwargs):
+        """Heatmaps of mutation escape values.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive heat maps.
+
+        """
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = ["times_seen"]
+        return polyclonal.plot.mut_escape_heatmap(
+            mut_escape_df=self.mut_escape_df,
+            alphabet=self.alphabet,
+            epitope_colors=self.epitope_colors,
+            stat="escape_mean",
+            error_stat="escape_std",
+            **kwargs,
+        )
+
+    def mut_escape_site_summary_df_replicates(self, **kwargs):
+        """Site-level summaries of mutation escape for models.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to
+            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        """
+        return pd.concat(
+            [
+                m.mut_escape_site_summary_df(**kwargs)
+                .assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptions)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    def mut_escape_site_summary_df(self, **kwargs):
+        """Site-level summaries of mutation escape across models.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to
+            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The different site-summary metrics ('mean', 'total positive', etc) are
+            in different rows for each site and epitope. The 'frac_models'
+            column refers to models with measurements for any mutation at that site.
+
+        """
+        n_fit = sum(m is not None for m in self.models)
+        return (
+            self.mut_escape_site_summary_df_replicates(**kwargs)
+            .melt(
+                id_vars=["epitope", "site", "wildtype", *self.descriptor_names],
+                var_name="metric",
+                value_name="escape",
+            )
+            .groupby(["epitope", "site", "wildtype", "metric"], as_index=False)
+            .aggregate(
+                escape_mean=pd.NamedAgg("escape", "mean"),
+                escape_std=pd.NamedAgg("escape", "std"),
+                n_models=pd.NamedAgg("escape", "count"),
+            )
+            .assign(
+                frac_models=lambda x: x["n_models"] / n_fit,
+            )
+        )
+
+    def mut_escape_lineplot(
+        self,
+        *,
+        mut_escape_site_summary_df_kwargs=None,
+        mut_escape_lineplot_kwargs=None,
+    ):
+        """Line plots of mutation escape at each site.
+
+        Parameters
+        ----------
+        mut_escape_site_summary_df_kwargs : dict
+            Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
+            It is often useful to set `min_times_seen` to >1.
+        mut_escape_lineplot_kwargs : dict
+            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive heat maps.
+
+        """
+        if mut_escape_site_summary_df_kwargs is None:
+            mut_escape_site_summary_df_kwargs = {}
+        if mut_escape_lineplot_kwargs is None:
+            mut_escape_lineplot_kwargs = {}
+        if "addtl_tooltip_stats" not in mut_escape_lineplot_kwargs:
+            mut_escape_lineplot_kwargs["addtl_tooltip_stats"] = ["n mutations"]
+        df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
+        return polyclonal.plot.mut_escape_lineplot(
+            mut_escape_site_summary_df=df,
+            replicate_data=True,
+            epitope_colors=self.epitope_colors,
+            **mut_escape_lineplot_kwargs,
+        )
+
+    def icXX_replicates(self, variants_df, **kwargs):
+        """Concentration which given fraction is neutralized (eg IC50) for all models.
+
+        Parameters
+        ----------
+        variants_df : pandas.DataFrame
+            Data frame defining variants. Should have column named
+            'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T').
+        **kwargs : Dictionary
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.icXX`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Copy of ``variants_df`` with added column ``col`` containing icXX,
+            and model descriptors. Variants with a mutation lacking in a particular
+            model are missing in that row.
+
+        """
+        return pd.concat(
+            [
+                m.icXX(m.filter_variants_by_seen_muts(variants_df), **kwargs).assign(
+                    **desc
+                )
+                for m, desc in zip(self.models, self.model_descriptions)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    def icXX(self, variants_df, **kwargs):
+        """Predicted concentration at which a variant is neutralized across all models.
+
+        Parameters
+        ----------
+        variants_df : pandas.DataFrame
+            Data frame defining variants. Should have column named
+            'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T').
+        **kwargs : Dictionary
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.icXX`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Copy of ``variants_df`` with added column ``col`` containing icXX,
+            and summary stats for each variant across all models.
+
+        """
+        n_fit = sum(m is not None for m in self.models)
+        if "col" in kwargs:
+            col = kwargs["col"]
+        else:
+            col = "IC50"
+        if len(variants_df) != len(variants_df.drop_duplicates()):
+            raise ValueError("columns in `variants_df` must be unique")
+        return (
+            self.icXX_replicates(variants_df, **kwargs)
+            .groupby(variants_df.columns.tolist(), as_index=False)
+            .aggregate(
+                mean_IC=pd.NamedAgg(col, "mean"),
+                median_IC=pd.NamedAgg(col, "median"),
+                std_IC=pd.NamedAgg(col, "std"),
+                n_models=pd.NamedAgg(col, "count"),
+            )
+            .assign(
+                frac_models=lambda x: x["n_models"] / n_fit,
+            )
+            .rename(
+                columns={
+                    f"{stat}_IC": f"{stat}_{col}" for stat in ["mean", "median", "std"]
+                }
+            )
+        )
+
+    def prob_escape_replicates(self, variants_df, **kwargs):
+        r"""Compute predicted probability of escape :math:`p_v\left(c\right)`.
+
+        Uses all models to make predictions on ``variants_df``.
+
+        Arguments
+        ---------
+        variants_df : pandas.DataFrame
+            Input data frame defining variants. Should have a column
+            named 'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T'). Should also have a
+            column 'concentration' if ``concentrations=None``.
+        **kwargs : Dictionary
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.prob_escape`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Version of ``variants_df`` with columns named 'concentration'
+            and 'predicted_prob_escape' giving predicted probability of escape
+            :math:`p_v\left(c\right)` for each variant at each concentration and
+            model. Variants with a mutation lacking in a particular model are
+            missing in that row.
+
+        """
+        return pd.concat(
+            [
+                m.prob_escape(
+                    variants_df=m.filter_variants_by_seen_muts(variants_df),
+                    **kwargs,
+                ).assign(**desc)
+                for m, desc in enumerate(self.models, self.model_descriptions)
+                if m is not None
+            ],
+            ignore_index=True,
+        )
+
+    def prob_escape(self, variants_df, **kwargs):
+        r"""Summary of predicted probability of escape across all models.
+
+        Arguments
+        ---------
+        variants_df : pandas.DataFrame
+            Input data frame defining variants. Should have a column
+            named 'aa_substitutions' that defines variants as space-delimited
+            strings of substitutions (e.g., 'M1A K3T'). Should also have a
+            column 'concentration' if ``concentrations=None``.
+        **kwargs : Dictionary
+            Keyword args for :func:`~polyclonal.polyclonal.Polyclonal.prob_escape`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Version of ``variants_df`` with columns named 'concentration'
+            and 'mean', 'median', and 'std' giving corresponding summary stats
+            of predicted probability of escape :math:`p_v\left(c\right)`
+            for each variant at each concentration across models.
+
+        """
+        n_fit = sum(m is not None for m in self.models)
+        if len(variants_df) != len(variants_df.drop_duplicates()):
+            raise ValueError("columns in `variants_df` must be unique")
+        return (
+            self.prob_escape_replicates(variants_df=variants_df, **kwargs)
+            .groupby(variants_df.columns.tolist(), as_index=False)
+            .aggregate(
+                mean_predicted_prob_escape=pd.NamedAgg("predicted_prob_escape", "mean"),
+                median_predicted_prob_escape=pd.NamedAgg(
+                    "predicted_prob_escape",
+                    "median",
+                ),
+                std_predicted_prob_escape=pd.NamedAgg("predicted_prob_escape", "std"),
+                n_models=pd.NamedAgg("predicted_prob_escape", "count"),
+            )
+            .assign(
+                frac_models=lambda x: x["n_models"] / n_fit,
+            )
+        )
+
+
+class PolyclonalBootstrap:
+    r"""Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
     Parameters
     -----------

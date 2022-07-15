@@ -7,9 +7,9 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 
-0.4
+1.0
 ---------------------------
-- Added ``AverageModels`` class to enable averaging across multiple fits.
+- **Backward incompatible change:** renamed the bootstrapping models from ``PolyclonalCollection`` to ``PolyclonalBootstrap`` and made ``PolyclonalCollection`` a general-purpose class for collection of ``Polyclonal`` objects. This makes the idea of model collections more general, and better aligns the class names with what they actually do.
 - Added ``polyclonal_collection.fit_models`` to fit multiple models using multiprocessing.
 - Added ``RBD_average.ipynb`` notebook.
 
