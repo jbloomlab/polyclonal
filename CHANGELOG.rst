@@ -11,6 +11,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ---------------------------
 - Added ``AverageModels`` class to enable averaging across multiple fits.
 - Added ``polyclonal_collection.fit_models`` to fit multiple models using multiprocessing.
+- Added ``RBD_average.ipynb`` notebook.
 
 0.3
 ---------------------------
