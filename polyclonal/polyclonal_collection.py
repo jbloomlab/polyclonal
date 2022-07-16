@@ -550,8 +550,8 @@ class PolyclonalCollection:
         Returns
         -------
         pandas.DataFrame
-            Copy of ``variants_df`` with added column ``col`` containing icXX,
-            and summary stats for each variant across all models.
+            De-duplicated opy of ``variants_df`` with added column ``col`` containing
+            icXX and summary stats for each variant across all models.
 
         """
         n_fit = sum(m is not None for m in self.models)
@@ -559,8 +559,7 @@ class PolyclonalCollection:
             col = kwargs["col"]
         else:
             col = "IC50"
-        if len(variants_df) != len(variants_df.drop_duplicates()):
-            raise ValueError("columns in `variants_df` must be unique")
+        variants_df = variants_df.drop_duplicates()
         return (
             self.icXX_replicates(variants_df, **kwargs)
             .groupby(variants_df.columns.tolist(), as_index=False)
@@ -633,15 +632,14 @@ class PolyclonalCollection:
         Returns
         -------
         pandas.DataFrame
-            Version of ``variants_df`` with columns named 'concentration'
+            De-duplicated copy of ``variants_df`` with columns named 'concentration'
             and 'mean', 'median', and 'std' giving corresponding summary stats
             of predicted probability of escape :math:`p_v\left(c\right)`
             for each variant at each concentration across models.
 
         """
         n_fit = sum(m is not None for m in self.models)
-        if len(variants_df) != len(variants_df.drop_duplicates()):
-            raise ValueError("columns in `variants_df` must be unique")
+        variants_df = variants_df.drop_duplicates()
         return (
             self.prob_escape_replicates(variants_df=variants_df, **kwargs)
             .groupby(variants_df.columns.tolist(), as_index=False)
