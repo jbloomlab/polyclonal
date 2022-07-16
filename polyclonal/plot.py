@@ -710,7 +710,7 @@ def mut_escape_heatmap(
         df_percent_max = df.copy()
     if floor_at_zero:
         for e in epitopes:
-            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=0)})
+            df_percent_max[e] = df_percent_max[e].clip(lower=0)
     _max = df_percent_max[epitopes].max().max()
     _min = df_percent_max[epitopes].min().min()
     df_percent_max = (

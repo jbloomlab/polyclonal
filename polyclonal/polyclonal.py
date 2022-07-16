@@ -1838,17 +1838,21 @@ class Polyclonal:
         for variant, exp_phi_e in zip(variants, exp_phi_e_v):
             assert exp_phi_e.shape == (len(self.epitopes),)
 
-            def _func(c):
-                pv = numpy.prod(1.0 / (1.0 + c * exp_phi_e))
+            def _func(c, expterm):
+                pv = numpy.prod(1.0 / (1.0 + c * expterm))
                 return 1 - x - pv
 
-            if _func(min_c) > 0:
+            if _func(min_c, exp_phi_e) > 0:
                 ic = min_c
-            elif _func(max_c) < 0:
+            elif _func(max_c, exp_phi_e) < 0:
                 ic = max_c
             else:
                 sol = scipy.optimize.root_scalar(
-                    _func, x0=1, bracket=(min_c, max_c), method="brenth"
+                    _func,
+                    args=(exp_phi_e,),
+                    x0=1,
+                    bracket=(min_c, max_c),
+                    method="brenth",
                 )
                 ic = sol.root
             if not sol.converged:
