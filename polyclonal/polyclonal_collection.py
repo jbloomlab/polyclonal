@@ -373,7 +373,7 @@ class PolyclonalCollection:
                 escape_mean=pd.NamedAgg("escape", "mean"),
                 escape_std=pd.NamedAgg("escape", "std"),
                 n_models=pd.NamedAgg("escape", "count"),
-                times_seen=pd.NamedAgg("times_seen", "mean")
+                times_seen=pd.NamedAgg("times_seen", "mean"),
             )
             .assign(
                 frac_models=lambda x: x["n_models"] / n_fit,
@@ -421,8 +421,7 @@ class PolyclonalCollection:
         """
         return pd.concat(
             [
-                m.mut_escape_site_summary_df(**kwargs)
-                .assign(**desc)
+                m.mut_escape_site_summary_df(**kwargs).assign(**desc)
                 for m, desc in zip(self.models, self.model_descriptions)
                 if m is not None
             ],
