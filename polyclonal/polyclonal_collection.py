@@ -251,22 +251,21 @@ class PolyclonalCollection:
 
     Parameters
     -----------
-    models : list
-        List of :class:`~polyclonal.polyclonal.Polyclonal` models in collection.
-        In some use cases, an etry can be `None` if a model doesn't exist or is invalid
-        in some way.
-    model_descriptors : list
-        A list of same length as `models` with each entry being a dict keyed
-        by descriptors and values being the descriptor for that model. All models
-        must have same descriptor labels. Eg, ``[{"replicate": 1}, {"replicate": 2}]```,
-        and each model must have unique descriptors.
+    models_df : pandas.DataFrame
+        Data frame of models. Should have one column named "model" that has
+        :class:`~polyclonal.polyclonal.Polyclonal` models, and other columns
+        are descriptor for model (e.g., "replicate", etc). The descriptors
+        for each row must be unique.
 
     Attributes
     -----------
     models : list
-        Shallow copy of `models` list provided as an initialization parameter.
+        List of the models in `models_df`.
     model_descriptors : dict
-        Deep copy of `model_descriptors` dict provided as an initialization parameter.
+        A list of same length as `models` with each entry being a dict keyed
+        by descriptors and values being the descriptor for that model. All models
+        must have same descriptor labels. Eg, ``[{"replicate": 1}, {"replicate": 2}]```.
+        The descriptor labels are all columns in `models_df` except one named "model".
     descriptor_names : list
         The names that key the entries in :attr:`PolyclonalCollection.model_descriptors`.
     epitope_colors : dict
@@ -278,23 +277,21 @@ class PolyclonalCollection:
 
     """
 
-    def __init__(self, models, model_descriptors):
+    def __init__(self, models_df):
         """See main class docstring for details."""
-        if not (len(models) > 0 and len([m for m in models if m is not None])):
-            raise ValueError(f"No non-None models:\n{models=}")
-        self.models = copy.copy(models)
+        self.models = models_df["model"].tolist()
+        if not (
+            len(self.models) > 0 and len([m for m in self.models if m is not None])
+        ):
+            raise ValueError(f"No non-None models:\n{models_df=}")
 
-        if len(model_descriptors) != len(models):
-            raise ValueError(f"{len(model_descriptors)=} not equal to {len(models)=}")
-        self.descriptor_names = None
-        for descriptors in model_descriptors:
-            if self.descriptor_names is None:
-                self.descriptor_names = list(descriptors.keys())
-            elif set(self.descriptor_names) != set(descriptors.keys()):
-                raise ValueError("`model_descriptors` don't all have same keys")
-        self.model_descriptors = copy.deepcopy(model_descriptors)
-        if len(pd.DataFrame.drop_duplicates()) != len(models):
+        descriptors_df = models_df.drop(columns="model").reset_index(drop=True)
+        if not len(descriptors_df.columns):
+            raise ValueError("not descriptor columns in `models_df`")
+        self.descriptor_names = models_df.columns.tolist()
+        if len(descriptors_df.drop_duplicates()) != len(self.models):
             raise ValueError("some models have the same descriptors")
+        self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
 
         for attr in ["epitope_colors", "alphabet"]:
             for model in self.models:
@@ -718,7 +715,9 @@ class PolyclonalBootstrap(PolyclonalCollection):
             raise ValueError("Please specify a number of bootstrap samples to make.")
 
         super().__init__(
-            models, [{"bootstrap_replicate": i} for i in range(1, len(models) + 1)]
+            pd.DataFrame({"model": models}).assign(
+                bootstrap_replicate=lambda x: x.index + 1
+            )
         )
 
     def fit_models(self, failures="error", **kwargs):
