@@ -288,7 +288,7 @@ class PolyclonalCollection:
         descriptors_df = models_df.drop(columns="model").reset_index(drop=True)
         if not len(descriptors_df.columns):
             raise ValueError("not descriptor columns in `models_df`")
-        self.descriptor_names = models_df.columns.tolist()
+        self.descriptor_names = descriptors_df.columns.tolist()
         if len(descriptors_df.drop_duplicates()) != len(self.models):
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
@@ -351,7 +351,7 @@ class PolyclonalCollection:
         return pd.concat(
             [
                 m.mut_escape_df.assign(**desc)
-                for m, desc in zip(self.models, self.descriptors)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
@@ -419,7 +419,7 @@ class PolyclonalCollection:
         return pd.concat(
             [
                 m.mut_escape_site_summary_df(**kwargs).assign(**desc)
-                for m, desc in zip(self.models, self.model_descriptions)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
@@ -433,6 +433,7 @@ class PolyclonalCollection:
         **kwargs
             Keyword arguments to
             :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+            In particular, you may want to use `min_times_seen`.
 
         Returns
         -------
@@ -443,8 +444,9 @@ class PolyclonalCollection:
 
         """
         n_fit = sum(m is not None for m in self.models)
+        df = self.mut_escape_site_summary_df_replicates(**kwargs)
         return (
-            self.mut_escape_site_summary_df_replicates(**kwargs)
+            df.drop(columns="n mutations")
             .melt(
                 id_vars=["epitope", "site", "wildtype", *self.descriptor_names],
                 var_name="metric",
@@ -458,6 +460,11 @@ class PolyclonalCollection:
             )
             .assign(
                 frac_models=lambda x: x["n_models"] / n_fit,
+            )
+            .merge(
+                df.groupby(["epitope", "site"]).aggregate({"n mutations": "mean"}),
+                on=["epitope", "site"],
+                validate="many_to_one",
             )
         )
 
@@ -522,7 +529,7 @@ class PolyclonalCollection:
                 m.icXX(m.filter_variants_by_seen_muts(variants_df), **kwargs).assign(
                     **desc
                 )
-                for m, desc in zip(self.models, self.model_descriptions)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
@@ -604,7 +611,7 @@ class PolyclonalCollection:
                     variants_df=m.filter_variants_by_seen_muts(variants_df),
                     **kwargs,
                 ).assign(**desc)
-                for m, desc in enumerate(self.models, self.model_descriptions)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
