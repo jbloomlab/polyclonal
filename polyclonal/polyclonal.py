@@ -753,7 +753,7 @@ class Polyclonal:
                 "and `mut_escape_df` or `site_escape_df`"
             )
         if isinstance(epitope_colors, dict):
-            self.epitope_colors = {epitope_colors[e] for e in self.epitopes}
+            self.epitope_colors = {e: epitope_colors[e] for e in self.epitopes}
         elif len(epitope_colors) < len(self.epitopes):
             raise ValueError("not enough `epitope_colors`")
         else:

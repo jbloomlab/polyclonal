@@ -12,6 +12,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - **Backward incompatible change:** renamed the bootstrapping models from ``PolyclonalCollection`` to ``PolyclonalBootstrap`` and made ``PolyclonalCollection`` a general-purpose class for collection of ``Polyclonal`` objects. This makes the idea of model collections more general, and better aligns the class names with what they actually do.
 - Added ``polyclonal_collection.fit_models`` to fit multiple models using multiprocessing.
 - Added ``RBD_average.ipynb`` notebook.
+- Fix bug in setting ``epitope_colors`` as dict in ``Polyclonal``.
 
 0.3
 ---------------------------
