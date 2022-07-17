@@ -584,10 +584,10 @@ class Polyclonal:
     ... )
     >>> inverted_model.mut_escape_corr(ref_model).round(3)
       ref_epitope self_epitope  correlation
-    0          e1           e2        1.000
-    1          e1           e1       -0.945
-    2          e2           e2       -0.945
-    3          e2           e1        1.000
+    0          e1           e1       -0.945
+    1          e1           e2        1.000
+    2          e2           e1        1.000
+    3          e2           e2       -0.945
 
     Now actually get epitope-harmonized models:
 
@@ -2012,55 +2012,53 @@ class Polyclonal:
         For each epitope, how well is this model's mutation-escape values
         correlation with another model?
 
-        In the situation where a mutation is only seen by one model, we exclude
-        that mutation from correlation calculations (i.e., we omit the rows
-        where either `escape_x` and `escape_y` of the merged df contain None.)
+        Mutations present in only one model are ignored.
 
         Parameters
         ------------
         ref_poly : :class:`Polyclonal`
-            The other (reference) polyclonal object with which we calculate the
-            correlation of mutation-escape values between all pairwise combinations of
-            epitopes.
+            Other (reference) polyclonal model with which we calculate correlations.
 
         Returns
         ---------
         corr_df : pandas.DataFrame
             Pairwise epitope correlations for escape.
         """
-        # Both models should have `mut_escape_df` initialized
         if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
             raise ValueError("Both objects must have `mut_escape_df` initialized.")
 
-        corr_df = pd.DataFrame()
-        for model_ref_e, model_self_e in list(
-            itertools.product(
-                ref_poly.mut_escape_df["epitope"].unique(),
-                self.mut_escape_df["epitope"].unique(),
+        df = pd.concat(
+            [
+                self.mut_escape_df.assign(
+                    epitope=lambda x: list(zip(itertools.repeat("self"), x["epitope"]))
+                ),
+                ref_poly.mut_escape_df.assign(
+                    epitope=lambda x: list(zip(itertools.repeat("ref"), x["epitope"]))
+                ),
+            ]
+        )
+
+        corr = (
+            polyclonal.utils.tidy_to_corr(
+                df,
+                sample_col="epitope",
+                label_col="mutation",
+                value_col="escape",
             )
-        ):
-            df = ref_poly.mut_escape_df.query(f'epitope == "{model_ref_e}"').merge(
-                (self.mut_escape_df.query(f'`epitope` == "{model_self_e}"')),
-                on="mutation",
-                validate="one_to_one",
+            .assign(
+                ref_epitope=lambda x: x["epitope_2"].map(lambda tup: tup[1]),
+                ref_model=lambda x: x["epitope_2"].map(lambda tup: tup[0]),
+                self_epitope=lambda x: x["epitope_1"].map(lambda tup: tup[1]),
+                self_model=lambda x: x["epitope_1"].map(lambda tup: tup[0]),
             )
+            .query("ref_model != self_model")[
+                ["ref_epitope", "self_epitope", "correlation"]
+            ]
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
 
-            corr = df["escape_x"].corr(df["escape_y"])
-
-            corr_df = pd.concat(
-                [
-                    corr_df,
-                    pd.DataFrame(
-                        data={
-                            "ref_epitope": [model_ref_e],
-                            "self_epitope": [model_self_e],
-                            "correlation": [corr],
-                        }
-                    ),
-                ]
-            ).reset_index(drop=True)
-
-        return corr_df
+        return corr
 
     def epitope_harmonized_model(self, ref_poly):
         """Get a copy of model with epitopes "harmonized" with a reference model.

@@ -11,6 +11,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ---------------------------
 - Renamed the bootstrapping models from ``PolyclonalCollection`` to ``PolyclonalBootstrap`` and made ``PolyclonalCollection`` a general-purpose class for collection of ``Polyclonal`` objects. This makes the idea of model collections more general, and better aligns the class names with what they actually do. This is a **backward-incompatible change**.
 - Remove the old ``Polyclonal.harmonize_epitopes_with`` method that modified ``Polyclonal`` models in place, and replaced with the new ``Polyclonal.epitope_harmonized_model`` that returns a copy of the original model with the epitopes harmonized and also provides guarantees about consistent epitope order, etc. This is a **backward-incompatible change**.
+- Added ``utils.tidy_to_corr`` function.
 - Added ``polyclonal_collection.fit_models`` to fit multiple models using multiprocessing.
 - Added ``RBD_average.ipynb`` notebook.
 - Fix bug in setting ``epitope_colors`` as dict in ``Polyclonal``.
