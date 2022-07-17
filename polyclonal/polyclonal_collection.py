@@ -661,6 +661,37 @@ class PolyclonalCollection:
         )
 
 
+class PolyclonalAverage(PolyclonalCollection):
+    """Average several :class:`~polyclonal.polyclonal.Polyclonal` objects.
+
+    Parameters
+    ----------
+    models_df : pandas.DataFrame
+        Same meaning as for :class:`PolyclonalCollection`. However, the resulting
+        collection of models will have **copies** of these models rather than the
+        actual objects in `models_df`.
+    harmonize_to : :class:`PolyclonalCollection` or None
+        When harmonizing the epitopes, harmonize to this model. If `None`, just
+        harmonize to the first model in `models_df`.
+    Other attributes of :class:`PolyclonalCollection`.
+        Inherited from base class.
+
+    """
+
+    def __init__(self, models_df, harmonize_to=None):
+        """See main class docstring."""
+        if not len(models_df):
+            raise ValueError("no models in `model_df`")
+        if harmonize_to is None:
+            harmonize_to = models_df.iat[0, "model"]
+
+        models_df["model"] = [
+            m.epitope_harmonized_model(harmonize_to) for m in models_df["model"]
+        ]
+
+        super().__init__(models_df)
+
+
 class PolyclonalBootstrap(PolyclonalCollection):
     """Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
