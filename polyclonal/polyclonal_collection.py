@@ -260,7 +260,7 @@ class PolyclonalCollection:
     Attributes
     -----------
     models : list
-        List of the models in `models_df`.
+        List of the models in `models_df`. All models must have same epitopes.
     model_descriptors : dict
         A list of same length as `models` with each entry being a dict keyed
         by descriptors and values being the descriptor for that model. All models
@@ -268,6 +268,9 @@ class PolyclonalCollection:
         The descriptor labels are all columns in `models_df` except one named "model".
     descriptor_names : list
         The names that key the entries in :attr:`PolyclonalCollection.model_descriptors`.
+    epitopes : tuple
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
+        extracted from :attr:`PolyclonalCollection.models`.
     epitope_colors : dict
         Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
         extracted from :attr:`PolyclonalCollection.models`.
@@ -293,7 +296,7 @@ class PolyclonalCollection:
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
 
-        for attr in ["epitope_colors", "alphabet"]:
+        for attr in ["epitopes", "epitope_colors", "alphabet"]:
             for model in self.models:
                 if model is not None:
                     if not hasattr(self, attr):
@@ -659,7 +662,7 @@ class PolyclonalCollection:
 
 
 class PolyclonalBootstrap(PolyclonalCollection):
-    r"""Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.
+    """Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
     Parameters
     -----------
@@ -729,7 +732,8 @@ class PolyclonalBootstrap(PolyclonalCollection):
         """Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.
 
         The fit models will then be in :attr:`PolyclonalCollection.models`,
-        with any models that fail fitting set to `None`.
+        with any models that fail fitting set to `None`. Their epitopes will
+        also be harmonized with :attr:`PolyclonalBootstrap.root_polyclonal`.
 
         Parameters
         ----------
@@ -757,9 +761,10 @@ class PolyclonalBootstrap(PolyclonalCollection):
             **kwargs,
         )
 
-        for m in self.models:
-            if m is not None:
-                m.harmonize_epitopes_with(self.root_polyclonal)
+        self.models = [
+            None if m is None else m.epitope_harmonized_model(self.root_polyclonal)[0]
+            for m in self.models
+        ]
 
         return (n_fit, n_failed)
 
