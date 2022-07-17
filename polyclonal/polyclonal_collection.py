@@ -3,11 +3,17 @@
 polyclonal_collection
 ======================
 
-Defines :class:`PolyclonalCollection` objects for bootstrapping
-:mod:`~polyclonal.polyclonal.Polyclonal` model parameters.
+Defines :class:`PolyclonalCollection` for handling collections of multiple
+:mod:`~polyclonal.polyclonal.Polyclonal` objects.
+
+:class:`PolyclonalCollection` is a base class for the following specific use-case
+classes:
+
+ - :class:`PolyclonalBootstrap` for bootstrapping a model.
 
 """
 
+import copy
 import multiprocessing
 from functools import partial
 from itertools import repeat
@@ -20,7 +26,7 @@ from polyclonal.polyclonal import PolyclonalFitError
 
 
 class PolyclonalCollectionFitError(Exception):
-    """Error fitting in :meth:`PolyclonalCollection.fit_models`."""
+    """Error fitting models."""
 
     pass
 
@@ -181,158 +187,127 @@ def _create_bootstrap_polyclonal(
     )
 
 
-def _fit_polyclonal_model_static(polyclonal_obj, **kwargs):
-    """Fit the model in a :class:`~polyclonal.polyclonal.Polyclonal` object.
-
-    A wrapper method for fitting models with `multiprocessing`. If optimization
-    optimization fails, :class:`~polyclonal.polyclonal.Polyclonal` objects will throw a
-    :class:`~polyclonal.polyclonal.PolyclonalFitError`.
-
-    We catch this error and proceed with the program by returning `None` for the
-    model that failed optimization.
-
-    Parameters
-    ----------
-    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
-        An initialized :class:`~polyclonal.polyclonal.Polyclonal` object.
-    **kwargs
-        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`
-
-    Returns
-    -------
-    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`
-        `polyclonal_obj` but with optimized model parameters after fitting.
-
-    """
+def _fit_func(model, **kwargs):
+    """Fit model as utility function for `fit_models`."""
     try:
-        _ = polyclonal_obj.fit(**kwargs)
+        _ = model.fit(**kwargs)
+        return model
     except PolyclonalFitError:
         return None
 
-    return polyclonal_obj
+
+def fit_models(models, n_threads, failures="error", **kwargs):
+    """Fit collection of :class:`~polyclonal.polyclonal.Polyclonal` models.
+
+    Enables fitting of multiple models simultaneously using multiple threads.
+
+    Parameters
+    ----------
+    models : list
+        List of :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
+    n_threads : int
+        Number of threads (CPUs, cores) to use for fitting. Set to -1 to use
+        all CPUs available.
+    failures : {"error", "tolerate"}
+        What if fitting fails for a model? If "error" then raise an error,
+        if "ignore" then just return `None` for models that failed optimization.
+    **kwargs
+        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.
+
+    Returns
+    -------
+    (n_fit, n_failed, fit_models)
+        Number of models that fit successfully, number of models that failed,
+        and list of the fit models. Since :class:`~polyclonal.polyclonal.Polyclonal` are
+        mutable, you can also access the fit models in their original data structure.
+
+    """
+    if n_threads == -1:
+        n_threads = multiprocessing.cpu_count()
+
+    with multiprocessing.Pool(n_threads) as p:
+        fit_models = p.map(partial(_fit_func, **kwargs), models)
+
+    assert len(fit_models) == len(models)
+
+    # Check to see if any models failed optimization
+    n_failed = sum(model is None for model in fit_models)
+    if failures == "error":
+        if n_failed:
+            raise PolyclonalCollectionFitError(
+                f"Failed fitting {n_failed} of {len(models)} models"
+            )
+    elif failures != "tolerate":
+        raise ValueError(f"invalid {failures=}")
+    n_fit = len(fit_models) - n_failed
+    if n_fit == 0:
+        raise PolyclonalCollectionFitError(f"Failed fitting all {len(models)} models")
+
+    return n_fit, n_failed, fit_models
 
 
 class PolyclonalCollection:
-    r"""A container class for multiple :class:`~polyclonal.polyclonal.Polyclonal` objects.
+    r"""Handle a collection of :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
     Parameters
     -----------
-    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
-        The polyclonal object created with the full dataset to draw bootstrapped
-        samples from. The bootstrapped samples are also initialized to mutation effects
-        and activities of this model, so it is **highly recommended** that this object
-        already have been fit to the full dataset.
-    n_bootstrap_samples : int
-        Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
-    seed : int
-        Random seed for reproducibility.
-    n_threads : int
-        Number of threads to use for multiprocessing, -1 means all available.
-    sample_by
-        Passed to :func:`create_bootstrap_sample`. Should generally be 'barcode'
-        if you have same variants at all concentrations, and maybe `None` otherwise.
+    models_df : pandas.DataFrame
+        Data frame of models. Should have one column named "model" that has
+        :class:`~polyclonal.polyclonal.Polyclonal` models, and other columns
+        are descriptor for model (e.g., "replicate", etc). The descriptors
+        for each row must be unique.
 
     Attributes
     -----------
-    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
-        The root polyclonal object passed as a parameter.
     models : list
-        The bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models,
-        will not be fit until you call :meth:`PolyclonalCollection.fit_models`.
-        After fitting, if any models fail fitting they are set to `None`.
-    n_threads: int
-        Number of threads for multiprocessing.
+        List of the models in `models_df`.
+    model_descriptors : dict
+        A list of same length as `models` with each entry being a dict keyed
+        by descriptors and values being the descriptor for that model. All models
+        must have same descriptor labels. Eg, ``[{"replicate": 1}, {"replicate": 2}]```.
+        The descriptor labels are all columns in `models_df` except one named "model".
+    descriptor_names : list
+        The names that key the entries in :attr:`PolyclonalCollection.model_descriptors`.
+    epitope_colors : dict
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
+        extracted from :attr:`PolyclonalCollection.models`.
+    alphabet : array-like
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.alphabet`,
+        extracted from :attr:`PolyclonalCollection.models`.
 
     """
 
-    def __init__(
-        self,
-        root_polyclonal,
-        n_bootstrap_samples,
-        n_threads=-1,
-        seed=0,
-        sample_by="barcode",
-    ):
+    def __init__(self, models_df):
         """See main class docstring for details."""
-        if root_polyclonal.data_to_fit is None:
-            raise ValueError("polyclonal object does not have data to fit.")
-        self.root_polyclonal = root_polyclonal
-        if n_threads == -1:
-            self.n_threads = multiprocessing.cpu_count()
-        else:
-            self.n_threads = n_threads
+        self.models = models_df["model"].tolist()
+        if not (
+            len(self.models) > 0 and len([m for m in self.models if m is not None])
+        ):
+            raise ValueError(f"No non-None models:\n{models_df=}")
 
-        if n_bootstrap_samples > 0:
-            # Create distinct seeds for each model
-            seeds = range(seed, seed + n_bootstrap_samples)
+        descriptors_df = models_df.drop(columns="model").reset_index(drop=True)
+        if not len(descriptors_df.columns):
+            raise ValueError("not descriptor columns in `models_df`")
+        self.descriptor_names = descriptors_df.columns.tolist()
+        if len(descriptors_df.drop_duplicates()) != len(self.models):
+            raise ValueError("some models have the same descriptors")
+        self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
 
-            # Create list of bootstrapped polyclonal objects
-            with multiprocessing.Pool(self.n_threads) as p:
-                self.models = p.starmap(
-                    _create_bootstrap_polyclonal,
-                    zip(repeat(root_polyclonal), seeds, repeat(sample_by)),
-                )
-        else:
-            raise ValueError("Please specify a number of bootstrap samples to make.")
-
-    def fit_models(self, failures="error", **kwargs):
-        """Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.
-
-        The fit models will then be in :attr:`PolyclonalCollection.models`,
-        with any models that fail fitting set to `None`.
-
-        Parameters
-        ----------
-        failures : {"error", "tolerate"}
-            Tolerate failures in model fitting or raise an error if a failure?
-            Always raise an error if all models failed.
-        **kwargs
-            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.
-            If not specified otherwise, `fit_site_level_first` is set to `False`,
-            since models are initialized to "good" values from the root object.
-
-        Returns
-        -------
-        (n_fit, n_failed)
-            Number of model fits that failed and succeeded.
-
-        """
-        # Initial pass over all models
-        if "fit_site_level_first" not in kwargs:
-            kwargs["fit_site_level_first"] = False
-        with multiprocessing.Pool(self.n_threads) as p:
-            self.models = p.map(
-                partial(_fit_polyclonal_model_static, **kwargs), self.models
-            )
-
-        # Check to see how many models failed optimization
-        n_failed = sum(model is None for model in self.models)
-        if failures == "error":
-            if n_failed:
-                raise PolyclonalCollectionFitError(
-                    f"Failed fitting {n_failed} of {len(self.models)} models"
-                )
-        elif failures != "tolerate":
-            raise ValueError(f"invalid {failures=}")
-        n_fit = len(self.models) - n_failed
-        if n_fit == 0:
-            raise PolyclonalCollectionFitError(
-                f"Failed fitting all {len(self.models)} models"
-            )
-
-        for m in self.models:
-            if m is not None:
-                m.harmonize_epitopes_with(self.root_polyclonal)
-
-        return (n_fit, n_failed)
+        for attr in ["epitope_colors", "alphabet"]:
+            for model in self.models:
+                if model is not None:
+                    if not hasattr(self, attr):
+                        setattr(self, attr, copy.copy(getattr(model, attr)))
+                    elif getattr(self, attr) != getattr(model, attr):
+                        raise ValueError(f"{attr} not the same for all models")
 
     @property
     def activity_wt_df_replicates(self):
-        """pandas.DataFrame: Epitope activities for replicates"""
+        """pandas.DataFrame: Epitope activities for all models."""
         return pd.concat(
             [
-                m.activity_wt_df.assign(bootstrap_replicate=i)
-                for i, m in enumerate(self.models, start=1)
+                m.activity_wt_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
@@ -340,7 +315,7 @@ class PolyclonalCollection:
 
     @property
     def activity_wt_df(self):
-        """pandas.DataFrame: Epitope activities summarized across replicates."""
+        """pandas.DataFrame: Epitope activities summarized across models."""
         return self.activity_wt_df_replicates.groupby(
             "epitope", as_index=False
         ).aggregate(
@@ -349,7 +324,7 @@ class PolyclonalCollection:
         )
 
     def activity_wt_barplot(self, **kwargs):
-        """Bar plot of epitope activities mean across replicates.
+        """Bar plot of epitope activities mean across models.
 
         Parameters
         ----------
@@ -364,7 +339,7 @@ class PolyclonalCollection:
         """
         return polyclonal.plot.activity_wt_barplot(
             activity_wt_df=self.activity_wt_df,
-            epitope_colors=self.root_polyclonal.epitope_colors,
+            epitope_colors=self.epitope_colors,
             stat="activity_mean",
             error_stat="activity_std",
             **kwargs,
@@ -372,11 +347,11 @@ class PolyclonalCollection:
 
     @property
     def mut_escape_df_replicates(self):
-        """pandas.DataFrame: Mutation escape by replicate."""
+        """pandas.DataFrame: Mutation escape by model."""
         return pd.concat(
             [
-                m.mut_escape_df.assign(bootstrap_replicate=i).drop(columns="times_seen")
-                for i, m in enumerate(self.models, start=1)
+                m.mut_escape_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
@@ -384,7 +359,7 @@ class PolyclonalCollection:
 
     @property
     def mut_escape_df(self):
-        """pandas.DataFrame: Mutation escape summarized across replicates."""
+        """pandas.DataFrame: Mutation escape summarized across models."""
         n_fit = sum(m is not None for m in self.models)
         return (
             self.mut_escape_df_replicates.groupby(
@@ -394,15 +369,12 @@ class PolyclonalCollection:
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
                 escape_std=pd.NamedAgg("escape", "std"),
-                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
+                n_models=pd.NamedAgg("escape", "count"),
+                times_seen=pd.NamedAgg("times_seen", "mean"),
             )
             .assign(
-                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
-                times_seen=lambda x: x["mutation"].map(
-                    self.root_polyclonal.mutations_times_seen
-                ),
+                frac_models=lambda x: x["n_models"] / n_fit,
             )
-            .drop(columns="n_bootstrap_replicates")
         )
 
     def mut_escape_heatmap(self, **kwargs):
@@ -423,76 +395,60 @@ class PolyclonalCollection:
             kwargs["addtl_tooltip_stats"] = ["times_seen"]
         return polyclonal.plot.mut_escape_heatmap(
             mut_escape_df=self.mut_escape_df,
-            alphabet=self.root_polyclonal.alphabet,
-            epitope_colors=self.root_polyclonal.epitope_colors,
+            alphabet=self.alphabet,
+            epitope_colors=self.epitope_colors,
             stat="escape_mean",
             error_stat="escape_std",
             **kwargs,
         )
 
     def mut_escape_site_summary_df_replicates(self, **kwargs):
-        """Site-level summaries of mutation escape for replicates.
+        """Site-level summaries of mutation escape for models.
 
         Parameters
         ----------
         **kwargs
             Keyword arguments to
             :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
-            Note that `min_times_seen` refers to times seen in full data set,
-            not individual bootstrap replicates.
 
         Returns
         -------
         pandas.DataFrame
 
         """
-        if "min_times_seen" in kwargs:
-            whitelist = {
-                mut
-                for (mut, n) in self.root_polyclonal.mutations_times_seen.items()
-                if n >= kwargs["min_times_seen"]
-            }
-            del kwargs["min_times_seen"]
-            if "mutation_whitelist" in kwargs:
-                kwargs["mutation_whitelist"] = whitelist.union(kwargs["mutation_list"])
-            else:
-                kwargs["mutation_whitelist"] = whitelist
         return pd.concat(
             [
-                m.mut_escape_site_summary_df(**kwargs)
-                .assign(bootstrap_replicate=i)
-                .drop(columns="n mutations")
-                for i, m in enumerate(self.models, start=1)
+                m.mut_escape_site_summary_df(**kwargs).assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
         )
 
     def mut_escape_site_summary_df(self, **kwargs):
-        """Site-level summaries of mutation escape across replicates.
+        """Site-level summaries of mutation escape across models.
 
         Parameters
         ----------
         **kwargs
             Keyword arguments to
             :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
-            Note that `min_times_seen` refers to times seen in full data set,
-            not individual bootstrap replicates.
+            In particular, you may want to use `min_times_seen`.
 
         Returns
         -------
         pandas.DataFrame
             The different site-summary metrics ('mean', 'total positive', etc) are
-            in different rows for each site and epitope. The 'frac_bootstrap_replicates'
-            columns refer to bootstrap replicates with measurements for any mutation
-            at that site.
+            in different rows for each site and epitope. The 'frac_models'
+            column refers to models with measurements for any mutation at that site.
 
         """
         n_fit = sum(m is not None for m in self.models)
+        df = self.mut_escape_site_summary_df_replicates(**kwargs)
         return (
-            self.mut_escape_site_summary_df_replicates(**kwargs)
+            df.drop(columns="n mutations")
             .melt(
-                id_vars=["epitope", "site", "wildtype", "bootstrap_replicate"],
+                id_vars=["epitope", "site", "wildtype", *self.descriptor_names],
                 var_name="metric",
                 value_name="escape",
             )
@@ -500,18 +456,14 @@ class PolyclonalCollection:
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
                 escape_std=pd.NamedAgg("escape", "std"),
-                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "count"),
+                n_models=pd.NamedAgg("escape", "count"),
             )
             .assign(
-                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+                frac_models=lambda x: x["n_models"] / n_fit,
             )
-            .drop(columns="n_bootstrap_replicates")
             .merge(
-                self.root_polyclonal.mut_escape_site_summary_df(**kwargs)[
-                    ["site", "n mutations"]
-                ].drop_duplicates(),
-                on="site",
-                how="left",
+                df.groupby(["epitope", "site"]).aggregate({"n mutations": "mean"}),
+                on=["epitope", "site"],
                 validate="many_to_one",
             )
         )
@@ -547,14 +499,13 @@ class PolyclonalCollection:
         df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
         return polyclonal.plot.mut_escape_lineplot(
             mut_escape_site_summary_df=df,
-            bootstrapped_data=True,
-            epitope_colors=self.root_polyclonal.epitope_colors,
+            replicate_data=True,
+            epitope_colors=self.epitope_colors,
             **mut_escape_lineplot_kwargs,
         )
 
     def icXX_replicates(self, variants_df, **kwargs):
-        """Concentration at which a given fraction is neutralized (eg, IC50) for
-        all replicates.
+        """Concentration which given fraction is neutralized (eg IC50) for all models.
 
         Parameters
         ----------
@@ -569,25 +520,23 @@ class PolyclonalCollection:
         -------
         pandas.DataFrame
             Copy of ``variants_df`` with added column ``col`` containing icXX,
-            and ``bootstrap_replicate`` containing model replicate number.
-            Variants with a mutation lacking in a particular bootstrapped model are
-            missing in that row.
+            and model descriptors. Variants with a mutation lacking in a particular
+            model are missing in that row.
 
         """
         return pd.concat(
             [
                 m.icXX(m.filter_variants_by_seen_muts(variants_df), **kwargs).assign(
-                    bootstrap_replicate=i
+                    **desc
                 )
-                for i, m in enumerate(self.models, start=1)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
         )
 
     def icXX(self, variants_df, **kwargs):
-        """Summary statistics of the predicted concentration at which a given
-        fraction is neutralized across all replicates.
+        """Predicted concentration at which a variant is neutralized across all models.
 
         Parameters
         ----------
@@ -601,8 +550,8 @@ class PolyclonalCollection:
         Returns
         -------
         pandas.DataFrame
-            Copy of ``variants_df`` with added column ``col`` containing icXX,
-            and summary stats for each variant across all models.
+            De-duplicated opy of ``variants_df`` with added column ``col`` containing
+            icXX and summary stats for each variant across all models.
 
         """
         n_fit = sum(m is not None for m in self.models)
@@ -610,17 +559,18 @@ class PolyclonalCollection:
             col = kwargs["col"]
         else:
             col = "IC50"
+        variants_df = variants_df.drop_duplicates()
         return (
             self.icXX_replicates(variants_df, **kwargs)
             .groupby(variants_df.columns.tolist(), as_index=False)
             .aggregate(
-                mean_IC=pd.NamedAgg(kwargs["col"], "mean"),
-                median_IC=pd.NamedAgg(kwargs["col"], "median"),
-                std_IC=pd.NamedAgg(kwargs["col"], "std"),
-                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "nunique"),
+                mean_IC=pd.NamedAgg(col, "mean"),
+                median_IC=pd.NamedAgg(col, "median"),
+                std_IC=pd.NamedAgg(col, "std"),
+                n_models=pd.NamedAgg(col, "count"),
             )
             .assign(
-                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+                frac_models=lambda x: x["n_models"] / n_fit,
             )
             .rename(
                 columns={
@@ -650,8 +600,8 @@ class PolyclonalCollection:
             Version of ``variants_df`` with columns named 'concentration'
             and 'predicted_prob_escape' giving predicted probability of escape
             :math:`p_v\left(c\right)` for each variant at each concentration and
-            bootstrap replicate. Variants with a mutation lacking in a particular
-            bootstrapped model are missing in that row.
+            model. Variants with a mutation lacking in a particular model are
+            missing in that row.
 
         """
         return pd.concat(
@@ -659,16 +609,15 @@ class PolyclonalCollection:
                 m.prob_escape(
                     variants_df=m.filter_variants_by_seen_muts(variants_df),
                     **kwargs,
-                ).assign(bootstrap_replicate=i)
-                for i, m in enumerate(self.models, start=1)
+                ).assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
                 if m is not None
             ],
             ignore_index=True,
         )
 
     def prob_escape(self, variants_df, **kwargs):
-        r"""Compute summary statistics for predicted probability of escape across
-        all replicate models.
+        r"""Summary of predicted probability of escape across all models.
 
         Arguments
         ---------
@@ -683,13 +632,14 @@ class PolyclonalCollection:
         Returns
         -------
         pandas.DataFrame
-            Version of ``variants_df`` with columns named 'concentration'
+            De-duplicated copy of ``variants_df`` with columns named 'concentration'
             and 'mean', 'median', and 'std' giving corresponding summary stats
             of predicted probability of escape :math:`p_v\left(c\right)`
-            for each variant at each concentration across bootstrap replicates.
+            for each variant at each concentration across models.
 
         """
         n_fit = sum(m is not None for m in self.models)
+        variants_df = variants_df.drop_duplicates()
         return (
             self.prob_escape_replicates(variants_df=variants_df, **kwargs)
             .groupby(variants_df.columns.tolist(), as_index=False)
@@ -700,12 +650,118 @@ class PolyclonalCollection:
                     "median",
                 ),
                 std_predicted_prob_escape=pd.NamedAgg("predicted_prob_escape", "std"),
-                n_bootstrap_replicates=pd.NamedAgg("bootstrap_replicate", "nunique"),
+                n_models=pd.NamedAgg("predicted_prob_escape", "count"),
             )
             .assign(
-                frac_bootstrap_replicates=lambda x: x["n_bootstrap_replicates"] / n_fit,
+                frac_models=lambda x: x["n_models"] / n_fit,
             )
         )
+
+
+class PolyclonalBootstrap(PolyclonalCollection):
+    r"""Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.
+
+    Parameters
+    -----------
+    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
+        The polyclonal object created with the full dataset to draw bootstrapped
+        samples from. The bootstrapped samples are also initialized to mutation effects
+        and activities of this model, so it is **highly recommended** that this object
+        already have been fit to the full dataset.
+    n_bootstrap_samples : int
+        Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.
+    seed : int
+        Random seed for reproducibility.
+    n_threads : int
+        Number of threads to use for multiprocessing, -1 means all available.
+    sample_by
+        Passed to :func:`create_bootstrap_sample`. Should generally be 'barcode'
+        if you have same variants at all concentrations, and maybe `None` otherwise.
+
+    Attributes
+    -----------
+    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
+        The root polyclonal object passed as a parameter.
+    n_threads: int
+        Number of threads for multiprocessing.
+    Other attributes of :class:`PolyclonalCollection`.
+        Inherited from base class.
+
+    """
+
+    def __init__(
+        self,
+        root_polyclonal,
+        n_bootstrap_samples,
+        n_threads=-1,
+        seed=0,
+        sample_by="barcode",
+    ):
+        """See main class docstring for details."""
+        if root_polyclonal.data_to_fit is None:
+            raise ValueError("polyclonal object does not have data to fit.")
+        self.root_polyclonal = root_polyclonal
+        if n_threads == -1:
+            self.n_threads = multiprocessing.cpu_count()
+        else:
+            self.n_threads = n_threads
+
+        if n_bootstrap_samples > 0:
+            # Create distinct seeds for each model
+            seeds = range(seed, seed + n_bootstrap_samples)
+
+            # Create list of bootstrapped polyclonal objects
+            with multiprocessing.Pool(self.n_threads) as p:
+                models = p.starmap(
+                    _create_bootstrap_polyclonal,
+                    zip(repeat(root_polyclonal), seeds, repeat(sample_by)),
+                )
+        else:
+            raise ValueError("Please specify a number of bootstrap samples to make.")
+
+        super().__init__(
+            pd.DataFrame({"model": models}).assign(
+                bootstrap_replicate=lambda x: x.index + 1
+            )
+        )
+
+    def fit_models(self, failures="error", **kwargs):
+        """Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.
+
+        The fit models will then be in :attr:`PolyclonalCollection.models`,
+        with any models that fail fitting set to `None`.
+
+        Parameters
+        ----------
+        failures : {"error", "tolerate"}
+            Tolerate failures in model fitting or raise an error if a failure?
+            Always raise an error if all models failed.
+        **kwargs
+            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.
+            If not specified otherwise, `fit_site_level_first` is set to `False`,
+            since models are initialized to "good" values from the root object.
+
+        Returns
+        -------
+        (n_fit, n_failed)
+            Number of model fits that failed and succeeded.
+
+        """
+        if "fit_site_level_first" not in kwargs:
+            kwargs["fit_site_level_first"] = False
+
+        n_fit, n_failed, self.models = fit_models(
+            self.models,
+            self.n_threads,
+            failures,
+            **kwargs,
+        )
+
+        for m in self.models:
+            if m is not None:
+                m.harmonize_epitopes_with(self.root_polyclonal)
+
+        return (n_fit, n_failed)
 
 
 if __name__ == "__main__":

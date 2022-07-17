@@ -149,7 +149,7 @@ def activity_wt_barplot(
 def mut_escape_lineplot(
     *,
     mut_escape_site_summary_df,
-    bootstrapped_data=False,
+    replicate_data=False,
     addtl_tooltip_stats=None,
     epitope_colors,
     epitopes=None,
@@ -167,8 +167,8 @@ def mut_escape_lineplot(
     mut_escape_site_summary_df : pandas.DataFrame
         Site-level escape in format of
         :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
-    bootstrapped_data : bool
-        `mut_escape_site_summary_df` is from a bootstrapped model,
+    replicate_data : bool
+        `mut_escape_site_summary_df` is from a collections of replicates as from
         :class:`polyclonal.polyclonal_collection.PolyclonalCollection`.
     addtl_tooltip_stats : list or None
         Additional mutation-level stats to show in tooltip.
@@ -203,7 +203,7 @@ def mut_escape_lineplot(
         raise ValueError("invalid entries in `epitopes`")
 
     df = mut_escape_site_summary_df.query("epitope in @epitopes")
-    if bootstrapped_data:
+    if replicate_data:
         escape_metrics = df["metric"].unique().tolist()
     else:
         escape_metrics = [
@@ -212,7 +212,7 @@ def mut_escape_lineplot(
             if m not in {"epitope", "site", "wildtype", "n mutations"}
         ]
 
-    if bootstrapped_data:
+    if replicate_data:
         df = df.rename(columns={"escape_mean": "escape"})[
             ["epitope", "site", "metric", "escape"]
         ]
@@ -278,7 +278,7 @@ def mut_escape_lineplot(
     )
 
     # add error ranges
-    if bootstrapped_data:
+    if replicate_data:
         pivoted_error = (
             mut_escape_site_summary_df.pivot_table(
                 index=["site", "metric"],
@@ -398,7 +398,7 @@ def mut_escape_lineplot(
             )
             .add_parameter(cutoff, site_selector, line_selection)
         )
-        if bootstrapped_data:
+        if replicate_data:
             error_bars = base.encode(
                 y=alt.Y(f"{epitope} min", title="escape"),
                 y2=f"{epitope} max",
@@ -424,7 +424,7 @@ def mut_escape_lineplot(
                 height=height,
             )
         )
-        if bootstrapped_data:
+        if replicate_data:
             charts[-1] = charts[-1].add_parameter(error_bar_selection)
 
     return (
@@ -710,7 +710,7 @@ def mut_escape_heatmap(
         df_percent_max = df.copy()
     if floor_at_zero:
         for e in epitopes:
-            df_percent_max = df_percent_max.assign(**{e: lambda x: x[e].clip(lower=0)})
+            df_percent_max[e] = df_percent_max[e].clip(lower=0)
     _max = df_percent_max[epitopes].max().max()
     _min = df_percent_max[epitopes].min().min()
     df_percent_max = (
