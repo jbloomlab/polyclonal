@@ -41,7 +41,7 @@ class PolyclonalFitError(Exception):
 
 
 class PolyclonalHarmonizeError(Exception):
-    """Error harmonizing epitopes in :meth:`Polyclonal.harmonize_epitopes_with`."""
+    """Error harmonizing epitopes in :meth:`Polyclonal.epitope_harmonized_model`."""
 
     pass
 
@@ -209,26 +209,26 @@ class Polyclonal:
     ...   'epitope':  [ 'e1',  'e2',  'e1',  'e2',  'e1',  'e2',  'e1',  'e2'],
     ...   'escape':   [  2.0,   0.0,   3.0,   0.0,  0.0,    2.5,   0.0,   1.5],
     ...   })
-    >>> polyclonal = Polyclonal(
+    >>> model = Polyclonal(
     ...     activity_wt_df=activity_wt_df,
     ...     mut_escape_df=mut_escape_df,
     ...     collapse_identical_variants="mean",
     ... )
-    >>> polyclonal.epitopes
+    >>> model.epitopes
     ('e1', 'e2')
-    >>> polyclonal.mutations
+    >>> model.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
-    >>> polyclonal.mutations_times_seen is None
+    >>> model.mutations_times_seen is None
     True
-    >>> polyclonal.sites
+    >>> model.sites
     (1, 2, 4)
-    >>> polyclonal.wts
+    >>> model.wts
     {1: 'M', 2: 'G', 4: 'A'}
-    >>> polyclonal.activity_wt_df
+    >>> model.activity_wt_df
       epitope  activity
     0      e1       2.0
     1      e2       1.0
-    >>> polyclonal.mut_escape_df
+    >>> model.mut_escape_df
       epitope  site wildtype mutant mutation  escape
     0      e1     1        M      C      M1C     2.0
     1      e1     2        G      A      G2A     3.0
@@ -243,7 +243,7 @@ class Polyclonal:
 
     >>> pd.set_option("display.max_columns", None)
     >>> pd.set_option("display.width", 89)
-    >>> polyclonal.mut_escape_site_summary_df()
+    >>> model.mut_escape_site_summary_df()
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0      e1     1        M   2.0             2.0  2.0  2.0             0.0            1
     1      e1     2        G   3.0             3.0  3.0  3.0             0.0            1
@@ -282,8 +282,8 @@ class Polyclonal:
     Get the escape probabilities predicted on these variants from
     the values in the :class:`Polyclonal` object:
 
-    >>> escape_probs = polyclonal.prob_escape(variants_df=variants_df,
-    ...                                       concentrations=[1.0, 2.0, 4.0])
+    >>> escape_probs = model.prob_escape(variants_df=variants_df,
+    ...                                  concentrations=[1.0, 2.0, 4.0])
     >>> escape_probs.round(3)
        barcode aa_substitutions  concentration  predicted_prob_escape
     0       AA                             1.0                  0.032
@@ -326,7 +326,7 @@ class Polyclonal:
     We can also get predicted escape probabilities by including concentrations
     in the data frame passed to :meth:`Polyclonal.prob_escape`:
 
-    >>> polyclonal.prob_escape(
+    >>> model.prob_escape(
     ...         variants_df=pd.concat([variants_df.assign(concentration=c)
     ...                                for c in [1.0, 2.0, 4.0]])
     ...         ).equals(escape_probs)
@@ -334,7 +334,7 @@ class Polyclonal:
 
     We can also compute the IC50s:
 
-    >>> polyclonal.icXX(variants_df).round(3)
+    >>> model.icXX(variants_df).round(3)
        barcode aa_substitutions   IC50
     0       AA                   0.085
     1       AC              M1C  0.230
@@ -351,7 +351,7 @@ class Polyclonal:
 
     Or the IC90s:
 
-    >>> polyclonal.icXX(variants_df, x=0.9, col='IC90').round(3)
+    >>> model.icXX(variants_df, x=0.9, col='IC90').round(3)
        barcode aa_substitutions    IC90
     0       AA                    0.464
     1       AC              M1C   1.260
@@ -378,7 +378,7 @@ class Polyclonal:
     ...         .rename(columns={'predicted_prob_escape': 'prob_escape'})
     ...         )
 
-    >>> polyclonal_data = Polyclonal(
+    >>> model_data = Polyclonal(
     ...     data_to_fit=data_to_fit,
     ...     n_epitopes=2,
     ...     collapse_identical_variants="mean",
@@ -386,19 +386,19 @@ class Polyclonal:
 
     The mutations are those in ``data_to_fit``:
 
-    >>> polyclonal_data.mutations
+    >>> model_data.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
-    >>> dict(polyclonal_data.mutations_times_seen)
+    >>> dict(model_data.mutations_times_seen)
     {'G2A': 6, 'M1C': 6, 'A4K': 4, 'A4L': 3}
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
 
-    >>> polyclonal_data.activity_wt_df
+    >>> model_data.activity_wt_df
       epitope  activity
     0       1       1.0
     1       2       0.0
-    >>> polyclonal_data.mut_escape_df
+    >>> model_data.mut_escape_df
       epitope  site wildtype mutant mutation  escape  times_seen
     0       1     1        M      C      M1C     0.0           6
     1       1     2        G      A      G2A     0.0           6
@@ -412,20 +412,20 @@ class Polyclonal:
     You can initialize to random numbers by setting ``init_missing`` to seed
     (in this example we also don't include all variants for one concentration):
 
-    >>> polyclonal_data2 = Polyclonal(
+    >>> model_data2 = Polyclonal(
     ...     data_to_fit=data_to_fit.head(30),
     ...     n_epitopes=2,
     ...     init_missing=1,
     ...     collapse_identical_variants="mean",
     ... )
-    >>> polyclonal_data2.activity_wt_df.round(3)
+    >>> model_data2.activity_wt_df.round(3)
       epitope  activity
     0       1     0.417
     1       2     0.720
 
     You can set some or all mutation escapes to initial values:
 
-    >>> polyclonal_data3 = Polyclonal(
+    >>> model_data3 = Polyclonal(
     ...     data_to_fit=data_to_fit,
     ...     activity_wt_df=activity_wt_df,
     ...     mut_escape_df=pd.DataFrame({'epitope': ['e1'],
@@ -434,7 +434,7 @@ class Polyclonal:
     ...     data_mut_escape_overlap='fill_to_data',
     ...     collapse_identical_variants="mean",
     ... )
-    >>> polyclonal_data3.mut_escape_df
+    >>> model_data3.mut_escape_df
       epitope  site wildtype mutant mutation  escape  times_seen
     0      e1     1        M      C      M1C     4.0           6
     1      e1     2        G      A      G2A     0.0           6
@@ -447,7 +447,7 @@ class Polyclonal:
 
     You can initialize **sites** to escape values via ``site_activity_df``:
 
-    >>> polyclonal_data4 = Polyclonal(
+    >>> model_data4 = Polyclonal(
     ...     data_to_fit=data_to_fit,
     ...     activity_wt_df=activity_wt_df,
     ...     site_escape_df=pd.DataFrame.from_records(
@@ -458,7 +458,7 @@ class Polyclonal:
     ...     data_mut_escape_overlap='fill_to_data',
     ...     collapse_identical_variants="mean",
     ... )
-    >>> polyclonal_data4.mut_escape_df
+    >>> model_data4.mut_escape_df
       epitope  site wildtype mutant mutation  escape  times_seen
     0      e1     1        M      C      M1C     1.0           6
     1      e1     2        G      A      G2A     0.0           6
@@ -474,32 +474,31 @@ class Polyclonal:
     Reduce weight on regularization since there is so little data in this
     toy example:
 
-    >>> for model in [polyclonal_data, polyclonal_data2,
-    ...               polyclonal_data3, polyclonal_data4]:
-    ...     opt_res = model.fit(
+    >>> for m in [model_data, model_data2, model_data3, model_data4]:
+    ...     opt_res = m.fit(
     ...         reg_escape_weight=0.001,
     ...         reg_spread_weight=0.001,
     ...         reg_activity_weight=0.0001,
     ...     )
-    ...     pred_df = model.prob_escape(variants_df=data_to_fit)
+    ...     pred_df = m.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
     ...                           pred_df['predicted_prob_escape'],
     ...                           atol=0.01):
     ...          raise ValueError(f"wrong predictions\n{pred_df}")
     ...     if not numpy.allclose(
     ...              activity_wt_df['activity'].sort_values(),
-    ...              model.activity_wt_df['activity'].sort_values(),
+    ...              m.activity_wt_df['activity'].sort_values(),
     ...              atol=0.1,
     ...              ):
-    ...          raise ValueError(f"wrong activities\n{model.activity_wt_df}")
+    ...          raise ValueError(f"wrong activities\n{m.activity_wt_df}")
     ...     if not numpy.allclose(
     ...              mut_escape_df['escape'].sort_values(),
-    ...              model.mut_escape_df['escape'].sort_values(),
+    ...              m.mut_escape_df['escape'].sort_values(),
     ...              atol=0.05,
     ...              ):
-    ...          raise ValueError(f"wrong escapes\n{model.mut_escape_df}")
+    ...          raise ValueError(f"wrong escapes\n{m.mut_escape_df}")
 
-    >>> polyclonal_data.mut_escape_site_summary_df().round(1)
+    >>> model_data.mut_escape_site_summary_df().round(1)
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
     1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
@@ -507,7 +506,7 @@ class Polyclonal:
     3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
     4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
     5       2     4        A   0.0             0.0  0.0  0.0             0.0            2
-    >>> polyclonal_data.mut_escape_site_summary_df(min_times_seen=4).round(1)
+    >>> model_data.mut_escape_site_summary_df(min_times_seen=4).round(1)
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
     1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
@@ -519,7 +518,7 @@ class Polyclonal:
     You can also exclude mutations to specific characters (typically you would want to
     do this for stop codons and/or gaps):
 
-    >>> polyclonal_data.mut_escape_site_summary_df(exclude_chars={"C", "K"}).round(1)
+    >>> model_data.mut_escape_site_summary_df(exclude_chars={"C", "K"}).round(1)
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     1       1     4        A   1.5             1.5  1.5  1.5             0.0            1
@@ -534,10 +533,10 @@ class Polyclonal:
     track of whether or not sites are mutated using a 2-letter wildtype/mutant
     alphabet, and is generated using :meth:`Polyclonal.site_level_model`:
 
-    >>> polyclonal_site = polyclonal_data4.site_level_model()
-    >>> polyclonal_site.alphabet
+    >>> model_site = model_data4.site_level_model()
+    >>> model_site.alphabet
     ('w', 'm')
-    >>> (polyclonal_site.mut_escape_df
+    >>> (model_site.mut_escape_df
     ...  .assign(escape=lambda x: x['escape'].abs()).round(1))
       epitope  site wildtype mutant mutation  escape  times_seen
     0      e1     1        w      m      w1m     2.0           5
@@ -546,7 +545,7 @@ class Polyclonal:
     3      e2     1        w      m      w1m     0.0           5
     4      e2     2        w      m      w2m     0.0           6
     5      e2     4        w      m      w4m     2.0           7
-    >>> polyclonal_site.data_to_fit.head(n=5).round(3)
+    >>> model_site.data_to_fit.head(n=5).round(3)
        concentration aa_substitutions  weight  prob_escape
     0            1.0                        1        0.032
     1            1.0              w1m       1        0.134
@@ -557,12 +556,13 @@ class Polyclonal:
     Example
     -------
     Epitope assignments are arbitrary, so you can calculate correlations
-    among their mutation-escape values and align them.
+    among their mutation-escape values and create harmonized models that use
+    the same label to refer to epitopes with similar mutation-escape values.
 
     First, correlations of a model to itself:
 
-    >>> ref_poly = copy.deepcopy(polyclonal)
-    >>> polyclonal.mut_escape_corr(ref_poly).round(3)
+    >>> ref_model = copy.deepcopy(model)
+    >>> model.mut_escape_corr(ref_model).round(3)
       ref_epitope self_epitope  correlation
     0          e1           e1        1.000
     1          e1           e2       -0.907
@@ -571,7 +571,7 @@ class Polyclonal:
 
     Make another model with epitope assignments inverted and a few mutations missing:
 
-    >>> inverted_poly = Polyclonal(
+    >>> inverted_model = Polyclonal(
     ...     activity_wt_df=(
     ...         activity_wt_df
     ...         .assign(epitope=lambda x: x["epitope"].map({"e1": "e2", "e2": "e1"}))
@@ -582,42 +582,43 @@ class Polyclonal:
     ...         .assign(epitope=lambda x: x["epitope"].map({"e1": "e2", "e2": "e1"}))
     ...     ),
     ... )
-    >>> inverted_poly.mut_escape_corr(ref_poly).round(3)
+    >>> inverted_model.mut_escape_corr(ref_model).round(3)
       ref_epitope self_epitope  correlation
     0          e1           e2        1.000
     1          e1           e1       -0.945
     2          e2           e2       -0.945
     3          e2           e1        1.000
 
-    Now actually harmonize the epitopes
+    Now actually get epitope-harmonized models:
 
-    >>> polyclonal.harmonize_epitopes_with(ref_poly)
+    >>> model_harmonized, harmonize_df = model.epitope_harmonized_model(ref_model)
+    >>> harmonize_df
       self_initial_epitope self_harmonized_epitope ref_epitope  correlation
     0                   e1                      e1          e1          1.0
     1                   e2                      e2          e2          1.0
+    >>> assert model.mut_escape_df.equals(model_harmonized.mut_escape_df)
 
-    >>> inverted_poly.harmonize_epitopes_with(ref_poly)
+    >>> inverted_harmonized, harmonize_df = inverted_model.epitope_harmonized_model(
+    ...     ref_model
+    ... )
+    >>> harmonize_df
       self_initial_epitope self_harmonized_epitope ref_epitope  correlation
     0                   e1                      e2          e2          1.0
     1                   e2                      e1          e1          1.0
-
-    The order of the epitopes have been switched after harmonization:
-
-    >>> inverted_poly.epitopes
-    ['e1', 'e2']
-
-    >>> inverted_poly.mut_escape_corr(ref_poly).round(3)
-      ref_epitope self_epitope  correlation
-    0          e1           e1        1.000
-    1          e1           e2       -0.945
-    2          e2           e1       -0.945
-    3          e2           e2        1.000
+    >>> inverted_harmonized.mut_escape_df
+      epitope  site wildtype mutant mutation  escape
+    0      e1     1        M      C      M1C     2.0
+    1      e1     2        G      A      G2A     3.0
+    2      e1     4        A      L      A4L     0.0
+    3      e2     1        M      C      M1C     0.0
+    4      e2     2        G      A      G2A     0.0
+    5      e2     4        A      L      A4L     1.5
 
     Example
     -------
     Filter variants by how often they are seen in data:
 
-    >>> polyclonal_data.filter_variants_by_seen_muts(variants_df)
+    >>> model_data.filter_variants_by_seen_muts(variants_df)
     ... # doctest: +NORMALIZE_WHITESPACE
        barcode aa_substitutions
     0       AA
@@ -633,7 +634,7 @@ class Polyclonal:
     10      TG      M1C G2A A4L
     11      GA              M1C
 
-    >>> polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=5)
+    >>> model_data.filter_variants_by_seen_muts(variants_df, min_times_seen=5)
     ... # doctest: +NORMALIZE_WHITESPACE
       barcode aa_substitutions
     0      AA
@@ -642,7 +643,7 @@ class Polyclonal:
     3      CA          M1C G2A
     4      GA              M1C
 
-    >>> polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=4)
+    >>> model_data.filter_variants_by_seen_muts(variants_df, min_times_seen=4)
     ... # doctest: +NORMALIZE_WHITESPACE
       barcode aa_substitutions
     0      AA
@@ -952,10 +953,14 @@ class Polyclonal:
 
         """
         cols = ["concentration", "aa_substitutions"]
+        if "weight" in df.columns:
+            cols.append(
+                "weight"
+            )  # will be overwritten if `collapse_identical_variants`
         if get_pv:
             cols.append("prob_escape")
         if not df[cols].notnull().all().all():
-            raise ValueError(f"null entries in data frame of variants:\n{df}")
+            raise ValueError(f"null entries in data frame of variants:\n{df[cols]}")
         if collapse_identical_variants:
             agg_dict = {"weight": "sum"}
             if get_pv:
@@ -2057,28 +2062,29 @@ class Polyclonal:
 
         return corr_df
 
-    def harmonize_epitopes_with(self, ref_poly):
-        """Harmonize epitope labels with another polyclonal object.
+    def epitope_harmonized_model(self, ref_poly):
+        """Get a copy of model with epitopes "harmonized" with a reference model.
 
         Epitopes are unidentifiable, meaning there is no guarantee that we will assign
         the same epitope labels across multiple models fit to similar data. This
-        function aligns the epitope labels of the current :class:`Polyclonal` object
-        with those of another model with the same epitope labels.
-
-        The harmonization is done simply by re-ordering the epitope labels
-        in :attr:`Polyclonal.epitopes`. The epitopes will be matched by label,
-        but not necessarily by order in :attr:`Polyclonal.epitopes`.
+        function returns a copy of the current model where the epitope labels are
+        harmonized with those of another model with the same epitope labels. The
+        harmonization is done by putting into correspondence the epitopes with
+        the best correlated mutation-escape values.
 
         Parameters
         -----------
         ref_poly : :class:`Polyclonal`
-            The reference polyclonal object to align epitope labels with.
+            The reference polyclonal object to harmonize epitope labels with.
 
         Returns
         --------
-        pandas.DataFrame
-            Has columns 'self_initial_epitope', 'self_harmonized_epitope',
-            'ref_epitope', 'correlation'.
+        harmonized_model, harmonize_df : tuple
+            `harmonized_model` is a :class:`Polyclonal` object that is a copy of
+            the current model but with epitopes harmonized, and
+            :attr:`Polyclonal.epitope_colors` taken from `ref_poly`. `harmonize_df`
+            is a `pandas.DataFrame` that shows how the epitopes were re-assigned
+            and the correlations in their escape values.
 
         Raises
         ------
@@ -2088,8 +2094,8 @@ class Polyclonal:
         """
         if set(self.epitopes) != set(ref_poly.epitopes):
             raise PolyclonalHarmonizeError(
-                "The two models being aligned do not have the same epitope labels: "
-                f"{self.epitopes} versus {ref_poly.epitopes}"
+                "The models being harmonized have different epitope labels:\n"
+                f"{self.epitopes=}\n{ref_poly.epitopes=}"
             )
 
         corr_df = (
@@ -2098,7 +2104,7 @@ class Polyclonal:
             .reset_index(drop=True)
         )
 
-        map_df = (
+        harmonize_df = (
             corr_df.rename(columns={"self_epitope": "self_initial_epitope"})
             .groupby("self_initial_epitope", as_index=False)
             .first()  # will be row with highest correlation after sorting above
@@ -2111,22 +2117,43 @@ class Polyclonal:
                 ]
             ]
         )
-        assert len(map_df) == len(self.epitopes) == len(ref_poly.epitopes)
+        assert len(harmonize_df) == len(self.epitopes) == len(ref_poly.epitopes)
         if not (
             set(self.epitopes)
-            == set(map_df["self_initial_epitope"])
-            == set(map_df["self_harmonized_epitope"])
+            == set(harmonize_df["self_initial_epitope"])
+            == set(harmonize_df["self_harmonized_epitope"])
         ):
-            raise PolyclonalHarmonizeError(f"epitopes do not match 1-to-1:\n{corr_df}")
+            raise PolyclonalHarmonizeError(
+                f"cannot harmonize 1-to-1:\n{corr_df=}\n{harmonize_df=}"
+            )
 
-        map_dict = map_df.set_index("self_initial_epitope")[
+        map_dict = harmonize_df.set_index("self_initial_epitope")[
             "self_harmonized_epitope"
         ].to_dict()
         assert len(map_dict) == len(self.epitopes) == len(set(map_dict.values()))
 
-        self.epitopes = [map_dict[e] for e in self.epitopes]
+        # for sorting epitopes
+        epitope_order = {e: i for i, e in enumerate(ref_poly.epitopes)}
 
-        return map_df
+        harmonized_model = Polyclonal(
+            activity_wt_df=(
+                self.activity_wt_df.assign(epitope=lambda x: x["epitope"].map(map_dict))
+                .sort_values("epitope", key=lambda c: c.map(epitope_order))
+                .reset_index(drop=True)
+            ),
+            mut_escape_df=(
+                self.mut_escape_df.assign(epitope=lambda x: x["epitope"].map(map_dict))
+                .sort_values("epitope", key=lambda c: c.map(epitope_order))
+                .reset_index(drop=True)
+            ),
+            data_to_fit=self.data_to_fit,
+            collapse_identical_variants=False,  # already collapsed if this done for self
+            alphabet=self.alphabet,
+            epitope_colors=ref_poly.epitope_colors,
+            data_mut_escape_overlap="exact_match",  # should be exact match in self
+        )
+        assert ref_poly.epitopes == harmonized_model.epitopes
+        return harmonized_model, harmonize_df
 
 
 if __name__ == "__main__":
