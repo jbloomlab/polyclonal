@@ -832,6 +832,119 @@ def mut_escape_heatmap(
     return chart
 
 
+def corr_heatmap(
+    corr_df,
+    corr_col,
+    sample_cols,
+    *,
+    group_col=None,
+    corr_range=(0, 1),
+    columns=3,
+    diverging_colors=None,
+    scheme=None,
+):
+    """Plot a correlation matrix as heat map from a tidy data frame of correlations.
+
+    Parameters
+    ----------
+    corr_df : pandas.DataFrame
+        Data to plot.
+    corr_col : str
+        Column in `corr_df` with correlation coefficient.
+    sample_cols : str or list
+        Column(s) in corresponding to sample identifiers, suffixed by "_1" and "_2" for
+        the distinct samples. Should be entries for all pairs of samples.
+    group_col : str or None
+        Column in `corr_df` to facet plots on, or `None` if no facets.
+    corr_range : tuple or None
+        Range of heat map as `(min, max)`, or `None` to use data range. Typically
+        you will want to set to `(0, 1)` for :math:`r^2` and `(-1, 1)` for :math:`r`.
+    columns : int
+        Facet by `group_col` into this many columns.
+    diverging_colors : None or bool
+        If `True`, mid point of color scale is set to zero. If `None`, select `True`
+        if `corr_range` extends below 0.
+    scheme : None or str
+        Color scheme to use, see https://vega.github.io/vega/docs/schemes/.
+        If `None`, choose intelligently based on `corr_range` and `diverging_colors`.
+
+    Returns
+    -------
+    altair.Chart
+        Heatmap(s) of correlation coefficients.
+
+    """
+    corr_df = corr_df.copy()  # so we don't change input data frame
+
+    if corr_col not in corr_df:
+        raise ValueError(f"{corr_col=} not in {corr_df.columns=}")
+
+    if corr_range is None:
+        corr_range = (corr_df[corr_col].min(), corr_df[corr_col].max())
+    else:
+        if corr_range[0] > corr_df[corr_col].min():
+            raise ValueError(f"{corr_range[0]} > {corr_df[corr_col].min()=}")
+        if corr_range[1] < corr_df[corr_col].max():
+            raise ValueError(f"{corr_range[1]} < {corr_df[corr_col].max()=}")
+
+    if diverging_colors is None:
+        diverging_colors = corr_range[0] < 0
+    if scheme is None:
+        scheme = "redblue" if diverging_colors else "yellowgreenblue"
+
+    if (group_col is not None) and group_col not in corr_df:
+        raise ValueError(f"{group_col=} not in {corr_df.columns=}")
+
+    # check column exists and make labels by concatenating sample_cols
+    if isinstance(sample_cols, str):
+        sample_cols = [sample_cols]
+    for suffix in ["_1", "_2"]:
+        label_col = f"_label{suffix}"
+        if label_col in corr_df.columns:
+            raise ValueError(f"`corr_df` cannot have column {label_col}")
+        label = []
+        for col in sample_cols:
+            col_suffixed = f"{col}{suffix}"
+            if col_suffixed not in corr_df.columns:
+                raise ValueError(f"{col_suffixed} not in {corr_df.columns=}")
+            else:
+                label.append(col_suffixed)
+        # https://stackoverflow.com/a/49122979
+        labstr = "-".join(["{}"] * len(label))
+        corr_df[label_col] = [labstr.format(*r) for r in corr_df[label].values.tolist()]
+
+    corr_chart = (
+        alt.Chart(corr_df)
+        .encode(
+            x=alt.X("_label_1", title=None),
+            y=alt.Y("_label_2", title=None),
+            color=alt.Color(
+                corr_col,
+                scale=(
+                    alt.Scale(domainMid=0, domain=corr_range, scheme=scheme)
+                    if diverging_colors
+                    else alt.Scale(domain=corr_range, scheme=scheme)
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip(c, format=".3f") if corr_df[c].dtype == float else c
+                for c in corr_df.columns
+                if c not in {"_label_1", "_label_2"}
+            ],
+            facet=(
+                alt.Facet()
+                if group_col is None
+                else alt.Facet(group_col, columns=columns)
+            ),
+        )
+        .mark_rect(stroke="black")
+        .properties(width=alt.Step(15), height=alt.Step(15))
+        .configure_axis(labelLimit=500)
+    )
+
+    return corr_chart
+
+
 if __name__ == "__main__":
     import doctest
 
