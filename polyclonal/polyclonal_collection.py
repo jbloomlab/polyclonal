@@ -283,10 +283,8 @@ class PolyclonalCollection:
     def __init__(self, models_df):
         """See main class docstring for details."""
         self.models = models_df["model"].tolist()
-        if not (
-            len(self.models) > 0 and len([m for m in self.models if m is not None])
-        ):
-            raise ValueError(f"No non-None models:\n{models_df=}")
+        if len(self.models) < 1:
+            raise ValueError(f"No models:\n{models_df=}")
 
         descriptors_df = models_df.drop(columns="model").reset_index(drop=True)
         if not len(descriptors_df.columns):
@@ -298,11 +296,10 @@ class PolyclonalCollection:
 
         for attr in ["epitopes", "epitope_colors", "alphabet"]:
             for model in self.models:
-                if model is not None:
-                    if not hasattr(self, attr):
-                        setattr(self, attr, copy.copy(getattr(model, attr)))
-                    elif getattr(self, attr) != getattr(model, attr):
-                        raise ValueError(f"{attr} not the same for all models")
+                if not hasattr(self, attr):
+                    setattr(self, attr, copy.copy(getattr(model, attr)))
+                elif getattr(self, attr) != getattr(model, attr):
+                    raise ValueError(f"{attr} not the same for all models")
 
     @property
     def activity_wt_df_replicates(self):
@@ -311,7 +308,6 @@ class PolyclonalCollection:
             [
                 m.activity_wt_df.assign(**desc)
                 for m, desc in zip(self.models, self.model_descriptors)
-                if m is not None
             ],
             ignore_index=True,
         )
@@ -355,7 +351,6 @@ class PolyclonalCollection:
             [
                 m.mut_escape_df.assign(**desc)
                 for m, desc in zip(self.models, self.model_descriptors)
-                if m is not None
             ],
             ignore_index=True,
         )
@@ -363,22 +358,73 @@ class PolyclonalCollection:
     @property
     def mut_escape_df(self):
         """pandas.DataFrame: Mutation escape summarized across models."""
-        n_fit = sum(m is not None for m in self.models)
+        aggs = {
+            "escape_mean": pd.NamedAgg("escape", "mean"),
+            "escape_std": pd.NamedAgg("escape", "std"),
+            "n_models": pd.NamedAgg("escape", "count"),
+        }
+        if "times_seen" in self.mut_escape_df_replicates.columns:
+            aggs["times_seen"] = pd.NamedAgg("times_seen", "mean")
         return (
             self.mut_escape_df_replicates.groupby(
                 ["epitope", "site", "wildtype", "mutant", "mutation"],
                 as_index=False,
             )
-            .aggregate(
-                escape_mean=pd.NamedAgg("escape", "mean"),
-                escape_std=pd.NamedAgg("escape", "std"),
-                n_models=pd.NamedAgg("escape", "count"),
-                times_seen=pd.NamedAgg("times_seen", "mean"),
-            )
+            .aggregate(**aggs)
             .assign(
-                frac_models=lambda x: x["n_models"] / n_fit,
+                frac_models=lambda x: x["n_models"] / len(self.models),
             )
         )
+
+    def mut_escape_corr(self, method="pearson"):
+        """Correlation of mutation escape values across models for each epitope.
+
+        Parameters
+        ----------
+        method : str
+            A correlation method passable to `pandas.DataFrame.corr`.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Tidy data frame giving correlations between models for all epitopes.
+            The models are labeled by their descriptors suffixed with "_1" and
+            "_2" for the two models being compared.
+
+        """
+        # get unique id for each descriptor
+        if "_id" in self.mut_escape_df_replicates.columns:
+            raise ValueError("`mut_escape_df_replicates` cannot have column '_id'")
+        ids = (
+            self.mut_escape_df_replicates[self.descriptor_names]
+            .drop_duplicates()
+            .reset_index(drop=True)
+            .assign(_id=lambda x: x.index + 1)
+        )
+        assert len(ids) == len(self.models)
+
+        corr = (
+            polyclonal.utils.tidy_to_corr(
+                self.mut_escape_df_replicates.merge(
+                    ids,
+                    on=self.descriptor_names,
+                    validate="many_to_one",
+                ),
+                sample_col="_id",
+                label_col="mutation",
+                value_col="escape",
+                group_cols="epitope",
+                method=method,
+            )
+            .merge(ids, left_on="_id_1", right_on="_id", validate="many_to_one")
+            .rename(columns={n: f"{n}_1" for n in self.descriptor_names})
+            .drop(columns=["_id", "_id_1"])
+            .merge(ids, left_on="_id_2", right_on="_id", validate="many_to_one")
+            .rename(columns={n: f"{n}_2" for n in self.descriptor_names})
+            .drop(columns=["_id", "_id_2"])
+        )
+
+        return corr
 
     def mut_escape_heatmap(self, **kwargs):
         """Heatmaps of mutation escape values.
@@ -395,7 +441,8 @@ class PolyclonalCollection:
 
         """
         if "addtl_tooltip_stats" not in kwargs:
-            kwargs["addtl_tooltip_stats"] = ["times_seen"]
+            if "times_seen" in self.mut_escape_df.columns:
+                kwargs["addtl_tooltip_stats"] = ["times_seen"]
         return polyclonal.plot.mut_escape_heatmap(
             mut_escape_df=self.mut_escape_df,
             alphabet=self.alphabet,
@@ -423,7 +470,6 @@ class PolyclonalCollection:
             [
                 m.mut_escape_site_summary_df(**kwargs).assign(**desc)
                 for m, desc in zip(self.models, self.model_descriptors)
-                if m is not None
             ],
             ignore_index=True,
         )
@@ -446,7 +492,6 @@ class PolyclonalCollection:
             column refers to models with measurements for any mutation at that site.
 
         """
-        n_fit = sum(m is not None for m in self.models)
         df = self.mut_escape_site_summary_df_replicates(**kwargs)
         return (
             df.drop(columns="n mutations")
@@ -462,7 +507,7 @@ class PolyclonalCollection:
                 n_models=pd.NamedAgg("escape", "count"),
             )
             .assign(
-                frac_models=lambda x: x["n_models"] / n_fit,
+                frac_models=lambda x: x["n_models"] / len(self.models),
             )
             .merge(
                 df.groupby(["epitope", "site"]).aggregate({"n mutations": "mean"}),
@@ -533,7 +578,6 @@ class PolyclonalCollection:
                     **desc
                 )
                 for m, desc in zip(self.models, self.model_descriptors)
-                if m is not None
             ],
             ignore_index=True,
         )
@@ -557,7 +601,6 @@ class PolyclonalCollection:
             icXX and summary stats for each variant across all models.
 
         """
-        n_fit = sum(m is not None for m in self.models)
         if "col" in kwargs:
             col = kwargs["col"]
         else:
@@ -573,7 +616,7 @@ class PolyclonalCollection:
                 n_models=pd.NamedAgg(col, "count"),
             )
             .assign(
-                frac_models=lambda x: x["n_models"] / n_fit,
+                frac_models=lambda x: x["n_models"] / len(self.models),
             )
             .rename(
                 columns={
@@ -614,7 +657,6 @@ class PolyclonalCollection:
                     **kwargs,
                 ).assign(**desc)
                 for m, desc in zip(self.models, self.model_descriptors)
-                if m is not None
             ],
             ignore_index=True,
         )
@@ -641,7 +683,6 @@ class PolyclonalCollection:
             for each variant at each concentration across models.
 
         """
-        n_fit = sum(m is not None for m in self.models)
         variants_df = variants_df.drop_duplicates()
         return (
             self.prob_escape_replicates(variants_df=variants_df, **kwargs)
@@ -656,9 +697,40 @@ class PolyclonalCollection:
                 n_models=pd.NamedAgg("predicted_prob_escape", "count"),
             )
             .assign(
-                frac_models=lambda x: x["n_models"] / n_fit,
+                frac_models=lambda x: x["n_models"] / len(self.models),
             )
         )
+
+
+class PolyclonalAverage(PolyclonalCollection):
+    """Average several :class:`~polyclonal.polyclonal.Polyclonal` objects.
+
+    Parameters
+    ----------
+    models_df : pandas.DataFrame
+        Same meaning as for :class:`PolyclonalCollection`. However, the resulting
+        collection of models will have **copies** of these models rather than the
+        actual objects in `models_df`.
+    harmonize_to : :class:`PolyclonalCollection` or None
+        When harmonizing the epitopes, harmonize to this model. If `None`, just
+        harmonize to the first model in `models_df`.
+    Other attributes of :class:`PolyclonalCollection`.
+        Inherited from base class.
+
+    """
+
+    def __init__(self, models_df, harmonize_to=None):
+        """See main class docstring."""
+        if not len(models_df):
+            raise ValueError("no models in `model_df`")
+        if harmonize_to is None:
+            harmonize_to = models_df.iloc[0]["model"]
+
+        models_df["model"] = [
+            m.epitope_harmonized_model(harmonize_to)[0] for m in models_df["model"]
+        ]
+
+        super().__init__(models_df)
 
 
 class PolyclonalBootstrap(PolyclonalCollection):
@@ -723,7 +795,7 @@ class PolyclonalBootstrap(PolyclonalCollection):
             raise ValueError("Please specify a number of bootstrap samples to make.")
 
         super().__init__(
-            pd.DataFrame({"model": models}).assign(
+            pd.DataFrame({"model": [m for m in models if m is not None]}).assign(
                 bootstrap_replicate=lambda x: x.index + 1
             )
         )
