@@ -426,6 +426,45 @@ class PolyclonalCollection:
 
         return corr
 
+    def mut_escape_corr_heatmap(self, method="pearson", plot_corr2=True, **kwargs):
+        """Heatmap of mutation-escape correlation among models at each epitope.
+
+        Parameters
+        ----------
+        method : str
+            A correlation method passable to `pandas.DataFrame.corr`.
+        plot_corr2 : bool
+            Plot squared correlation (eg, :math:`R^2` rather :math:`R`).
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+        """
+        corr_label = {"pearson": "r", "kendall": "tau", "spearman": "rho"}[method]
+        corr2_label = f"{corr_label}2"
+        corr_df = (
+            self.mut_escape_corr(method)
+            .assign(correlation2=lambda x: x["correlation"] ** 2)
+            .rename(columns={"correlation": corr_label, "correlation2": corr2_label})
+        )
+        corr_df = corr_df[
+            [corr_label, corr2_label]
+            + [c for c in corr_df.columns if c not in {corr_label, corr2_label}]
+        ]
+
+        if "corr_range" not in kwargs:
+            if plot_corr2:
+                kwargs["corr_range"] = (0, 1)
+            else:
+                min_corr = corr_df[corr_label].min()
+                kwargs["corr_range"] = (-1 if min_corr < 0 else -1, 1)
+
+        return polyclonal.plot.corr_heatmap(
+            corr_df=corr_df,
+            corr_col=corr2_label if plot_corr2 else corr_label,
+            sample_cols=self.descriptor_names,
+            group_col=None if corr_df["epitope"].nunique() == 1 else "epitope",
+            **kwargs,
+        )
+
     def mut_escape_heatmap(self, **kwargs):
         """Heatmaps of mutation escape values.
 

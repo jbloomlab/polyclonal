@@ -10,7 +10,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 1.0
 ---------------------------
 - Renamed the bootstrapping models from ``PolyclonalCollection`` to ``PolyclonalBootstrap`` and made ``PolyclonalCollection`` a general-purpose class for collection of ``Polyclonal`` objects. This makes the idea of model collections more general, and better aligns the class names with what they actually do. This is a **backward-incompatible change**.
-- Added methods for correlating models to ``PolyclonalCollection``: methods ``mut_escape_corr``
+- Added methods for correlating models to ``PolyclonalCollection``: methods ``mut_escape_corr``, ``mut_escape_corr_heatmap``.
 - Added the ``PolyclonalAverage`` class for computing the average of models.
 - Remove the old ``Polyclonal.harmonize_epitopes_with`` method that modified ``Polyclonal`` models in place, and replaced with the new ``Polyclonal.epitope_harmonized_model`` that returns a copy of the original model with the epitopes harmonized and also provides guarantees about consistent epitope order, etc. This is a **backward-incompatible change**.
 - Added ``plot.corr_heatmap`` function.
