@@ -256,6 +256,8 @@ class PolyclonalCollection:
         :class:`~polyclonal.polyclonal.Polyclonal` models, and other columns
         are descriptor for model (e.g., "replicate", etc). The descriptors
         for each row must be unique.
+    default_avg_to_plot : {"mean", "median"}
+        By default when plotting, plot either "mean" or "median".
 
     Attributes
     -----------
@@ -277,11 +279,17 @@ class PolyclonalCollection:
     alphabet : array-like
         Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.alphabet`,
         extracted from :attr:`PolyclonalCollection.models`.
+    default_avg_to_plot : {"mean", "median"}
+        By default when plotting, plot either "mean" or "median".
 
     """
 
-    def __init__(self, models_df):
+    def __init__(self, models_df, *, default_avg_to_plot):
         """See main class docstring for details."""
+        if default_avg_to_plot not in {"mean", "median"}:
+            raise ValueError(f"invalid {default_avg_to_plot=")
+        self.default_avg_to_plot = default_avg_to_plot
+
         self.models = models_df["model"].tolist()
         if len(self.models) < 1:
             raise ValueError(f"No models:\n{models_df=}")
@@ -753,12 +761,17 @@ class PolyclonalAverage(PolyclonalCollection):
     harmonize_to : :class:`PolyclonalCollection` or None
         When harmonizing the epitopes, harmonize to this model. If `None`, just
         harmonize to the first model in `models_df`.
+    default_avg_to_plot : {"mean", "median"}
+        What type of average do the plotting methods plot by default?
+
+    Attributes
+    ----------
     Other attributes of :class:`PolyclonalCollection`.
         Inherited from base class.
 
     """
 
-    def __init__(self, models_df, harmonize_to=None):
+    def __init__(self, models_df, *, harmonize_to=None, default_avg_to_plot="median"):
         """See main class docstring."""
         if not len(models_df):
             raise ValueError("no models in `model_df`")
@@ -769,7 +782,7 @@ class PolyclonalAverage(PolyclonalCollection):
             m.epitope_harmonized_model(harmonize_to)[0] for m in models_df["model"]
         ]
 
-        super().__init__(models_df)
+        super().__init__(models_df, default_avg_to_plot=default_avg_to_plot)
 
 
 class PolyclonalBootstrap(PolyclonalCollection):
@@ -791,6 +804,8 @@ class PolyclonalBootstrap(PolyclonalCollection):
     sample_by
         Passed to :func:`create_bootstrap_sample`. Should generally be 'barcode'
         if you have same variants at all concentrations, and maybe `None` otherwise.
+    default_avg_to_plot : {"mean", "median"}
+        What type of average do the plotting methods plot by default?
 
     Attributes
     -----------
@@ -807,9 +822,11 @@ class PolyclonalBootstrap(PolyclonalCollection):
         self,
         root_polyclonal,
         n_bootstrap_samples,
+        *,
         n_threads=-1,
         seed=0,
         sample_by="barcode",
+        default_avg_to_plot="mean",
     ):
         """See main class docstring for details."""
         if root_polyclonal.data_to_fit is None:
@@ -836,7 +853,8 @@ class PolyclonalBootstrap(PolyclonalCollection):
         super().__init__(
             pd.DataFrame({"model": [m for m in models if m is not None]}).assign(
                 bootstrap_replicate=lambda x: x.index + 1
-            )
+            ),
+            default_avg_to_plot=default_avg_to_plot,
         )
 
     def fit_models(self, failures="error", **kwargs):
