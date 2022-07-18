@@ -23,6 +23,7 @@ Contents
    simulate_RBD
    fit_RBD
    RBD_bootstrap
+   RBD_average
    real_REGN10933_mAb
    specify_epitopes
    expt_design
