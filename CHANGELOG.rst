@@ -13,6 +13,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Added methods for correlating models to ``PolyclonalCollection``: methods ``mut_escape_corr``
 - Added the ``PolyclonalAverage`` class for computing the average of models.
 - Remove the old ``Polyclonal.harmonize_epitopes_with`` method that modified ``Polyclonal`` models in place, and replaced with the new ``Polyclonal.epitope_harmonized_model`` that returns a copy of the original model with the epitopes harmonized and also provides guarantees about consistent epitope order, etc. This is a **backward-incompatible change**.
+- Added ``plot.corr_heatmap`` function.
 - Added ``utils.tidy_to_corr`` function.
 - Added ``polyclonal_collection.fit_models`` to fit multiple models using multiprocessing.
 - Added ``RBD_average.ipynb`` notebook.
