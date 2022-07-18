@@ -159,6 +159,7 @@ def mut_escape_lineplot(
     width=900,
     init_metric="total positive",
     zoom_bar_width=500,
+    avg_to_plot="escape_mean",
 ):
     r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
 
@@ -190,6 +191,8 @@ def mut_escape_lineplot(
         metrics in :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
     zoom_bar_width : float
         Width of zoom bar
+    avg_to_plot : {"escape_mean", "escape_median"}
+        If using `replicate_data` plot the escape mean or median.
 
     Returns
     -------
@@ -213,7 +216,7 @@ def mut_escape_lineplot(
         ]
 
     if replicate_data:
-        df = df.rename(columns={"escape_mean": "escape"})[
+        df = df.rename(columns={avg_to_plot: "escape"})[
             ["epitope", "site", "metric", "escape"]
         ]
     else:

@@ -287,7 +287,7 @@ class PolyclonalCollection:
     def __init__(self, models_df, *, default_avg_to_plot):
         """See main class docstring for details."""
         if default_avg_to_plot not in {"mean", "median"}:
-            raise ValueError(f"invalid {default_avg_to_plot=")
+            raise ValueError(f"invalid {default_avg_to_plot=}")
         self.default_avg_to_plot = default_avg_to_plot
 
         self.models = models_df["model"].tolist()
@@ -327,14 +327,18 @@ class PolyclonalCollection:
             "epitope", as_index=False
         ).aggregate(
             activity_mean=pd.NamedAgg("activity", "mean"),
+            activity_median=pd.NamedAgg("activity", "median"),
             activity_std=pd.NamedAgg("activity", "std"),
         )
 
-    def activity_wt_barplot(self, **kwargs):
+    def activity_wt_barplot(self, avg_type=None, **kwargs):
         """Bar plot of epitope activities mean across models.
 
         Parameters
         ----------
+        avg_type : {"mean", "median", None}
+            Type of average to plot, None defaults to
+            :attr:`PolyclonalCollection.default_avg_to_plot`.
         **kwargs
             Keyword arguments for :func:`polyclonal.plot.activity_wt_barplot`.
 
@@ -344,10 +348,12 @@ class PolyclonalCollection:
             Interactive plot, with error bars showing standard deviation.
 
         """
+        if avg_type is None:
+            avg_type = self.default_avg_to_plot
         return polyclonal.plot.activity_wt_barplot(
             activity_wt_df=self.activity_wt_df,
             epitope_colors=self.epitope_colors,
-            stat="activity_mean",
+            stat=f"activity_{avg_type}",
             error_stat="activity_std",
             **kwargs,
         )
@@ -368,6 +374,7 @@ class PolyclonalCollection:
         """pandas.DataFrame: Mutation escape summarized across models."""
         aggs = {
             "escape_mean": pd.NamedAgg("escape", "mean"),
+            "escape_median": pd.NamedAgg("escape", "median"),
             "escape_std": pd.NamedAgg("escape", "std"),
             "n_models": pd.NamedAgg("escape", "count"),
         }
@@ -473,11 +480,14 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    def mut_escape_heatmap(self, **kwargs):
+    def mut_escape_heatmap(self, avg_type=None, **kwargs):
         """Heatmaps of mutation escape values.
 
         Parameters
         ----------
+        avg_type : {"mean", "median", None}
+            Type of average to plot, None defaults to
+            :attr:`PolyclonalCollection.default_avg_to_plot`.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
 
@@ -490,11 +500,13 @@ class PolyclonalCollection:
         if "addtl_tooltip_stats" not in kwargs:
             if "times_seen" in self.mut_escape_df.columns:
                 kwargs["addtl_tooltip_stats"] = ["times_seen"]
+        if avg_type is None:
+            avg_type = self.default_avg_to_plot
         return polyclonal.plot.mut_escape_heatmap(
             mut_escape_df=self.mut_escape_df,
             alphabet=self.alphabet,
             epitope_colors=self.epitope_colors,
-            stat="escape_mean",
+            stat=f"escape_{avg_type}",
             error_stat="escape_std",
             **kwargs,
         )
@@ -550,6 +562,7 @@ class PolyclonalCollection:
             .groupby(["epitope", "site", "wildtype", "metric"], as_index=False)
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
+                escape_median=pd.NamedAgg("escape", "median"),
                 escape_std=pd.NamedAgg("escape", "std"),
                 n_models=pd.NamedAgg("escape", "count"),
             )
@@ -566,6 +579,7 @@ class PolyclonalCollection:
     def mut_escape_lineplot(
         self,
         *,
+        avg_type=None,
         mut_escape_site_summary_df_kwargs=None,
         mut_escape_lineplot_kwargs=None,
     ):
@@ -573,6 +587,9 @@ class PolyclonalCollection:
 
         Parameters
         ----------
+        avg_type : {"mean", "median", None}
+            Type of average to plot, None defaults to
+            :attr:`PolyclonalCollection.default_avg_to_plot`.
         mut_escape_site_summary_df_kwargs : dict
             Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
             It is often useful to set `min_times_seen` to >1.
@@ -589,6 +606,10 @@ class PolyclonalCollection:
             mut_escape_site_summary_df_kwargs = {}
         if mut_escape_lineplot_kwargs is None:
             mut_escape_lineplot_kwargs = {}
+        if "avg_to_plot" not in mut_escape_lineplot_kwargs:
+            if avg_type is None:
+                avg_type = self.default_avg_to_plot
+            mut_escape_lineplot_kwargs["avg_to_plot"] = f"escape_{avg_type}"
         if "addtl_tooltip_stats" not in mut_escape_lineplot_kwargs:
             mut_escape_lineplot_kwargs["addtl_tooltip_stats"] = ["n mutations"]
         df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
