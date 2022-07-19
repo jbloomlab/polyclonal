@@ -14,6 +14,7 @@ classes:
 """
 
 import copy
+import math
 import multiprocessing
 from functools import partial
 from itertools import repeat
@@ -480,7 +481,7 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    def mut_escape_heatmap(self, avg_type=None, **kwargs):
+    def mut_escape_heatmap(self, *, avg_type=None, init_n_replicates=None, **kwargs):
         """Heatmaps of mutation escape values.
 
         Parameters
@@ -488,6 +489,10 @@ class PolyclonalCollection:
         avg_type : {"mean", "median", None}
             Type of average to plot, None defaults to
             :attr:`PolyclonalCollection.default_avg_to_plot`.
+        init_n_replicates : None or int
+            Initially only show mutations found in at least this number of replicates
+            (models in the collection). A value of `None` corresponds to choosing a
+            value that is >= half the number of total replicates.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
 
@@ -500,10 +505,28 @@ class PolyclonalCollection:
         if "addtl_tooltip_stats" not in kwargs:
             if "times_seen" in self.mut_escape_df.columns:
                 kwargs["addtl_tooltip_stats"] = ["times_seen"]
+
+        if init_n_replicates is None:
+            init_n_replicates = int(math.ceil(len(self.models) / 2))
+        if (
+            "addtl_tooltip_stats" in kwargs
+            and kwargs["addtl_tooltip_stats"] is not None
+        ):
+            kwargs["addtl_tooltip_stats"].append("n_replicates")
+        else:
+            kwargs["addtl_tooltip_stats"] = ["n_replicates"]
+        if "addtl_slider_stats" in kwargs and kwargs["addtl_slider_stats"] is not None:
+            kwargs["addtl_slider_stats"]["n_replicates"] = init_n_replicates
+        else:
+            kwargs["addtl_slider_stats"] = {"n_replicates": init_n_replicates}
+
         if avg_type is None:
             avg_type = self.default_avg_to_plot
+
         return polyclonal.plot.mut_escape_heatmap(
-            mut_escape_df=self.mut_escape_df,
+            mut_escape_df=self.mut_escape_df.rename(
+                columns={"n_models": "n_replicates"}
+            ),
             alphabet=self.alphabet,
             epitope_colors=self.epitope_colors,
             stat=f"escape_{avg_type}",
