@@ -709,6 +709,8 @@ def mut_escape_heatmap(
     # we do the calculation just for mutations at init_min_times_seen times seen
     if "times_seen" in df.columns:
         df_percent_max = df.query("times_seen >= @init_min_times_seen")
+    else:
+        df_percent_max = df
     if floor_at_zero:
         # the next line making a copy is needed to prevent pandas SettingWithCopyWarning
         df_percent_max = df_percent_max.copy()
