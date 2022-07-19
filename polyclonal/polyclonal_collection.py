@@ -603,6 +603,7 @@ class PolyclonalCollection:
         self,
         *,
         avg_type=None,
+        min_replicates=None,
         mut_escape_site_summary_df_kwargs=None,
         mut_escape_lineplot_kwargs=None,
     ):
@@ -613,6 +614,10 @@ class PolyclonalCollection:
         avg_type : {"mean", "median", None}
             Type of average to plot, None defaults to
             :attr:`PolyclonalCollection.default_avg_to_plot`.
+        min_replicates : None or int
+            Only include sites that have escape estimated for at least this many models.
+            A value of `None` corresponds to choosing a value that is >= half the number
+            of total replicates.
         mut_escape_site_summary_df_kwargs : dict
             Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
             It is often useful to set `min_times_seen` to >1.
@@ -625,6 +630,8 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
+        if min_replicates is None:
+            min_replicates = int(math.ceil(len(self.models) / 2))
         if mut_escape_site_summary_df_kwargs is None:
             mut_escape_site_summary_df_kwargs = {}
         if mut_escape_lineplot_kwargs is None:
@@ -635,7 +642,9 @@ class PolyclonalCollection:
             mut_escape_lineplot_kwargs["avg_to_plot"] = f"escape_{avg_type}"
         if "addtl_tooltip_stats" not in mut_escape_lineplot_kwargs:
             mut_escape_lineplot_kwargs["addtl_tooltip_stats"] = ["n mutations"]
-        df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs)
+        df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs).query(
+            "n_models >= @min_replicates"
+        )
         return polyclonal.plot.mut_escape_lineplot(
             mut_escape_site_summary_df=df,
             replicate_data=True,
