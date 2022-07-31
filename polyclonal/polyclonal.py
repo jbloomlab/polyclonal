@@ -2146,6 +2146,11 @@ class Polyclonal:
                 f"{self.epitopes=}\n{ref_poly.epitopes=}"
             )
 
+        if self.sequential_integer_sites != ref_poly.sequential_integer_sites:
+            raise PolyclonalHarmonizeError(
+                "Models being harmonized don't have same `sequential_integer_sites`"
+            )
+
         corr_df = (
             self.mut_escape_corr(ref_poly)
             .sort_values(["self_epitope", "correlation"], ascending=[True, False])
