@@ -190,7 +190,7 @@ class Polyclonal:
     sites : tuple
         List of all sites. These are the sites provided via the ``sites`` parameter,
         or inferred from ``data_to_fit`` or ``mut_escape_df`` if that isn't provided.
-        If `sequential_integers` is `False`, these are str, otherwise int.
+        If `sequential_integer_sites` is `False`, these are str, otherwise int.
     sequential_integer_sites : bool
         True if sites are sequential and integer, False otherwise.
     wts : dict
@@ -1791,6 +1791,8 @@ class Polyclonal:
 
         """
         kwargs["mut_escape_df"] = self.mut_escape_df
+        if "sites" not in kwargs and not self.sequential_integer_sites:
+            kwargs["sites"] = self.sites
         if "epitope_colors" not in kwargs:
             kwargs["epitope_colors"] = self.epitope_colors
         if "alphabet" not in kwargs:
