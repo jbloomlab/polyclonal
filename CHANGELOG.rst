@@ -11,6 +11,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ---------------------------
 - Renamed the bootstrapping models from ``PolyclonalCollection`` to ``PolyclonalBootstrap`` and made ``PolyclonalCollection`` a general-purpose class for collection of ``Polyclonal`` objects. This makes the idea of model collections more general, and better aligns the class names with what they actually do. This is a **backward-incompatible change**.
 - Added methods for correlating models to ``PolyclonalCollection``: methods ``mut_escape_corr``, ``mut_escape_corr_heatmap``.
+- Added ``sites`` parameter to ``Polyclonal`` to enable non-sequential-integer (eg, reference) based site numbering, and propagated this change to plotting and ``PolyclonalCollection``.
 - Added the ``PolyclonalAverage`` class for computing the average of models.
 - ``PolyclonalCollection`` and subclasses return both mean and median and provide option to plot either, and ``PolyclonalCollection.default_avg_to_plot`` attribute added.
 - Remove the old ``Polyclonal.harmonize_epitopes_with`` method that modified ``Polyclonal`` models in place, and replaced with the new ``Polyclonal.epitope_harmonized_model`` that returns a copy of the original model with the epitopes harmonized and also provides guarantees about consistent epitope order, etc. This is a **backward-incompatible change**.
@@ -22,6 +23,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Added ``RBD_average.ipynb`` notebook.
 - Fix bug in setting ``epitope_colors`` as dict in ``Polyclonal``.
 - Fix ``SettingWithCopyWarning`` in heatmap plotting.
+- Added ``letter_suffixed_sites`` parameter to ``MutationParser`` and ``site_level_variants``.
+- Increment ``binarymap`` version requirement to >= 0.5.
 
 0.3
 ---------------------------

@@ -21,6 +21,8 @@ import binarymap
 
 import frozendict
 
+import natsort
+
 import numpy
 
 import pandas as pd
@@ -151,6 +153,13 @@ class Polyclonal:
         but *not* a good idea if you are doing bootstrapping.
     alphabet : array-like
         Allowed characters in mutation strings.
+    sites : array-like or None
+        By default, sites are assumed to be sequential integer values are and inferred
+        from ``data_to_fit`` or ``mut_escape_df``. However, you can also have
+        non-sequential integer sites, or sites with lower-case letter suffixes
+        (eg, `214a`) if your protein is numbered against a reference that it has
+        indels relative to. In that case, provide list of all expected in order
+        here; we require that order to be natsorted.
     epitope_colors : array-like or dict
         Maps each epitope to the color used for plotting. Either a dict keyed
         by each epitope, or an array of colors that are sequentially assigned
@@ -179,7 +188,11 @@ class Polyclonal:
     alphabet : tuple
         Allowed characters in mutation strings.
     sites : tuple
-        List of all sites.
+        List of all sites. These are the sites provided via the ``sites`` parameter,
+        or inferred from ``data_to_fit`` or ``mut_escape_df`` if that isn't provided.
+        If `sequential_integers` is `False`, these are str, otherwise int.
+    sequential_integer_sites : bool
+        True if sites are sequential and integer, False otherwise.
     wts : dict
         Keyed by site, value is wildtype at that site.
     epitope_colors : dict
@@ -669,6 +682,7 @@ class Polyclonal:
         n_epitopes=None,
         collapse_identical_variants=False,
         alphabet=polyclonal.AAS,
+        sites=None,
         epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
         init_missing="zero",
         data_mut_escape_overlap="exact_match",
@@ -679,10 +693,29 @@ class Polyclonal:
         elif init_missing != "zero":
             raise ValueError(f"invalid {init_missing=}")
 
+        if sites is not None:
+            sites = tuple(sites)
+            if sites != tuple(natsort.natsorted(sites)):
+                raise ValueError("`sites` not natsorted")
+            if any(type(r) != int for r in sites) or sites != tuple(
+                range(sites[0], sites[-1] + 1)
+            ):
+                self.sequential_integer_sites = False
+                self.sites = tuple(map(str, sites))
+            else:
+                self.sequential_integer_sites = True
+                self.sites = sites
+        else:
+            self.sites = None
+            self.sequential_integer_sites = True
+
         if len(set(alphabet)) != len(alphabet):
             raise ValueError("duplicate letters in `alphabet`")
         self.alphabet = tuple(alphabet)
-        self._mutparser = polyclonal.utils.MutationParser(alphabet)
+        self._mutparser = polyclonal.utils.MutationParser(
+            alphabet,
+            letter_suffixed_sites=not self.sequential_integer_sites,
+        )
 
         # get any epitope labels as str, not int
         if activity_wt_df is not None:
@@ -777,6 +810,8 @@ class Polyclonal:
         # get wildtype, sites, and mutations
         if data_to_fit is not None:
             wts2, sites2, muts2 = self._muts_from_data_to_fit(data_to_fit)
+            if (self.sites is not None) and not set(sites2).issubset(self.sites):
+                raise ValueError("sites in `data_to_fit` not all in `sites`")
             times_seen = (
                 data_to_fit["aa_substitutions"]
                 .str.split()
@@ -798,6 +833,10 @@ class Polyclonal:
             if not req_cols.issubset(site_escape_df.columns):
                 raise ValueError(f"`site_escape_df` lacks columns {req_cols}")
             assert (data_to_fit is not None) and (mut_escape_df is None)
+            if not self.sequential_integer_sites:
+                site_escape_df = site_escape_df.assign(
+                    site=lambda x: x["site"].astype(str)
+                )
             if not set(site_escape_df["epitope"]).issubset(self.epitopes):
                 raise ValueError("`site_escape_df` has unrecognized epitopes")
             if not set(site_escape_df["site"]).issubset(sites2):
@@ -826,26 +865,33 @@ class Polyclonal:
 
         if mut_escape_df is not None:
             wts, sites, muts = self._muts_from_mut_escape_df(mut_escape_df)
+            if (self.sites is not None) and not set(sites).issubset(self.sites):
+                raise ValueError("`mut_escape_df` has sites not in `sites`")
         if mut_escape_df is data_to_fit is None:
             raise ValueError("initialize `mut_escape_df` or `data_to_fit`")
         elif mut_escape_df is None:
-            self.wts, self.sites, self.mutations = wts2, sites2, muts2
+            self.wts, self.mutations = wts2, muts2
+            if self.sites is None:
+                self.sites = sites2
             mut_escape_df = _init_mut_escape_df(self.mutations)
         elif data_to_fit is None:
-            self.wts, self.sites, self.mutations = wts, sites, muts
+            self.wts, self.mutations = wts, muts
+            if self.sites is None:
+                self.sites = sites
         else:
             if data_mut_escape_overlap == "exact_match":
                 if sites == sites2 and wts == wts2 and muts == muts2:
-                    self.wts, self.sites, self.mutations = wts, sites, muts
+                    self.wts, self.mutations = wts, muts
+                    if self.sites is None:
+                        self.sites = sites
                 else:
                     raise ValueError(
-                        "`data_to_fit` and `mut_escape_df` give "
-                        "different mutations. Fix or set "
-                        'data_mut_escape_overlap="fill_to_data"'
+                        "`data_to_fit` and `mut_escape_df` give different mutations. "
+                        "Fix or set data_mut_escape_overlap='fill_to_data'"
                     )
             elif data_mut_escape_overlap == "fill_to_data":
                 # sites are in mut_escape_df, sites2 in data_to_fit
-                if set(sites) <= set(sites2):
+                if self.sites is None and set(sites) <= set(sites2):
                     self.sites = sites2
                 else:
                     raise ValueError(
@@ -873,7 +919,7 @@ class Polyclonal:
                 )
             elif data_mut_escape_overlap == "prune_to_data":
                 # sites are in mut_escape_df, sites2 in data_to_fit
-                if set(sites) >= set(sites2):
+                if self.sites is None and set(sites) >= set(sites2):
                     self.sites = sites2
                 else:
                     raise ValueError(
@@ -1072,8 +1118,8 @@ class Polyclonal:
                 elif wts[site] != wt:
                     raise ValueError(f"inconsistent wildtype for site {site}")
                 mutations[site].add(mutation)
-        sites = tuple(sorted(wts.keys()))
-        wts = dict(sorted(wts.items()))
+        sites = tuple(natsort.natsorted(wts.keys()))
+        wts = dict(natsort.natsorted(wts.items()))
         assert set(mutations.keys()) == set(sites) == set(wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         mutations = tuple(
@@ -1094,8 +1140,8 @@ class Polyclonal:
             elif wts[site] != wt:
                 raise ValueError(f"inconsistent wildtype for site {site}")
             mutations[site].add(mutation)
-        sites = tuple(sorted(wts.keys()))
-        wts = dict(sorted(wts.items()))
+        sites = tuple(natsort.natsorted(wts.keys()))
+        wts = dict(natsort.natsorted(wts.items()))
         assert set(mutations.keys()) == set(sites) == set(wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         mutations = tuple(
@@ -1291,11 +1337,13 @@ class Polyclonal:
             site_data_to_fit = polyclonal.utils.site_level_variants(
                 self.data_to_fit,
                 original_alphabet=self.alphabet,
+                letter_suffixed_sites=not self.sequential_integer_sites,
             )
         site_escape_df = (
             polyclonal.utils.site_level_variants(
                 self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"}),
                 original_alphabet=self.alphabet,
+                letter_suffixed_sites=not self.sequential_integer_sites,
             )
             .rename(columns={"aa_substitutions": "mutation"})
             .groupby(["epitope", "mutation"], as_index=False)
@@ -1306,6 +1354,7 @@ class Polyclonal:
             mut_escape_df=site_escape_df,
             data_to_fit=site_data_to_fit,
             alphabet=("w", "m"),
+            sites=None if self.sequential_integer_sites else self.sites,
             epitope_colors=self.epitope_colors,
             collapse_identical_variants=collapse_identical_variants,
         )
@@ -1998,6 +2047,7 @@ class Polyclonal:
             substitutions_col="aa_substitutions",
             allowed_subs=self.mutations,
             alphabet=self.alphabet,
+            sites_as_str=not self.sequential_integer_sites,
         )
         if tuple(bmap.all_subs) != self.mutations:
             raise ValueError(
