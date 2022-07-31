@@ -93,6 +93,7 @@ def site_level_variants(
     original_alphabet=polyclonal.AAS,
     wt_char="w",
     mut_char="m",
+    letter_suffixed_sites=False,
 ):
     """Re-define variants simply in terms of which sites are mutated.
 
@@ -111,6 +112,8 @@ def site_level_variants(
         Single letter used to represent wildtype identity at all sites.
     mut_char : str
         Single letter used to represent mutant identity at all sites.
+    letter_suffixed_sites : str
+        Same mutation as for :class:`MutationParser`.
 
     Returns
     -------
@@ -141,7 +144,10 @@ def site_level_variants(
         raise ValueError(f"{wt_char=} should be single letter")
     if isinstance(mut_char, str) and len(mut_char) != 1:
         raise ValueError(f"{mut_char=} should be single letter")
-    mutparser = MutationParser(original_alphabet)
+    mutparser = MutationParser(
+        original_alphabet,
+        letter_suffixed_sites=letter_suffixed_sites,
+    )
 
     site_subs_mapping = {}
     wts = {}
