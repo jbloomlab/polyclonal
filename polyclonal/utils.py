@@ -22,6 +22,9 @@ class MutationParser:
     ----------
     alphabet : array-like
         Valid single-character letters in alphabet.
+    letter_suffixed_sites : bool
+        Allow sites suffixed by lowercase letters, such as "214a". In this case, returned
+        sites from :method:`MutationParser.parse_mut` are str.
 
     Example
     -------
@@ -38,9 +41,20 @@ class MutationParser:
     >>> mutparser_gap.parse_mut('K7-')
     ('K', 7, '-')
 
+    >>> mutparser.parse_mut("E214aA")
+    Traceback (most recent call last):
+      ...
+    ValueError: invalid mutation E214aA
+
+    >>> mutparser_letter_suffix = MutationParser(polyclonal.AAS, True)
+    >>> mutparser_letter_suffix.parse_mut('A5G')
+    ('A', '5', 'G')
+    >>> mutparser_letter_suffix.parse_mut('E214aA')
+    ('E', '214a', 'A')
+
     """
 
-    def __init__(self, alphabet):
+    def __init__(self, alphabet, letter_suffixed_sites=False):
         """See main class docstring."""
         chars = []
         for char in alphabet:
@@ -53,8 +67,14 @@ class MutationParser:
             else:
                 raise ValueError(f"invalid alphabet character: {char}")
         chars = "|".join(chars)
+        if letter_suffixed_sites:
+            self._sites_as_int = False
+            site_regex = r"(?P<site>\d+[a-z]?)"
+        else:
+            self._sites_as_int = True
+            site_regex = r"(?P<site>\d+)"
         self._mutation_regex = re.compile(
-            rf"(?P<wt>{chars})" rf"(?P<site>\d+)" rf"(?P<mut>{chars})"
+            rf"(?P<wt>{chars})" + site_regex + rf"(?P<mut>{chars})"
         )
 
     def parse_mut(self, mutation):
@@ -63,7 +83,8 @@ class MutationParser:
         if not m:
             raise ValueError(f"invalid mutation {mutation}")
         else:
-            return (m.group("wt"), int(m.group("site")), m.group("mut"))
+            site = int(m.group("site")) if self._sites_as_int else m.group("site")
+            return (m.group("wt"), site, m.group("mut"))
 
 
 def site_level_variants(
