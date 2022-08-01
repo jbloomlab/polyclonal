@@ -24,8 +24,9 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Fix bug in setting ``epitope_colors`` as dict in ``Polyclonal``.
 - Fix ``SettingWithCopyWarning`` in heatmap plotting.
 - Added ``letter_suffixed_sites`` parameter to ``MutationParser`` and ``site_level_variants``.
-- Added ``sites`` to ``plot.mut_escape_heatmap`` to enable ordering of str site numbers and utilized within ``Polyclonal`` objects.
+- Added ``sites`` to ``plot.mut_escape_heatmap`` and ``plot.mut_escape_lineplot`` to enable ordering of str site numbers and utilized within ``Polyclonal`` objects.
 - Increment ``binarymap`` version requirement to >= 0.5.
+- Changed real antibody example from REGN10933 to LY-CoV1404
 
 0.3
 ---------------------------

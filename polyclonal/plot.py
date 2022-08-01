@@ -153,6 +153,7 @@ def mut_escape_lineplot(
     addtl_tooltip_stats=None,
     epitope_colors,
     epitopes=None,
+    sites=None,
     all_sites=True,
     share_ylims=True,
     height=100,
@@ -177,9 +178,13 @@ def mut_escape_lineplot(
         Maps each epitope name to its color.
     epitopes : array-like or None
         Make plots for these epitopes. If `None`, use all epitopes.
+    sites : None or array-like
+        If `None`, the sites in `mut_escape_site_summary_df` represent sequential
+        integers (and any missing ones are filled in). If you specify something else
+        here, it should be array-like giving sites to plot in order to plot them.
     all_sites : bool
         Plot all sites in range from first to last site even if some
-        have no data.
+        have no data. Has no meanining if ``sites`` is set.
     share_ylims : bool
         Should plots for all epitopes share same y-limits?
     height : float
@@ -227,9 +232,33 @@ def mut_escape_lineplot(
             value_name="escape",
         )
 
-    sites = df["site"].unique().tolist()
-    if all_sites:
-        sites = list(range(min(sites), max(sites) + 1))
+    # do we have pre-site sites to sort?
+    if (df["site"].dtype != int) and (sites is None):
+        raise ValueError("input data frame has non-integer sites so set `sites`")
+    if sites:
+        if not set(df["site"]).issubset(sites):
+            raise ValueError("sites in input data frame not subset of `sites`")
+        # Because of this bug, cannot sort by sites completely:
+        # https://github.com/altair-viz/altair/issues/2663
+        # However, can sort up to ~1000 elements, which is usually enough that
+        # regular sorting will do the rest (assuming <10,000 sites. So make a
+        # `sort_sites` list that sorts the first 1000 elements and then check
+        # that is enough. If that bug is fixed, then `sort_sites` can be removed
+        # and the sorting can just be on sites.
+        n_sort_sites = 1002  # this many does not raise error
+        sort_sites = sites[:n_sort_sites]
+        if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
+            raise ValueError(
+                f"Cannot sort {len(sites)=} non-integer due to this bug in altair:\n"
+                "https://github.com/altair-viz/altair/issues/2663"
+            )
+    else:
+        sort_sites = "ascending"
+
+    if not sites:
+        sites = df["site"].unique().tolist()
+        if all_sites:
+            sites = list(range(min(sites), max(sites) + 1))
 
     # fill any missing sites
     fill_df = pd.DataFrame(
@@ -265,7 +294,7 @@ def mut_escape_lineplot(
     zoom_bar = (
         alt.Chart(df[["site"]].drop_duplicates())
         .mark_rect(color="gray")
-        .encode(x="site:O")
+        .encode(x=alt.X("site:O", sort=sort_sites))
         .add_parameter(zoom_brush)
         .properties(
             width=zoom_bar_width,
@@ -377,6 +406,7 @@ def mut_escape_lineplot(
         base = base_all.encode(
             x=alt.X(
                 "site:O",
+                sort=sort_sites,
                 title=("site" if epitope == epitopes[-1] else None),
                 axis=(alt.Axis() if epitope == epitopes[-1] else None),
             ),
@@ -536,25 +566,28 @@ def mut_escape_heatmap(
     if stat not in mut_escape_df:
         raise ValueError(f"{stat=} not in {mut_escape_df.columns=}")
 
+    # do we have pre-site sites to sort?
     if (mut_escape_df["site"].dtype != int) and (sites is None):
         raise ValueError("`mut_escape_df` has non-integer sites so set `sites`")
-    if sites and not set(mut_escape_df["site"]).issubset(sites):
-        raise ValueError("sites in `mut_escape_df` not subset of `sites`")
-
-    # Because of this bug, cannot sort by sites completely:
-    # https://github.com/altair-viz/altair/issues/2663
-    # However, can sort up to ~1000 elements, which is usually enough that
-    # regular sorting will do the rest (assuming <10,000 sites. So make a
-    # `sort_sites` list that sorts the first 1000 elements and then check
-    # that is enough. If that bug is fixed, then `sort_sites` can be removed
-    # and the sorting can just be on sites.
-    n_sort_sites = 1002  # this many does not raise error
-    sort_sites = sites[: n_sort_sites]
-    if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites: ])]:
-        raise ValueError(
-            f"Cannot sort {len(sites)=} non-integer due to this bug in altair:\n"
-            "https://github.com/altair-viz/altair/issues/2663"
-        )
+    if sites:
+        if not set(mut_escape_df["site"]).issubset(sites):
+            raise ValueError("sites in `mut_escape_df` not subset of `sites`")
+        # Because of this bug, cannot sort by sites completely:
+        # https://github.com/altair-viz/altair/issues/2663
+        # However, can sort up to ~1000 elements, which is usually enough that
+        # regular sorting will do the rest (assuming <10,000 sites. So make a
+        # `sort_sites` list that sorts the first 1000 elements and then check
+        # that is enough. If that bug is fixed, then `sort_sites` can be removed
+        # and the sorting can just be on sites.
+        n_sort_sites = 1002  # this many does not raise error
+        sort_sites = sites[:n_sort_sites]
+        if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
+            raise ValueError(
+                f"Cannot sort {len(sites)=} non-integer due to this bug in altair:\n"
+                "https://github.com/altair-viz/altair/issues/2663"
+            )
+    else:
+        sort_sites = "ascending"
 
     df = mut_escape_df.query("epitope in @epitopes")
 

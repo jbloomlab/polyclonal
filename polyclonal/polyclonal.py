@@ -1770,6 +1770,8 @@ class Polyclonal:
         kwargs["mut_escape_site_summary_df"] = self.mut_escape_site_summary_df(
             min_times_seen=min_times_seen,
         )
+        if "sites" not in kwargs and not self.sequential_integer_sites:
+            kwargs["sites"] = self.sites
         if "epitope_colors" not in kwargs:
             kwargs["epitope_colors"] = self.epitope_colors
         if "addtl_tooltip_stats" not in kwargs:
