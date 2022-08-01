@@ -2208,6 +2208,7 @@ class Polyclonal:
             alphabet=self.alphabet,
             epitope_colors=ref_poly.epitope_colors,
             data_mut_escape_overlap="exact_match",  # should be exact match in self
+            sites=None if self.sequential_integer_sites else self.sites,
         )
         assert ref_poly.epitopes == harmonized_model.epitopes
         return harmonized_model, harmonize_df
