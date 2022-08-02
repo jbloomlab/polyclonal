@@ -15,6 +15,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Added the ``PolyclonalAverage`` class for computing the average of models.
 - ``PolyclonalCollection`` and subclasses return both mean and median and provide option to plot either, and ``PolyclonalCollection.default_avg_to_plot`` attribute added.
 - Remove the old ``Polyclonal.harmonize_epitopes_with`` method that modified ``Polyclonal`` models in place, and replaced with the new ``Polyclonal.epitope_harmonized_model`` that returns a copy of the original model with the epitopes harmonized and also provides guarantees about consistent epitope order, etc. This is a **backward-incompatible change**.
+- Added ``alphabets.biochem_order_aas`` and by default plot heatmaps with biochemically ordered amino acids.
 - Added `n_replicates` slider to ``PolyclonalCollection.mut_escape_heatmap``
 - Added `min_replicates` to ``PolyclonalCollection.mut_escape_lineplot``
 - Added ``plot.corr_heatmap`` function.

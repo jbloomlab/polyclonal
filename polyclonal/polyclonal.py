@@ -31,6 +31,7 @@ import scipy.optimize
 import scipy.special
 
 import polyclonal
+import polyclonal.alphabets
 import polyclonal.pdb_utils
 import polyclonal.plot
 import polyclonal.utils
@@ -1778,11 +1779,14 @@ class Polyclonal:
             kwargs["addtl_tooltip_stats"] = ["n mutations"]
         return polyclonal.plot.mut_escape_lineplot(**kwargs)
 
-    def mut_escape_heatmap(self, **kwargs):
+    def mut_escape_heatmap(self, *, biochem_order_aas=True, **kwargs):
         r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
 
         Parameters
         ----------
+        biochem_order_aas : bool
+            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`
+            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
         **kwargs
             Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`.
 
@@ -1799,6 +1803,10 @@ class Polyclonal:
             kwargs["epitope_colors"] = self.epitope_colors
         if "alphabet" not in kwargs:
             kwargs["alphabet"] = self.alphabet
+        if biochem_order_aas:
+            kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
+                kwargs["alphabet"]
+            )
         if ("addtl_tooltip_stats" not in kwargs) and self.data_to_fit is not None:
             kwargs["addtl_tooltip_stats"] = ["times_seen"]
         return polyclonal.plot.mut_escape_heatmap(**kwargs)
