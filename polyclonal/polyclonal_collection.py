@@ -24,6 +24,7 @@ from itertools import repeat
 import pandas as pd
 
 import polyclonal
+import polyclonal.alphabets
 import polyclonal.plot
 from polyclonal.polyclonal import PolyclonalFitError
 
@@ -501,11 +502,21 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    def mut_escape_heatmap(self, *, avg_type=None, init_n_replicates=None, **kwargs):
+    def mut_escape_heatmap(
+        self,
+        *,
+        biochem_order_aas=True,
+        avg_type=None,
+        init_n_replicates=None,
+        **kwargs,
+    ):
         """Heatmaps of mutation escape values.
 
         Parameters
         ----------
+        biochem_order_aas : bool
+            Biochemically order amino-acid alphabet :attr:`PolyclonalCollection.alphabet`
+            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
         avg_type : {"mean", "median", None}
             Type of average to plot, None defaults to
             :attr:`PolyclonalCollection.default_avg_to_plot`.
@@ -549,7 +560,11 @@ class PolyclonalCollection:
             mut_escape_df=self.mut_escape_df.rename(
                 columns={"n_models": "n_replicates"}
             ),
-            alphabet=self.alphabet,
+            alphabet=(
+                polyclonal.alphabets.biochem_order_aas(self.alphabet)
+                if biochem_order_aas
+                else self.alphabet
+            ),
             epitope_colors=self.epitope_colors,
             stat=f"escape_{avg_type}",
             error_stat="escape_std",
