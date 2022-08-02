@@ -46,10 +46,11 @@ setup(
     install_requires=[
         # https://stackoverflow.com/a/54793503
         "altair @ git+https://github.com/altair-viz/altair@0217b2e73703d3b7b529b73b4dec9c17e7fb09bb",  # noqa: E501
-        "binarymap>=0.4",
+        "binarymap>=0.5",
         "biopython>=1.79",
         "frozendict>=2.0.7",
         "matplotlib>=3.1",
+        "natsort>=8.0",
         "numpy>=1.17",
         "pandas>=1.2",
         "requests",

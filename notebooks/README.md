@@ -29,4 +29,4 @@ The directory also contains [6M0J.pdb](6M0J.pdb), which is just a downloaded ver
 ## SARS-CoV-2 spike data
 These are real data from deep mutational scanning:
 
- - [LibB_2022-03-02_thaw-3_REGN10933_1.csv](LibB_2022-03-02_thaw-3_REGN10933_1.csv) is deep mutational scanning data with monoclonal antibody REGN10933 against the Delta spike.
+ - [Lib-2_2022-06-22_thaw-1_LyCoV-1404_1_prob_escape.csv](Lib-2_2022-06-22_thaw-1_LyCoV-1404_1_prob_escape.csv) and [BA.1_site_numbering_map.csv](BA.1_site_numbering_map.csv) are real data from Omicron BA.1 spike deep mutational scanning.

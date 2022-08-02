@@ -24,7 +24,8 @@ Contents
    fit_RBD
    RBD_bootstrap
    RBD_average
-   real_REGN10933_mAb
+   real_LyCoV1404
+   reference_site_numbering
    specify_epitopes
    expt_design
    optimization

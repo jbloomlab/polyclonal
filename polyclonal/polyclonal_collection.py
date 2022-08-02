@@ -9,6 +9,8 @@ Defines :class:`PolyclonalCollection` for handling collections of multiple
 :class:`PolyclonalCollection` is a base class for the following specific use-case
 classes:
 
+ - :class:`PolyclonalAverage` for bootstrapping a model.
+
  - :class:`PolyclonalBootstrap` for bootstrapping a model.
 
 """
@@ -185,6 +187,9 @@ def _create_bootstrap_polyclonal(
         alphabet=root_polyclonal.alphabet,
         epitope_colors=root_polyclonal.epitope_colors,
         data_mut_escape_overlap="prune_to_data",  # some muts maybe not in bootstrap
+        sites=(
+            None if root_polyclonal.sequential_integer_sites else root_polyclonal.sites
+        ),
     )
 
 
@@ -280,6 +285,9 @@ class PolyclonalCollection:
     alphabet : array-like
         Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.alphabet`,
         extracted from :attr:`PolyclonalCollection.models`.
+    sequential_integer_sites : bool
+        Same as for :attr:`~polyclonal.polyclonal.Polyclonal.sequential_integer_sites`,
+        extracted from :attr:`PolyclonalCollection.models`.
     default_avg_to_plot : {"mean", "median"}
         By default when plotting, plot either "mean" or "median".
 
@@ -303,7 +311,19 @@ class PolyclonalCollection:
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
 
-        for attr in ["epitopes", "epitope_colors", "alphabet"]:
+        for attr in [
+            "epitopes",
+            "epitope_colors",
+            "alphabet",
+            "sequential_integer_sites",
+        ]:
+            for model in self.models:
+                if not hasattr(self, attr):
+                    setattr(self, attr, copy.copy(getattr(model, attr)))
+                elif getattr(self, attr) != getattr(model, attr):
+                    raise ValueError(f"{attr} not the same for all models")
+        if not self.models[0].sequential_integer_sites:
+            attr = "sites"
             for model in self.models:
                 if not hasattr(self, attr):
                     setattr(self, attr, copy.copy(getattr(model, attr)))
@@ -506,6 +526,8 @@ class PolyclonalCollection:
             if "times_seen" in self.mut_escape_df.columns:
                 kwargs["addtl_tooltip_stats"] = ["times_seen"]
 
+        if "sites" not in kwargs and not self.sequential_integer_sites:
+            kwargs["sites"] = self.sites
         if init_n_replicates is None:
             init_n_replicates = int(math.ceil(len(self.models) / 2))
         if (
@@ -642,6 +664,11 @@ class PolyclonalCollection:
             mut_escape_lineplot_kwargs["avg_to_plot"] = f"escape_{avg_type}"
         if "addtl_tooltip_stats" not in mut_escape_lineplot_kwargs:
             mut_escape_lineplot_kwargs["addtl_tooltip_stats"] = ["n mutations"]
+        if (
+            "sites" not in mut_escape_lineplot_kwargs
+            and not self.sequential_integer_sites
+        ):
+            mut_escape_lineplot_kwargs["sites"] = self.sites
         df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs).query(
             "n_models >= @min_replicates"
         )

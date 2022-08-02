@@ -9,5 +9,5 @@ flake8-bugbear
 flake8-print
 nbval
 black[jupyter]
-dms_variants>=1.1
+dms_variants>=1.4.1
 plotnine>=0.8.0
