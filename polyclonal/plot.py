@@ -748,6 +748,10 @@ def mut_escape_heatmap(
                     f"addtl_slider_stat {slider_stat} not in addtl_tooltip_stats"
                 )
             assert slider_stat in df.columns
+            # set stat for wildtype to max at site for slider to retain wildtype
+            stat_max = df[slider_stat].max()
+            df[slider_stat] = df[slider_stat].where(~df["is_wildtype"], stat_max)
+            # add slider
             addtl_sliders[slider_stat] = alt.selection_point(
                 fields=[slider_stat],
                 value=[{slider_stat: init_slider_stat}],
