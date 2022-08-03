@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.utils &#8212; polyclonal 0.1 documentation</title>
+    <title>polyclonal.utils &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -45,6 +45,8 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># noqa: F401</span>
+
 <span class="kn">import</span> <span class="nn">polyclonal</span>
 
 
@@ -55,6 +57,9 @@
 <span class="sd">    ----------</span>
 <span class="sd">    alphabet : array-like</span>
 <span class="sd">        Valid single-character letters in alphabet.</span>
+<span class="sd">    letter_suffixed_sites : bool</span>
+<span class="sd">        Allow sites suffixed by lowercase letters, such as &quot;214a&quot;. In this case, returned</span>
+<span class="sd">        sites from :meth:`MutationParser.parse_mut` are str.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
@@ -71,9 +76,20 @@
 <span class="sd">    &gt;&gt;&gt; mutparser_gap.parse_mut(&#39;K7-&#39;)</span>
 <span class="sd">    (&#39;K&#39;, 7, &#39;-&#39;)</span>
 
+<span class="sd">    &gt;&gt;&gt; mutparser.parse_mut(&quot;E214aA&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">      ...</span>
+<span class="sd">    ValueError: invalid mutation E214aA</span>
+
+<span class="sd">    &gt;&gt;&gt; mutparser_letter_suffix = MutationParser(polyclonal.AAS, True)</span>
+<span class="sd">    &gt;&gt;&gt; mutparser_letter_suffix.parse_mut(&#39;A5G&#39;)</span>
+<span class="sd">    (&#39;A&#39;, &#39;5&#39;, &#39;G&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; mutparser_letter_suffix.parse_mut(&#39;E214aA&#39;)</span>
+<span class="sd">    (&#39;E&#39;, &#39;214a&#39;, &#39;A&#39;)</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">,</span> <span class="n">letter_suffixed_sites</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
         <span class="n">chars</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">alphabet</span><span class="p">:</span>
@@ -86,8 +102,14 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid alphabet character: </span><span class="si">{</span><span class="n">char</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">chars</span> <span class="o">=</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">letter_suffixed_sites</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sites_as_int</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">site_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;(?P&lt;site&gt;\d+[a-z]?)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sites_as_int</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">site_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;(?P&lt;site&gt;\d+)&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mutation_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-            <span class="sa">rf</span><span class="s2">&quot;(?P&lt;wt&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="sa">rf</span><span class="s2">&quot;(?P&lt;site&gt;\d+)&quot;</span> <span class="sa">rf</span><span class="s2">&quot;(?P&lt;mut&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="sa">rf</span><span class="s2">&quot;(?P&lt;wt&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="o">+</span> <span class="n">site_regex</span> <span class="o">+</span> <span class="sa">rf</span><span class="s2">&quot;(?P&lt;mut&gt;</span><span class="si">{</span><span class="n">chars</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="MutationParser.parse_mut"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.MutationParser.parse_mut">[docs]</a>    <span class="k">def</span> <span class="nf">parse_mut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mutation</span><span class="p">):</span>
@@ -96,7 +118,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid mutation </span><span class="si">{</span><span class="n">mutation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;wt&quot;</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;mut&quot;</span><span class="p">))</span></div></div>
+            <span class="n">site</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sites_as_int</span> <span class="k">else</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;wt&quot;</span><span class="p">),</span> <span class="n">site</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;mut&quot;</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="site_level_variants"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.site_level_variants">[docs]</a><span class="k">def</span> <span class="nf">site_level_variants</span><span class="p">(</span>
@@ -105,6 +128,7 @@
     <span class="n">original_alphabet</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS</span><span class="p">,</span>
     <span class="n">wt_char</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span>
     <span class="n">mut_char</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span>
+    <span class="n">letter_suffixed_sites</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Re-define variants simply in terms of which sites are mutated.</span>
 
@@ -123,6 +147,8 @@
 <span class="sd">        Single letter used to represent wildtype identity at all sites.</span>
 <span class="sd">    mut_char : str</span>
 <span class="sd">        Single letter used to represent mutant identity at all sites.</span>
+<span class="sd">    letter_suffixed_sites : str</span>
+<span class="sd">        Same mutation as for :class:`MutationParser`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -153,7 +179,10 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt_char</span><span class="si">=}</span><span class="s2"> should be single letter&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mut_char</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">mut_char</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mut_char</span><span class="si">=}</span><span class="s2"> should be single letter&quot;</span><span class="p">)</span>
-    <span class="n">mutparser</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span><span class="n">original_alphabet</span><span class="p">)</span>
+    <span class="n">mutparser</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span>
+        <span class="n">original_alphabet</span><span class="p">,</span>
+        <span class="n">letter_suffixed_sites</span><span class="o">=</span><span class="n">letter_suffixed_sites</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">site_subs_mapping</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">wts</span> <span class="o">=</span> <span class="p">{}</span>
@@ -209,6 +238,149 @@
     <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_mut_str</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="tidy_to_corr"><a class="viewcode-back" href="../../polyclonal.utils.html#polyclonal.utils.tidy_to_corr">[docs]</a><span class="k">def</span> <span class="nf">tidy_to_corr</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">sample_col</span><span class="p">,</span>
+    <span class="n">label_col</span><span class="p">,</span>
+    <span class="n">value_col</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">group_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;tidy_pairs&quot;</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pairwise correlations between samples in tidy data frame.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        Tidy data frame.</span>
+<span class="sd">    sample_col : str</span>
+<span class="sd">        Column in `df` with name of sample.</span>
+<span class="sd">    label_col : str</span>
+<span class="sd">        Column in `df` with labels for variable to correlate.</span>
+<span class="sd">    value_col : str</span>
+<span class="sd">        Column in `df` with values to correlate.</span>
+<span class="sd">    group_cols : None, str, or list</span>
+<span class="sd">        Additional columns used to group results.</span>
+<span class="sd">    return_type : {&#39;tidy_pairs&#39;, &#39;matrix&#39;}</span>
+<span class="sd">        Return results as tidy dataframe of pairwise correlations</span>
+<span class="sd">        or correlation matrix.</span>
+<span class="sd">    method : str</span>
+<span class="sd">        A correlation method passable to `pandas.DataFrame.corr`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas.DataFrame</span>
+<span class="sd">        Holds pairwise correlations in format specified by `return_type`.</span>
+<span class="sd">        Correlations only calculated among values with shared label</span>
+<span class="sd">        among samples.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Define data frame with data to correlate:</span>
+
+<span class="sd">    &gt;&gt;&gt; df = pd.DataFrame({</span>
+<span class="sd">    ...        &#39;sample&#39;: [&#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;b&#39;, &#39;b&#39;, &#39;b&#39;, &#39;b&#39;, &#39;c&#39;, &#39;c&#39;, &#39;c&#39;],</span>
+<span class="sd">    ...        &#39;barcode&#39;: [&#39;A&#39;, &#39;C&#39;, &#39;G&#39;, &#39;G&#39;, &#39;A&#39;, &#39;C&#39;, &#39;T&#39;, &#39;G&#39;, &#39;C&#39;, &#39;A&#39;],</span>
+<span class="sd">    ...        &#39;score&#39;: [1, 2, 3, 3, 1.5, 2, 4, 1, 2, 3],</span>
+<span class="sd">    ...        &#39;group&#39;: [&#39;x&#39;, &#39;x&#39;, &#39;x&#39;, &#39;x&#39;, &#39;x&#39;, &#39;x&#39;, &#39;x&#39;, &#39;y&#39;, &#39;y&#39;, &#39;y&#39;],</span>
+<span class="sd">    ...        })</span>
+
+<span class="sd">    Pairwise correlations between all samples ignoring group:</span>
+
+<span class="sd">    &gt;&gt;&gt; tidy_to_corr(df, sample_col=&#39;sample&#39;, label_col=&#39;barcode&#39;,</span>
+<span class="sd">    ...              value_col=&#39;score&#39;)</span>
+<span class="sd">      sample_1 sample_2  correlation</span>
+<span class="sd">    0        a        a     1.000000</span>
+<span class="sd">    1        b        a     0.981981</span>
+<span class="sd">    2        c        a    -1.000000</span>
+<span class="sd">    3        a        b     0.981981</span>
+<span class="sd">    4        b        b     1.000000</span>
+<span class="sd">    5        c        b    -0.981981</span>
+<span class="sd">    6        a        c    -1.000000</span>
+<span class="sd">    7        b        c    -0.981981</span>
+<span class="sd">    8        c        c     1.000000</span>
+
+<span class="sd">    The same but as a matrix rather than in tidy format:</span>
+
+<span class="sd">    &gt;&gt;&gt; tidy_to_corr(df, sample_col=&#39;sample&#39;, label_col=&#39;barcode&#39;,</span>
+<span class="sd">    ...              value_col=&#39;score&#39;, return_type=&#39;matrix&#39;)</span>
+<span class="sd">      sample         a         b         c</span>
+<span class="sd">    0      a  1.000000  0.981981 -1.000000</span>
+<span class="sd">    1      b  0.981981  1.000000 -0.981981</span>
+<span class="sd">    2      c -1.000000 -0.981981  1.000000</span>
+
+<span class="sd">    Now group before computing correlations:</span>
+
+<span class="sd">    &gt;&gt;&gt; tidy_to_corr(df, sample_col=&#39;sample&#39;, label_col=&#39;barcode&#39;,</span>
+<span class="sd">    ...              value_col=&#39;score&#39;, group_cols=&#39;group&#39;)</span>
+<span class="sd">      group sample_1 sample_2  correlation</span>
+<span class="sd">    0     x        a        a     1.000000</span>
+<span class="sd">    1     x        b        a     0.981981</span>
+<span class="sd">    2     x        a        b     0.981981</span>
+<span class="sd">    3     x        b        b     1.000000</span>
+<span class="sd">    4     y        c        c     1.000000</span>
+<span class="sd">    &gt;&gt;&gt; tidy_to_corr(df, sample_col=&#39;sample&#39;, label_col=&#39;barcode&#39;,</span>
+<span class="sd">    ...              value_col=&#39;score&#39;, group_cols=&#39;group&#39;,</span>
+<span class="sd">    ...              return_type=&#39;matrix&#39;)</span>
+<span class="sd">      group sample         a         b    c</span>
+<span class="sd">    0     x      a  1.000000  0.981981  NaN</span>
+<span class="sd">    1     x      b  0.981981  1.000000  NaN</span>
+<span class="sd">    2     y      c       NaN       NaN  1.0</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group_cols</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">group_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">group_cols</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">group_cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">group_cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">sample_col</span><span class="p">,</span> <span class="n">value_col</span><span class="p">,</span> <span class="n">label_col</span><span class="p">]</span> <span class="o">+</span> <span class="n">group_cols</span>
+    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`df` missing some of these columns: </span><span class="si">{</span><span class="n">cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cols</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;duplicate column names: </span><span class="si">{</span><span class="n">cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;correlation&quot;</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot have column named `correlation`&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sample_col</span> <span class="o">+</span> <span class="s2">&quot;_2&quot;</span> <span class="ow">in</span> <span class="n">group_cols</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cannot have column named `</span><span class="si">{</span><span class="n">sample_col</span><span class="si">}</span><span class="s2">_2`&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="n">sample_col</span><span class="p">]</span> <span class="o">+</span> <span class="n">group_cols</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">label_col</span><span class="p">])</span> <span class="o">!=</span> <span class="n">g</span><span class="p">[</span><span class="n">label_col</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Entries in `df` column </span><span class="si">{</span><span class="n">label_col</span><span class="si">}</span><span class="s2"> not unique &quot;</span>
+                <span class="s2">&quot;after grouping by: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sample_col</span><span class="p">]</span> <span class="o">+</span> <span class="n">group_cols</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+        <span class="n">values</span><span class="o">=</span><span class="n">value_col</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">sample_col</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">label_col</span><span class="p">]</span> <span class="o">+</span> <span class="n">group_cols</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">group_cols</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_cols</span><span class="p">)</span>
+
+    <span class="n">corr</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="n">corr</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># remove name of columns index</span>
+
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;tidy_pairs&quot;</span><span class="p">:</span>
+        <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">corr</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+                <span class="n">id_vars</span><span class="o">=</span><span class="n">group_cols</span> <span class="o">+</span> <span class="p">[</span><span class="n">sample_col</span><span class="p">],</span>
+                <span class="n">var_name</span><span class="o">=</span><span class="n">sample_col</span> <span class="o">+</span> <span class="s2">&quot;_2&quot;</span><span class="p">,</span>
+                <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;correlation&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">sample_col</span><span class="p">:</span> <span class="n">sample_col</span> <span class="o">+</span> <span class="s2">&quot;_1&quot;</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">return_type</span> <span class="o">!=</span> <span class="s2">&quot;matrix&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid `return_type` of </span><span class="si">{</span><span class="n">return_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">corr</span></div>
+
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">doctest</span>
 
@@ -257,7 +429,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

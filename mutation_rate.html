@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Library mutation rate &#8212; polyclonal 0.3 documentation</title>
+    <title>Library mutation rate &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -343,9 +343,10 @@ div.rendered_html tbody tr:hover {
     <tr style="text-align: right;">
       <th></th>
       <th>library</th>
-      <th>aa_substitutions</th>
+      <th>barcode</th>
       <th>concentration</th>
       <th>prob_escape</th>
+      <th>aa_substitutions</th>
       <th>IC90</th>
     </tr>
   </thead>
@@ -353,41 +354,46 @@ div.rendered_html tbody tr:hover {
     <tr>
       <th>0</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAACGCGGTCACTT</td>
       <td>0.25</td>
-      <td>0.087480</td>
+      <td>0.08748</td>
+      <td></td>
       <td>0.1128</td>
     </tr>
     <tr>
       <th>1</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGCACCATAACG</td>
       <td>0.25</td>
-      <td>0.034240</td>
+      <td>0.03424</td>
+      <td></td>
       <td>0.1128</td>
     </tr>
     <tr>
       <th>2</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGGGAGCTAAAC</td>
       <td>0.25</td>
-      <td>0.037880</td>
+      <td>0.03788</td>
+      <td></td>
       <td>0.1128</td>
     </tr>
     <tr>
       <th>3</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGTCGGATGGGC</td>
       <td>0.25</td>
-      <td>0.035730</td>
+      <td>0.03573</td>
+      <td></td>
       <td>0.1128</td>
     </tr>
     <tr>
       <th>4</th>
       <td>avg1muts</td>
-      <td></td>
+      <td>AAAAAGTCTTAGGGAA</td>
       <td>0.25</td>
-      <td>0.000000</td>
+      <td>0.00000</td>
+      <td></td>
       <td>0.1128</td>
     </tr>
     <tr>
@@ -397,50 +403,56 @@ div.rendered_html tbody tr:hover {
       <td>...</td>
       <td>...</td>
       <td>...</td>
+      <td>...</td>
     </tr>
     <tr>
       <th>359995</th>
-      <td>avg2muts</td>
-      <td>Y473E L518F D427L</td>
-      <td>4.00</td>
-      <td>0.002918</td>
-      <td>1.1600</td>
+      <td>avg4muts</td>
+      <td>GGGAAATTAGACTTTC</td>
+      <td>1.00</td>
+      <td>0.03703</td>
+      <td>Y508W C525F</td>
+      <td>0.4073</td>
     </tr>
     <tr>
       <th>359996</th>
-      <td>avg1muts</td>
-      <td>Y473S G413Q</td>
+      <td>avg4muts</td>
+      <td>GGGAAATTAGACTTTC</td>
       <td>4.00</td>
-      <td>0.000000</td>
-      <td>0.5780</td>
+      <td>0.03618</td>
+      <td>Y508W C525F</td>
+      <td>0.4073</td>
     </tr>
     <tr>
       <th>359997</th>
-      <td>avg1muts</td>
-      <td>Y473V P479R F392W</td>
-      <td>4.00</td>
-      <td>0.160200</td>
-      <td>1.4550</td>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>0.25</td>
+      <td>0.25930</td>
+      <td>Y508W G526L</td>
+      <td>0.4122</td>
     </tr>
     <tr>
       <th>359998</th>
-      <td>avg3muts</td>
-      <td>Y489Q N501Y</td>
-      <td>4.00</td>
-      <td>0.000000</td>
-      <td>0.5881</td>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
+      <td>1.00</td>
+      <td>0.00000</td>
+      <td>Y508W G526L</td>
+      <td>0.4122</td>
     </tr>
     <tr>
       <th>359999</th>
-      <td>avg2muts</td>
-      <td>Y505N H519T</td>
+      <td>avg4muts</td>
+      <td>GCCACGTTGCAATTCA</td>
       <td>4.00</td>
-      <td>0.000000</td>
-      <td>0.3505</td>
+      <td>0.00000</td>
+      <td>Y508W G526L</td>
+      <td>0.4122</td>
     </tr>
   </tbody>
 </table>
-<p>360000 rows × 5 columns</p>
+<p>360000 rows × 6 columns</p>
 </div></div>
 </div>
 <p>Now, we’ll fit a <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> model to data in each library. We’ll initialize each <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> model with the same values. We know from <a class="reference external" href="https://www.nature.com/articles/s41467-021-24435-8">prior work</a> the three most important epitopes and a key mutation in each, so we use this prior knowledge to “seed” initial guesses that assign large escape values to a key site in each epitope:</p>
@@ -573,7 +585,9 @@ Model on data with 4 average mutations was already fit.
     <span class="n">y</span><span class="o">=</span><span class="s2">&quot;correlation (R^2):Q&quot;</span><span class="p">,</span>
     <span class="n">column</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
     <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mutation_rate&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
-    <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
+        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span> <span class="s2">&quot;#ff7f0e&quot;</span><span class="p">,</span> <span class="s2">&quot;#2ca02c&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">),</span>
 <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -583,18 +597,18 @@ Model on data with 4 average mutations was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-70b4b7f2749943d49cfd15bc95e59978"></div>
+<div id="altair-viz-e8d6f93a06e34ead82c74477472ebb39"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-70b4b7f2749943d49cfd15bc95e59978") {
-      outputDiv = document.getElementById("altair-viz-70b4b7f2749943d49cfd15bc95e59978");
+    if (outputDiv.id !== "altair-viz-e8d6f93a06e34ead82c74477472ebb39") {
+      outputDiv = document.getElementById("altair-viz-e8d6f93a06e34ead82c74477472ebb39");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
       "vega-lib": "https://cdn.jsdelivr.net/npm//vega-lib?noext",
-      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@4.17.0?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm//vega-lite@5.2.0?noext",
       "vega-embed": "https://cdn.jsdelivr.net/npm//vega-embed@6?noext",
     };
 
@@ -630,12 +644,12 @@ Model on data with 4 average mutations was already fit.
       require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
     } else {
       maybeLoadScript("vega", "5")
-        .then(() => maybeLoadScript("vega-lite", "4.17.0"))
+        .then(() => maybeLoadScript("vega-lite", "5.2.0"))
         .then(() => maybeLoadScript("vega-embed", "6"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-2555fa9df6f7d7be339497e2c7c5928c"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "mutation_rate", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "mutation_rate", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-2555fa9df6f7d7be339497e2c7c5928c": [{"epitope": "class 1", "correlation (R^2)": 0.015430507003983296, "mutation_rate": "avg1muts"}, {"epitope": "class 2", "correlation (R^2)": 0.7310292780457298, "mutation_rate": "avg1muts"}, {"epitope": "class 3", "correlation (R^2)": 0.4434374408442581, "mutation_rate": "avg1muts"}, {"epitope": "class 1", "correlation (R^2)": 0.6652956779460807, "mutation_rate": "avg2muts"}, {"epitope": "class 2", "correlation (R^2)": 0.914339449754478, "mutation_rate": "avg2muts"}, {"epitope": "class 3", "correlation (R^2)": 0.86246127371308, "mutation_rate": "avg2muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7817413017718214, "mutation_rate": "avg3muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9461688311931766, "mutation_rate": "avg3muts"}, {"epitope": "class 3", "correlation (R^2)": 0.9015842692046124, "mutation_rate": "avg3muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7886963171748558, "mutation_rate": "avg4muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9408696899527026, "mutation_rate": "avg4muts"}, {"epitope": "class 3", "correlation (R^2)": 0.919382326980428, "mutation_rate": "avg4muts"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-cd1163d1a1de32843830cdaafc499aeb"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#1f77b4", "#ff7f0e", "#2ca02c"]}, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "mutation_rate", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "mutation_rate", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-cd1163d1a1de32843830cdaafc499aeb": [{"epitope": "class 1", "correlation (R^2)": 0.004985940885516334, "mutation_rate": "avg1muts"}, {"epitope": "class 2", "correlation (R^2)": 0.5909947979881985, "mutation_rate": "avg1muts"}, {"epitope": "class 3", "correlation (R^2)": 1.1906483649527809e-05, "mutation_rate": "avg1muts"}, {"epitope": "class 1", "correlation (R^2)": 0.6270592143850509, "mutation_rate": "avg2muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9110537818210763, "mutation_rate": "avg2muts"}, {"epitope": "class 3", "correlation (R^2)": 0.8511594377876831, "mutation_rate": "avg2muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7244790198100587, "mutation_rate": "avg3muts"}, {"epitope": "class 2", "correlation (R^2)": 0.9438943282002382, "mutation_rate": "avg3muts"}, {"epitope": "class 3", "correlation (R^2)": 0.8928066673940255, "mutation_rate": "avg3muts"}, {"epitope": "class 1", "correlation (R^2)": 0.7513478284252502, "mutation_rate": "avg4muts"}, {"epitope": "class 2", "correlation (R^2)": 0.940805497333503, "mutation_rate": "avg4muts"}, {"epitope": "class 3", "correlation (R^2)": 0.9035728686443523, "mutation_rate": "avg4muts"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <section id="Summary">
@@ -687,7 +701,9 @@ Model on data with 4 average mutations was already fit.
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>

@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>polyclonal.alphabets &#8212; polyclonal 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for polyclonal.alphabets</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">================================</span>
+<span class="sd">alphabets</span>
+<span class="sd">================================</span>
+
+<span class="sd">Alphabets for the protein sequences.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">binarymap</span>
+
+<span class="n">AAS</span> <span class="o">=</span> <span class="n">binarymap</span><span class="o">.</span><span class="n">binarymap</span><span class="o">.</span><span class="n">AAS_NOSTOP</span>
+<span class="sd">&quot;&quot;&quot;tuple: Amino-acid one-letter codes alphabetized, doesn&#39;t include stop or gap.&quot;&quot;&quot;</span>
+
+<span class="n">AAS_WITHSTOP</span> <span class="o">=</span> <span class="n">binarymap</span><span class="o">.</span><span class="n">binarymap</span><span class="o">.</span><span class="n">AAS_WITHSTOP</span>
+<span class="sd">&quot;&quot;&quot;tuple: Amino-acid one-letter codes alphabetized plus stop as ``*``.&quot;&quot;&quot;</span>
+
+<span class="n">AAS_WITHGAP</span> <span class="o">=</span> <span class="n">binarymap</span><span class="o">.</span><span class="n">binarymap</span><span class="o">.</span><span class="n">AAS_WITHGAP</span>
+<span class="sd">&quot;&quot;&quot;tuple: Amino-acid one-letter codes alphabetized plus gap as ``-``.&quot;&quot;&quot;</span>
+
+<span class="n">AAS_WITHSTOP_WITHGAP</span> <span class="o">=</span> <span class="n">binarymap</span><span class="o">.</span><span class="n">binarymap</span><span class="o">.</span><span class="n">AAS_WITHSTOP_WITHGAP</span>
+<span class="sd">&quot;&quot;&quot;tuple: Amino-acid one-letter codes plus stop as ``*`` and gap as ``-``.&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="biochem_order_aas"><a class="viewcode-back" href="../../polyclonal.alphabets.html#polyclonal.alphabets.biochem_order_aas">[docs]</a><span class="k">def</span> <span class="nf">biochem_order_aas</span><span class="p">(</span><span class="n">alphabet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Put amino-acids in &quot;biochemical order&quot; so ones with similar properties are nearby.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    alphabet : array-like</span>
+<span class="sd">        Amino-acid characters, can include stop (``*``) and gap (``-``).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Contains the alphabet in biochemical order</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; biochem_order_aas(AAS_WITHSTOP_WITHGAP)</span>
+<span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">    (&#39;R&#39;, &#39;K&#39;, &#39;H&#39;, &#39;D&#39;, &#39;E&#39;, &#39;Q&#39;, &#39;N&#39;, &#39;S&#39;, &#39;T&#39;, &#39;Y&#39;, &#39;W&#39;, &#39;F&#39;, &#39;A&#39;, &#39;I&#39;, &#39;L&#39;, &#39;M&#39;,</span>
+<span class="sd">    &#39;V&#39;, &#39;G&#39;, &#39;P&#39;, &#39;C&#39;, &#39;-&#39;, &#39;*&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sort_order</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">a</span><span class="p">:</span> <span class="n">i</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;R&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;K&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;H&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;D&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;E&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Q&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;N&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;S&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;T&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Y&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;W&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;F&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;A&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;I&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;L&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;V&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;G&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;P&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;C&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;*&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duplicate letters in </span><span class="si">{</span><span class="n">alphabet</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">sort_order</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid letters in </span><span class="si">{</span><span class="n">alphabet</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">sort_order</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">doctest</span>
+
+    <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/BloomLogo.jpg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">polyclonal</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Model mutational escape from polyclonal antibodies.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=jbloomlab&repo=polyclonal&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">polyclonal documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../biophysical_model.html">Biophysical model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../partition_function.html">Distinct epitopes assumption</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019--2022.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/jbloomlab/polyclonal" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

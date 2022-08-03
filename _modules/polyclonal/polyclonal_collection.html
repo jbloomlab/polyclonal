@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal_collection &#8212; polyclonal 0.1 documentation</title>
+    <title>polyclonal.polyclonal_collection &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -38,11 +38,20 @@
 <span class="sd">polyclonal_collection</span>
 <span class="sd">======================</span>
 
-<span class="sd">Defines :class:`PolyclonalCollection` objects for bootstrapping</span>
-<span class="sd">:mod:`~polyclonal.polyclonal.Polyclonal` model parameters.</span>
+<span class="sd">Defines :class:`PolyclonalCollection` for handling collections of multiple</span>
+<span class="sd">:mod:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+
+<span class="sd">:class:`PolyclonalCollection` is a base class for the following specific use-case</span>
+<span class="sd">classes:</span>
+
+<span class="sd"> - :class:`PolyclonalAverage` for bootstrapping a model.</span>
+
+<span class="sd"> - :class:`PolyclonalBootstrap` for bootstrapping a model.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">repeat</span>
@@ -50,12 +59,13 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">import</span> <span class="nn">polyclonal</span>
+<span class="kn">import</span> <span class="nn">polyclonal.alphabets</span>
 <span class="kn">import</span> <span class="nn">polyclonal.plot</span>
 <span class="kn">from</span> <span class="nn">polyclonal.polyclonal</span> <span class="kn">import</span> <span class="n">PolyclonalFitError</span>
 
 
 <div class="viewcode-block" id="PolyclonalCollectionFitError"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollectionFitError">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalCollectionFitError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Error fitting in :meth:`PolyclonalCollection.fit_models`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Error fitting models.&quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
 
@@ -213,181 +223,179 @@
         <span class="n">alphabet</span><span class="o">=</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
         <span class="n">epitope_colors</span><span class="o">=</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
         <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;prune_to_data&quot;</span><span class="p">,</span>  <span class="c1"># some muts maybe not in bootstrap</span>
+        <span class="n">sites</span><span class="o">=</span><span class="p">(</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="n">root_polyclonal</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="n">root_polyclonal</span><span class="o">.</span><span class="n">sites</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_fit_polyclonal_model_static</span><span class="p">(</span><span class="n">polyclonal_obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fit the model in a :class:`~polyclonal.polyclonal.Polyclonal` object.</span>
-
-<span class="sd">    A wrapper method for fitting models with `multiprocessing`. If optimization</span>
-<span class="sd">    optimization fails, :class:`~polyclonal.polyclonal.Polyclonal` objects will throw a</span>
-<span class="sd">    :class:`~polyclonal.polyclonal.PolyclonalFitError`.</span>
-
-<span class="sd">    We catch this error and proceed with the program by returning `None` for the</span>
-<span class="sd">    model that failed optimization.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`</span>
-<span class="sd">        An initialized :class:`~polyclonal.polyclonal.Polyclonal` object.</span>
-<span class="sd">    **kwargs</span>
-<span class="sd">        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    polyclonal_obj : class:`~polyclonal.polyclonal.Polyclonal`</span>
-<span class="sd">        `polyclonal_obj` but with optimized model parameters after fitting.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">_fit_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fit model as utility function for `fit_models`.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">_</span> <span class="o">=</span> <span class="n">polyclonal_obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span>
     <span class="k">except</span> <span class="n">PolyclonalFitError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="k">return</span> <span class="n">polyclonal_obj</span>
+
+<div class="viewcode-block" id="fit_models"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.fit_models">[docs]</a><span class="k">def</span> <span class="nf">fit_models</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">n_threads</span><span class="p">,</span> <span class="n">failures</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fit collection of :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
+
+<span class="sd">    Enables fitting of multiple models simultaneously using multiple threads.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    models : list</span>
+<span class="sd">        List of :class:`~polyclonal.polyclonal.Polyclonal` models to fit.</span>
+<span class="sd">    n_threads : int</span>
+<span class="sd">        Number of threads (CPUs, cores) to use for fitting. Set to -1 to use</span>
+<span class="sd">        all CPUs available.</span>
+<span class="sd">    failures : {&quot;error&quot;, &quot;tolerate&quot;}</span>
+<span class="sd">        What if fitting fails for a model? If &quot;error&quot; then raise an error,</span>
+<span class="sd">        if &quot;ignore&quot; then just return `None` for models that failed optimization.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (n_fit, n_failed, fit_models)</span>
+<span class="sd">        Number of models that fit successfully, number of models that failed,</span>
+<span class="sd">        and list of the fit models. Since :class:`~polyclonal.polyclonal.Polyclonal` are</span>
+<span class="sd">        mutable, you can also access the fit models in their original data structure.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n_threads</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">n_threads</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="n">fit_models</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">_fit_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">models</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit_models</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+
+    <span class="c1"># Check to see if any models failed optimization</span>
+    <span class="n">n_failed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">fit_models</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">failures</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n_failed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PolyclonalCollectionFitError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed fitting </span><span class="si">{</span><span class="n">n_failed</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">)</span><span class="si">}</span><span class="s2"> models&quot;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">failures</span> <span class="o">!=</span> <span class="s2">&quot;tolerate&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">failures</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit_models</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_failed</span>
+    <span class="k">if</span> <span class="n">n_fit</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PolyclonalCollectionFitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed fitting all </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">)</span><span class="si">}</span><span class="s2"> models&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">n_fit</span><span class="p">,</span> <span class="n">n_failed</span><span class="p">,</span> <span class="n">fit_models</span></div>
 
 
 <div class="viewcode-block" id="PolyclonalCollection"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalCollection</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A container class for multiple :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Handle a collection of :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
-<span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
-<span class="sd">        The polyclonal object created with the full dataset to draw bootstrapped</span>
-<span class="sd">        samples from. The bootstrapped samples are also initialized to mutation effects</span>
-<span class="sd">        and activities of this model, so it is **highly recommended** that this object</span>
-<span class="sd">        already have been fit to the full dataset.</span>
-<span class="sd">    n_bootstrap_samples : int</span>
-<span class="sd">        Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.</span>
-<span class="sd">    seed : int</span>
-<span class="sd">        Random seed for reproducibility.</span>
-<span class="sd">    n_threads : int</span>
-<span class="sd">        Number of threads to use for multiprocessing, -1 means all available.</span>
-<span class="sd">    sample_by</span>
-<span class="sd">        Passed to :func:`create_bootstrap_sample`. Should generally be &#39;barcode&#39;</span>
-<span class="sd">        if you have same variants at all concentrations, and maybe `None` otherwise.</span>
+<span class="sd">    models_df : pandas.DataFrame</span>
+<span class="sd">        Data frame of models. Should have one column named &quot;model&quot; that has</span>
+<span class="sd">        :class:`~polyclonal.polyclonal.Polyclonal` models, and other columns</span>
+<span class="sd">        are descriptor for model (e.g., &quot;replicate&quot;, etc). The descriptors</span>
+<span class="sd">        for each row must be unique.</span>
+<span class="sd">    default_avg_to_plot : {&quot;mean&quot;, &quot;median&quot;}</span>
+<span class="sd">        By default when plotting, plot either &quot;mean&quot; or &quot;median&quot;.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    -----------</span>
-<span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
-<span class="sd">        The root polyclonal object passed as a parameter.</span>
 <span class="sd">    models : list</span>
-<span class="sd">        The bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models,</span>
-<span class="sd">        will not be fit until you call :meth:`PolyclonalCollection.fit_models`.</span>
-<span class="sd">        After fitting, if any models fail fitting they are set to `None`.</span>
-<span class="sd">    n_threads: int</span>
-<span class="sd">        Number of threads for multiprocessing.</span>
+<span class="sd">        List of the models in `models_df`. All models must have same epitopes.</span>
+<span class="sd">    model_descriptors : dict</span>
+<span class="sd">        A list of same length as `models` with each entry being a dict keyed</span>
+<span class="sd">        by descriptors and values being the descriptor for that model. All models</span>
+<span class="sd">        must have same descriptor labels. Eg, ``[{&quot;replicate&quot;: 1}, {&quot;replicate&quot;: 2}]```.</span>
+<span class="sd">        The descriptor labels are all columns in `models_df` except one named &quot;model&quot;.</span>
+<span class="sd">    descriptor_names : list</span>
+<span class="sd">        The names that key the entries in :attr:`PolyclonalCollection.model_descriptors`.</span>
+<span class="sd">    epitopes : tuple</span>
+<span class="sd">        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,</span>
+<span class="sd">        extracted from :attr:`PolyclonalCollection.models`.</span>
+<span class="sd">    epitope_colors : dict</span>
+<span class="sd">        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,</span>
+<span class="sd">        extracted from :attr:`PolyclonalCollection.models`.</span>
+<span class="sd">    alphabet : array-like</span>
+<span class="sd">        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.alphabet`,</span>
+<span class="sd">        extracted from :attr:`PolyclonalCollection.models`.</span>
+<span class="sd">    sequential_integer_sites : bool</span>
+<span class="sd">        Same as for :attr:`~polyclonal.polyclonal.Polyclonal.sequential_integer_sites`,</span>
+<span class="sd">        extracted from :attr:`PolyclonalCollection.models`.</span>
+<span class="sd">    default_avg_to_plot : {&quot;mean&quot;, &quot;median&quot;}</span>
+<span class="sd">        By default when plotting, plot either &quot;mean&quot; or &quot;median&quot;.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">root_polyclonal</span><span class="p">,</span>
-        <span class="n">n_bootstrap_samples</span><span class="p">,</span>
-        <span class="n">n_threads</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">models_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">default_avg_to_plot</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">root_polyclonal</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;polyclonal object does not have data to fit.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span> <span class="o">=</span> <span class="n">root_polyclonal</span>
-        <span class="k">if</span> <span class="n">n_threads</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span> <span class="o">=</span> <span class="n">n_threads</span>
+        <span class="k">if</span> <span class="n">default_avg_to_plot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">default_avg_to_plot</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span> <span class="o">=</span> <span class="n">default_avg_to_plot</span>
 
-        <span class="k">if</span> <span class="n">n_bootstrap_samples</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Create distinct seeds for each model</span>
-            <span class="n">seeds</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed</span> <span class="o">+</span> <span class="n">n_bootstrap_samples</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models_df</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No models:</span><span class="se">\n</span><span class="si">{</span><span class="n">models_df</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="c1"># Create list of bootstrapped polyclonal objects</span>
-            <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span>
-                    <span class="n">_create_bootstrap_polyclonal</span><span class="p">,</span>
-                    <span class="nb">zip</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">root_polyclonal</span><span class="p">),</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">sample_by</span><span class="p">)),</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please specify a number of bootstrap samples to make.&quot;</span><span class="p">)</span>
+        <span class="n">descriptors_df</span> <span class="o">=</span> <span class="n">models_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;model&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;not descriptor columns in `models_df`&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span> <span class="o">=</span> <span class="n">descriptors_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;some models have the same descriptors&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">descriptors_df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-<div class="viewcode-block" id="PolyclonalCollection.fit_models"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.fit_models">[docs]</a>    <span class="k">def</span> <span class="nf">fit_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">failures</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
-
-<span class="sd">        The fit models will then be in :attr:`PolyclonalCollection.models`,</span>
-<span class="sd">        with any models that fail fitting set to `None`.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        failures : {&quot;error&quot;, &quot;tolerate&quot;}</span>
-<span class="sd">            Tolerate failures in model fitting or raise an error if a failure?</span>
-<span class="sd">            Always raise an error if all models failed.</span>
-<span class="sd">        **kwargs</span>
-<span class="sd">            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.</span>
-<span class="sd">            If not specified otherwise, `fit_site_level_first` is set to `False`,</span>
-<span class="sd">            since models are initialized to &quot;good&quot; values from the root object.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        (n_fit, n_failed)</span>
-<span class="sd">            Number of model fits that failed and succeeded.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Initial pass over all models</span>
-        <span class="k">if</span> <span class="s2">&quot;fit_site_level_first&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;fit_site_level_first&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-                <span class="n">partial</span><span class="p">(</span><span class="n">_fit_polyclonal_model_static</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Check to see how many models failed optimization</span>
-        <span class="n">n_failed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">failures</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">n_failed</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">PolyclonalCollectionFitError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Failed fitting </span><span class="si">{</span><span class="n">n_failed</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span><span class="si">}</span><span class="s2"> models&quot;</span>
-                <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">failures</span> <span class="o">!=</span> <span class="s2">&quot;tolerate&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">failures</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_failed</span>
-        <span class="k">if</span> <span class="n">n_fit</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">PolyclonalCollectionFitError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Failed fitting all </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span><span class="si">}</span><span class="s2"> models&quot;</span>
-            <span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">harmonize_epitopes_with</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="p">(</span><span class="n">n_fit</span><span class="p">,</span> <span class="n">n_failed</span><span class="p">)</span></div>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;epitopes&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;epitope_colors&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;alphabet&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;sequential_integer_sites&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attr</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> not the same for all models&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="s2">&quot;sites&quot;</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attr</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> not the same for all models&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">activity_wt_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities for replicates&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities for all models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
             <span class="p">],</span>
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">activity_wt_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities summarized across replicates.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities summarized across models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
             <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
             <span class="n">activity_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+            <span class="n">activity_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
             <span class="n">activity_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="PolyclonalCollection.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Bar plot of epitope activities mean across replicates.</span>
+<div class="viewcode-block" id="PolyclonalCollection.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bar plot of epitope activities mean across models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        avg_type : {&quot;mean&quot;, &quot;median&quot;, None}</span>
+<span class="sd">            Type of average to plot, None defaults to</span>
+<span class="sd">            :attr:`PolyclonalCollection.default_avg_to_plot`.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword arguments for :func:`polyclonal.plot.activity_wt_barplot`.</span>
 
@@ -397,54 +405,160 @@
 <span class="sd">            Interactive plot, with error bars showing standard deviation.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">avg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">avg_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">activity_wt_barplot</span><span class="p">(</span>
             <span class="n">activity_wt_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">,</span>
-            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
-            <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;activity_mean&quot;</span><span class="p">,</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;activity_</span><span class="si">{</span><span class="n">avg_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;activity_std&quot;</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape by replicate.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape by model.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;times_seen&quot;</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
             <span class="p">],</span>
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape summarized across replicates.&quot;&quot;&quot;</span>
-        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape summarized across models.&quot;&quot;&quot;</span>
+        <span class="n">aggs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;escape_mean&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;escape_median&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;escape_std&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n_models&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">aggs</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;times_seen&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
                 <span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">],</span>
                 <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
-                <span class="n">escape_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
-                <span class="n">escape_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
-                <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
-            <span class="p">)</span>
+            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">**</span><span class="n">aggs</span><span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
-                <span class="n">times_seen</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">mutations_times_seen</span>
-                <span class="p">),</span>
+                <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">)</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="PolyclonalCollection.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Correlation of mutation escape values across models for each epitope.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        method : str</span>
+<span class="sd">            A correlation method passable to `pandas.DataFrame.corr`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Tidy data frame giving correlations between models for all epitopes.</span>
+<span class="sd">            The models are labeled by their descriptors suffixed with &quot;_1&quot; and</span>
+<span class="sd">            &quot;_2&quot; for the two models being compared.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get unique id for each descriptor</span>
+        <span class="k">if</span> <span class="s2">&quot;_id&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`mut_escape_df_replicates` cannot have column &#39;_id&#39;&quot;</span><span class="p">)</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">_id</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+
+        <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">tidy_to_corr</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                    <span class="n">ids</span><span class="p">,</span>
+                    <span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">,</span>
+                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">sample_col</span><span class="o">=</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span>
+                <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span>
+                <span class="n">value_col</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
+                <span class="n">group_cols</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;_id_1&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">_1&quot;</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;_id_1&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;_id_2&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">_2&quot;</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="s2">&quot;_id_2&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">corr</span></div>
+
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">,</span> <span class="n">plot_corr2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Heatmap of mutation-escape correlation among models at each epitope.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        method : str</span>
+<span class="sd">            A correlation method passable to `pandas.DataFrame.corr`.</span>
+<span class="sd">        plot_corr2 : bool</span>
+<span class="sd">            Plot squared correlation (eg, :math:`R^2` rather :math:`R`).</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">corr_label</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pearson&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;kendall&quot;</span><span class="p">:</span> <span class="s2">&quot;tau&quot;</span><span class="p">,</span> <span class="s2">&quot;spearman&quot;</span><span class="p">:</span> <span class="s2">&quot;rho&quot;</span><span class="p">}[</span><span class="n">method</span><span class="p">]</span>
+        <span class="n">corr2_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">corr_label</span><span class="si">}</span><span class="s2">2&quot;</span>
+        <span class="n">corr_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">correlation2</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;correlation&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="n">corr_label</span><span class="p">,</span> <span class="s2">&quot;correlation2&quot;</span><span class="p">:</span> <span class="n">corr2_label</span><span class="p">})</span>
+        <span class="p">)</span>
+        <span class="n">corr_df</span> <span class="o">=</span> <span class="n">corr_df</span><span class="p">[</span>
+            <span class="p">[</span><span class="n">corr_label</span><span class="p">,</span> <span class="n">corr2_label</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corr_df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="n">corr_label</span><span class="p">,</span> <span class="n">corr2_label</span><span class="p">}]</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;corr_range&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">plot_corr2</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;corr_range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">min_corr</span> <span class="o">=</span> <span class="n">corr_df</span><span class="p">[</span><span class="n">corr_label</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;corr_range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">min_corr</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">corr_heatmap</span><span class="p">(</span>
+            <span class="n">corr_df</span><span class="o">=</span><span class="n">corr_df</span><span class="p">,</span>
+            <span class="n">corr_col</span><span class="o">=</span><span class="n">corr2_label</span> <span class="k">if</span> <span class="n">plot_corr2</span> <span class="k">else</span> <span class="n">corr_label</span><span class="p">,</span>
+            <span class="n">sample_cols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">,</span>
+            <span class="n">group_col</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">corr_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">init_n_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Heatmaps of mutation escape values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        biochem_order_aas : bool</span>
+<span class="sd">            Biochemically order amino-acid alphabet :attr:`PolyclonalCollection.alphabet`</span>
+<span class="sd">            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.</span>
+<span class="sd">        avg_type : {&quot;mean&quot;, &quot;median&quot;, None}</span>
+<span class="sd">            Type of average to plot, None defaults to</span>
+<span class="sd">            :attr:`PolyclonalCollection.default_avg_to_plot`.</span>
+<span class="sd">        init_n_replicates : None or int</span>
+<span class="sd">            Initially only show mutations found in at least this number of replicates</span>
+<span class="sd">            (models in the collection). A value of `None` corresponds to choosing a</span>
+<span class="sd">            value that is &gt;= half the number of total replicates.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`</span>
 
@@ -455,98 +569,104 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
+        <span class="k">if</span> <span class="n">init_n_replicates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_n_replicates</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span>
+            <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;n_replicates&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n_replicates&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;addtl_slider_stats&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">][</span><span class="s2">&quot;n_replicates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_n_replicates</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n_replicates&quot;</span><span class="p">:</span> <span class="n">init_n_replicates</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">avg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">avg_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span>
+
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span>
-            <span class="n">mut_escape_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">,</span>
-            <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
-            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
-            <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;escape_mean&quot;</span><span class="p">,</span>
+            <span class="n">mut_escape_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;n_models&quot;</span><span class="p">:</span> <span class="s2">&quot;n_replicates&quot;</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">polyclonal</span><span class="o">.</span><span class="n">alphabets</span><span class="o">.</span><span class="n">biochem_order_aas</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">biochem_order_aas</span>
+                <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
+            <span class="p">),</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">stat</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;escape_</span><span class="si">{</span><span class="n">avg_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">error_stat</span><span class="o">=</span><span class="s2">&quot;escape_std&quot;</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_site_summary_df_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape for replicates.</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape for models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword arguments to</span>
 <span class="sd">            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
-<span class="sd">            Note that `min_times_seen` refers to times seen in full data set,</span>
-<span class="sd">            not individual bootstrap replicates.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        pandas.DataFrame</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;min_times_seen&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">whitelist</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">mut</span>
-                <span class="k">for</span> <span class="p">(</span><span class="n">mut</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_times_seen&quot;</span><span class="p">]</span>
-            <span class="p">}</span>
-            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_times_seen&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s2">&quot;mutation_whitelist&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mutation_whitelist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">whitelist</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mutation_list&quot;</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mutation_whitelist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">whitelist</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n mutations&quot;</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
             <span class="p">],</span>
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_site_summary_df"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape across replicates.</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape across models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword arguments to</span>
 <span class="sd">            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
-<span class="sd">            Note that `min_times_seen` refers to times seen in full data set,</span>
-<span class="sd">            not individual bootstrap replicates.</span>
+<span class="sd">            In particular, you may want to use `min_times_seen`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        pandas.DataFrame</span>
 <span class="sd">            The different site-summary metrics (&#39;mean&#39;, &#39;total positive&#39;, etc) are</span>
-<span class="sd">            in different rows for each site and epitope. The &#39;frac_bootstrap_replicates&#39;</span>
-<span class="sd">            columns refer to bootstrap replicates with measurements for any mutation</span>
-<span class="sd">            at that site.</span>
+<span class="sd">            in different rows for each site and epitope. The &#39;frac_models&#39;</span>
+<span class="sd">            column refers to models with measurements for any mutation at that site.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n mutations&quot;</span><span class="p">)</span>
             <span class="o">.</span><span class="n">melt</span><span class="p">(</span>
-                <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">],</span>
+                <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">],</span>
                 <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
                 <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
                 <span class="n">escape_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+                <span class="n">escape_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
                 <span class="n">escape_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
-                <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
+                <span class="n">n_models</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
+                <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">)</span>
             <span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span>
-                    <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
-                <span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(),</span>
-                <span class="n">on</span><span class="o">=</span><span class="s2">&quot;site&quot;</span><span class="p">,</span>
-                <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">aggregate</span><span class="p">({</span><span class="s2">&quot;n mutations&quot;</span><span class="p">:</span> <span class="s2">&quot;mean&quot;</span><span class="p">}),</span>
+                <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">],</span>
                 <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span></div>
@@ -554,6 +674,8 @@
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">min_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">mut_escape_site_summary_df_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">mut_escape_lineplot_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
@@ -561,6 +683,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        avg_type : {&quot;mean&quot;, &quot;median&quot;, None}</span>
+<span class="sd">            Type of average to plot, None defaults to</span>
+<span class="sd">            :attr:`PolyclonalCollection.default_avg_to_plot`.</span>
+<span class="sd">        min_replicates : None or int</span>
+<span class="sd">            Only include sites that have escape estimated for at least this many models.</span>
+<span class="sd">            A value of `None` corresponds to choosing a value that is &gt;= half the number</span>
+<span class="sd">            of total replicates.</span>
 <span class="sd">        mut_escape_site_summary_df_kwargs : dict</span>
 <span class="sd">            Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.</span>
 <span class="sd">            It is often useful to set `min_times_seen` to &gt;1.</span>
@@ -573,23 +702,35 @@
 <span class="sd">            Interactive heat maps.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">min_replicates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">min_replicates</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">mut_escape_site_summary_df_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">mut_escape_site_summary_df_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">mut_escape_lineplot_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">mut_escape_lineplot_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">&quot;avg_to_plot&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mut_escape_lineplot_kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">avg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">avg_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span>
+            <span class="n">mut_escape_lineplot_kwargs</span><span class="p">[</span><span class="s2">&quot;avg_to_plot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;escape_</span><span class="si">{</span><span class="n">avg_type</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mut_escape_lineplot_kwargs</span><span class="p">:</span>
             <span class="n">mut_escape_lineplot_kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">mut_escape_site_summary_df_kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mut_escape_lineplot_kwargs</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span>
+        <span class="p">):</span>
+            <span class="n">mut_escape_lineplot_kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="o">**</span><span class="n">mut_escape_site_summary_df_kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="s2">&quot;n_models &gt;= @min_replicates&quot;</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_lineplot</span><span class="p">(</span>
             <span class="n">mut_escape_site_summary_df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
-            <span class="n">bootstrapped_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">replicate_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
             <span class="o">**</span><span class="n">mut_escape_lineplot_kwargs</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.icXX_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">icXX_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Concentration at which a given fraction is neutralized (eg, IC50) for</span>
-<span class="sd">        all replicates.</span>
+        <span class="sd">&quot;&quot;&quot;Concentration which given fraction is neutralized (eg IC50) for all models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -604,25 +745,22 @@
 <span class="sd">        -------</span>
 <span class="sd">        pandas.DataFrame</span>
 <span class="sd">            Copy of ``variants_df`` with added column ``col`` containing icXX,</span>
-<span class="sd">            and ``bootstrap_replicate`` containing model replicate number.</span>
-<span class="sd">            Variants with a mutation lacking in a particular bootstrapped model are</span>
-<span class="sd">            missing in that row.</span>
+<span class="sd">            and model descriptors. Variants with a mutation lacking in a particular</span>
+<span class="sd">            model are missing in that row.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">m</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                    <span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span>
+                    <span class="o">**</span><span class="n">desc</span>
                 <span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
             <span class="p">],</span>
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.icXX"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX">[docs]</a>    <span class="k">def</span> <span class="nf">icXX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary statistics of the predicted concentration at which a given</span>
-<span class="sd">        fraction is neutralized across all replicates.</span>
+        <span class="sd">&quot;&quot;&quot;Predicted concentration at which a variant is neutralized across all models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -636,26 +774,26 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        pandas.DataFrame</span>
-<span class="sd">            Copy of ``variants_df`` with added column ``col`` containing icXX,</span>
-<span class="sd">            and summary stats for each variant across all models.</span>
+<span class="sd">            De-duplicated opy of ``variants_df`` with added column ``col`` containing</span>
+<span class="sd">            icXX and summary stats for each variant across all models.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
         <span class="k">if</span> <span class="s2">&quot;col&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">col</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">col</span> <span class="o">=</span> <span class="s2">&quot;IC50&quot;</span>
+        <span class="n">variants_df</span> <span class="o">=</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">icXX_replicates</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
-                <span class="n">mean_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">],</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
-                <span class="n">median_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">],</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
-                <span class="n">std_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">],</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
-                <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;nunique&quot;</span><span class="p">),</span>
+                <span class="n">mean_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+                <span class="n">median_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
+                <span class="n">std_IC</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+                <span class="n">n_models</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
+                <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">rename</span><span class="p">(</span>
                 <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
@@ -685,8 +823,8 @@
 <span class="sd">            Version of ``variants_df`` with columns named &#39;concentration&#39;</span>
 <span class="sd">            and &#39;predicted_prob_escape&#39; giving predicted probability of escape</span>
 <span class="sd">            :math:`p_v\left(c\right)` for each variant at each concentration and</span>
-<span class="sd">            bootstrap replicate. Variants with a mutation lacking in a particular</span>
-<span class="sd">            bootstrapped model are missing in that row.</span>
+<span class="sd">            model. Variants with a mutation lacking in a particular model are</span>
+<span class="sd">            missing in that row.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
@@ -694,16 +832,14 @@
                 <span class="n">m</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
                     <span class="n">variants_df</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">),</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">bootstrap_replicate</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
             <span class="p">],</span>
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.prob_escape"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape">[docs]</a>    <span class="k">def</span> <span class="nf">prob_escape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute summary statistics for predicted probability of escape across</span>
-<span class="sd">        all replicate models.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Summary of predicted probability of escape across all models.</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
@@ -718,13 +854,13 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        pandas.DataFrame</span>
-<span class="sd">            Version of ``variants_df`` with columns named &#39;concentration&#39;</span>
+<span class="sd">            De-duplicated copy of ``variants_df`` with columns named &#39;concentration&#39;</span>
 <span class="sd">            and &#39;mean&#39;, &#39;median&#39;, and &#39;std&#39; giving corresponding summary stats</span>
 <span class="sd">            of predicted probability of escape :math:`p_v\left(c\right)`</span>
-<span class="sd">            for each variant at each concentration across bootstrap replicates.</span>
+<span class="sd">            for each variant at each concentration across models.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_fit</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
+        <span class="n">variants_df</span> <span class="o">=</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prob_escape_replicates</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -735,12 +871,161 @@
                     <span class="s2">&quot;median&quot;</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">std_predicted_prob_escape</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
-                <span class="n">n_bootstrap_replicates</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;bootstrap_replicate&quot;</span><span class="p">,</span> <span class="s2">&quot;nunique&quot;</span><span class="p">),</span>
+                <span class="n">n_models</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">frac_bootstrap_replicates</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_bootstrap_replicates&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_fit</span><span class="p">,</span>
+                <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PolyclonalAverage"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalAverage">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalAverage</span><span class="p">(</span><span class="n">PolyclonalCollection</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Average several :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    models_df : pandas.DataFrame</span>
+<span class="sd">        Same meaning as for :class:`PolyclonalCollection`. However, the resulting</span>
+<span class="sd">        collection of models will have **copies** of these models rather than the</span>
+<span class="sd">        actual objects in `models_df`.</span>
+<span class="sd">    harmonize_to : :class:`PolyclonalCollection` or None</span>
+<span class="sd">        When harmonizing the epitopes, harmonize to this model. If `None`, just</span>
+<span class="sd">        harmonize to the first model in `models_df`.</span>
+<span class="sd">    default_avg_to_plot : {&quot;mean&quot;, &quot;median&quot;}</span>
+<span class="sd">        What type of average do the plotting methods plot by default?</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Other attributes of :class:`PolyclonalCollection`.</span>
+<span class="sd">        Inherited from base class.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">models_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">harmonize_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_avg_to_plot</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">models_df</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no models in `model_df`&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">harmonize_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">harmonize_to</span> <span class="o">=</span> <span class="n">models_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;model&quot;</span><span class="p">]</span>
+
+        <span class="n">models_df</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">epitope_harmonized_model</span><span class="p">(</span><span class="n">harmonize_to</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models_df</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">models_df</span><span class="p">,</span> <span class="n">default_avg_to_plot</span><span class="o">=</span><span class="n">default_avg_to_plot</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PolyclonalBootstrap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalBootstrap</span><span class="p">(</span><span class="n">PolyclonalCollection</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
+<span class="sd">        The polyclonal object created with the full dataset to draw bootstrapped</span>
+<span class="sd">        samples from. The bootstrapped samples are also initialized to mutation effects</span>
+<span class="sd">        and activities of this model, so it is **highly recommended** that this object</span>
+<span class="sd">        already have been fit to the full dataset.</span>
+<span class="sd">    n_bootstrap_samples : int</span>
+<span class="sd">        Number of bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models to fit.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        Random seed for reproducibility.</span>
+<span class="sd">    n_threads : int</span>
+<span class="sd">        Number of threads to use for multiprocessing, -1 means all available.</span>
+<span class="sd">    sample_by</span>
+<span class="sd">        Passed to :func:`create_bootstrap_sample`. Should generally be &#39;barcode&#39;</span>
+<span class="sd">        if you have same variants at all concentrations, and maybe `None` otherwise.</span>
+<span class="sd">    default_avg_to_plot : {&quot;mean&quot;, &quot;median&quot;}</span>
+<span class="sd">        What type of average do the plotting methods plot by default?</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    -----------</span>
+<span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
+<span class="sd">        The root polyclonal object passed as a parameter.</span>
+<span class="sd">    n_threads: int</span>
+<span class="sd">        Number of threads for multiprocessing.</span>
+<span class="sd">    Other attributes of :class:`PolyclonalCollection`.</span>
+<span class="sd">        Inherited from base class.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">root_polyclonal</span><span class="p">,</span>
+        <span class="n">n_bootstrap_samples</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">n_threads</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
+        <span class="n">default_avg_to_plot</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">root_polyclonal</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;polyclonal object does not have data to fit.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span> <span class="o">=</span> <span class="n">root_polyclonal</span>
+        <span class="k">if</span> <span class="n">n_threads</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span> <span class="o">=</span> <span class="n">n_threads</span>
+
+        <span class="k">if</span> <span class="n">n_bootstrap_samples</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Create distinct seeds for each model</span>
+            <span class="n">seeds</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">seed</span> <span class="o">+</span> <span class="n">n_bootstrap_samples</span><span class="p">)</span>
+
+            <span class="c1"># Create list of bootstrapped polyclonal objects</span>
+            <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+                <span class="n">models</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span>
+                    <span class="n">_create_bootstrap_polyclonal</span><span class="p">,</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">root_polyclonal</span><span class="p">),</span> <span class="n">seeds</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">sample_by</span><span class="p">)),</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please specify a number of bootstrap samples to make.&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]})</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">bootstrap_replicate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="p">),</span>
+            <span class="n">default_avg_to_plot</span><span class="o">=</span><span class="n">default_avg_to_plot</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PolyclonalBootstrap.fit_models"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap.fit_models">[docs]</a>    <span class="k">def</span> <span class="nf">fit_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">failures</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
+
+<span class="sd">        The fit models will then be in :attr:`PolyclonalCollection.models`,</span>
+<span class="sd">        with any models that fail fitting set to `None`. Their epitopes will</span>
+<span class="sd">        also be harmonized with :attr:`PolyclonalBootstrap.root_polyclonal`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        failures : {&quot;error&quot;, &quot;tolerate&quot;}</span>
+<span class="sd">            Tolerate failures in model fitting or raise an error if a failure?</span>
+<span class="sd">            Always raise an error if all models failed.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments for :meth:`polyclonal.polyclonal.Polyclonal.fit`.</span>
+<span class="sd">            If not specified otherwise, `fit_site_level_first` is set to `False`,</span>
+<span class="sd">            since models are initialized to &quot;good&quot; values from the root object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (n_fit, n_failed)</span>
+<span class="sd">            Number of model fits that failed and succeeded.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;fit_site_level_first&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;fit_site_level_first&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">n_fit</span><span class="p">,</span> <span class="n">n_failed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">fit_models</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">,</span>
+            <span class="n">failures</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="kc">None</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">m</span><span class="o">.</span><span class="n">epitope_harmonized_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span>
+        <span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">n_fit</span><span class="p">,</span> <span class="n">n_failed</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
@@ -791,7 +1076,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

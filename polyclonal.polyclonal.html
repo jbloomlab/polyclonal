@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>polyclonal &#8212; polyclonal 0.3 documentation</title>
+    <title>polyclonal &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -42,7 +42,7 @@
 <p>Defines <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> objects for handling antibody mixtures.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal.</span></span><span class="sig-name descname"><span class="pre">Polyclonal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_wt_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_to_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_escape_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_epitopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse_identical_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('#1f77b4',</span> <span class="pre">'#ff7f0e',</span> <span class="pre">'#2ca02c',</span> <span class="pre">'#d62728',</span> <span class="pre">'#9467bd',</span> <span class="pre">'#8c564b',</span> <span class="pre">'#e377c2',</span> <span class="pre">'#bcbd22',</span> <span class="pre">'#17becf')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zero'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_mut_escape_overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exact_match'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal.</span></span><span class="sig-name descname"><span class="pre">Polyclonal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_wt_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_to_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_escape_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_epitopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse_identical_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('#1f77b4',</span> <span class="pre">'#ff7f0e',</span> <span class="pre">'#2ca02c',</span> <span class="pre">'#d62728',</span> <span class="pre">'#9467bd',</span> <span class="pre">'#8c564b',</span> <span class="pre">'#e377c2',</span> <span class="pre">'#bcbd22',</span> <span class="pre">'#17becf')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_missing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zero'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_mut_escape_overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exact_match'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represent polyclonal antibody mixtures targeting multiple epitopes.</p>
 <div class="admonition note">
@@ -127,6 +127,12 @@ variants? Collapse by taking mean or median of ‘prob_escape’, or
 (if <cite>False</cite>) do not collapse at all. Collapsing will make fitting faster,
 but <em>not</em> a good idea if you are doing bootstrapping.</p></li>
 <li><p><strong>alphabet</strong> (<em>array-like</em>) – Allowed characters in mutation strings.</p></li>
+<li><p><strong>sites</strong> (<em>array-like</em><em> or </em><em>None</em>) – By default, sites are assumed to be sequential integer values are and inferred
+from <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code> or <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code>. However, you can also have
+non-sequential integer sites, or sites with lower-case letter suffixes
+(eg, <cite>214a</cite>) if your protein is numbered against a reference that it has
+indels relative to. In that case, provide list of all expected in order
+here; we require that order to be natsorted.</p></li>
 <li><p><strong>epitope_colors</strong> (<em>array-like</em><em> or </em><em>dict</em>) – Maps each epitope to the color used for plotting. Either a dict keyed
 by each epitope, or an array of colors that are sequentially assigned
 to the epitopes.</p></li>
@@ -181,10 +187,23 @@ from <code class="docutils literal notranslate"><span class="pre">mut_escape_df<
 <dl class="py attribute">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.sites">
 <span class="sig-name descname"><span class="pre">sites</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.sites" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of all sites.</p>
+<dd><p>List of all sites. These are the sites provided via the <code class="docutils literal notranslate"><span class="pre">sites</span></code> parameter,
+or inferred from <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code> or <code class="docutils literal notranslate"><span class="pre">mut_escape_df</span></code> if that isn’t provided.
+If <cite>sequential_integer_sites</cite> is <cite>False</cite>, these are str, otherwise int.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.sequential_integer_sites">
+<span class="sig-name descname"><span class="pre">sequential_integer_sites</span></span><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.sequential_integer_sites" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if sites are sequential and integer, False otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -251,26 +270,26 @@ we know the activities and mutation-level escape values ahead of time:</p>
 <span class="gp">... </span>  <span class="s1">&#39;epitope&#39;</span><span class="p">:</span>  <span class="p">[</span> <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">,</span>  <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">,</span>  <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">,</span>  <span class="s1">&#39;e1&#39;</span><span class="p">,</span>  <span class="s1">&#39;e2&#39;</span><span class="p">],</span>
 <span class="gp">... </span>  <span class="s1">&#39;escape&#39;</span><span class="p">:</span>   <span class="p">[</span>  <span class="mf">2.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">3.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>    <span class="mf">2.5</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">1.5</span><span class="p">],</span>
 <span class="gp">... </span>  <span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">mut_escape_df</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">epitopes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">epitopes</span>
 <span class="go">(&#39;e1&#39;, &#39;e2&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mutations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">mutations</span>
 <span class="go">(&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="kc">None</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">sites</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">sites</span>
 <span class="go">(1, 2, 4)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">wts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">wts</span>
 <span class="go">{1: &#39;M&#39;, 2: &#39;G&#39;, 4: &#39;A&#39;}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">activity_wt_df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">activity_wt_df</span>
 <span class="go">  epitope  activity</span>
 <span class="go">0      e1       2.0</span>
 <span class="go">1      e2       1.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span>
 <span class="go">  epitope  site wildtype mutant mutation  escape</span>
 <span class="go">0      e1     1        M      C      M1C     2.0</span>
 <span class="go">1      e1     2        G      A      G2A     3.0</span>
@@ -285,7 +304,7 @@ we know the activities and mutation-level escape values ahead of time:</p>
 <p>We can also summarize the mutation-level escape at the site level:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.width&quot;</span><span class="p">,</span> <span class="mi">89</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">()</span>
 <span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="go">0      e1     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
 <span class="go">1      e1     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
@@ -324,8 +343,8 @@ missing escape estimates for any mutations for any epitopes:</p>
 </div>
 <p>Get the escape probabilities predicted on these variants from
 the values in the <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">escape_probs</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">,</span>
-<span class="gp">... </span>                                      <span class="n">concentrations</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">escape_probs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">,</span>
+<span class="gp">... </span>                                 <span class="n">concentrations</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">escape_probs</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">   barcode aa_substitutions  concentration  predicted_prob_escape</span>
 <span class="go">0       AA                             1.0                  0.032</span>
@@ -368,7 +387,7 @@ the values in the <a class="reference internal" href="#polyclonal.polyclonal.Pol
 </div>
 <p>We can also get predicted escape probabilities by including concentrations
 in the data frame passed to <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.prob_escape" title="polyclonal.polyclonal.Polyclonal.prob_escape"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.prob_escape()</span></code></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">variants_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">variants_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">concentration</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
 <span class="gp">... </span>                               <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]])</span>
 <span class="gp">... </span>        <span class="p">)</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">escape_probs</span><span class="p">)</span>
@@ -376,7 +395,7 @@ in the data frame passed to <a class="reference internal" href="#polyclonal.poly
 </pre></div>
 </div>
 <p>We can also compute the IC50s:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">   barcode aa_substitutions   IC50</span>
 <span class="go">0       AA                   0.085</span>
 <span class="go">1       AC              M1C  0.230</span>
@@ -393,7 +412,7 @@ in the data frame passed to <a class="reference internal" href="#polyclonal.poly
 </pre></div>
 </div>
 <p>Or the IC90s:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC90&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;IC90&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">   barcode aa_substitutions    IC90</span>
 <span class="go">0       AA                    0.464</span>
 <span class="go">1       AC              M1C   1.260</span>
@@ -420,7 +439,7 @@ these are the real values:</p>
 <span class="gp">... </span>        <span class="p">)</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">data_to_fit</span><span class="o">=</span><span class="n">data_to_fit</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">n_epitopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
@@ -428,19 +447,19 @@ these are the real values:</p>
 </pre></div>
 </div>
 <p>The mutations are those in <code class="docutils literal notranslate"><span class="pre">data_to_fit</span></code>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mutations</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">mutations</span>
 <span class="go">(&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">dict</span><span class="p">(</span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dict</span><span class="p">(</span><span class="n">model_data</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">)</span>
 <span class="go">{&#39;G2A&#39;: 6, &#39;M1C&#39;: 6, &#39;A4K&#39;: 4, &#39;A4L&#39;: 3}</span>
 </pre></div>
 </div>
 <p>The activities are evenly spaced from 1 to 0, while the mutation escapes
 are all initialized to zero:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">activity_wt_df</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">activity_wt_df</span>
 <span class="go">  epitope  activity</span>
 <span class="go">0       1       1.0</span>
 <span class="go">1       2       0.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">mut_escape_df</span>
 <span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="go">0       1     1        M      C      M1C     0.0           6</span>
 <span class="go">1       1     2        G      A      G2A     0.0           6</span>
@@ -454,20 +473,20 @@ are all initialized to zero:</p>
 </div>
 <p>You can initialize to random numbers by setting <code class="docutils literal notranslate"><span class="pre">init_missing</span></code> to seed
 (in this example we also don’t include all variants for one concentration):</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data2</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data2</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">data_to_fit</span><span class="o">=</span><span class="n">data_to_fit</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span>
 <span class="gp">... </span>    <span class="n">n_epitopes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">init_missing</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data2</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_data2</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">  epitope  activity</span>
 <span class="go">0       1     0.417</span>
 <span class="go">1       2     0.720</span>
 </pre></div>
 </div>
 <p>You can set some or all mutation escapes to initial values:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data3</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data3</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">data_to_fit</span><span class="o">=</span><span class="n">data_to_fit</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;epitope&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;e1&#39;</span><span class="p">],</span>
@@ -476,7 +495,7 @@ are all initialized to zero:</p>
 <span class="gp">... </span>    <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s1">&#39;fill_to_data&#39;</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data3</span><span class="o">.</span><span class="n">mut_escape_df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_data3</span><span class="o">.</span><span class="n">mut_escape_df</span>
 <span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="go">0      e1     1        M      C      M1C     4.0           6</span>
 <span class="go">1      e1     2        G      A      G2A     0.0           6</span>
@@ -489,7 +508,7 @@ are all initialized to zero:</p>
 </pre></div>
 </div>
 <p>You can initialize <strong>sites</strong> to escape values via <code class="docutils literal notranslate"><span class="pre">site_activity_df</span></code>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data4</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data4</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">data_to_fit</span><span class="o">=</span><span class="n">data_to_fit</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">site_escape_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span>
@@ -500,7 +519,7 @@ are all initialized to zero:</p>
 <span class="gp">... </span>    <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s1">&#39;fill_to_data&#39;</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data4</span><span class="o">.</span><span class="n">mut_escape_df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_data4</span><span class="o">.</span><span class="n">mut_escape_df</span>
 <span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="go">0      e1     1        M      C      M1C     1.0           6</span>
 <span class="go">1      e1     2        G      A      G2A     0.0           6</span>
@@ -516,33 +535,32 @@ are all initialized to zero:</p>
 predicted escape probabilities are close to the real ones being fit.
 Reduce weight on regularization since there is so little data in this
 toy example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="n">polyclonal_data</span><span class="p">,</span> <span class="n">polyclonal_data2</span><span class="p">,</span>
-<span class="gp">... </span>              <span class="n">polyclonal_data3</span><span class="p">,</span> <span class="n">polyclonal_data4</span><span class="p">]:</span>
-<span class="gp">... </span>    <span class="n">opt_res</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">[</span><span class="n">model_data</span><span class="p">,</span> <span class="n">model_data2</span><span class="p">,</span> <span class="n">model_data3</span><span class="p">,</span> <span class="n">model_data4</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="n">opt_res</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="n">reg_spread_weight</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="n">reg_activity_weight</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">)</span>
-<span class="gp">... </span>    <span class="n">pred_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">data_to_fit</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">pred_df</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span><span class="n">variants_df</span><span class="o">=</span><span class="n">data_to_fit</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">pred_df</span><span class="p">[</span><span class="s1">&#39;prob_escape&#39;</span><span class="p">],</span>
 <span class="gp">... </span>                          <span class="n">pred_df</span><span class="p">[</span><span class="s1">&#39;predicted_prob_escape&#39;</span><span class="p">],</span>
 <span class="gp">... </span>                          <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
 <span class="gp">... </span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrong predictions</span><span class="se">\n</span><span class="si">{</span><span class="n">pred_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
 <span class="gp">... </span>             <span class="n">activity_wt_df</span><span class="p">[</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(),</span>
-<span class="gp">... </span>             <span class="n">model</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">[</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(),</span>
+<span class="gp">... </span>             <span class="n">m</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">[</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(),</span>
 <span class="gp">... </span>             <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
 <span class="gp">... </span>             <span class="p">):</span>
-<span class="gp">... </span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrong activities</span><span class="se">\n</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">... </span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrong activities</span><span class="se">\n</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
 <span class="gp">... </span>             <span class="n">mut_escape_df</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(),</span>
-<span class="gp">... </span>             <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(),</span>
+<span class="gp">... </span>             <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(),</span>
 <span class="gp">... </span>             <span class="n">atol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
 <span class="gp">... </span>             <span class="p">):</span>
-<span class="gp">... </span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrong escapes</span><span class="se">\n</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">... </span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrong escapes</span><span class="se">\n</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="go">0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="go">1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
@@ -550,7 +568,7 @@ toy example:</p>
 <span class="go">3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
 <span class="go">4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
 <span class="go">5       2     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">min_times_seen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">min_times_seen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="go">0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="go">1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
@@ -562,7 +580,7 @@ toy example:</p>
 </div>
 <p>You can also exclude mutations to specific characters (typically you would want to
 do this for stop codons and/or gaps):</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">exclude_chars</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">})</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span><span class="n">exclude_chars</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;K&quot;</span><span class="p">})</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="go">  epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="go">0       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="go">1       1     4        A   1.5             1.5  1.5  1.5             0.0            1</span>
@@ -576,10 +594,10 @@ the transformation of <a class="reference internal" href="polyclonal.utils.html#
 site-level model is another <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> model that just keeps
 track of whether or not sites are mutated using a 2-letter wildtype/mutant
 alphabet, and is generated using <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.site_level_model" title="polyclonal.polyclonal.Polyclonal.site_level_model"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.site_level_model()</span></code></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_site</span> <span class="o">=</span> <span class="n">polyclonal_data4</span><span class="o">.</span><span class="n">site_level_model</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_site</span><span class="o">.</span><span class="n">alphabet</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_site</span> <span class="o">=</span> <span class="n">model_data4</span><span class="o">.</span><span class="n">site_level_model</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_site</span><span class="o">.</span><span class="n">alphabet</span>
 <span class="go">(&#39;w&#39;, &#39;m&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">polyclonal_site</span><span class="o">.</span><span class="n">mut_escape_df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">model_site</span><span class="o">.</span><span class="n">mut_escape_df</span>
 <span class="gp">... </span> <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;escape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 <span class="go">  epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="go">0      e1     1        w      m      w1m     2.0           5</span>
@@ -588,7 +606,7 @@ alphabet, and is generated using <a class="reference internal" href="#polyclonal
 <span class="go">3      e2     1        w      m      w1m     0.0           5</span>
 <span class="go">4      e2     2        w      m      w2m     0.0           6</span>
 <span class="go">5      e2     4        w      m      w4m     2.0           7</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_site</span><span class="o">.</span><span class="n">data_to_fit</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_site</span><span class="o">.</span><span class="n">data_to_fit</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">   concentration aa_substitutions  weight  prob_escape</span>
 <span class="go">0            1.0                        1        0.032</span>
 <span class="go">1            1.0              w1m       1        0.134</span>
@@ -599,10 +617,11 @@ alphabet, and is generated using <a class="reference internal" href="#polyclonal
 </div>
 <p class="rubric">Example</p>
 <p>Epitope assignments are arbitrary, so you can calculate correlations
-among their mutation-escape values and align them.</p>
+among their mutation-escape values and create harmonized models that use
+the same label to refer to epitopes with similar mutation-escape values.</p>
 <p>First, correlations of a model to itself:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ref_poly</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">polyclonal</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ref_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_model</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">  ref_epitope self_epitope  correlation</span>
 <span class="go">0          e1           e1        1.000</span>
 <span class="go">1          e1           e2       -0.907</span>
@@ -611,7 +630,7 @@ among their mutation-escape values and align them.</p>
 </pre></div>
 </div>
 <p>Make another model with epitope assignments inverted and a few mutations missing:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_model</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">activity_wt_df</span><span class="o">=</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">activity_wt_df</span>
 <span class="gp">... </span>        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="s2">&quot;e1&quot;</span><span class="p">:</span> <span class="s2">&quot;e2&quot;</span><span class="p">,</span> <span class="s2">&quot;e2&quot;</span><span class="p">:</span> <span class="s2">&quot;e1&quot;</span><span class="p">}))</span>
@@ -622,43 +641,43 @@ among their mutation-escape values and align them.</p>
 <span class="gp">... </span>        <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="s2">&quot;e1&quot;</span><span class="p">:</span> <span class="s2">&quot;e2&quot;</span><span class="p">,</span> <span class="s2">&quot;e2&quot;</span><span class="p">:</span> <span class="s2">&quot;e1&quot;</span><span class="p">}))</span>
 <span class="gp">... </span>    <span class="p">),</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_model</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_model</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">  ref_epitope self_epitope  correlation</span>
-<span class="go">0          e1           e2        1.000</span>
-<span class="go">1          e1           e1       -0.945</span>
-<span class="go">2          e2           e2       -0.945</span>
-<span class="go">3          e2           e1        1.000</span>
+<span class="go">0          e1           e1       -0.945</span>
+<span class="go">1          e1           e2        1.000</span>
+<span class="go">2          e2           e1        1.000</span>
+<span class="go">3          e2           e2       -0.945</span>
 </pre></div>
 </div>
-<p>Now actually harmonize the epitopes</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal</span><span class="o">.</span><span class="n">harmonize_epitopes_with</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span>
+<p>Now actually get epitope-harmonized models:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_harmonized</span><span class="p">,</span> <span class="n">harmonize_df</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">epitope_harmonized_model</span><span class="p">(</span><span class="n">ref_model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">harmonize_df</span>
 <span class="go">  self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
 <span class="go">0                   e1                      e1          e1          1.0</span>
 <span class="go">1                   e2                      e2          e2          1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">model_harmonized</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">harmonize_epitopes_with</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_harmonized</span><span class="p">,</span> <span class="n">harmonize_df</span> <span class="o">=</span> <span class="n">inverted_model</span><span class="o">.</span><span class="n">epitope_harmonized_model</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">ref_model</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">harmonize_df</span>
 <span class="go">  self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
 <span class="go">0                   e1                      e2          e2          1.0</span>
 <span class="go">1                   e2                      e1          e1          1.0</span>
-</pre></div>
-</div>
-<p>The order of the epitopes have been switched after harmonization:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">epitopes</span>
-<span class="go">[&#39;e1&#39;, &#39;e2&#39;]</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_poly</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">ref_poly</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="go">  ref_epitope self_epitope  correlation</span>
-<span class="go">0          e1           e1        1.000</span>
-<span class="go">1          e1           e2       -0.945</span>
-<span class="go">2          e2           e1       -0.945</span>
-<span class="go">3          e2           e2        1.000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_harmonized</span><span class="o">.</span><span class="n">mut_escape_df</span>
+<span class="go">  epitope  site wildtype mutant mutation  escape</span>
+<span class="go">0      e1     1        M      C      M1C     2.0</span>
+<span class="go">1      e1     2        G      A      G2A     3.0</span>
+<span class="go">2      e1     4        A      L      A4L     0.0</span>
+<span class="go">3      e2     1        M      C      M1C     0.0</span>
+<span class="go">4      e2     2        G      A      G2A     0.0</span>
+<span class="go">5      e2     4        A      L      A4L     1.5</span>
 </pre></div>
 </div>
 <p class="rubric">Example</p>
 <p>Filter variants by how often they are seen in data:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">)</span>
 <span class="gp">... </span>
 <span class="go">   barcode aa_substitutions</span>
 <span class="go">0       AA</span>
@@ -675,7 +694,7 @@ among their mutation-escape values and align them.</p>
 <span class="go">11      GA              M1C</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">... </span>
 <span class="go">  barcode aa_substitutions</span>
 <span class="go">0      AA</span>
@@ -685,7 +704,7 @@ among their mutation-escape values and align them.</p>
 <span class="go">4      GA              M1C</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">polyclonal_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_data</span><span class="o">.</span><span class="n">filter_variants_by_seen_muts</span><span class="p">(</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="gp">... </span>
 <span class="go">  barcode aa_substitutions</span>
 <span class="go">0      AA</span>
@@ -734,6 +753,36 @@ among their mutation-escape values and align them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.epitope_harmonized_model">
+<span class="sig-name descname"><span class="pre">epitope_harmonized_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_poly</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.epitope_harmonized_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.epitope_harmonized_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a copy of model with epitopes “harmonized” with a reference model.</p>
+<p>Epitopes are unidentifiable, meaning there is no guarantee that we will assign
+the same epitope labels across multiple models fit to similar data. This
+function returns a copy of the current model where the epitope labels are
+harmonized with those of another model with the same epitope labels. The
+harmonization is done by putting into correspondence the epitopes with
+the best correlated mutation-escape values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ref_poly</strong> (<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – The reference polyclonal object to harmonize epitope labels with.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>harmonized_model, harmonize_df</strong> – <cite>harmonized_model</cite> is a <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object that is a copy of
+the current model but with epitopes harmonized, and
+<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.epitope_colors" title="polyclonal.polyclonal.Polyclonal.epitope_colors"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.epitope_colors</span></code></a> taken from <cite>ref_poly</cite>. <cite>harmonize_df</cite>
+is a <cite>pandas.DataFrame</cite> that shows how the epitopes were re-assigned
+and the correlations in their escape values.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#polyclonal.polyclonal.PolyclonalHarmonizeError" title="polyclonal.polyclonal.PolyclonalHarmonizeError"><strong>PolyclonalHarmonizeError</strong></a> – Raise this error if epitopes cannot be harmonized one-to-one.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -797,34 +846,6 @@ escapes to initialize fit of this model. Generally works better.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with">
-<span class="sig-name descname"><span class="pre">harmonize_epitopes_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_poly</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.harmonize_epitopes_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with" title="Permalink to this definition">¶</a></dt>
-<dd><p>Harmonize epitope labels with another polyclonal object.</p>
-<p>Epitopes are unidentifiable, meaning there is no guarantee that we will assign
-the same epitope labels across multiple models fit to similar data. This
-function aligns the epitope labels of the current <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a> object
-with those of another model with the same epitope labels.</p>
-<p>The harmonization is done simply by re-ordering the epitope labels
-in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.epitopes" title="polyclonal.polyclonal.Polyclonal.epitopes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.epitopes</span></code></a>. The epitopes will be matched by label,
-but not necessarily by order in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.epitopes" title="polyclonal.polyclonal.Polyclonal.epitopes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.epitopes</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ref_poly</strong> (<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – The reference polyclonal object to align epitope labels with.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Has columns ‘self_initial_epitope’, ‘self_harmonized_epitope’,
-‘ref_epitope’, ‘correlation’.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pandas.DataFrame</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="#polyclonal.polyclonal.PolyclonalHarmonizeError" title="polyclonal.polyclonal.PolyclonalHarmonizeError"><strong>PolyclonalHarmonizeError</strong></a> – Raise this error if epitopes cannot be harmonized one-to-one.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.icXX">
 <span class="sig-name descname"><span class="pre">icXX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variants_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'IC50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_c</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.icXX"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.icXX" title="Permalink to this definition">¶</a></dt>
 <dd><p>Concentration at which a given fraction is neutralized (eg, IC50).</p>
@@ -856,14 +877,10 @@ each variant. So set to 0.5 for IC50, and 0.9 for IC90.</p></li>
 <dd><p>Correlation of mutation-escape values with another model.</p>
 <p>For each epitope, how well is this model’s mutation-escape values
 correlation with another model?</p>
-<p>In the situation where a mutation is only seen by one model, we exclude
-that mutation from correlation calculations (i.e., we omit the rows
-where either <cite>escape_x</cite> and <cite>escape_y</cite> of the merged df contain None.)</p>
+<p>Mutations present in only one model are ignored.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ref_poly</strong> (<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – The other (reference) polyclonal object with which we calculate the
-correlation of mutation-escape values between all pairwise combinations of
-epitopes.</p>
+<dd class="field-odd"><p><strong>ref_poly</strong> (<a class="reference internal" href="#polyclonal.polyclonal.Polyclonal" title="polyclonal.polyclonal.Polyclonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">Polyclonal</span></code></a>) – Other (reference) polyclonal model with which we calculate correlations.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>corr_df</strong> – Pairwise epitope correlations for escape.</p>
@@ -887,11 +904,15 @@ epitopes.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="polyclonal.polyclonal.Polyclonal.mut_escape_heatmap">
-<span class="sig-name descname"><span class="pre">mut_escape_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_heatmap" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mut_escape_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">biochem_order_aas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#Polyclonal.mut_escape_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.Polyclonal.mut_escape_heatmap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Heatmaps of the mutation escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a>.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>biochem_order_aas</strong> (<em>bool</em>) – Biochemically order the amino-acid alphabet in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.alphabet" title="polyclonal.polyclonal.Polyclonal.alphabet"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Polyclonal.alphabet</span></code></a>
+by passing it through <a class="reference internal" href="polyclonal.alphabets.html#polyclonal.alphabets.biochem_order_aas" title="polyclonal.alphabets.biochem_order_aas"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.alphabets.biochem_order_aas()</span></code></a>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.mut_escape_heatmap" title="polyclonal.plot.mut_escape_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyclonal.plot.mut_escape_heatmap()</span></code></a>.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Interactive heat maps.</p>
@@ -1037,7 +1058,7 @@ ones in <code class="docutils literal notranslate"><span class="pre">mut_escape_
 <dt class="sig sig-object py" id="polyclonal.polyclonal.PolyclonalHarmonizeError">
 <em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.polyclonal.</span></span><span class="sig-name descname"><span class="pre">PolyclonalHarmonizeError</span></span><a class="reference internal" href="_modules/polyclonal/polyclonal.html#PolyclonalHarmonizeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.polyclonal.PolyclonalHarmonizeError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-<p>Error harmonizing epitopes in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with" title="polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.harmonize_epitopes_with()</span></code></a>.</p>
+<p>Error harmonizing epitopes in <a class="reference internal" href="#polyclonal.polyclonal.Polyclonal.epitope_harmonized_model" title="polyclonal.polyclonal.Polyclonal.epitope_harmonized_model"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Polyclonal.epitope_harmonized_model()</span></code></a>.</p>
 </dd></dl>
 
 </section>
@@ -1085,7 +1106,9 @@ ones in <code class="docutils literal notranslate"><span class="pre">mut_escape_
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>

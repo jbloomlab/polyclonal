@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>utils &#8212; polyclonal 0.3 documentation</title>
+    <title>utils &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -40,12 +40,16 @@
 <p>Miscellaneous utility functions.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="polyclonal.utils.MutationParser">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">MutationParser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#MutationParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.MutationParser" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">MutationParser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">letter_suffixed_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#MutationParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.MutationParser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Parse mutation strings like ‘A5G’.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>alphabet</strong> (<em>array-like</em>) – Valid single-character letters in alphabet.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alphabet</strong> (<em>array-like</em>) – Valid single-character letters in alphabet.</p></li>
+<li><p><strong>letter_suffixed_sites</strong> (<em>bool</em>) – Allow sites suffixed by lowercase letters, such as “214a”. In this case, returned
+sites from <a class="reference internal" href="#polyclonal.utils.MutationParser.parse_mut" title="polyclonal.utils.MutationParser.parse_mut"><code class="xref py py-meth docutils literal notranslate"><span class="pre">MutationParser.parse_mut()</span></code></a> are str.</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -63,6 +67,19 @@
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_gap</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS_WITHGAP</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_gap</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s1">&#39;K7-&#39;</span><span class="p">)</span>
 <span class="go">(&#39;K&#39;, 7, &#39;-&#39;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s2">&quot;E214aA&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">invalid mutation E214aA</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_letter_suffix</span> <span class="o">=</span> <span class="n">MutationParser</span><span class="p">(</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_letter_suffix</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s1">&#39;A5G&#39;</span><span class="p">)</span>
+<span class="go">(&#39;A&#39;, &#39;5&#39;, &#39;G&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mutparser_letter_suffix</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="s1">&#39;E214aA&#39;</span><span class="p">)</span>
+<span class="go">(&#39;E&#39;, &#39;214a&#39;, &#39;A&#39;)</span>
 </pre></div>
 </div>
 <dl class="py method">
@@ -100,7 +117,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="polyclonal.utils.site_level_variants">
-<span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">site_level_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wt_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'w'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'m'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#site_level_variants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.site_level_variants" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">site_level_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('A',</span> <span class="pre">'C',</span> <span class="pre">'D',</span> <span class="pre">'E',</span> <span class="pre">'F',</span> <span class="pre">'G',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'K',</span> <span class="pre">'L',</span> <span class="pre">'M',</span> <span class="pre">'N',</span> <span class="pre">'P',</span> <span class="pre">'Q',</span> <span class="pre">'R',</span> <span class="pre">'S',</span> <span class="pre">'T',</span> <span class="pre">'V',</span> <span class="pre">'W',</span> <span class="pre">'Y')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wt_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'w'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'m'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">letter_suffixed_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#site_level_variants"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.site_level_variants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Re-define variants simply in terms of which sites are mutated.</p>
 <p>This function is useful if you have a data frame of variants and you
 want to simplify them from full mutations to just indicating whether
@@ -113,6 +130,7 @@ sites are mutated.</p>
 alphabet.</p></li>
 <li><p><strong>wt_char</strong> (<em>str</em>) – Single letter used to represent wildtype identity at all sites.</p></li>
 <li><p><strong>mut_char</strong> (<em>str</em>) – Single letter used to represent mutant identity at all sites.</p></li>
+<li><p><strong>letter_suffixed_sites</strong> (<em>str</em>) – Same mutation as for <a class="reference internal" href="#polyclonal.utils.MutationParser" title="polyclonal.utils.MutationParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutationParser</span></code></a>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -136,6 +154,86 @@ alphabet.</p></li>
 <span class="go">0      AA              w1m     1.0</span>
 <span class="go">1      AC                      0.0</span>
 <span class="go">2      AG         w1m w53m     1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="polyclonal.utils.tidy_to_corr">
+<span class="sig-prename descclassname"><span class="pre">polyclonal.utils.</span></span><span class="sig-name descname"><span class="pre">tidy_to_corr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_col</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tidy_pairs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pearson'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/utils.html#tidy_to_corr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.utils.tidy_to_corr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pairwise correlations between samples in tidy data frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Tidy data frame.</p></li>
+<li><p><strong>sample_col</strong> (<em>str</em>) – Column in <cite>df</cite> with name of sample.</p></li>
+<li><p><strong>label_col</strong> (<em>str</em>) – Column in <cite>df</cite> with labels for variable to correlate.</p></li>
+<li><p><strong>value_col</strong> (<em>str</em>) – Column in <cite>df</cite> with values to correlate.</p></li>
+<li><p><strong>group_cols</strong> (<em>None</em><em>, </em><em>str</em><em>, or </em><em>list</em>) – Additional columns used to group results.</p></li>
+<li><p><strong>return_type</strong> (<em>{'tidy_pairs'</em><em>, </em><em>'matrix'}</em>) – Return results as tidy dataframe of pairwise correlations
+or correlation matrix.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – A correlation method passable to <cite>pandas.DataFrame.corr</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Holds pairwise correlations in format specified by <cite>return_type</cite>.
+Correlations only calculated among values with shared label
+among samples.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>Define data frame with data to correlate:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">... </span>       <span class="s1">&#39;sample&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="s1">&#39;group&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="p">})</span>
+</pre></div>
+</div>
+<p>Pairwise correlations between all samples ignoring group:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tidy_to_corr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sample_col</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s1">&#39;barcode&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">)</span>
+<span class="go">  sample_1 sample_2  correlation</span>
+<span class="go">0        a        a     1.000000</span>
+<span class="go">1        b        a     0.981981</span>
+<span class="go">2        c        a    -1.000000</span>
+<span class="go">3        a        b     0.981981</span>
+<span class="go">4        b        b     1.000000</span>
+<span class="go">5        c        b    -0.981981</span>
+<span class="go">6        a        c    -1.000000</span>
+<span class="go">7        b        c    -0.981981</span>
+<span class="go">8        c        c     1.000000</span>
+</pre></div>
+</div>
+<p>The same but as a matrix rather than in tidy format:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tidy_to_corr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sample_col</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s1">&#39;barcode&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;matrix&#39;</span><span class="p">)</span>
+<span class="go">  sample         a         b         c</span>
+<span class="go">0      a  1.000000  0.981981 -1.000000</span>
+<span class="go">1      b  0.981981  1.000000 -0.981981</span>
+<span class="go">2      c -1.000000 -0.981981  1.000000</span>
+</pre></div>
+</div>
+<p>Now group before computing correlations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tidy_to_corr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sample_col</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s1">&#39;barcode&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">group_cols</span><span class="o">=</span><span class="s1">&#39;group&#39;</span><span class="p">)</span>
+<span class="go">  group sample_1 sample_2  correlation</span>
+<span class="go">0     x        a        a     1.000000</span>
+<span class="go">1     x        b        a     0.981981</span>
+<span class="go">2     x        a        b     0.981981</span>
+<span class="go">3     x        b        b     1.000000</span>
+<span class="go">4     y        c        c     1.000000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tidy_to_corr</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sample_col</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s1">&#39;barcode&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">value_col</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">group_cols</span><span class="o">=</span><span class="s1">&#39;group&#39;</span><span class="p">,</span>
+<span class="gp">... </span>             <span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;matrix&#39;</span><span class="p">)</span>
+<span class="go">  group sample         a         b    c</span>
+<span class="go">0     x      a  1.000000  0.981981  NaN</span>
+<span class="go">1     x      b  0.981981  1.000000  NaN</span>
+<span class="go">2     y      c       NaN       NaN  1.0</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -185,7 +283,9 @@ alphabet.</p></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Details on fitting &#8212; polyclonal 0.3 documentation</title>
+    <title>Details on fitting &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -413,8 +413,8 @@ p_v\left(c\right) \left[1 - U_e\left(v, c\right)\right]\]</div>
 </section>
 <section id="Bootstrapping">
 <h2>Bootstrapping<a class="headerlink" href="#Bootstrapping" title="Permalink to this headline">¶</a></h2>
-<p>For the bootstrapping implemented by <code class="docutils literal notranslate"><span class="pre">PolyclonalCollection</span></code>, we start with a single pre-fit model to all the data. We then draw bootstrap replicates of the data used to fit that model, by default sampling the same variants at each concentration (see <code class="docutils literal notranslate"><span class="pre">sample_by</span></code> option of <code class="docutils literal notranslate"><span class="pre">PolyclonalCollection</span></code>). We then fit each of these bootstrapped models starting from the initial values from the pre-fit model on all of the data. Finally, the fit parameters or predictions from the models are summarized.
-Note that mutations may not be present in some bootstrap replicates if they are only in a few variants, and this can be assessed by looking at the <code class="docutils literal notranslate"><span class="pre">frac_boostrap_replicates</span></code> column in the output from <code class="docutils literal notranslate"><span class="pre">PolyclonalCollection</span></code>.</p>
+<p>For the bootstrapping implemented by <code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code>, we start with a single pre-fit model to all the data. We then draw bootstrap replicates of the data used to fit that model, by default sampling the same variants at each concentration (see <code class="docutils literal notranslate"><span class="pre">sample_by</span></code> option of <code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code>). We then fit each of these bootstrapped models starting from the initial values from the pre-fit model on all of the data. Finally, the fit parameters or predictions from the models are summarized.
+Note that mutations may not be present in some bootstrap replicates if they are only in a few variants, and this can be assessed by looking at the <code class="docutils literal notranslate"><span class="pre">frac_boostrap_replicates</span></code> column in the output from <code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
@@ -470,7 +470,9 @@ Note that mutations may not be present in some bootstrap replicates if they are 
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Details on fitting</a></li>

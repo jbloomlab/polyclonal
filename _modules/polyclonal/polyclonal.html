@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 0.1 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -56,6 +56,8 @@
 
 <span class="kn">import</span> <span class="nn">frozendict</span>
 
+<span class="kn">import</span> <span class="nn">natsort</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -64,6 +66,7 @@
 <span class="kn">import</span> <span class="nn">scipy.special</span>
 
 <span class="kn">import</span> <span class="nn">polyclonal</span>
+<span class="kn">import</span> <span class="nn">polyclonal.alphabets</span>
 <span class="kn">import</span> <span class="nn">polyclonal.pdb_utils</span>
 <span class="kn">import</span> <span class="nn">polyclonal.plot</span>
 <span class="kn">import</span> <span class="nn">polyclonal.utils</span>
@@ -76,7 +79,7 @@
 
 
 <div class="viewcode-block" id="PolyclonalHarmonizeError"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalHarmonizeError">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalHarmonizeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Error harmonizing epitopes in :meth:`Polyclonal.harmonize_epitopes_with`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Error harmonizing epitopes in :meth:`Polyclonal.epitope_harmonized_model`.&quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
 
@@ -186,6 +189,13 @@
 <span class="sd">        but *not* a good idea if you are doing bootstrapping.</span>
 <span class="sd">    alphabet : array-like</span>
 <span class="sd">        Allowed characters in mutation strings.</span>
+<span class="sd">    sites : array-like or None</span>
+<span class="sd">        By default, sites are assumed to be sequential integer values are and inferred</span>
+<span class="sd">        from ``data_to_fit`` or ``mut_escape_df``. However, you can also have</span>
+<span class="sd">        non-sequential integer sites, or sites with lower-case letter suffixes</span>
+<span class="sd">        (eg, `214a`) if your protein is numbered against a reference that it has</span>
+<span class="sd">        indels relative to. In that case, provide list of all expected in order</span>
+<span class="sd">        here; we require that order to be natsorted.</span>
 <span class="sd">    epitope_colors : array-like or dict</span>
 <span class="sd">        Maps each epitope to the color used for plotting. Either a dict keyed</span>
 <span class="sd">        by each epitope, or an array of colors that are sequentially assigned</span>
@@ -214,7 +224,11 @@
 <span class="sd">    alphabet : tuple</span>
 <span class="sd">        Allowed characters in mutation strings.</span>
 <span class="sd">    sites : tuple</span>
-<span class="sd">        List of all sites.</span>
+<span class="sd">        List of all sites. These are the sites provided via the ``sites`` parameter,</span>
+<span class="sd">        or inferred from ``data_to_fit`` or ``mut_escape_df`` if that isn&#39;t provided.</span>
+<span class="sd">        If `sequential_integer_sites` is `False`, these are str, otherwise int.</span>
+<span class="sd">    sequential_integer_sites : bool</span>
+<span class="sd">        True if sites are sequential and integer, False otherwise.</span>
 <span class="sd">    wts : dict</span>
 <span class="sd">        Keyed by site, value is wildtype at that site.</span>
 <span class="sd">    epitope_colors : dict</span>
@@ -244,26 +258,26 @@
 <span class="sd">    ...   &#39;epitope&#39;:  [ &#39;e1&#39;,  &#39;e2&#39;,  &#39;e1&#39;,  &#39;e2&#39;,  &#39;e1&#39;,  &#39;e2&#39;,  &#39;e1&#39;,  &#39;e2&#39;],</span>
 <span class="sd">    ...   &#39;escape&#39;:   [  2.0,   0.0,   3.0,   0.0,  0.0,    2.5,   0.0,   1.5],</span>
 <span class="sd">    ...   })</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal = Polyclonal(</span>
+<span class="sd">    &gt;&gt;&gt; model = Polyclonal(</span>
 <span class="sd">    ...     activity_wt_df=activity_wt_df,</span>
 <span class="sd">    ...     mut_escape_df=mut_escape_df,</span>
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.epitopes</span>
+<span class="sd">    &gt;&gt;&gt; model.epitopes</span>
 <span class="sd">    (&#39;e1&#39;, &#39;e2&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.mutations</span>
+<span class="sd">    &gt;&gt;&gt; model.mutations</span>
 <span class="sd">    (&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.mutations_times_seen is None</span>
+<span class="sd">    &gt;&gt;&gt; model.mutations_times_seen is None</span>
 <span class="sd">    True</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.sites</span>
+<span class="sd">    &gt;&gt;&gt; model.sites</span>
 <span class="sd">    (1, 2, 4)</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.wts</span>
+<span class="sd">    &gt;&gt;&gt; model.wts</span>
 <span class="sd">    {1: &#39;M&#39;, 2: &#39;G&#39;, 4: &#39;A&#39;}</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.activity_wt_df</span>
+<span class="sd">    &gt;&gt;&gt; model.activity_wt_df</span>
 <span class="sd">      epitope  activity</span>
 <span class="sd">    0      e1       2.0</span>
 <span class="sd">    1      e2       1.0</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.mut_escape_df</span>
+<span class="sd">    &gt;&gt;&gt; model.mut_escape_df</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape</span>
 <span class="sd">    0      e1     1        M      C      M1C     2.0</span>
 <span class="sd">    1      e1     2        G      A      G2A     3.0</span>
@@ -278,7 +292,7 @@
 
 <span class="sd">    &gt;&gt;&gt; pd.set_option(&quot;display.max_columns&quot;, None)</span>
 <span class="sd">    &gt;&gt;&gt; pd.set_option(&quot;display.width&quot;, 89)</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.mut_escape_site_summary_df()</span>
+<span class="sd">    &gt;&gt;&gt; model.mut_escape_site_summary_df()</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="sd">    0      e1     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
 <span class="sd">    1      e1     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
@@ -317,8 +331,8 @@
 <span class="sd">    Get the escape probabilities predicted on these variants from</span>
 <span class="sd">    the values in the :class:`Polyclonal` object:</span>
 
-<span class="sd">    &gt;&gt;&gt; escape_probs = polyclonal.prob_escape(variants_df=variants_df,</span>
-<span class="sd">    ...                                       concentrations=[1.0, 2.0, 4.0])</span>
+<span class="sd">    &gt;&gt;&gt; escape_probs = model.prob_escape(variants_df=variants_df,</span>
+<span class="sd">    ...                                  concentrations=[1.0, 2.0, 4.0])</span>
 <span class="sd">    &gt;&gt;&gt; escape_probs.round(3)</span>
 <span class="sd">       barcode aa_substitutions  concentration  predicted_prob_escape</span>
 <span class="sd">    0       AA                             1.0                  0.032</span>
@@ -361,7 +375,7 @@
 <span class="sd">    We can also get predicted escape probabilities by including concentrations</span>
 <span class="sd">    in the data frame passed to :meth:`Polyclonal.prob_escape`:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal.prob_escape(</span>
+<span class="sd">    &gt;&gt;&gt; model.prob_escape(</span>
 <span class="sd">    ...         variants_df=pd.concat([variants_df.assign(concentration=c)</span>
 <span class="sd">    ...                                for c in [1.0, 2.0, 4.0]])</span>
 <span class="sd">    ...         ).equals(escape_probs)</span>
@@ -369,7 +383,7 @@
 
 <span class="sd">    We can also compute the IC50s:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal.icXX(variants_df).round(3)</span>
+<span class="sd">    &gt;&gt;&gt; model.icXX(variants_df).round(3)</span>
 <span class="sd">       barcode aa_substitutions   IC50</span>
 <span class="sd">    0       AA                   0.085</span>
 <span class="sd">    1       AC              M1C  0.230</span>
@@ -386,7 +400,7 @@
 
 <span class="sd">    Or the IC90s:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal.icXX(variants_df, x=0.9, col=&#39;IC90&#39;).round(3)</span>
+<span class="sd">    &gt;&gt;&gt; model.icXX(variants_df, x=0.9, col=&#39;IC90&#39;).round(3)</span>
 <span class="sd">       barcode aa_substitutions    IC90</span>
 <span class="sd">    0       AA                    0.464</span>
 <span class="sd">    1       AC              M1C   1.260</span>
@@ -413,7 +427,7 @@
 <span class="sd">    ...         .rename(columns={&#39;predicted_prob_escape&#39;: &#39;prob_escape&#39;})</span>
 <span class="sd">    ...         )</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data = Polyclonal(</span>
+<span class="sd">    &gt;&gt;&gt; model_data = Polyclonal(</span>
 <span class="sd">    ...     data_to_fit=data_to_fit,</span>
 <span class="sd">    ...     n_epitopes=2,</span>
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
@@ -421,19 +435,19 @@
 
 <span class="sd">    The mutations are those in ``data_to_fit``:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.mutations</span>
+<span class="sd">    &gt;&gt;&gt; model_data.mutations</span>
 <span class="sd">    (&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; dict(polyclonal_data.mutations_times_seen)</span>
+<span class="sd">    &gt;&gt;&gt; dict(model_data.mutations_times_seen)</span>
 <span class="sd">    {&#39;G2A&#39;: 6, &#39;M1C&#39;: 6, &#39;A4K&#39;: 4, &#39;A4L&#39;: 3}</span>
 
 <span class="sd">    The activities are evenly spaced from 1 to 0, while the mutation escapes</span>
 <span class="sd">    are all initialized to zero:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.activity_wt_df</span>
+<span class="sd">    &gt;&gt;&gt; model_data.activity_wt_df</span>
 <span class="sd">      epitope  activity</span>
 <span class="sd">    0       1       1.0</span>
 <span class="sd">    1       2       0.0</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_df</span>
+<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_df</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="sd">    0       1     1        M      C      M1C     0.0           6</span>
 <span class="sd">    1       1     2        G      A      G2A     0.0           6</span>
@@ -447,20 +461,20 @@
 <span class="sd">    You can initialize to random numbers by setting ``init_missing`` to seed</span>
 <span class="sd">    (in this example we also don&#39;t include all variants for one concentration):</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data2 = Polyclonal(</span>
+<span class="sd">    &gt;&gt;&gt; model_data2 = Polyclonal(</span>
 <span class="sd">    ...     data_to_fit=data_to_fit.head(30),</span>
 <span class="sd">    ...     n_epitopes=2,</span>
 <span class="sd">    ...     init_missing=1,</span>
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_data2.activity_wt_df.round(3)</span>
+<span class="sd">    &gt;&gt;&gt; model_data2.activity_wt_df.round(3)</span>
 <span class="sd">      epitope  activity</span>
 <span class="sd">    0       1     0.417</span>
 <span class="sd">    1       2     0.720</span>
 
 <span class="sd">    You can set some or all mutation escapes to initial values:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data3 = Polyclonal(</span>
+<span class="sd">    &gt;&gt;&gt; model_data3 = Polyclonal(</span>
 <span class="sd">    ...     data_to_fit=data_to_fit,</span>
 <span class="sd">    ...     activity_wt_df=activity_wt_df,</span>
 <span class="sd">    ...     mut_escape_df=pd.DataFrame({&#39;epitope&#39;: [&#39;e1&#39;],</span>
@@ -469,7 +483,7 @@
 <span class="sd">    ...     data_mut_escape_overlap=&#39;fill_to_data&#39;,</span>
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_data3.mut_escape_df</span>
+<span class="sd">    &gt;&gt;&gt; model_data3.mut_escape_df</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="sd">    0      e1     1        M      C      M1C     4.0           6</span>
 <span class="sd">    1      e1     2        G      A      G2A     0.0           6</span>
@@ -482,7 +496,7 @@
 
 <span class="sd">    You can initialize **sites** to escape values via ``site_activity_df``:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data4 = Polyclonal(</span>
+<span class="sd">    &gt;&gt;&gt; model_data4 = Polyclonal(</span>
 <span class="sd">    ...     data_to_fit=data_to_fit,</span>
 <span class="sd">    ...     activity_wt_df=activity_wt_df,</span>
 <span class="sd">    ...     site_escape_df=pd.DataFrame.from_records(</span>
@@ -493,7 +507,7 @@
 <span class="sd">    ...     data_mut_escape_overlap=&#39;fill_to_data&#39;,</span>
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_data4.mut_escape_df</span>
+<span class="sd">    &gt;&gt;&gt; model_data4.mut_escape_df</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="sd">    0      e1     1        M      C      M1C     1.0           6</span>
 <span class="sd">    1      e1     2        G      A      G2A     0.0           6</span>
@@ -509,32 +523,31 @@
 <span class="sd">    Reduce weight on regularization since there is so little data in this</span>
 <span class="sd">    toy example:</span>
 
-<span class="sd">    &gt;&gt;&gt; for model in [polyclonal_data, polyclonal_data2,</span>
-<span class="sd">    ...               polyclonal_data3, polyclonal_data4]:</span>
-<span class="sd">    ...     opt_res = model.fit(</span>
+<span class="sd">    &gt;&gt;&gt; for m in [model_data, model_data2, model_data3, model_data4]:</span>
+<span class="sd">    ...     opt_res = m.fit(</span>
 <span class="sd">    ...         reg_escape_weight=0.001,</span>
 <span class="sd">    ...         reg_spread_weight=0.001,</span>
 <span class="sd">    ...         reg_activity_weight=0.0001,</span>
 <span class="sd">    ...     )</span>
-<span class="sd">    ...     pred_df = model.prob_escape(variants_df=data_to_fit)</span>
+<span class="sd">    ...     pred_df = m.prob_escape(variants_df=data_to_fit)</span>
 <span class="sd">    ...     if not numpy.allclose(pred_df[&#39;prob_escape&#39;],</span>
 <span class="sd">    ...                           pred_df[&#39;predicted_prob_escape&#39;],</span>
 <span class="sd">    ...                           atol=0.01):</span>
 <span class="sd">    ...          raise ValueError(f&quot;wrong predictions\n{pred_df}&quot;)</span>
 <span class="sd">    ...     if not numpy.allclose(</span>
 <span class="sd">    ...              activity_wt_df[&#39;activity&#39;].sort_values(),</span>
-<span class="sd">    ...              model.activity_wt_df[&#39;activity&#39;].sort_values(),</span>
+<span class="sd">    ...              m.activity_wt_df[&#39;activity&#39;].sort_values(),</span>
 <span class="sd">    ...              atol=0.1,</span>
 <span class="sd">    ...              ):</span>
-<span class="sd">    ...          raise ValueError(f&quot;wrong activities\n{model.activity_wt_df}&quot;)</span>
+<span class="sd">    ...          raise ValueError(f&quot;wrong activities\n{m.activity_wt_df}&quot;)</span>
 <span class="sd">    ...     if not numpy.allclose(</span>
 <span class="sd">    ...              mut_escape_df[&#39;escape&#39;].sort_values(),</span>
-<span class="sd">    ...              model.mut_escape_df[&#39;escape&#39;].sort_values(),</span>
+<span class="sd">    ...              m.mut_escape_df[&#39;escape&#39;].sort_values(),</span>
 <span class="sd">    ...              atol=0.05,</span>
 <span class="sd">    ...              ):</span>
-<span class="sd">    ...          raise ValueError(f&quot;wrong escapes\n{model.mut_escape_df}&quot;)</span>
+<span class="sd">    ...          raise ValueError(f&quot;wrong escapes\n{m.mut_escape_df}&quot;)</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_site_summary_df().round(1)</span>
+<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df().round(1)</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
@@ -542,7 +555,7 @@
 <span class="sd">    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
 <span class="sd">    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
 <span class="sd">    5       2     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_site_summary_df(min_times_seen=4).round(1)</span>
+<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df(min_times_seen=4).round(1)</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
@@ -554,7 +567,7 @@
 <span class="sd">    You can also exclude mutations to specific characters (typically you would want to</span>
 <span class="sd">    do this for stop codons and/or gaps):</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.mut_escape_site_summary_df(exclude_chars={&quot;C&quot;, &quot;K&quot;}).round(1)</span>
+<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df(exclude_chars={&quot;C&quot;, &quot;K&quot;}).round(1)</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="sd">    0       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    1       1     4        A   1.5             1.5  1.5  1.5             0.0            1</span>
@@ -569,10 +582,10 @@
 <span class="sd">    track of whether or not sites are mutated using a 2-letter wildtype/mutant</span>
 <span class="sd">    alphabet, and is generated using :meth:`Polyclonal.site_level_model`:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_site = polyclonal_data4.site_level_model()</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_site.alphabet</span>
+<span class="sd">    &gt;&gt;&gt; model_site = model_data4.site_level_model()</span>
+<span class="sd">    &gt;&gt;&gt; model_site.alphabet</span>
 <span class="sd">    (&#39;w&#39;, &#39;m&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; (polyclonal_site.mut_escape_df</span>
+<span class="sd">    &gt;&gt;&gt; (model_site.mut_escape_df</span>
 <span class="sd">    ...  .assign(escape=lambda x: x[&#39;escape&#39;].abs()).round(1))</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="sd">    0      e1     1        w      m      w1m     2.0           5</span>
@@ -581,7 +594,7 @@
 <span class="sd">    3      e2     1        w      m      w1m     0.0           5</span>
 <span class="sd">    4      e2     2        w      m      w2m     0.0           6</span>
 <span class="sd">    5      e2     4        w      m      w4m     2.0           7</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal_site.data_to_fit.head(n=5).round(3)</span>
+<span class="sd">    &gt;&gt;&gt; model_site.data_to_fit.head(n=5).round(3)</span>
 <span class="sd">       concentration aa_substitutions  weight  prob_escape</span>
 <span class="sd">    0            1.0                        1        0.032</span>
 <span class="sd">    1            1.0              w1m       1        0.134</span>
@@ -592,12 +605,13 @@
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 <span class="sd">    Epitope assignments are arbitrary, so you can calculate correlations</span>
-<span class="sd">    among their mutation-escape values and align them.</span>
+<span class="sd">    among their mutation-escape values and create harmonized models that use</span>
+<span class="sd">    the same label to refer to epitopes with similar mutation-escape values.</span>
 
 <span class="sd">    First, correlations of a model to itself:</span>
 
-<span class="sd">    &gt;&gt;&gt; ref_poly = copy.deepcopy(polyclonal)</span>
-<span class="sd">    &gt;&gt;&gt; polyclonal.mut_escape_corr(ref_poly).round(3)</span>
+<span class="sd">    &gt;&gt;&gt; ref_model = copy.deepcopy(model)</span>
+<span class="sd">    &gt;&gt;&gt; model.mut_escape_corr(ref_model).round(3)</span>
 <span class="sd">      ref_epitope self_epitope  correlation</span>
 <span class="sd">    0          e1           e1        1.000</span>
 <span class="sd">    1          e1           e2       -0.907</span>
@@ -606,7 +620,7 @@
 
 <span class="sd">    Make another model with epitope assignments inverted and a few mutations missing:</span>
 
-<span class="sd">    &gt;&gt;&gt; inverted_poly = Polyclonal(</span>
+<span class="sd">    &gt;&gt;&gt; inverted_model = Polyclonal(</span>
 <span class="sd">    ...     activity_wt_df=(</span>
 <span class="sd">    ...         activity_wt_df</span>
 <span class="sd">    ...         .assign(epitope=lambda x: x[&quot;epitope&quot;].map({&quot;e1&quot;: &quot;e2&quot;, &quot;e2&quot;: &quot;e1&quot;}))</span>
@@ -617,42 +631,43 @@
 <span class="sd">    ...         .assign(epitope=lambda x: x[&quot;epitope&quot;].map({&quot;e1&quot;: &quot;e2&quot;, &quot;e2&quot;: &quot;e1&quot;}))</span>
 <span class="sd">    ...     ),</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; inverted_poly.mut_escape_corr(ref_poly).round(3)</span>
+<span class="sd">    &gt;&gt;&gt; inverted_model.mut_escape_corr(ref_model).round(3)</span>
 <span class="sd">      ref_epitope self_epitope  correlation</span>
-<span class="sd">    0          e1           e2        1.000</span>
-<span class="sd">    1          e1           e1       -0.945</span>
-<span class="sd">    2          e2           e2       -0.945</span>
-<span class="sd">    3          e2           e1        1.000</span>
+<span class="sd">    0          e1           e1       -0.945</span>
+<span class="sd">    1          e1           e2        1.000</span>
+<span class="sd">    2          e2           e1        1.000</span>
+<span class="sd">    3          e2           e2       -0.945</span>
 
-<span class="sd">    Now actually harmonize the epitopes</span>
+<span class="sd">    Now actually get epitope-harmonized models:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal.harmonize_epitopes_with(ref_poly)</span>
+<span class="sd">    &gt;&gt;&gt; model_harmonized, harmonize_df = model.epitope_harmonized_model(ref_model)</span>
+<span class="sd">    &gt;&gt;&gt; harmonize_df</span>
 <span class="sd">      self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
 <span class="sd">    0                   e1                      e1          e1          1.0</span>
 <span class="sd">    1                   e2                      e2          e2          1.0</span>
+<span class="sd">    &gt;&gt;&gt; assert model.mut_escape_df.equals(model_harmonized.mut_escape_df)</span>
 
-<span class="sd">    &gt;&gt;&gt; inverted_poly.harmonize_epitopes_with(ref_poly)</span>
+<span class="sd">    &gt;&gt;&gt; inverted_harmonized, harmonize_df = inverted_model.epitope_harmonized_model(</span>
+<span class="sd">    ...     ref_model</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; harmonize_df</span>
 <span class="sd">      self_initial_epitope self_harmonized_epitope ref_epitope  correlation</span>
 <span class="sd">    0                   e1                      e2          e2          1.0</span>
 <span class="sd">    1                   e2                      e1          e1          1.0</span>
-
-<span class="sd">    The order of the epitopes have been switched after harmonization:</span>
-
-<span class="sd">    &gt;&gt;&gt; inverted_poly.epitopes</span>
-<span class="sd">    [&#39;e1&#39;, &#39;e2&#39;]</span>
-
-<span class="sd">    &gt;&gt;&gt; inverted_poly.mut_escape_corr(ref_poly).round(3)</span>
-<span class="sd">      ref_epitope self_epitope  correlation</span>
-<span class="sd">    0          e1           e1        1.000</span>
-<span class="sd">    1          e1           e2       -0.945</span>
-<span class="sd">    2          e2           e1       -0.945</span>
-<span class="sd">    3          e2           e2        1.000</span>
+<span class="sd">    &gt;&gt;&gt; inverted_harmonized.mut_escape_df</span>
+<span class="sd">      epitope  site wildtype mutant mutation  escape</span>
+<span class="sd">    0      e1     1        M      C      M1C     2.0</span>
+<span class="sd">    1      e1     2        G      A      G2A     3.0</span>
+<span class="sd">    2      e1     4        A      L      A4L     0.0</span>
+<span class="sd">    3      e2     1        M      C      M1C     0.0</span>
+<span class="sd">    4      e2     2        G      A      G2A     0.0</span>
+<span class="sd">    5      e2     4        A      L      A4L     1.5</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 <span class="sd">    Filter variants by how often they are seen in data:</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.filter_variants_by_seen_muts(variants_df)</span>
+<span class="sd">    &gt;&gt;&gt; model_data.filter_variants_by_seen_muts(variants_df)</span>
 <span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
 <span class="sd">       barcode aa_substitutions</span>
 <span class="sd">    0       AA</span>
@@ -668,7 +683,7 @@
 <span class="sd">    10      TG      M1C G2A A4L</span>
 <span class="sd">    11      GA              M1C</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=5)</span>
+<span class="sd">    &gt;&gt;&gt; model_data.filter_variants_by_seen_muts(variants_df, min_times_seen=5)</span>
 <span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
 <span class="sd">      barcode aa_substitutions</span>
 <span class="sd">    0      AA</span>
@@ -677,7 +692,7 @@
 <span class="sd">    3      CA          M1C G2A</span>
 <span class="sd">    4      GA              M1C</span>
 
-<span class="sd">    &gt;&gt;&gt; polyclonal_data.filter_variants_by_seen_muts(variants_df, min_times_seen=4)</span>
+<span class="sd">    &gt;&gt;&gt; model_data.filter_variants_by_seen_muts(variants_df, min_times_seen=4)</span>
 <span class="sd">    ... # doctest: +NORMALIZE_WHITESPACE</span>
 <span class="sd">      barcode aa_substitutions</span>
 <span class="sd">    0      AA</span>
@@ -703,6 +718,7 @@
         <span class="n">n_epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">alphabet</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS</span><span class="p">,</span>
+        <span class="n">sites</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">epitope_colors</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">TAB10_COLORS_NOGRAY</span><span class="p">,</span>
         <span class="n">init_missing</span><span class="o">=</span><span class="s2">&quot;zero&quot;</span><span class="p">,</span>
         <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;exact_match&quot;</span><span class="p">,</span>
@@ -713,10 +729,29 @@
         <span class="k">elif</span> <span class="n">init_missing</span> <span class="o">!=</span> <span class="s2">&quot;zero&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">init_missing</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">sites</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sites</span> <span class="o">!=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">natsort</span><span class="o">.</span><span class="n">natsorted</span><span class="p">(</span><span class="n">sites</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`sites` not natsorted&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">)</span> <span class="ow">or</span> <span class="n">sites</span> <span class="o">!=</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="nb">range</span><span class="p">(</span><span class="n">sites</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sites</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">sites</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="o">=</span> <span class="kc">True</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">alphabet</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">alphabet</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;duplicate letters in `alphabet`&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mutparser</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">MutationParser</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mutparser</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">MutationParser</span><span class="p">(</span>
+            <span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">letter_suffixed_sites</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># get any epitope labels as str, not int</span>
         <span class="k">if</span> <span class="n">activity_wt_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -788,7 +823,7 @@
                 <span class="s2">&quot;and `mut_escape_df` or `site_escape_df`&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">epitope_colors</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span> <span class="o">=</span> <span class="p">{</span><span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">epitope_colors</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">}</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">epitope_colors</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;not enough `epitope_colors`&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -811,6 +846,8 @@
         <span class="c1"># get wildtype, sites, and mutations</span>
         <span class="k">if</span> <span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">wts2</span><span class="p">,</span> <span class="n">sites2</span><span class="p">,</span> <span class="n">muts2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_muts_from_data_to_fit</span><span class="p">(</span><span class="n">data_to_fit</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sites in `data_to_fit` not all in `sites`&quot;</span><span class="p">)</span>
             <span class="n">times_seen</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">data_to_fit</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span>
                 <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
@@ -832,6 +869,10 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">req_cols</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">site_escape_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`site_escape_df` lacks columns </span><span class="si">{</span><span class="n">req_cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">assert</span> <span class="p">(</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+                <span class="n">site_escape_df</span> <span class="o">=</span> <span class="n">site_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">site_escape_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`site_escape_df` has unrecognized epitopes&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">site_escape_df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
@@ -860,26 +901,33 @@
 
         <span class="k">if</span> <span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">wts</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">muts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_muts_from_mut_escape_df</span><span class="p">(</span><span class="n">mut_escape_df</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`mut_escape_df` has sites not in `sites`&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;initialize `mut_escape_df` or `data_to_fit`&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">wts2</span><span class="p">,</span> <span class="n">sites2</span><span class="p">,</span> <span class="n">muts2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">wts2</span><span class="p">,</span> <span class="n">muts2</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
             <span class="n">mut_escape_df</span> <span class="o">=</span> <span class="n">_init_mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">wts</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">muts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">wts</span><span class="p">,</span> <span class="n">muts</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;exact_match&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">sites</span> <span class="o">==</span> <span class="n">sites2</span> <span class="ow">and</span> <span class="n">wts</span> <span class="o">==</span> <span class="n">wts2</span> <span class="ow">and</span> <span class="n">muts</span> <span class="o">==</span> <span class="n">muts2</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">wts</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">muts</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span> <span class="o">=</span> <span class="n">wts</span><span class="p">,</span> <span class="n">muts</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;`data_to_fit` and `mut_escape_df` give &quot;</span>
-                        <span class="s2">&quot;different mutations. Fix or set &quot;</span>
-                        <span class="s1">&#39;data_mut_escape_overlap=&quot;fill_to_data&quot;&#39;</span>
+                        <span class="s2">&quot;`data_to_fit` and `mut_escape_df` give different mutations. &quot;</span>
+                        <span class="s2">&quot;Fix or set data_mut_escape_overlap=&#39;fill_to_data&#39;&quot;</span>
                     <span class="p">)</span>
             <span class="k">elif</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;fill_to_data&quot;</span><span class="p">:</span>
                 <span class="c1"># sites are in mut_escape_df, sites2 in data_to_fit</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -907,7 +955,7 @@
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;prune_to_data&quot;</span><span class="p">:</span>
                 <span class="c1"># sites are in mut_escape_df, sites2 in data_to_fit</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -987,10 +1035,14 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;weight&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="s2">&quot;weight&quot;</span>
+            <span class="p">)</span>  <span class="c1"># will be overwritten if `collapse_identical_variants`</span>
         <span class="k">if</span> <span class="n">get_pv</span><span class="p">:</span>
             <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;prob_escape&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;null entries in data frame of variants:</span><span class="se">\n</span><span class="si">{</span><span class="n">df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;null entries in data frame of variants:</span><span class="se">\n</span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">collapse_identical_variants</span><span class="p">:</span>
             <span class="n">agg_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">}</span>
             <span class="k">if</span> <span class="n">get_pv</span><span class="p">:</span>
@@ -1102,8 +1154,8 @@
                 <span class="k">elif</span> <span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wt</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inconsistent wildtype for site </span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">mutations</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mutation</span><span class="p">)</span>
-        <span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="n">wts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">natsort</span><span class="o">.</span><span class="n">natsorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">wts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natsort</span><span class="o">.</span><span class="n">natsorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
         <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">mutations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">wts</span><span class="p">)</span>
         <span class="n">char_order</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)}</span>
         <span class="n">mutations</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
@@ -1124,8 +1176,8 @@
             <span class="k">elif</span> <span class="n">wts</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wt</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inconsistent wildtype for site </span><span class="si">{</span><span class="n">site</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">mutations</span><span class="p">[</span><span class="n">site</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mutation</span><span class="p">)</span>
-        <span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="n">wts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">natsort</span><span class="o">.</span><span class="n">natsorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">wts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">natsort</span><span class="o">.</span><span class="n">natsorted</span><span class="p">(</span><span class="n">wts</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
         <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">mutations</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">wts</span><span class="p">)</span>
         <span class="n">char_order</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)}</span>
         <span class="n">mutations</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
@@ -1321,11 +1373,13 @@
             <span class="n">site_data_to_fit</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">site_level_variants</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">,</span>
                 <span class="n">original_alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+                <span class="n">letter_suffixed_sites</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="n">site_escape_df</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">site_level_variants</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;mutation&quot;</span><span class="p">:</span> <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">}),</span>
                 <span class="n">original_alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+                <span class="n">letter_suffixed_sites</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">:</span> <span class="s2">&quot;mutation&quot;</span><span class="p">})</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1336,6 +1390,7 @@
             <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">site_escape_df</span><span class="p">,</span>
             <span class="n">data_to_fit</span><span class="o">=</span><span class="n">site_data_to_fit</span><span class="p">,</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
+            <span class="n">sites</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span>
             <span class="n">epitope_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
             <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="n">collapse_identical_variants</span><span class="p">,</span>
         <span class="p">)</span></div>
@@ -1751,17 +1806,22 @@
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mut_escape_site_summary_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span>
             <span class="n">min_times_seen</span><span class="o">=</span><span class="n">min_times_seen</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
         <span class="k">if</span> <span class="s2">&quot;epitope_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;epitope_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
         <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_lineplot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Polyclonal.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Polyclonal.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        biochem_order_aas : bool</span>
+<span class="sd">            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`</span>
+<span class="sd">            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`.</span>
 
@@ -1772,10 +1832,16 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mut_escape_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span>
+        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
         <span class="k">if</span> <span class="s2">&quot;epitope_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;epitope_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
         <span class="k">if</span> <span class="s2">&quot;alphabet&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
+        <span class="k">if</span> <span class="n">biochem_order_aas</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">alphabets</span><span class="o">.</span><span class="n">biochem_order_aas</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -1873,17 +1939,21 @@
         <span class="k">for</span> <span class="n">variant</span><span class="p">,</span> <span class="n">exp_phi_e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">variants</span><span class="p">,</span> <span class="n">exp_phi_e_v</span><span class="p">):</span>
             <span class="k">assert</span> <span class="n">exp_phi_e</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
 
-            <span class="k">def</span> <span class="nf">_func</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
-                <span class="n">pv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">exp_phi_e</span><span class="p">))</span>
+            <span class="k">def</span> <span class="nf">_func</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">expterm</span><span class="p">):</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">expterm</span><span class="p">))</span>
                 <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">pv</span>
 
-            <span class="k">if</span> <span class="n">_func</span><span class="p">(</span><span class="n">min_c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_func</span><span class="p">(</span><span class="n">min_c</span><span class="p">,</span> <span class="n">exp_phi_e</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">ic</span> <span class="o">=</span> <span class="n">min_c</span>
-            <span class="k">elif</span> <span class="n">_func</span><span class="p">(</span><span class="n">max_c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">_func</span><span class="p">(</span><span class="n">max_c</span><span class="p">,</span> <span class="n">exp_phi_e</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">ic</span> <span class="o">=</span> <span class="n">max_c</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">sol</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">root_scalar</span><span class="p">(</span>
-                    <span class="n">_func</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bracket</span><span class="o">=</span><span class="p">(</span><span class="n">min_c</span><span class="p">,</span> <span class="n">max_c</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;brenth&quot;</span>
+                    <span class="n">_func</span><span class="p">,</span>
+                    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">exp_phi_e</span><span class="p">,),</span>
+                    <span class="n">x0</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">bracket</span><span class="o">=</span><span class="p">(</span><span class="n">min_c</span><span class="p">,</span> <span class="n">max_c</span><span class="p">),</span>
+                    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;brenth&quot;</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">ic</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">root</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sol</span><span class="o">.</span><span class="n">converged</span><span class="p">:</span>
@@ -2024,6 +2094,7 @@
             <span class="n">substitutions_col</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span>
             <span class="n">allowed_subs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">,</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">sites_as_str</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">all_subs</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -2038,78 +2109,77 @@
 <span class="sd">        For each epitope, how well is this model&#39;s mutation-escape values</span>
 <span class="sd">        correlation with another model?</span>
 
-<span class="sd">        In the situation where a mutation is only seen by one model, we exclude</span>
-<span class="sd">        that mutation from correlation calculations (i.e., we omit the rows</span>
-<span class="sd">        where either `escape_x` and `escape_y` of the merged df contain None.)</span>
+<span class="sd">        Mutations present in only one model are ignored.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ------------</span>
 <span class="sd">        ref_poly : :class:`Polyclonal`</span>
-<span class="sd">            The other (reference) polyclonal object with which we calculate the</span>
-<span class="sd">            correlation of mutation-escape values between all pairwise combinations of</span>
-<span class="sd">            epitopes.</span>
+<span class="sd">            Other (reference) polyclonal model with which we calculate correlations.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        ---------</span>
 <span class="sd">        corr_df : pandas.DataFrame</span>
 <span class="sd">            Pairwise epitope correlations for escape.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Both models should have `mut_escape_df` initialized</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both objects must have `mut_escape_df` initialized.&quot;</span><span class="p">)</span>
 
-        <span class="n">corr_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">model_ref_e</span><span class="p">,</span> <span class="n">model_self_e</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
-            <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
-                <span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s2">&quot;self&quot;</span><span class="p">),</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]))</span>
+                <span class="p">),</span>
+                <span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s2">&quot;ref&quot;</span><span class="p">),</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]))</span>
+                <span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">tidy_to_corr</span><span class="p">(</span>
+                <span class="n">df</span><span class="p">,</span>
+                <span class="n">sample_col</span><span class="o">=</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+                <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span>
+                <span class="n">value_col</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="p">):</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;epitope == &quot;</span><span class="si">{</span><span class="n">model_ref_e</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;`epitope` == &quot;</span><span class="si">{</span><span class="n">model_self_e</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)),</span>
-                <span class="n">on</span><span class="o">=</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span>
-                <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">,</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">ref_epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope_2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">ref_model</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope_2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="n">self_epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope_1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">self_model</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope_1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
             <span class="p">)</span>
+            <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;ref_model != self_model&quot;</span><span class="p">)[</span>
+                <span class="p">[</span><span class="s2">&quot;ref_epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;self_epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;correlation&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
 
-            <span class="n">corr</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;escape_x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;escape_y&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">corr</span></div>
 
-            <span class="n">corr_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="n">corr_df</span><span class="p">,</span>
-                    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-                        <span class="n">data</span><span class="o">=</span><span class="p">{</span>
-                            <span class="s2">&quot;ref_epitope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">model_ref_e</span><span class="p">],</span>
-                            <span class="s2">&quot;self_epitope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">model_self_e</span><span class="p">],</span>
-                            <span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">corr</span><span class="p">],</span>
-                        <span class="p">}</span>
-                    <span class="p">),</span>
-                <span class="p">]</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">corr_df</span></div>
-
-<div class="viewcode-block" id="Polyclonal.harmonize_epitopes_with"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.harmonize_epitopes_with">[docs]</a>    <span class="k">def</span> <span class="nf">harmonize_epitopes_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Harmonize epitope labels with another polyclonal object.</span>
+<div class="viewcode-block" id="Polyclonal.epitope_harmonized_model"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.epitope_harmonized_model">[docs]</a>    <span class="k">def</span> <span class="nf">epitope_harmonized_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a copy of model with epitopes &quot;harmonized&quot; with a reference model.</span>
 
 <span class="sd">        Epitopes are unidentifiable, meaning there is no guarantee that we will assign</span>
 <span class="sd">        the same epitope labels across multiple models fit to similar data. This</span>
-<span class="sd">        function aligns the epitope labels of the current :class:`Polyclonal` object</span>
-<span class="sd">        with those of another model with the same epitope labels.</span>
-
-<span class="sd">        The harmonization is done simply by re-ordering the epitope labels</span>
-<span class="sd">        in :attr:`Polyclonal.epitopes`. The epitopes will be matched by label,</span>
-<span class="sd">        but not necessarily by order in :attr:`Polyclonal.epitopes`.</span>
+<span class="sd">        function returns a copy of the current model where the epitope labels are</span>
+<span class="sd">        harmonized with those of another model with the same epitope labels. The</span>
+<span class="sd">        harmonization is done by putting into correspondence the epitopes with</span>
+<span class="sd">        the best correlated mutation-escape values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        -----------</span>
 <span class="sd">        ref_poly : :class:`Polyclonal`</span>
-<span class="sd">            The reference polyclonal object to align epitope labels with.</span>
+<span class="sd">            The reference polyclonal object to harmonize epitope labels with.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        --------</span>
-<span class="sd">        pandas.DataFrame</span>
-<span class="sd">            Has columns &#39;self_initial_epitope&#39;, &#39;self_harmonized_epitope&#39;,</span>
-<span class="sd">            &#39;ref_epitope&#39;, &#39;correlation&#39;.</span>
+<span class="sd">        harmonized_model, harmonize_df : tuple</span>
+<span class="sd">            `harmonized_model` is a :class:`Polyclonal` object that is a copy of</span>
+<span class="sd">            the current model but with epitopes harmonized, and</span>
+<span class="sd">            :attr:`Polyclonal.epitope_colors` taken from `ref_poly`. `harmonize_df`</span>
+<span class="sd">            is a `pandas.DataFrame` that shows how the epitopes were re-assigned</span>
+<span class="sd">            and the correlations in their escape values.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -2119,8 +2189,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
-                <span class="s2">&quot;The two models being aligned do not have the same epitope labels: &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="si">}</span><span class="s2"> versus </span><span class="si">{</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;The models being harmonized have different epitope labels:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="si">=}</span><span class="se">\n</span><span class="si">{</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="si">=}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="o">!=</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
+                <span class="s2">&quot;Models being harmonized don&#39;t have same `sequential_integer_sites`&quot;</span>
             <span class="p">)</span>
 
         <span class="n">corr_df</span> <span class="o">=</span> <span class="p">(</span>
@@ -2129,7 +2204,7 @@
             <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="n">map_df</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">harmonize_df</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">corr_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;self_epitope&quot;</span><span class="p">:</span> <span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">})</span>
             <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="o">.</span><span class="n">first</span><span class="p">()</span>  <span class="c1"># will be row with highest correlation after sorting above</span>
@@ -2142,22 +2217,44 @@
                 <span class="p">]</span>
             <span class="p">]</span>
         <span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">map_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">harmonize_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
             <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
-            <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">map_df</span><span class="p">[</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">])</span>
-            <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">map_df</span><span class="p">[</span><span class="s2">&quot;self_harmonized_epitope&quot;</span><span class="p">])</span>
+            <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">harmonize_df</span><span class="p">[</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">])</span>
+            <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">harmonize_df</span><span class="p">[</span><span class="s2">&quot;self_harmonized_epitope&quot;</span><span class="p">])</span>
         <span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;epitopes do not match 1-to-1:</span><span class="se">\n</span><span class="si">{</span><span class="n">corr_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">PolyclonalHarmonizeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;cannot harmonize 1-to-1:</span><span class="se">\n</span><span class="si">{</span><span class="n">corr_df</span><span class="si">=}</span><span class="se">\n</span><span class="si">{</span><span class="n">harmonize_df</span><span class="si">=}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
-        <span class="n">map_dict</span> <span class="o">=</span> <span class="n">map_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">)[</span>
+        <span class="n">map_dict</span> <span class="o">=</span> <span class="n">harmonize_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;self_initial_epitope&quot;</span><span class="p">)[</span>
             <span class="s2">&quot;self_harmonized_epitope&quot;</span>
         <span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">map_dict</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">map_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">=</span> <span class="p">[</span><span class="n">map_dict</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">]</span>
+        <span class="c1"># for sorting epitopes</span>
+        <span class="n">epitope_order</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)}</span>
 
-        <span class="k">return</span> <span class="n">map_df</span></div></div>
+        <span class="n">harmonized_model</span> <span class="o">=</span> <span class="n">Polyclonal</span><span class="p">(</span>
+            <span class="n">activity_wt_df</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">map_dict</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">epitope_order</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">mut_escape_df</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">map_dict</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">epitope_order</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">data_to_fit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">,</span>
+            <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># already collapsed if this done for self</span>
+            <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+            <span class="n">epitope_colors</span><span class="o">=</span><span class="n">ref_poly</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;exact_match&quot;</span><span class="p">,</span>  <span class="c1"># should be exact match in self</span>
+            <span class="n">sites</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">ref_poly</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">==</span> <span class="n">harmonized_model</span><span class="o">.</span><span class="n">epitopes</span>
+        <span class="k">return</span> <span class="n">harmonized_model</span><span class="p">,</span> <span class="n">harmonize_df</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
@@ -2208,7 +2305,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_REGN10933_mAb.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
