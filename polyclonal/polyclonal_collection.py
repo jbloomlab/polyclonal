@@ -21,6 +21,8 @@ import multiprocessing
 from functools import partial
 from itertools import repeat
 
+import natsort
+
 import pandas as pd
 
 import polyclonal
@@ -406,6 +408,7 @@ class PolyclonalCollection:
             self.mut_escape_df_replicates.groupby(
                 ["epitope", "site", "wildtype", "mutant", "mutation"],
                 as_index=False,
+                sort=False,
             )
             .aggregate(**aggs)
             .assign(
@@ -619,7 +622,9 @@ class PolyclonalCollection:
                 var_name="metric",
                 value_name="escape",
             )
-            .groupby(["epitope", "site", "wildtype", "metric"], as_index=False)
+            .groupby(
+                ["epitope", "site", "wildtype", "metric"], as_index=False, sort=False,
+            )
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
                 escape_median=pd.NamedAgg("escape", "median"),
