@@ -21,8 +21,6 @@ import multiprocessing
 from functools import partial
 from itertools import repeat
 
-import natsort
-
 import pandas as pd
 
 import polyclonal
@@ -623,7 +621,9 @@ class PolyclonalCollection:
                 value_name="escape",
             )
             .groupby(
-                ["epitope", "site", "wildtype", "metric"], as_index=False, sort=False,
+                ["epitope", "site", "wildtype", "metric"],
+                as_index=False,
+                sort=False,
             )
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
