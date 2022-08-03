@@ -346,7 +346,9 @@ class PolyclonalCollection:
     def activity_wt_df(self):
         """pandas.DataFrame: Epitope activities summarized across models."""
         return self.activity_wt_df_replicates.groupby(
-            "epitope", as_index=False
+            "epitope",
+            as_index=False,
+            sort=False,
         ).aggregate(
             activity_mean=pd.NamedAgg("activity", "mean"),
             activity_median=pd.NamedAgg("activity", "median"),
@@ -404,13 +406,34 @@ class PolyclonalCollection:
             aggs["times_seen"] = pd.NamedAgg("times_seen", "mean")
         return (
             self.mut_escape_df_replicates.groupby(
-                ["epitope", "site", "wildtype", "mutant", "mutation"],
-                as_index=False,
-                sort=False,
+                ["epitope", "site", "wildtype", "mutant", "mutation"], as_index=False
             )
             .aggregate(**aggs)
             .assign(
                 frac_models=lambda x: x["n_models"] / len(self.models),
+                # make categorical to sort, then return to originalt type
+                epitope=lambda x: pd.Categorical(
+                    x["epitope"],
+                    self.epitopes,
+                    ordered=True,
+                ),
+                site=lambda x: pd.Categorical(
+                    x["site"],
+                    None if self.sequential_integer_sites else self.sites,
+                    ordered=None if self.sequential_integer_sites else True,
+                ),
+                mutant=lambda x: pd.Categorical(
+                    x["mutant"],
+                    self.alphabet,
+                    ordered=True,
+                ),
+            )
+            .sort_values(["epitope", "site", "mutant"])
+            .reset_index(drop=True)
+            .assign(
+                epitope=lambda x: x["epitope"].tolist(),
+                site=lambda x: x["site"].tolist(),
+                mutant=lambda x: x["mutant"].tolist(),
             )
         )
 
@@ -623,7 +646,6 @@ class PolyclonalCollection:
             .groupby(
                 ["epitope", "site", "wildtype", "metric"],
                 as_index=False,
-                sort=False,
             )
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
@@ -638,6 +660,25 @@ class PolyclonalCollection:
                 df.groupby(["epitope", "site"]).aggregate({"n mutations": "mean"}),
                 on=["epitope", "site"],
                 validate="many_to_one",
+            )
+            # make categorical to sort, then unsort
+            .assign(
+                epitope=lambda x: pd.Categorical(
+                    x["epitope"],
+                    self.epitopes,
+                    ordered=True,
+                ),
+                site=lambda x: pd.Categorical(
+                    x["site"],
+                    None if self.sequential_integer_sites else self.sites,
+                    ordered=None if self.sequential_integer_sites else True,
+                ),
+            )
+            .sort_values(["epitope", "site"])
+            .reset_index(drop=True)
+            .assign(
+                epitope=lambda x: x["epitope"].tolist(),
+                site=lambda x: x["site"].tolist(),
             )
         )
 
