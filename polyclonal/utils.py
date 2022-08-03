@@ -24,7 +24,7 @@ class MutationParser:
         Valid single-character letters in alphabet.
     letter_suffixed_sites : bool
         Allow sites suffixed by lowercase letters, such as "214a". In this case, returned
-        sites from :method:`MutationParser.parse_mut` are str.
+        sites from :meth:`MutationParser.parse_mut` are str.
 
     Example
     -------
