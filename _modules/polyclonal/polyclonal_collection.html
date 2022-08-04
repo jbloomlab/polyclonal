@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal_collection &#8212; polyclonal 1.0 documentation</title>
+    <title>polyclonal.polyclonal_collection &#8212; polyclonal 1.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -381,7 +381,9 @@
     <span class="k">def</span> <span class="nf">activity_wt_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities summarized across models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
-            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
             <span class="n">activity_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
             <span class="n">activity_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
@@ -439,12 +441,34 @@
             <span class="n">aggs</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;times_seen&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
-                <span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">],</span>
-                <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;mutation&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">**</span><span class="n">aggs</span><span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
                 <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
+                <span class="c1"># make categorical to sort, then return to originalt type</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">],</span>
+                    <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -654,7 +678,10 @@
                 <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;metric&quot;</span><span class="p">,</span>
                 <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span>
+                <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
                 <span class="n">escape_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
                 <span class="n">escape_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
@@ -668,6 +695,25 @@
                 <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">aggregate</span><span class="p">({</span><span class="s2">&quot;n mutations&quot;</span><span class="p">:</span> <span class="s2">&quot;mean&quot;</span><span class="p">}),</span>
                 <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">],</span>
                 <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="c1"># make categorical to sort, then unsort</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">],</span>
+                    <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;site&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
             <span class="p">)</span>
         <span class="p">)</span></div>
 
