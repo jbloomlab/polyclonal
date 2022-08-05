@@ -9,7 +9,7 @@ Defines :class:`PolyclonalCollection` for handling collections of multiple
 :class:`PolyclonalCollection` is a base class for the following specific use-case
 classes:
 
- - :class:`PolyclonalAverage` for bootstrapping a model.
+ - :class:`PolyclonalAverage` for averaging several Polyclonal objects.
 
  - :class:`PolyclonalBootstrap` for bootstrapping a model.
 
