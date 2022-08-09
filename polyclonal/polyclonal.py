@@ -696,7 +696,7 @@ class Polyclonal:
 
         if sites is not None:
             sites = tuple(sites)
-            if sites != tuple(natsort.natsorted(sites)):
+            if sites != tuple(natsort.natsorted(sites, alg=natsort.ns.SIGNED)):
                 raise ValueError("`sites` not natsorted")
             if any(type(r) != int for r in sites) or sites != tuple(
                 range(sites[0], sites[-1] + 1)
@@ -1119,8 +1119,8 @@ class Polyclonal:
                 elif wts[site] != wt:
                     raise ValueError(f"inconsistent wildtype for site {site}")
                 mutations[site].add(mutation)
-        sites = tuple(natsort.natsorted(wts.keys()))
-        wts = dict(natsort.natsorted(wts.items()))
+        sites = tuple(natsort.natsorted(wts.keys(), alg=natsort.ns.SIGNED))
+        wts = dict(natsort.natsorted(wts.items(), alg=natsort.ns.SIGNED))
         assert set(mutations.keys()) == set(sites) == set(wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         mutations = tuple(
@@ -1141,8 +1141,8 @@ class Polyclonal:
             elif wts[site] != wt:
                 raise ValueError(f"inconsistent wildtype for site {site}")
             mutations[site].add(mutation)
-        sites = tuple(natsort.natsorted(wts.keys()))
-        wts = dict(natsort.natsorted(wts.items()))
+        sites = tuple(natsort.natsorted(wts.keys(), alg=natsort.ns.SIGNED))
+        wts = dict(natsort.natsorted(wts.items(), alg=natsort.ns.SIGNED))
         assert set(mutations.keys()) == set(sites) == set(wts)
         char_order = {c: i for i, c in enumerate(self.alphabet)}
         mutations = tuple(

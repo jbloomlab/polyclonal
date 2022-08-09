@@ -52,6 +52,9 @@ class MutationParser:
     >>> mutparser_letter_suffix.parse_mut('E214aA')
     ('E', '214a', 'A')
 
+    >>> mutparser.parse_mut("A-1G")
+    ('A', -1, 'G')
+
     """
 
     def __init__(self, alphabet, letter_suffixed_sites=False):
@@ -69,10 +72,10 @@ class MutationParser:
         chars = "|".join(chars)
         if letter_suffixed_sites:
             self._sites_as_int = False
-            site_regex = r"(?P<site>\d+[a-z]?)"
+            site_regex = r"(?P<site>\-?\d+[a-z]?)"
         else:
             self._sites_as_int = True
-            site_regex = r"(?P<site>\d+)"
+            site_regex = r"(?P<site>\-?\d+)"
         self._mutation_regex = re.compile(
             rf"(?P<wt>{chars})" + site_regex + rf"(?P<mut>{chars})"
         )
