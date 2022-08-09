@@ -316,6 +316,7 @@ def mut_escape_lineplot(
                 index=["site", "metric"],
                 columns="epitope",
                 values="escape_std",
+                dropna=False,  # otherwise an error if just one model
             )
             .reset_index()
             .rename(columns={epitope: f"{epitope} error" for epitope in epitopes})

@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+1.2
+----
+- ``PolyclonalCollection`` plotting (specifically lineplot) still works even if there is just one model in collection. Before this edge case caused an error.
+
 1.1
 ----
 - Sort sites in mutation and site-escape data frames output by ``PolyclonalCollection``.
