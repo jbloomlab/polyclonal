@@ -8,18 +8,11 @@ Plotting functions.
 """
 
 
-import itertools
-import math
-
 import altair as alt
 
 import matplotlib.colors
 
 import natsort
-
-import numpy
-
-import pandas as pd
 
 
 alt.data_transformers.disable_max_rows()
@@ -527,9 +520,7 @@ def lineplot_and_heatmap(
             lookup_dfs[lookup_col] = data_df[
                 [lookup_col, *cols_to_lookup]
             ].drop_duplicates()
-            assert (
-                len(lookup_dfs[lookup_col]) == data_df[lookup_col].nunique()
-            ), f"{lookup_col=}\n{lookup_dfs[lookup_col]=}\n{len(lookup_dfs[lookup_col])=}\n{data_df[lookup_col].nunique()=}"
+            assert len(lookup_dfs[lookup_col]) == data_df[lookup_col].nunique()
             data_df = data_df.drop(columns=cols_to_lookup)
 
     # make the base chart that holds the data and common elements
