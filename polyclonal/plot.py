@@ -15,6 +15,8 @@ import altair as alt
 
 import matplotlib.colors
 
+import natsort
+
 import numpy
 
 import pandas as pd
@@ -27,6 +29,12 @@ TAB10_COLORS_NOGRAY = tuple(
     c for c in matplotlib.colors.TABLEAU_COLORS.values() if c != "#7f7f7f"
 )
 """tuple: Tableau 10 color palette without gray."""
+
+DEFAULT_POSITIVE_COLORS = ("#0072B2", "#009E73", "#CC79A7", "#56B4E9", "#F0E442")
+"""tuple: Some cbPalette colors in hex: dark blue, green, purple, light blue,yellow."""
+
+DEFAULT_NEGATIVE_COLOR = "#E69F00"
+"""str: Orange from cbPalette color in hex."""
 
 
 def color_gradient_hex(start, end, n):
@@ -146,760 +154,6 @@ def activity_wt_barplot(
     )
 
 
-def mut_escape_lineplot(
-    *,
-    mut_escape_site_summary_df,
-    replicate_data=False,
-    addtl_tooltip_stats=None,
-    epitope_colors,
-    epitopes=None,
-    sites=None,
-    all_sites=True,
-    share_ylims=True,
-    height=100,
-    width=900,
-    init_metric="total positive",
-    zoom_bar_width=500,
-    avg_to_plot="escape_mean",
-):
-    r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
-
-    Parameters
-    -----------
-    mut_escape_site_summary_df : pandas.DataFrame
-        Site-level escape in format of
-        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
-    replicate_data : bool
-        `mut_escape_site_summary_df` is from a collections of replicates as from
-        :class:`polyclonal.polyclonal_collection.PolyclonalCollection`.
-    addtl_tooltip_stats : list or None
-        Additional mutation-level stats to show in tooltip.
-    epitope_colors : dict
-        Maps each epitope name to its color.
-    epitopes : array-like or None
-        Make plots for these epitopes. If `None`, use all epitopes.
-    sites : None or array-like
-        If `None`, the sites in `mut_escape_site_summary_df` represent sequential
-        integers (and any missing ones are filled in). If you specify something else
-        here, it should be array-like giving sites to plot in order to plot them.
-    all_sites : bool
-        Plot all sites in range from first to last site even if some
-        have no data. Has no meanining if ``sites`` is set.
-    share_ylims : bool
-        Should plots for all epitopes share same y-limits?
-    height : float
-        Height per facet.
-    width : float
-        Width of plot.
-    init_metric : str
-        Metric to show initially (others can be selected by dropdown). One of
-        metrics in :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
-    zoom_bar_width : float
-        Width of zoom bar
-    avg_to_plot : {"escape_mean", "escape_median"}
-        If using `replicate_data` plot the escape mean or median.
-
-    Returns
-    -------
-    altair.Chart
-        Interactive plot.
-
-    """
-    if epitopes is None:
-        epitopes = mut_escape_site_summary_df["epitope"].unique().tolist()
-    elif not set(epitopes).issubset(mut_escape_site_summary_df["epitope"]):
-        raise ValueError("invalid entries in `epitopes`")
-
-    df = mut_escape_site_summary_df.query("epitope in @epitopes")
-    if replicate_data:
-        escape_metrics = df["metric"].unique().tolist()
-    else:
-        escape_metrics = [
-            m
-            for m in df.columns
-            if m not in {"epitope", "site", "wildtype", "n mutations"}
-        ]
-
-    if replicate_data:
-        df = df.rename(columns={avg_to_plot: "escape"})[
-            ["epitope", "site", "metric", "escape"]
-        ]
-    else:
-        df = df.melt(
-            id_vars=["epitope", "site"],
-            value_vars=escape_metrics,
-            var_name="metric",
-            value_name="escape",
-        )
-
-    # do we have pre-site sites to sort?
-    if (df["site"].dtype != int) and (sites is None):
-        raise ValueError("input data frame has non-integer sites so set `sites`")
-    if sites:
-        if not set(df["site"]).issubset(sites):
-            raise ValueError("sites in input data frame not subset of `sites`")
-        # Because of this bug, cannot sort by sites completely:
-        # https://github.com/altair-viz/altair/issues/2663
-        # However, can sort up to ~1000 elements, which is usually enough that
-        # regular sorting will do the rest (assuming <10,000 sites. So make a
-        # `sort_sites` list that sorts the first 1000 elements and then check
-        # that is enough. If that bug is fixed, then `sort_sites` can be removed
-        # and the sorting can just be on sites.
-        n_sort_sites = 1002  # this many does not raise error
-        sort_sites = sites[:n_sort_sites]
-        if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
-            raise ValueError(
-                f"Cannot sort {len(sites)=} non-integer due to this bug in altair:\n"
-                "https://github.com/altair-viz/altair/issues/2663"
-            )
-    else:
-        sort_sites = "ascending"
-
-    if not sites:
-        sites = df["site"].unique().tolist()
-        if all_sites:
-            sites = list(range(min(sites), max(sites) + 1))
-
-    # fill any missing sites
-    fill_df = pd.DataFrame(
-        itertools.product(sites, epitopes, escape_metrics),
-        columns=["site", "epitope", "metric"],
-    )
-    df = df.merge(fill_df, how="right")
-
-    df = df.pivot_table(
-        index=["site", "metric"], values="escape", columns="epitope", dropna=False
-    ).reset_index()
-
-    if init_metric not in set(df["metric"]):
-        raise ValueError(f"invalid {init_metric=}\noptions: {df['metric'].unique()=}")
-
-    metric_selection = alt.selection_point(
-        fields=["metric"],
-        bind=alt.binding_select(options=escape_metrics),
-        name="escape",
-        value=[{"metric": init_metric}],
-    )
-
-    line_selection = alt.selection_point(
-        fields=["show_line"],
-        bind=alt.binding_select(options=[True, False], name="show_line"),
-        value=[{"show_line": True}],
-    )
-
-    zoom_brush = alt.selection_interval(
-        encodings=["x"],
-        mark=alt.BrushConfig(stroke="black", strokeWidth=2),
-    )
-    zoom_bar = (
-        alt.Chart(df[["site"]].drop_duplicates())
-        .mark_rect(color="gray")
-        .encode(x=alt.X("site:O", sort=sort_sites))
-        .add_parameter(zoom_brush)
-        .properties(
-            width=zoom_bar_width,
-            height=15,
-            title="site zoom bar",
-        )
-    )
-
-    site_selector = alt.selection_point(
-        on="mouseover",
-        fields=["site"],
-        empty=False,
-    )
-
-    # add error ranges
-    if replicate_data:
-        pivoted_error = (
-            mut_escape_site_summary_df.pivot_table(
-                index=["site", "metric"],
-                columns="epitope",
-                values="escape_std",
-                dropna=False,  # otherwise an error if just one model
-            )
-            .reset_index()
-            .rename(columns={epitope: f"{epitope} error" for epitope in epitopes})
-        )
-        df = df.merge(
-            pivoted_error,
-            on=["site", "metric"],
-            how="left",
-            validate="many_to_one",
-        )
-        for epitope in epitopes:
-            df[f"{epitope} min"] = df[epitope] - df[f"{epitope} error"]
-            df[f"{epitope} max"] = df[epitope] + df[f"{epitope} error"]
-        # selection to show error bars
-        df["error_bars"] = True
-        error_bar_selection = alt.selection_point(
-            fields=["error_bars"],
-            init=[{"error_bars": True}],
-            bind=alt.binding_select(options=[True, False], name="show_error"),
-        )
-
-    # add wildtypes
-    df = df.merge(
-        mut_escape_site_summary_df[["site", "wildtype"]].drop_duplicates(),
-        how="left",
-        on="site",
-        validate="many_to_one",
-    )
-
-    # add any additional tooltips
-    addtl_tooltips = []
-    if addtl_tooltip_stats is not None:
-        for c in addtl_tooltip_stats:
-            if c not in mut_escape_site_summary_df.columns:
-                raise ValueError(
-                    f"`addtl_tooltip_stat` {c} not in `mut_escape_site_summary_df`"
-                )
-            df = df.merge(
-                mut_escape_site_summary_df[["site", c]].drop_duplicates(),
-                how="left",
-                on="site",
-                validate="many_to_one",
-            )
-            addtl_tooltips.append(
-                alt.Tooltip(c, format=".2f")
-                if mut_escape_site_summary_df[c].dtype == float
-                else c
-            )
-
-    # add selection for minimum **absolute value** of metrics
-    # first add column that gives the percent of the max for each metric and statistic
-    df = (
-        df.merge(
-            df.melt(
-                id_vars="metric",
-                value_vars=epitopes,
-                var_name="epitope",
-                value_name="escape",
-            )
-            .assign(escape=lambda x: x["escape"].abs())
-            .groupby("metric", as_index=False)
-            .aggregate(_max=pd.NamedAgg("escape", lambda s: s.abs().max()))
-        )
-        .assign(percent_max=lambda x: 100 * x[epitopes].abs().max(axis=1) / x["_max"])
-        .drop(columns="_max")
-    )
-    assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
-    cutoff = alt.selection_point(
-        fields=["percent_max_cutoff"],
-        value=[{"percent_max_cutoff": 0}],
-        bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
-    )
-
-    charts = []
-    base_all = (
-        alt.Chart(df)
-        .transform_calculate(show_line="true")
-        .encode(
-            tooltip=[
-                alt.Tooltip("site:O"),
-                alt.Tooltip("wildtype:N"),
-                *[alt.Tooltip(f"{epitope}:Q", format=".2f") for epitope in epitopes],
-                *addtl_tooltips,
-            ],
-        )
-    )
-    for epitope in epitopes:
-        base = base_all.encode(
-            x=alt.X(
-                "site:O",
-                sort=sort_sites,
-                title=("site" if epitope == epitopes[-1] else None),
-                axis=(alt.Axis() if epitope == epitopes[-1] else None),
-            ),
-            y=alt.Y(f"{epitope}:Q", title="escape"),
-        )
-        # in case some sites missing values, we need foreground and background
-        background = (
-            base.transform_filter(f"isValid(datum['{epitope}'])")
-            .mark_line(size=1, color=epitope_colors[epitope])
-            .encode(opacity=alt.condition(line_selection, alt.value(1), alt.value(0)))
-        )
-        foreground = base.mark_line(size=1, color=epitope_colors[epitope]).encode(
-            opacity=alt.condition(line_selection, alt.value(1), alt.value(0)),
-        )
-        foreground_circles = (
-            base.mark_circle(opacity=1, color=epitope_colors[epitope])
-            .encode(
-                size=alt.condition(site_selector, alt.value(75), alt.value(25)),
-                stroke=alt.condition(
-                    site_selector, alt.value("black"), alt.value(None)
-                ),
-            )
-            .add_parameter(cutoff, site_selector, line_selection)
-        )
-        if replicate_data:
-            error_bars = base.encode(
-                y=alt.Y(f"{epitope} min", title="escape"),
-                y2=f"{epitope} max",
-                opacity=alt.condition(
-                    error_bar_selection,
-                    alt.value(0.75),
-                    alt.value(0),
-                ),
-            ).mark_errorbar(color="gray", thickness=1.5)
-            combined = background + foreground + foreground_circles + error_bars
-        else:
-            combined = background + foreground + foreground_circles
-        charts.append(
-            combined.add_parameter(metric_selection)
-            .transform_filter(metric_selection)
-            .transform_filter(zoom_brush)
-            .transform_filter(alt.datum.percent_max >= cutoff.percent_max_cutoff)
-            .properties(
-                title=alt.TitleParams(
-                    f"{epitope} epitope", color=epitope_colors[epitope]
-                ),
-                width=width,
-                height=height,
-            )
-        )
-        if replicate_data:
-            charts[-1] = charts[-1].add_parameter(error_bar_selection)
-
-    return (
-        alt.vconcat(
-            zoom_bar,
-            (
-                alt.vconcat(*charts, spacing=10).resolve_scale(
-                    y="shared" if share_ylims else "independent"
-                )
-            ),
-            spacing=10,
-        )
-        .configure(padding={"left": 15, "top": 5, "right": 5, "bottom": 12})
-        .configure_axis(grid=False, labelOverlap="parity")
-        .configure_title(anchor="start", fontSize=14)
-    )
-
-
-def mut_escape_heatmap(
-    *,
-    mut_escape_df,
-    alphabet,
-    epitope_colors,
-    epitopes=None,
-    sites=None,
-    stat="escape",
-    error_stat=None,
-    addtl_tooltip_stats=None,
-    all_alphabet=True,
-    floor_at_zero=True,
-    share_heatmap_lims=True,
-    cell_size=12,
-    zoom_bar_width=500,
-    init_min_times_seen=1,
-    epitope_label_suffix=" epitope",
-    diverging_colors=False,
-    max_min_times_seen=None,
-    addtl_slider_stats=None,
-):
-    r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
-
-    Parameters
-    ----------
-    mut_escape_df : pandas.DataFrame
-        Mutation-level escape in format of
-        :attr:`polyclonal.polyclonal.Polyclonal.mut_escape_df`. Any
-        wildtype entries should be set to 0 or are auto-filled to 0.
-    alphabet : array-like
-        Alphabet letters (e.g., amino acids) in order to plot them.
-    epitope_colors : dict
-        Maps each epitope name to its color.
-    epitopes : array-like or None
-        Make plots for these epitopes. If `None`, use all epitopes.
-    stat : str
-        Statistic in `mut_escape_df` to plot as escape.
-    sites : None or array-like
-        If `None`, the sites in `mut_escape_df` are assumed to represent sequential
-        integers (and any missing ones are filled in). If you specify something else
-        here, it should be array-like giving sites to plot in order to plot them.
-    error_stat : str or None
-        Measure of error to display in tooltip.
-    addtl_tooltip_stats : list or None
-        Additional mutation-level stats to show in tooltip.
-    all_alphabet : bool
-        Plot all letters in the alphabet (e.g., amino acids) even if some
-        have no data.
-    floor_at_zero : bool
-        Set lower limit for color scale to zero, even if there are negative
-        escape values or if minimum is >0. If True, then the *percent_max_cutoff*
-        slider is also floored the same way.
-    share_heatmap_lims : bool
-        If `True`, let all epitopes share the same limits in color scale.
-        If `False`, scale each epitopes colors to the min and max stat
-        values for that epitope.
-    cell_size : float
-        Size of cells in heatmap.
-    zoom_bar_width : float
-        Width of zoom bar
-    init_min_times_seen : int
-        Initial cutoff for minimum times a mutation must be seen slider. Slider
-        only shown if 'times_seen' in `addtl_tooltip_stats`. Also used for calculating
-        the percent max cutoff values.
-    epitope_label_suffix : str
-        Suffix epitope labels with this.q
-    diverging_colors : bool
-        If `False`, colors in ``epitope_colors`` are assumed to be the upper color for
-        white-to-<color> scale. If `True`, they are instead diverging color schemes with
-        0 as white. Valid diverging schemes: https://vega.github.io/vega/docs/schemes/
-    max_min_times_seen : int or None
-        Maximum value for min times seen slider, or `None` for default.
-    addtl_slider_stats : None or dict
-        If you want additional sliders, key by other numeric properties in
-        ``addtl_tooltip_stats`` and value is initial setting.
-
-    Returns
-    -------
-    altair.Chart
-        Interactive heat maps.
-
-    """
-    if epitopes is None:
-        epitopes = mut_escape_df["epitope"].unique().tolist()
-    elif not set(epitopes).issubset(mut_escape_df["epitope"]):
-        raise ValueError("invalid entries in `epitopes`")
-
-    if stat not in mut_escape_df:
-        raise ValueError(f"{stat=} not in {mut_escape_df.columns=}")
-
-    # do we have pre-site sites to sort?
-    if (mut_escape_df["site"].dtype != int) and (sites is None):
-        raise ValueError("`mut_escape_df` has non-integer sites so set `sites`")
-    if sites:
-        if not set(mut_escape_df["site"]).issubset(sites):
-            raise ValueError("sites in `mut_escape_df` not subset of `sites`")
-        # Because of this bug, cannot sort by sites completely:
-        # https://github.com/altair-viz/altair/issues/2663
-        # However, can sort up to ~1000 elements, which is usually enough that
-        # regular sorting will do the rest (assuming <10,000 sites. So make a
-        # `sort_sites` list that sorts the first 1000 elements and then check
-        # that is enough. If that bug is fixed, then `sort_sites` can be removed
-        # and the sorting can just be on sites.
-        n_sort_sites = 1002  # this many does not raise error
-        sort_sites = sites[:n_sort_sites]
-        if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
-            raise ValueError(
-                f"Cannot sort {len(sites)=} non-integer due to this bug in altair:\n"
-                "https://github.com/altair-viz/altair/issues/2663"
-            )
-    else:
-        sort_sites = "ascending"
-
-    df = mut_escape_df.query("epitope in @epitopes")
-
-    # get alphabet
-    extrachars = set(df["mutant"]).union(set(df["wildtype"])) - set(alphabet)
-    if extrachars:
-        raise ValueError(
-            "`mut_escape_df` has letters not in `alphabet`:\n" + str(extrachars)
-        )
-    if not all_alphabet:
-        alphabet = [c for c in alphabet if c in set(df["mutant"]) + set(df["wildtype"])]
-
-    # get labels for escape to show on tooltips, potentially with error
-    if error_stat is not None:
-        if error_stat not in df.columns:
-            raise ValueError(f"{error_stat=} not in {df.columns=}")
-        label_df = (
-            df.assign(
-                label=lambda x: x.apply(
-                    lambda r: f"{r[stat]:.2f} +/- {r[error_stat]:.2f}",
-                    axis=1,
-                )
-            )
-            .pivot_table(
-                index=["site", "mutant"],
-                values="label",
-                columns="epitope",
-                aggfunc=lambda x: " ".join(x),
-            )
-            .rename(columns={e: f"{e}{epitope_label_suffix}" for e in epitopes})
-        )
-        escape_tooltips = [f"{e}{epitope_label_suffix}" for e in epitopes]
-    else:
-        escape_tooltips = [
-            alt.Tooltip(e, format=".2f", title=f"{e}{epitope_label_suffix}")
-            for e in epitopes
-        ]
-
-    # add wildtypes not already in data frame, setting effects to 0
-    existing_wts = set(df.query("mutant == wildtype")["site"])
-    if any(df.query("mutant == wildtype")[stat] != 0):
-        raise ValueError("some sites have wildtype != 0")
-    all_wts = mut_escape_df.set_index("site")["wildtype"].to_dict()
-    missing_wts = {r: wt for r, wt in all_wts.items() if r not in existing_wts}
-    df = df.pivot_table(
-        index=["site", "mutant"], values=stat, columns="epitope"
-    ).reset_index()
-    if missing_wts:
-        missing_wt_df = (
-            pd.Series(missing_wts)
-            .rename_axis("site")
-            .to_frame("mutant")
-            .reset_index()
-            .assign(**{e: 0 for e in epitopes})
-        )
-    if error_stat is not None:
-        df = df.merge(
-            label_df, how="left", on=["site", "mutant"], validate="one_to_one"
-        )
-        if missing_wts:
-            missing_wt_df = missing_wt_df.assign(
-                **{f"{e} epitope": "0" for e in epitopes}
-            )
-    if len(missing_wts):
-        df = pd.concat([df, missing_wt_df], ignore_index=True)
-
-    # add mutations and indicate which sites are wildtype
-    df = df.assign(
-        mutation=lambda x: (
-            x["site"].map(all_wts) + x["site"].astype(str) + x["mutant"]
-        ),
-        is_wildtype=lambda x: x["site"].map(all_wts) == x["mutant"],
-    )
-
-    # zoom bar to put at top
-    zoom_brush = alt.selection_interval(
-        encodings=["x"], mark=alt.BrushConfig(stroke="black", strokeWidth=2)
-    )
-    zoom_bar = (
-        alt.Chart(df[["site"]].drop_duplicates())
-        .mark_rect(color="gray")
-        .encode(x=alt.X("site:O", sort=sort_sites))
-        .add_parameter(zoom_brush)
-        .properties(
-            width=zoom_bar_width,
-            height=15,
-            title="site zoom bar",
-        )
-    )
-
-    add_tooltips = []
-    if addtl_tooltip_stats is not None:
-        if not set(addtl_tooltip_stats).issubset(mut_escape_df.columns):
-            raise ValueError(f"{addtl_tooltip_stats=} not in {mut_escape_df.columns=}")
-        df = df.merge(
-            mut_escape_df[["site", "mutant"] + addtl_tooltip_stats].drop_duplicates(),
-            on=["site", "mutant"],
-            how="left",
-            validate="many_to_one",
-        )
-        for c in addtl_tooltip_stats:
-            if c != "times_seen":
-                add_tooltips.append(
-                    alt.Tooltip(c, format=".2g")
-                    if mut_escape_df[c].dtype == float
-                    else c
-                )
-            else:
-                # we must handle 'times_seen' differently to make it work with slider
-                # for wildtype values, where it is assigned a dummy value below
-                add_tooltips.append("times seen")
-
-    if addtl_tooltip_stats is not None and "times_seen" in addtl_tooltip_stats:
-        # set times seen for wildtype to max at site for slider to work
-        site_max_times_seen = df.groupby("site")["times_seen"].max()
-        df = df.assign(
-            times_seen=lambda x: x.apply(
-                lambda r: site_max_times_seen[r["site"]]
-                if r["is_wildtype"]
-                else r["times_seen"],
-                axis=1,
-            )
-        )
-        # note "times seen" is value in tooltip, "times_seen" for slider
-        if (df["times_seen"] == df["times_seen"].astype(int)).all():
-            df["times seen"] = df["times_seen"].astype(int).astype(str)
-        else:
-            df["times seen"] = df["times_seen"].map(lambda x: f"{x:.1f}")
-        df["times seen"] = df["times seen"].where(~df["is_wildtype"], "na")
-        # make time_seen selection slider, default
-        # max is greater of median or mean across variants
-        if max_min_times_seen is None:
-            max_min_times_seen = math.ceil(
-                max(
-                    df["times_seen"].median(),
-                    df["times_seen"].mean(),
-                    init_min_times_seen,
-                )
-            )
-        times_seen_cutoff = alt.selection_point(
-            fields=["times_seen"],
-            value=[{"times_seen": init_min_times_seen}],
-            bind=alt.binding_range(
-                min=math.floor(df["times_seen"].min()),
-                max=max_min_times_seen,
-                step=1,
-                name="min_times_seen",
-            ),
-        )
-    else:
-        times_seen_cutoff = None
-
-    addtl_sliders = {}
-    if addtl_slider_stats is not None:
-        for slider_stat, init_slider_stat in addtl_slider_stats.items():
-            if not (addtl_tooltip_stats and slider_stat in addtl_tooltip_stats):
-                raise ValueError(
-                    f"addtl_slider_stat {slider_stat} not in addtl_tooltip_stats"
-                )
-            assert slider_stat in df.columns
-            # set stat for wildtype to max at site for slider to retain wildtype
-            stat_max = df[slider_stat].max()
-            df[slider_stat] = df[slider_stat].where(~df["is_wildtype"], stat_max)
-            # add slider
-            addtl_sliders[slider_stat] = alt.selection_point(
-                fields=[slider_stat],
-                value=[{slider_stat: init_slider_stat}],
-                name=slider_stat,
-                bind=alt.binding_range(
-                    min=df[slider_stat].min(),
-                    max=df[slider_stat].max(),
-                    step=1,
-                    name=slider_stat,
-                ),
-            )
-
-    # select cells
-    cell_selector = alt.selection_point(on="mouseover", empty=False)
-
-    # add selection for minimum  **absolute value** of escape maxed across site.
-    # we do the calculation just for mutations at init_min_times_seen times seen
-    if "times_seen" in df.columns:
-        df_percent_max = df.query("times_seen >= @init_min_times_seen")
-    else:
-        df_percent_max = df
-    if floor_at_zero:
-        # the next line making a copy is needed to prevent pandas SettingWithCopyWarning
-        df_percent_max = df_percent_max.copy()
-        for e in epitopes:
-            df_percent_max[e] = df_percent_max[e].clip(lower=0)
-    _max = df_percent_max[epitopes].max().max()
-    _min = df_percent_max[epitopes].min().min()
-    df_percent_max = (
-        df_percent_max.assign(_epitope_max=lambda x: x[epitopes].max(axis=1))
-        .groupby("site", as_index=False)
-        .aggregate(_site_max=pd.NamedAgg("_epitope_max", "max"))
-        .assign(
-            percent_max=lambda x: (100 * (x["_site_max"] - _min) / (_max - _min)).clip(
-                lower=0
-            )
-        )
-        .drop(columns="_site_max")
-    )
-    df = df.merge(df_percent_max, on="site", how="left", validate="many_to_one").assign(
-        percent_max=lambda x: x["percent_max"].fillna(0)
-    )
-    assert numpy.allclose(df["percent_max"].max(), 100), df["percent_max"].max()
-    percent_max_cutoff = alt.selection_point(
-        fields=["percent_max_cutoff"],
-        value=[{"percent_max_cutoff": 0}],
-        bind=alt.binding_range(min=0, max=100, name="percent_max_cutoff"),
-    )
-
-    # make list of heatmaps for each epitope
-    charts = [zoom_bar]
-    # base chart
-    base = alt.Chart(df).encode(
-        x=alt.X("site:O", sort=sort_sites),
-        y=alt.Y("mutant:O", sort=alphabet, scale=alt.Scale(domain=alphabet)),
-    )
-    # for inexplicable reason, this dummy chart is needed below for coloring to work
-    dummy = base.mark_rect(opacity=0).encode(color=alt.Color("dummy:N", legend=None))
-    # wildtype marks
-    wildtype = base.transform_filter(alt.datum.is_wildtype).mark_text(
-        color="black",
-        text="x",
-    )
-    # now make heatmaps
-    for epitope in epitopes:
-        if share_heatmap_lims:
-            vals = df[list(epitopes)].values
-        else:
-            vals = df[epitope].values
-        escape_max = numpy.nanmax(vals)
-        if floor_at_zero:
-            escape_min = 0
-        else:
-            escape_min = numpy.nanmin(vals)
-        if not (escape_min < escape_max):
-            raise ValueError("escape min / max do not span a valid range")
-        heatmap = base.mark_rect().encode(
-            color=alt.Color(
-                epitope,
-                type="quantitative",
-                # diverging color scales: https://stackoverflow.com/a/70296527
-                scale=(
-                    alt.Scale(domainMid=0, scheme=epitope_colors[epitope])
-                    if diverging_colors
-                    else alt.Scale(
-                        range=color_gradient_hex("white", epitope_colors[epitope], 20),
-                        type="linear",
-                        domain=(escape_min, escape_max),
-                        clamp=True,
-                    )
-                ),
-                legend=alt.Legend(
-                    orient="left",
-                    title="gray is n.d.",
-                    titleFontWeight="normal",
-                    gradientLength=100,
-                    gradientStrokeColor="black",
-                    gradientStrokeWidth=0.5,
-                ),
-            ),
-            stroke=alt.value("black"),
-            strokeWidth=alt.condition(cell_selector, alt.value(2.5), alt.value(0.2)),
-            tooltip=["mutation"] + escape_tooltips + add_tooltips,
-        )
-        # combine the elements
-        charts.append(
-            (heatmap + dummy + wildtype)
-            .add_parameter(cell_selector, percent_max_cutoff)
-            .transform_filter(zoom_brush)
-            .transform_filter(
-                alt.datum.percent_max >= percent_max_cutoff.percent_max_cutoff
-            )
-            .properties(
-                title=alt.TitleParams(
-                    f"{epitope}{epitope_label_suffix}",
-                    color="black" if diverging_colors else epitope_colors[epitope],
-                ),
-                width={"step": cell_size},
-                height={"step": cell_size},
-            )
-        )
-        if times_seen_cutoff:
-            charts[-1] = (
-                charts[-1]
-                .add_parameter(times_seen_cutoff)
-                .transform_filter(alt.datum.times_seen >= times_seen_cutoff.times_seen)
-            )
-        for slider_stat, slider in addtl_sliders.items():
-            charts[-1] = (
-                charts[-1]
-                .add_parameter(slider)
-                .transform_filter(f"datum.{slider_stat} >= {slider_stat}.{slider_stat}")
-            )
-
-    chart = (
-        alt.vconcat(
-            *charts,
-            spacing=0,
-        )
-        .configure_axis(labelOverlap="parity")
-        .configure_title(anchor="start", fontSize=14)
-        .configure_view(fill="gray", fillOpacity=0.25)
-    )
-
-    return chart
-
-
 def corr_heatmap(
     corr_df,
     corr_col,
@@ -1011,6 +265,473 @@ def corr_heatmap(
     )
 
     return corr_chart
+
+
+def lineplot_and_heatmap(
+    *,
+    data_df,
+    stat_col,
+    category_col,
+    alphabet=None,
+    sites=None,
+    addtl_tooltip_stats=None,
+    addtl_slider_stats=None,
+    init_floor_at_zero=True,
+    init_site_statistic="sum",
+    cell_size=11,
+    lineplot_width=5,
+    lineplot_height=100,
+    site_zoom_bar_width=500,
+    site_zoom_bar_color_col=None,
+    plot_title=None,
+    show_single_category_label=False,
+    category_colors=None,
+    heatmap_negative_color=None,
+    heatmap_color_scheme=None,
+    heatmap_color_scheme_mid_0=True,
+    heatmap_max_at_least=None,
+    heatmap_min_at_least=None,
+    site_zoom_bar_color_scheme="set3",
+):
+    """Lineplots and heatmaps of per-site and per-mutation values.
+    
+    Parameters
+    ----------
+    data_df : pandas.DataFrame
+        Data to plot. Must have columns "site", "wildtype", "mutant", `stat_col`, and
+        `category_col`. The wildtype values (wildtype = mutant) should be included,
+        but are not used for the slider filtering or included in site summary lineplot.
+    stat_col : str
+        Column in `data_df` with statistic to plot.
+    category_col : str
+        Column in `data_df` with category to facet plots over. You can just create
+        a dummy column with some dummy value if you only have one category.
+    alphabet : array-like or None
+        Alphabet letters in order. If `None`, use natsorted "mutant" col of `data_df`.
+    sites : array-like or None
+        Sites in order. If `None`, use natsorted "site" col of `data_df`.
+    addtl_tooltip_stats : None or array-like
+        Additional mutation-level stats to show in the heatmap tooltips. Values in
+        `addtl_slider_stats` automatically included.
+    addtl_slider_stats : None or dict
+        Additional stats for which to have a slider, value is initial setting. Ignores
+        wildtype and drops it when all mutants have been dropped at site. Null values
+        are not filtered.
+    init_floor_at_zero : bool
+        Initial value for option to put floor of zero on value is `stat_col`.
+    init_site_statistic : {'sum', 'mean', 'max', 'min'}
+        Initial value for site statistic in lineplot, calculated from `stat_col`.
+    cell_size : float
+        Size of cells in heatmap
+    lineplot_width : float
+        Width per site in lineplot.
+    lineplot_height : float
+        Height of line plot.
+    site_zoom_bar_width : float
+        Width of site zoom bar.
+    site_zoom_bar_color_col : float
+        Column in `data_df` with which to color zoom bar. Must be the same for all
+        entries for a site.
+    plot_title : str or None
+        Overall plot title.
+    show_single_category_label : bool
+        Show the category label if just one category.
+    category_colors : None or dict
+        Map each category to its color, or None to use default. These are the
+        colors for **positive** values of `stat_col`.
+    heatmap_negative_color : None or str
+        Color used for negative values in heatmaps, or None to use default.
+    heatmap_color_scheme : None or str
+        Heatmap uses this `Vega scheme <https://vega.github.io/vega/docs/schemes>`_
+        rather than `category_colors` and `heatmap_negative_color`.
+    heatmap_color_scheme_mid_0 : bool
+        Set the heatmap color scheme so the domain mid is zero.
+    heatmap_max_at_least : None or float
+        Make heatmap color max at least this large.
+    heatmap_min_at_least : None or float
+        Make heatmap color min at least this small, but still set to 0 if floor of zero
+        selected.
+    site_zoom_bar_color_scheme : str
+        If using `site_zoom_bar_color_col`, the
+        `Vega color scheme <https://vega.github.io/vega/docs/schemes>`_ to use.
+    """
+    basic_req_cols = ["site", "wildtype", "mutant", stat_col, category_col]
+    if addtl_tooltip_stats is None:
+        addtl_tooltip_stats = []
+    if addtl_slider_stats is None:
+        addtl_slider_stats = {}
+    req_cols = basic_req_cols + addtl_tooltip_stats + list(addtl_slider_stats)
+    if site_zoom_bar_color_col:
+        req_cols.append(site_zoom_bar_color_col)
+    req_cols = list(dict.fromkeys(req_cols))  # https://stackoverflow.com/a/17016257
+    if not set(req_cols).issubset(data_df.columns):
+        raise ValueError(f"Missing required columns\n{data_df.columns=}\n{req_cols=}")
+    if any(c.startswith("_stat") for c in req_cols):  # used for calculated stats
+        raise ValueError(f"No columns can start with '_stat' in {data_df.columns=}")
+    data_df = data_df[req_cols].reset_index(drop=True)
+             
+    categories = data_df[category_col].unique().tolist()
+    show_category_label = show_single_category_label or (len(categories) > 1)
+    
+    # set color schemes if use defaults
+    if not category_colors:
+        if len(categories) > len(DEFAULT_POSITIVE_COLORS):
+            raise ValueError("Explicitly set `category_colors` if this many categories")
+        category_colors = dict(zip(categories, DEFAULT_POSITIVE_COLORS))
+    if not heatmap_negative_color:
+        heatmap_negative_color = DEFAULT_NEGATIVE_COLOR
+    
+    no_na_cols = basic_req_cols + ([site_zoom_bar_color_col] if site_zoom_bar_color_col else [])
+    if data_df[no_na_cols].isnull().any().any():
+        raise ValueError(f"`data_df` has NA values in key cols:\n{data_df[no_na_cols].isnull().any()}")
+    
+    if alphabet is None:
+        alphabet = natsort.natsorted(data_df["mutant"].unique())
+    else:
+        data_df = data_df.query("mutant in @alphabet")
+        
+    if sites is None:
+        sites = natsort.natsorted(data_df["site"].unique(), alg=natsort.ns.SIGNED)
+    else:
+        data_df = data_df.query("site in @sites")
+        if not set(sites).issubset(data_df["site"]):
+            raise ValueError("`sites` has sites not in `data_df`")
+        
+    # Cannot sort by sites completely: # https://github.com/altair-viz/altair/issues/2663
+    # But can sort up to ~1000 elements, which is enough that regular sorting will do the
+    # rest (assuming <10,000 sites). So make `sort_sites` list that sorts the first 1000
+    # elements and then check that is enough.
+    n_sort_sites = 1002  # this many does not raise error
+    sort_sites = sites[: n_sort_sites]
+    if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
+        raise ValueError(f"Cannot sort {len(sites)=} sites")
+        
+    # get tooltips for heatmap
+    heatmap_tooltips = [
+        alt.Tooltip(c, type="quantitative", format=".3g")
+        if data_df[c].dtype == float else alt.Tooltip(c, type="nominal")
+        for c in req_cols
+        if c != category_col or show_category_label
+    ]
+            
+    # make floor at zero selection, setting floor to either 0 or min in data (no floor)
+    min_stat = data_df[stat_col].min()  # used as min in heatmap when not flooring at 0
+    if heatmap_min_at_least is not None:
+        min_stat = min(min_stat, heatmap_min_at_least)
+    max_stat = data_df[stat_col].max()  # used as max in heatmap
+    if heatmap_max_at_least is not None:
+        max_stat = max(max_stat, heatmap_max_at_least)
+    floor_at_zero = alt.selection_point(
+        name="floor_at_zero",
+        bind=alt.binding_radio(
+            options=[0, min_stat],
+            labels=["yes", "no"],
+            name=f"floor {stat_col} at zero",
+        ),
+        fields=["floor"],
+        value=[{"floor": 0 if init_floor_at_zero else min_stat}],
+    )
+    
+    # create sliders for max stat at site and any additional sliders
+    sliders = {
+        "_stat_site_max": alt.selection_point(
+            fields=["cutoff"],
+            value=[{"cutoff": min_stat}],
+            bind=alt.binding_range(
+                name=f"minimum max of {stat_col} at site", min=min_stat, max=max_stat,
+            ),
+        )
+    }
+    for slider_stat, init_slider_stat in addtl_slider_stats.items():
+        sliders[slider_stat] = alt.selection_point(
+            fields=["cutoff"],
+            value=[{"cutoff": init_slider_stat}],
+            bind=alt.binding_range(
+                min=data_df[slider_stat].min(),
+                max=data_df[slider_stat].max(),
+                name=f"minimum {slider_stat}",
+            ),
+        )
+            
+    # whether to show line on line plot
+    line_selection = alt.selection_point(
+        bind=alt.binding_radio(
+            options=[True, False], labels=["yes", "no"], name="show line on site plot",
+        ),
+        fields=["_stat_show_line"],
+        value=[{"_stat_show_line": True}],
+    )
+            
+    # create site zoom bar
+    site_brush = alt.selection_interval(
+        encodings=["x"],
+        mark=alt.BrushConfig(stroke="black", strokeWidth=2),
+    )
+    if site_zoom_bar_color_col:
+        site_zoom_bar_df = data_df[["site", site_zoom_bar_color_col]].drop_duplicates()
+        if any(site_zoom_bar_df.groupby("site").size() > 1):
+            raise ValueError(f"multiple {site_zoom_bar_color_col=} values for sites")
+    else:
+        site_zoom_bar_df = data_df[["site"]].drop_duplicates()
+    site_zoom_bar = (
+        alt.Chart(site_zoom_bar_df)
+        .mark_rect()
+        .encode(
+            x=alt.X("site:O", sort=sort_sites),
+            color=(
+                alt.Color(
+                    site_zoom_bar_color_col,
+                    type="nominal",
+                    scale=alt.Scale(scheme=site_zoom_bar_color_scheme),
+                    legend=alt.Legend(orient="left"),
+                    sort=(
+                        site_zoom_bar_df
+                        .set_index("site")
+                        .loc[sort_sites]
+                        [site_zoom_bar_color_col]
+                        .unique()
+                    ),
+                )
+                if site_zoom_bar_color_col
+                else alt.value("gray")
+            ),
+            tooltip=[
+                c for c in site_zoom_bar_df.columns
+                if c != category_col or show_category_label
+            ],
+        )
+        .mark_rect()
+        .add_parameter(site_brush)
+        .properties(width=site_zoom_bar_width, height=cell_size, title="site zoom bar")
+    )
+       
+    # to make data in Chart smaller, access properties that are same across all sites
+    # or categories via a transform_lookup. Make data frames with columns to do that.
+    lookup_dfs = {}
+    for lookup_col in ["site", category_col]:
+        cols_to_lookup = [
+            c for c in data_df.columns
+            if all(data_df.groupby(lookup_col)[c].nunique(dropna=False) == 1)
+            if c not in ["site", category_col]
+        ]
+        if cols_to_lookup:
+            lookup_dfs[lookup_col] = data_df[[lookup_col, *cols_to_lookup]].drop_duplicates()
+            assert len(lookup_dfs[lookup_col]) == data_df[lookup_col].nunique(), f"{lookup_col=}\n{lookup_dfs[lookup_col]=}\n{len(lookup_dfs[lookup_col])=}\n{data_df[lookup_col].nunique()=}"
+            data_df = data_df.drop(columns=cols_to_lookup)
+            
+    # make the base chart that holds the data and common elements
+    base_chart = alt.Chart(data_df)
+    for lookup_col, lookup_df in lookup_dfs.items():
+        base_chart = base_chart.transform_lookup(
+            lookup=lookup_col,
+            from_=alt.LookupData(
+                data=lookup_df,
+                key=lookup_col,
+                fields=[c for c in lookup_df.columns if c != lookup_col],
+            ),
+        )
+        
+    # Transforms on base chart. The "_stat" columns is floor transformed stat_col.
+    base_chart = (
+        base_chart
+        .transform_calculate(
+            _stat=alt.expr.max(alt.datum[stat_col], floor_at_zero["floor"]),
+            _stat_filter="0",
+        )
+        .transform_joinaggregate(
+            _stat_site_max="max(_stat)",
+            groupby=["site"],
+        )
+    )
+    # Filter data using slider stat
+    for slider_stat, slider in sliders.items():
+        base_chart = base_chart.transform_filter(
+            (alt.datum[slider_stat] >= slider["cutoff"] - 1e-6)  # add rounding tol
+            | ~alt.expr.isNumber(alt.datum[slider_stat])  # do not filter null values
+        )
+    # Remove any sites that are only wildtype and filter with site zoom brush
+    base_chart = (
+        base_chart
+        .transform_calculate(_stat_not_wildtype=alt.datum.wildtype != alt.datum.mutant)
+        .transform_joinaggregate(
+            _stat_site_has_non_wildtype="max(_stat_not_wildtype)",
+            groupby=["site"],
+        )
+        .transform_filter(alt.datum["_stat_site_has_non_wildtype"])
+        .transform_filter(site_brush)
+    )
+    
+    # make the site chart
+    site_statistics = ["sum", "mean", "max", "min"]
+    site_stat = alt.selection_point(
+        bind=alt.binding_radio(options=site_statistics, name=f"site {stat_col} statistic"),
+        fields=["stat"],
+        value=[{"stat": init_site_statistic}],
+        name="site_stat",
+    )
+    site_prop_cols = lookup_dfs["site"].columns if "site" in lookup_dfs else ["site"]
+    lineplot_base = (
+        base_chart
+        .transform_filter(alt.datum.wildtype != alt.datum.mutant)
+        .transform_aggregate(
+            **{stat: f"{stat}(_stat)" for stat in site_statistics},
+            groupby=[*site_prop_cols, category_col],
+        )
+        .transform_fold(site_statistics, ["stat", "site_val"])
+        .transform_filter(site_stat)
+        .encode(
+            x=alt.X("site:O", sort=sort_sites),
+            y=alt.Y("site_val:Q", scale=alt.Scale(zero=True), title=f"site {stat_col}"),
+            color=alt.Color(
+                category_col,
+                scale=alt.Scale(
+                    domain=categories, range=[category_colors[c] for c in categories],
+                ),
+                legend=alt.Legend(orient="left") if show_category_label else None,
+            ),
+            tooltip=[
+                "site",
+                *([category_col] if show_category_label else []),
+                alt.Tooltip("site_val:Q", format=".3g", title=f"site {stat_col}"),
+                *[f"{c}:N" for c in site_prop_cols if c != "site"],
+            ],
+        )
+    )
+    site_lineplot = (
+        (
+            (
+                lineplot_base
+                .mark_line(size=1)
+                .transform_calculate(_stat_show_line="true")
+                .transform_filter(line_selection)
+            ) + lineplot_base.mark_circle(opacity=1)
+        )
+        .add_parameter(site_stat, line_selection)
+        .properties(width=alt.Step(lineplot_width), height=lineplot_height)
+    )
+    
+    # make base chart for heatmaps
+    heatmap_base = (
+        base_chart
+        .encode(
+            y=alt.Y(
+                "mutant",
+                sort=alphabet,
+                scale=alt.Scale(domain=alphabet),
+                title=None,
+            ),
+        )
+    )
+    
+    # wildtype text marks for heatmap
+    heatmap_wildtype = (
+        heatmap_base
+        .encode(x=alt.X("site:O", sort=sort_sites))
+        .transform_filter(alt.datum.wildtype == alt.datum.mutant)
+        .mark_text(text="x", color="black")
+    )
+    
+    # background fill for missing values in heatmap, imputing dummy stat
+    # to get all cells
+    heatmap_bg = (
+        heatmap_base
+        .encode(x=alt.X("site:O", sort=sort_sites))
+        .transform_impute(
+            impute="_stat_dummy",
+            key="mutant",
+            keyvals=alphabet,
+            groupby=["site"],
+            value=None,
+        )
+        .mark_rect(color="gray", opacity=0.25)
+    )
+    
+    # Make heatmaps for each category and vertically concatenate. We do this in loop
+    # rather than faceting to enable compound chart w wildtype marks and category
+    # specific coloring.
+    heatmaps = alt.vconcat(
+        *[
+            heatmap_bg
+            + heatmap_base
+            .transform_filter(alt.datum[category_col] == category)
+            .encode(
+                x=alt.X(
+                    "site:O",
+                    sort=sort_sites,
+                    # only show ticks and axis title on bottom most category
+                    axis=alt.Axis(
+                        labels=category == categories[-1],
+                        ticks=category == categories[-1],
+                        title="site" if category == categories[-1] else None,
+                    ),
+                ),
+                color=alt.Color(
+                    "_stat:Q",
+                    legend=alt.Legend(
+                        orient="left",
+                        title=stat_col,
+                        titleOrient="left",
+                        gradientLength=100,
+                        gradientStrokeColor="black",                            
+                        gradientStrokeWidth=0.5,
+                    ),
+                    scale=alt.Scale(
+                        domainMax=max_stat,
+                        domainMin=alt.ExprRef("floor_at_zero.floor"),
+                        zero=True,
+                        nice=False,
+                        type="linear",
+                        **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
+                        **(
+                            {"scheme": heatmap_color_scheme} if heatmap_color_scheme
+                            else {
+                                "range": (
+                                    color_gradient_hex(heatmap_negative_color, "white", n=20)
+                                    + color_gradient_hex("white", category_colors[category], n=20)[1:]
+                                )
+                            }
+                        ),
+                    ),
+                ),
+                stroke=alt.value("black"),
+                tooltip=heatmap_tooltips,
+            )
+            .mark_rect()
+            .properties(
+                width=alt.Step(cell_size),
+                height=alt.Step(cell_size),
+                title=alt.TitleParams(
+                    category if show_category_label else "",
+                    color=category_colors[category],
+                    anchor="middle",
+                    orient="left",
+                ),
+            )
+            + heatmap_wildtype
+            for category in categories
+        ],
+        spacing=10,
+    ).resolve_scale(
+        x="shared",
+        color="shared" if heatmap_color_scheme or len(categories) == 1 else "independent",
+    )
+    
+    chart = (
+        alt.vconcat(site_zoom_bar, site_lineplot, heatmaps)
+        .add_parameter(floor_at_zero, site_brush, *sliders.values())
+        .configure(padding=10)
+        .configure_axis(labelOverlap="parity", grid=False)
+        .resolve_scale(color="independent")
+    )
+    
+    if plot_title:
+        chart = chart.properties(
+            title=alt.TitleParams(
+                plot_title, anchor="start", align="left", fontSize=16,
+            ),
+        )
+    
+    return chart
 
 
 if __name__ == "__main__":
