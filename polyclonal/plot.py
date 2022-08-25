@@ -294,7 +294,7 @@ def lineplot_and_heatmap(
     site_zoom_bar_color_scheme="set3",
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
-    
+
     Parameters
     ----------
     data_df : pandas.DataFrame
@@ -369,10 +369,10 @@ def lineplot_and_heatmap(
     if any(c.startswith("_stat") for c in req_cols):  # used for calculated stats
         raise ValueError(f"No columns can start with '_stat' in {data_df.columns=}")
     data_df = data_df[req_cols].reset_index(drop=True)
-             
+
     categories = data_df[category_col].unique().tolist()
     show_category_label = show_single_category_label or (len(categories) > 1)
-    
+
     # set color schemes if use defaults
     if not category_colors:
         if len(categories) > len(DEFAULT_POSITIVE_COLORS):
@@ -380,40 +380,45 @@ def lineplot_and_heatmap(
         category_colors = dict(zip(categories, DEFAULT_POSITIVE_COLORS))
     if not heatmap_negative_color:
         heatmap_negative_color = DEFAULT_NEGATIVE_COLOR
-    
-    no_na_cols = basic_req_cols + ([site_zoom_bar_color_col] if site_zoom_bar_color_col else [])
+
+    no_na_cols = basic_req_cols + (
+        [site_zoom_bar_color_col] if site_zoom_bar_color_col else []
+    )
     if data_df[no_na_cols].isnull().any().any():
-        raise ValueError(f"`data_df` has NA values in key cols:\n{data_df[no_na_cols].isnull().any()}")
-    
+        raise ValueError(
+            f"`data_df` has NA values in key cols:\n{data_df[no_na_cols].isnull().any()}"
+        )
+
     if alphabet is None:
         alphabet = natsort.natsorted(data_df["mutant"].unique())
     else:
         data_df = data_df.query("mutant in @alphabet")
-        
+
     if sites is None:
         sites = natsort.natsorted(data_df["site"].unique(), alg=natsort.ns.SIGNED)
     else:
         data_df = data_df.query("site in @sites")
         if not set(sites).issubset(data_df["site"]):
             raise ValueError("`sites` has sites not in `data_df`")
-        
+
     # Cannot sort by sites completely: # https://github.com/altair-viz/altair/issues/2663
     # But can sort up to ~1000 elements, which is enough that regular sorting will do the
     # rest (assuming <10,000 sites). So make `sort_sites` list that sorts the first 1000
     # elements and then check that is enough.
     n_sort_sites = 1002  # this many does not raise error
-    sort_sites = sites[: n_sort_sites]
+    sort_sites = sites[:n_sort_sites]
     if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
         raise ValueError(f"Cannot sort {len(sites)=} sites")
-        
+
     # get tooltips for heatmap
     heatmap_tooltips = [
         alt.Tooltip(c, type="quantitative", format=".3g")
-        if data_df[c].dtype == float else alt.Tooltip(c, type="nominal")
+        if data_df[c].dtype == float
+        else alt.Tooltip(c, type="nominal")
         for c in req_cols
         if c != category_col or show_category_label
     ]
-            
+
     # make floor at zero selection, setting floor to either 0 or min in data (no floor)
     min_stat = data_df[stat_col].min()  # used as min in heatmap when not flooring at 0
     if heatmap_min_at_least is not None:
@@ -431,14 +436,16 @@ def lineplot_and_heatmap(
         fields=["floor"],
         value=[{"floor": 0 if init_floor_at_zero else min_stat}],
     )
-    
+
     # create sliders for max stat at site and any additional sliders
     sliders = {
         "_stat_site_max": alt.selection_point(
             fields=["cutoff"],
             value=[{"cutoff": min_stat}],
             bind=alt.binding_range(
-                name=f"minimum max of {stat_col} at site", min=min_stat, max=max_stat,
+                name=f"minimum max of {stat_col} at site",
+                min=min_stat,
+                max=max_stat,
             ),
         )
     }
@@ -452,16 +459,18 @@ def lineplot_and_heatmap(
                 name=f"minimum {slider_stat}",
             ),
         )
-            
+
     # whether to show line on line plot
     line_selection = alt.selection_point(
         bind=alt.binding_radio(
-            options=[True, False], labels=["yes", "no"], name="show line on site plot",
+            options=[True, False],
+            labels=["yes", "no"],
+            name="show line on site plot",
         ),
         fields=["_stat_show_line"],
         value=[{"_stat_show_line": True}],
     )
-            
+
     # create site zoom bar
     site_brush = alt.selection_interval(
         encodings=["x"],
@@ -485,10 +494,8 @@ def lineplot_and_heatmap(
                     scale=alt.Scale(scheme=site_zoom_bar_color_scheme),
                     legend=alt.Legend(orient="left"),
                     sort=(
-                        site_zoom_bar_df
-                        .set_index("site")
-                        .loc[sort_sites]
-                        [site_zoom_bar_color_col]
+                        site_zoom_bar_df.set_index("site")
+                        .loc[sort_sites][site_zoom_bar_color_col]
                         .unique()
                     ),
                 )
@@ -496,7 +503,8 @@ def lineplot_and_heatmap(
                 else alt.value("gray")
             ),
             tooltip=[
-                c for c in site_zoom_bar_df.columns
+                c
+                for c in site_zoom_bar_df.columns
                 if c != category_col or show_category_label
             ],
         )
@@ -504,21 +512,26 @@ def lineplot_and_heatmap(
         .add_parameter(site_brush)
         .properties(width=site_zoom_bar_width, height=cell_size, title="site zoom bar")
     )
-       
+
     # to make data in Chart smaller, access properties that are same across all sites
     # or categories via a transform_lookup. Make data frames with columns to do that.
     lookup_dfs = {}
     for lookup_col in ["site", category_col]:
         cols_to_lookup = [
-            c for c in data_df.columns
+            c
+            for c in data_df.columns
             if all(data_df.groupby(lookup_col)[c].nunique(dropna=False) == 1)
             if c not in ["site", category_col]
         ]
         if cols_to_lookup:
-            lookup_dfs[lookup_col] = data_df[[lookup_col, *cols_to_lookup]].drop_duplicates()
-            assert len(lookup_dfs[lookup_col]) == data_df[lookup_col].nunique(), f"{lookup_col=}\n{lookup_dfs[lookup_col]=}\n{len(lookup_dfs[lookup_col])=}\n{data_df[lookup_col].nunique()=}"
+            lookup_dfs[lookup_col] = data_df[
+                [lookup_col, *cols_to_lookup]
+            ].drop_duplicates()
+            assert (
+                len(lookup_dfs[lookup_col]) == data_df[lookup_col].nunique()
+            ), f"{lookup_col=}\n{lookup_dfs[lookup_col]=}\n{len(lookup_dfs[lookup_col])=}\n{data_df[lookup_col].nunique()=}"
             data_df = data_df.drop(columns=cols_to_lookup)
-            
+
     # make the base chart that holds the data and common elements
     base_chart = alt.Chart(data_df)
     for lookup_col, lookup_df in lookup_dfs.items():
@@ -530,18 +543,14 @@ def lineplot_and_heatmap(
                 fields=[c for c in lookup_df.columns if c != lookup_col],
             ),
         )
-        
+
     # Transforms on base chart. The "_stat" columns is floor transformed stat_col.
-    base_chart = (
-        base_chart
-        .transform_calculate(
-            _stat=alt.expr.max(alt.datum[stat_col], floor_at_zero["floor"]),
-            _stat_filter="0",
-        )
-        .transform_joinaggregate(
-            _stat_site_max="max(_stat)",
-            groupby=["site"],
-        )
+    base_chart = base_chart.transform_calculate(
+        _stat=alt.expr.max(alt.datum[stat_col], floor_at_zero["floor"]),
+        _stat_filter="0",
+    ).transform_joinaggregate(
+        _stat_site_max="max(_stat)",
+        groupby=["site"],
     )
     # Filter data using slider stat
     for slider_stat, slider in sliders.items():
@@ -551,8 +560,9 @@ def lineplot_and_heatmap(
         )
     # Remove any sites that are only wildtype and filter with site zoom brush
     base_chart = (
-        base_chart
-        .transform_calculate(_stat_not_wildtype=alt.datum.wildtype != alt.datum.mutant)
+        base_chart.transform_calculate(
+            _stat_not_wildtype=alt.datum.wildtype != alt.datum.mutant
+        )
         .transform_joinaggregate(
             _stat_site_has_non_wildtype="max(_stat_not_wildtype)",
             groupby=["site"],
@@ -560,19 +570,20 @@ def lineplot_and_heatmap(
         .transform_filter(alt.datum["_stat_site_has_non_wildtype"])
         .transform_filter(site_brush)
     )
-    
+
     # make the site chart
     site_statistics = ["sum", "mean", "max", "min"]
     site_stat = alt.selection_point(
-        bind=alt.binding_radio(options=site_statistics, name=f"site {stat_col} statistic"),
+        bind=alt.binding_radio(
+            options=site_statistics, name=f"site {stat_col} statistic"
+        ),
         fields=["stat"],
         value=[{"stat": init_site_statistic}],
         name="site_stat",
     )
     site_prop_cols = lookup_dfs["site"].columns if "site" in lookup_dfs else ["site"]
     lineplot_base = (
-        base_chart
-        .transform_filter(alt.datum.wildtype != alt.datum.mutant)
+        base_chart.transform_filter(alt.datum.wildtype != alt.datum.mutant)
         .transform_aggregate(
             **{stat: f"{stat}(_stat)" for stat in site_statistics},
             groupby=[*site_prop_cols, category_col],
@@ -585,7 +596,8 @@ def lineplot_and_heatmap(
             color=alt.Color(
                 category_col,
                 scale=alt.Scale(
-                    domain=categories, range=[category_colors[c] for c in categories],
+                    domain=categories,
+                    range=[category_colors[c] for c in categories],
                 ),
                 legend=alt.Legend(orient="left") if show_category_label else None,
             ),
@@ -600,42 +612,37 @@ def lineplot_and_heatmap(
     site_lineplot = (
         (
             (
-                lineplot_base
-                .mark_line(size=1)
+                lineplot_base.mark_line(size=1)
                 .transform_calculate(_stat_show_line="true")
                 .transform_filter(line_selection)
-            ) + lineplot_base.mark_circle(opacity=1)
+            )
+            + lineplot_base.mark_circle(opacity=1)
         )
         .add_parameter(site_stat, line_selection)
         .properties(width=alt.Step(lineplot_width), height=lineplot_height)
     )
-    
+
     # make base chart for heatmaps
-    heatmap_base = (
-        base_chart
-        .encode(
-            y=alt.Y(
-                "mutant",
-                sort=alphabet,
-                scale=alt.Scale(domain=alphabet),
-                title=None,
-            ),
-        )
+    heatmap_base = base_chart.encode(
+        y=alt.Y(
+            "mutant",
+            sort=alphabet,
+            scale=alt.Scale(domain=alphabet),
+            title=None,
+        ),
     )
-    
+
     # wildtype text marks for heatmap
     heatmap_wildtype = (
-        heatmap_base
-        .encode(x=alt.X("site:O", sort=sort_sites))
+        heatmap_base.encode(x=alt.X("site:O", sort=sort_sites))
         .transform_filter(alt.datum.wildtype == alt.datum.mutant)
         .mark_text(text="x", color="black")
     )
-    
+
     # background fill for missing values in heatmap, imputing dummy stat
     # to get all cells
     heatmap_bg = (
-        heatmap_base
-        .encode(x=alt.X("site:O", sort=sort_sites))
+        heatmap_base.encode(x=alt.X("site:O", sort=sort_sites))
         .transform_impute(
             impute="_stat_dummy",
             key="mutant",
@@ -645,15 +652,14 @@ def lineplot_and_heatmap(
         )
         .mark_rect(color="gray", opacity=0.25)
     )
-    
+
     # Make heatmaps for each category and vertically concatenate. We do this in loop
     # rather than faceting to enable compound chart w wildtype marks and category
     # specific coloring.
     heatmaps = alt.vconcat(
         *[
             heatmap_bg
-            + heatmap_base
-            .transform_filter(alt.datum[category_col] == category)
+            + heatmap_base.transform_filter(alt.datum[category_col] == category)
             .encode(
                 x=alt.X(
                     "site:O",
@@ -672,7 +678,7 @@ def lineplot_and_heatmap(
                         title=stat_col,
                         titleOrient="left",
                         gradientLength=100,
-                        gradientStrokeColor="black",                            
+                        gradientStrokeColor="black",
                         gradientStrokeWidth=0.5,
                     ),
                     scale=alt.Scale(
@@ -683,11 +689,16 @@ def lineplot_and_heatmap(
                         type="linear",
                         **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
                         **(
-                            {"scheme": heatmap_color_scheme} if heatmap_color_scheme
+                            {"scheme": heatmap_color_scheme}
+                            if heatmap_color_scheme
                             else {
                                 "range": (
-                                    color_gradient_hex(heatmap_negative_color, "white", n=20)
-                                    + color_gradient_hex("white", category_colors[category], n=20)[1:]
+                                    color_gradient_hex(
+                                        heatmap_negative_color, "white", n=20
+                                    )
+                                    + color_gradient_hex(
+                                        "white", category_colors[category], n=20
+                                    )[1:]
                                 )
                             }
                         ),
@@ -713,9 +724,11 @@ def lineplot_and_heatmap(
         spacing=10,
     ).resolve_scale(
         x="shared",
-        color="shared" if heatmap_color_scheme or len(categories) == 1 else "independent",
+        color="shared"
+        if heatmap_color_scheme or len(categories) == 1
+        else "independent",
     )
-    
+
     chart = (
         alt.vconcat(site_zoom_bar, site_lineplot, heatmaps)
         .add_parameter(floor_at_zero, site_brush, *sliders.values())
@@ -723,14 +736,17 @@ def lineplot_and_heatmap(
         .configure_axis(labelOverlap="parity", grid=False)
         .resolve_scale(color="independent")
     )
-    
+
     if plot_title:
         chart = chart.properties(
             title=alt.TitleParams(
-                plot_title, anchor="start", align="left", fontSize=16,
+                plot_title,
+                anchor="start",
+                align="left",
+                fontSize=16,
             ),
         )
-    
+
     return chart
 
 
