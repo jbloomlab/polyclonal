@@ -613,11 +613,11 @@ def lineplot_and_heatmap(
     site_lineplot = (
         (
             (
-                lineplot_base.mark_line(size=1)
+                lineplot_base.mark_line(size=1, opacity=0.7)
                 .transform_calculate(_stat_show_line="true")
                 .transform_filter(line_selection)
             )
-            + lineplot_base.mark_circle(opacity=1)
+            + lineplot_base.mark_circle(opacity=0.7)
         )
         .add_parameter(site_stat, line_selection)
         .properties(width=alt.Step(lineplot_width), height=lineplot_height)
