@@ -684,7 +684,7 @@ class Polyclonal:
         collapse_identical_variants=False,
         alphabet=polyclonal.AAS,
         sites=None,
-        epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
+        epitope_colors=polyclonal.plot.DEFAULT_POSITIVE_COLORS,
         init_missing="zero",
         data_mut_escape_overlap="exact_match",
     ):

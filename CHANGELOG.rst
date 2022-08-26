@@ -8,7 +8,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 2.0
 ---
-- Changed plotting of escape. Replaced ``mut_escape_heatmap`` and ``mut_escape_lineplot`` with ``lineplot_and_heatmap``, and then re-factored plotting methods of ``Polyclonal`` and ``PolyclonalCollection`` to utilize this.
+- Changed plotting of escape. Replaced ``mut_escape_heatmap`` and ``mut_escape_lineplot`` with ``lineplot_and_heatmap``
+- Changed default epitope colors for ``Polyclonal`` objects.
 
 1.2
 ----
