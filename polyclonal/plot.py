@@ -430,7 +430,8 @@ def lineplot_and_heatmap(
         value=[{"floor": 0 if init_floor_at_zero else min_stat}],
     )
 
-    # create sliders for max stat at site and any additional sliders
+    # create sliders for site statistic value and any additional sliders
+    site_statistics = ["sum", "mean", "max", "min"]
     sliders = {
         "_stat_site_max": alt.selection_point(
             fields=["cutoff"],
@@ -560,27 +561,39 @@ def lineplot_and_heatmap(
     )
 
     # make the site chart
-    site_statistics = ["sum", "mean", "max", "min"]
+    if init_site_statistic not in site_statistics:
+        raise ValueError(f"invalid {init_site_statistic=}")
+    if set(site_statistics).intersection(req_cols):
+        raise ValueError(f"`data_df` cannot have these columns:\n{site_statistics}")
     site_stat = alt.selection_point(
         bind=alt.binding_radio(
-            options=site_statistics, name=f"site {stat_col} statistic"
+            labels=site_statistics,
+            options=[f"_stat_{stat}" for stat in site_statistics],
+            name=f"site {stat_col} statistic",
         ),
-        fields=["stat"],
-        value=[{"stat": init_site_statistic}],
+        fields=["_stat_site_stat"],
+        value=[{"_stat_site_stat": f"_stat_{init_site_statistic}"}],
         name="site_stat",
     )
     site_prop_cols = lookup_dfs["site"].columns if "site" in lookup_dfs else ["site"]
     lineplot_base = (
         base_chart.transform_filter(alt.datum.wildtype != alt.datum.mutant)
         .transform_aggregate(
-            **{stat: f"{stat}(_stat)" for stat in site_statistics},
+            **{f"_stat_{stat}": f"{stat}(_stat)" for stat in site_statistics},
             groupby=[*site_prop_cols, category_col],
         )
-        .transform_fold(site_statistics, ["stat", "site_val"])
+        .transform_fold(
+            [f"_stat_{stat}" for stat in site_statistics],
+            ["_stat_site_stat", "_stat_site_val"],
+        )
         .transform_filter(site_stat)
         .encode(
             x=alt.X("site:O", sort=sort_sites),
-            y=alt.Y("site_val:Q", scale=alt.Scale(zero=True), title=f"site {stat_col}"),
+            y=alt.Y(
+                "_stat_site_val:Q",
+                scale=alt.Scale(zero=True),
+                title=f"site {stat_col}",
+            ),
             color=alt.Color(
                 category_col,
                 scale=alt.Scale(
@@ -592,7 +605,7 @@ def lineplot_and_heatmap(
             tooltip=[
                 "site",
                 *([category_col] if show_category_label else []),
-                alt.Tooltip("site_val:Q", format=".3g", title=f"site {stat_col}"),
+                alt.Tooltip("_stat_site_val:Q", format=".3g", title=f"site {stat_col}"),
                 *[f"{c}:N" for c in site_prop_cols if c != "site"],
             ],
         )
