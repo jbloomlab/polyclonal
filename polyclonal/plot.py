@@ -440,7 +440,7 @@ def lineplot_and_heatmap(
                 min=min_stat,
                 max=max_stat,
             ),
-        )
+        ),
     }
     for slider_stat, init_slider_stat in addtl_slider_stats.items():
         sliders[slider_stat] = alt.selection_point(
@@ -538,11 +538,8 @@ def lineplot_and_heatmap(
     # Transforms on base chart. The "_stat" columns is floor transformed stat_col.
     base_chart = base_chart.transform_calculate(
         _stat=alt.expr.max(alt.datum[stat_col], floor_at_zero["floor"]),
-        _stat_filter="0",
-    ).transform_joinaggregate(
-        _stat_site_max="max(_stat)",
-        groupby=["site"],
-    )
+    ).transform_joinaggregate(_stat_site_max="max(_stat)", groupby=["site"])
+
     # Filter data using slider stat
     for slider_stat, slider in sliders.items():
         base_chart = base_chart.transform_filter(
