@@ -1769,7 +1769,20 @@ class Polyclonal:
             Interactive line plot and heatmap.
 
         """
-        kwargs["data_df"] = self.mut_escape_df
+        kwargs["data_df"] = pd.concat(
+            [
+                self.mut_escape_df,
+                pd.DataFrame.from_records(
+                    [
+                        (site, wt, wt, epitope, 0)
+                        for (site, wt), epitope in itertools.product(
+                            self.wts.items(), self.epitopes
+                        )
+                    ],
+                    columns=["site", "wildtype", "mutant", "epitope", "escape"]
+                ),
+            ],
+        )
         kwargs["stat_col"] = "escape"
         kwargs["category_col"] = "epitope"
         if self.mutations_times_seen:
