@@ -393,15 +393,11 @@ def lineplot_and_heatmap(
         data_df = data_df.query("site in @sites")
         if not set(sites).issubset(data_df["site"]):
             raise ValueError("`sites` has sites not in `data_df`")
-
-    # Cannot sort by sites completely: # https://github.com/altair-viz/altair/issues/2663
-    # But can sort up to ~1000 elements, which is enough that regular sorting will do the
-    # rest (assuming <10,000 sites). So make `sort_sites` list that sorts the first 1000
-    # elements and then check that is enough.
-    n_sort_sites = 1002  # this many does not raise error
-    sort_sites = sites[:n_sort_sites]
-    if list(sites) != [*sort_sites, *sorted(sites[n_sort_sites:])]:
-        raise ValueError(f"Cannot sort {len(sites)=} sites")
+    # order sites:
+    # https://github.com/dms-vep/dms-vep-pipeline/issues/53#issuecomment-1227817963
+    data_df["_stat_site_order"] = data_df["site"].map(
+        {site: i for i, site in enumerate(sites)}
+    )
 
     # get tooltips for heatmap
     heatmap_tooltips = [
@@ -480,7 +476,10 @@ def lineplot_and_heatmap(
         alt.Chart(site_zoom_bar_df)
         .mark_rect()
         .encode(
-            x=alt.X("site:O", sort=sort_sites),
+            x=alt.X(
+                "site:O",
+                sort=alt.EncodingSortField(field="_stat_site_order", order="ascending"),
+            ),
             color=(
                 alt.Color(
                     site_zoom_bar_color_col,
@@ -489,7 +488,7 @@ def lineplot_and_heatmap(
                     legend=alt.Legend(orient="left"),
                     sort=(
                         site_zoom_bar_df.set_index("site")
-                        .loc[sort_sites][site_zoom_bar_color_col]
+                        .loc[sites][site_zoom_bar_color_col]
                         .unique()
                     ),
                 )
@@ -588,7 +587,10 @@ def lineplot_and_heatmap(
         )
         .transform_filter(site_stat)
         .encode(
-            x=alt.X("site:O", sort=sort_sites),
+            x=alt.X(
+                "site:O",
+                sort=alt.EncodingSortField(field="_stat_site_order", order="ascending"),
+            ),
             y=alt.Y(
                 "_stat_site_val:Q",
                 scale=alt.Scale(zero=True),
@@ -635,7 +637,12 @@ def lineplot_and_heatmap(
 
     # wildtype text marks for heatmap
     heatmap_wildtype = (
-        heatmap_base.encode(x=alt.X("site:O", sort=sort_sites))
+        heatmap_base.encode(
+            x=alt.X(
+                "site:O",
+                sort=alt.EncodingSortField(field="_stat_site_order", order="ascending"),
+            ),
+        )
         .transform_filter(alt.datum.wildtype == alt.datum.mutant)
         .mark_text(text="x", color="black")
     )
@@ -643,7 +650,12 @@ def lineplot_and_heatmap(
     # background fill for missing values in heatmap, imputing dummy stat
     # to get all cells
     heatmap_bg = (
-        heatmap_base.encode(x=alt.X("site:O", sort=sort_sites))
+        heatmap_base.encode(
+            x=alt.X(
+                "site:O",
+                sort=alt.EncodingSortField(field="_stat_site_order", order="ascending"),
+            )
+        )
         .transform_impute(
             impute="_stat_dummy",
             key="mutant",
@@ -664,7 +676,10 @@ def lineplot_and_heatmap(
             .encode(
                 x=alt.X(
                     "site:O",
-                    sort=sort_sites,
+                    sort=alt.EncodingSortField(
+                        field="_stat_site_order",
+                        order="ascending",
+                    ),
                     # only show ticks and axis title on bottom most category
                     axis=alt.Axis(
                         labels=category == categories[-1],
