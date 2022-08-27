@@ -391,6 +391,7 @@ def lineplot_and_heatmap(
         sites = natsort.natsorted(data_df["site"].unique(), alg=natsort.ns.SIGNED)
     else:
         data_df = data_df.query("site in @sites")
+        sites = [site for site in sites if site in set(data_df["site"])]
     # order sites:
     # https://github.com/dms-vep/dms-vep-pipeline/issues/53#issuecomment-1227817963
     data_df["_stat_site_order"] = data_df["site"].map(
@@ -606,7 +607,7 @@ def lineplot_and_heatmap(
                 "site",
                 *([category_col] if show_category_label else []),
                 alt.Tooltip("_stat_site_val:Q", format=".3g", title=f"site {stat_col}"),
-                *[f"{c}:N" for c in site_prop_cols if c != "site"],
+                *[f"{c}:N" for c in site_prop_cols if c != "site" and not c.startswith("_stat")],
             ],
         )
     )
