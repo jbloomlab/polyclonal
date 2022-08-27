@@ -272,7 +272,7 @@ def lineplot_and_heatmap(
     init_floor_at_zero=True,
     init_site_statistic="sum",
     cell_size=11,
-    lineplot_width=5,
+    lineplot_width=4,
     lineplot_height=100,
     site_zoom_bar_width=500,
     site_zoom_bar_color_col=None,
