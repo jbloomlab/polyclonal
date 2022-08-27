@@ -10,11 +10,12 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ---
 - Changed plotting of escape. Replaced ``mut_escape_heatmap`` and ``mut_escape_lineplot`` with ``lineplot_and_heatmap``
 - Changed default epitope colors for ``Polyclonal`` objects.
+- Replaced ``Polyclonal.mut_escape_heatmap`` and ``Polyclonal.mut_escape_lineplot`` with ``Polyclonal.mut_escape_plot``.
+- Replaced ``PolyclonalCollection.mut_escape_heatmap`` and ``PolyclonalCollection.mut_escape_lineplot`` with ``PolyclonalCollection.mut_escape_plot``.
 
 1.2
 ----
 - ``PolyclonalCollection`` plotting (specifically lineplot) still works even if there is just one model in collection. Before this edge case caused an error.
-- Replaced ``Polyclonal.mut_escape_heatmap`` and ``Polyclonal.mut_escape_lineplot`` with ``Polyclonal.mut_escape_plot``.
 - Allow negative site numbers.
 
 1.1

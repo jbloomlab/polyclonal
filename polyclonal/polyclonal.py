@@ -1753,7 +1753,7 @@ class Polyclonal:
         return pd.DataFrame(result_files, columns=["epitope", "PDB file"])
 
     def mut_escape_plot(self, *, biochem_order_aas=True, **kwargs):
-        r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
+        r"""Plots of the mutation escape values, :math:`\beta_{m,e}`.
 
         Parameters
         ----------
@@ -1772,35 +1772,38 @@ class Polyclonal:
         kwargs["data_df"] = pd.concat(
             [
                 self.mut_escape_df,
-                pd.DataFrame.from_records(
-                    [
-                        (site, wt, wt, epitope, 0)
-                        for (site, wt), epitope in itertools.product(
-                            self.wts.items(), self.epitopes
-                        )
-                    ],
-                    columns=["site", "wildtype", "mutant", "epitope", "escape"]
+                (
+                    self.mut_escape_df
+                    [["site", "wildtype", "epitope"]]
+                    .drop_duplicates()
+                    .assign(escape=0, mutant=lambda x: x["wildtype"])
                 ),
             ],
         )
+
         kwargs["stat_col"] = "escape"
         kwargs["category_col"] = "epitope"
+
         if self.mutations_times_seen:
             if "addtl_slider_stats" in kwargs:
                 if "times_seen" not in kwargs["addtl_slider_stats"]:
                     kwargs["addtl_slider_stats"]["times_seen"] = 1
             else:
                 kwargs["addtl_slider_stats"] = {"times_seen": 1}
+
         if "sites" not in kwargs:
             kwargs["sites"] = self.sites
+
         if "category_colors" not in kwargs:
             kwargs["category_colors"] = self.epitope_colors
+
         if "alphabet" not in kwargs:
             kwargs["alphabet"] = self.alphabet
         if biochem_order_aas:
             kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
                 kwargs["alphabet"]
             )
+
         return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 
     def filter_variants_by_seen_muts(

@@ -497,7 +497,7 @@ class PolyclonalCollection:
         plot_corr2 : bool
             Plot squared correlation (eg, :math:`R^2` rather :math:`R`).
         **kwargs
-            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+            Keyword args for :func:`polyclonal.plot.corr_heatmap`
         """
         corr_label = {"pearson": "r", "kendall": "tau", "spearman": "rho"}[method]
         corr2_label = f"{corr_label}2"
@@ -526,15 +526,15 @@ class PolyclonalCollection:
             **kwargs,
         )
 
-    def mut_escape_heatmap(
+    def mut_escape_plot(
         self,
         *,
         biochem_order_aas=True,
         avg_type=None,
-        init_n_replicates=None,
+        init_n_models=None,
         **kwargs,
     ):
-        """Heatmaps of mutation escape values.
+        """Plots of mutation escape values.
 
         Parameters
         ----------
@@ -544,12 +544,12 @@ class PolyclonalCollection:
         avg_type : {"mean", "median", None}
             Type of average to plot, None defaults to
             :attr:`PolyclonalCollection.default_avg_to_plot`.
-        init_n_replicates : None or int
-            Initially only show mutations found in at least this number of replicates
-            (models in the collection). A value of `None` corresponds to choosing a
+        init_n_models : None or int
+            Initially only show mutations found in at least this number of models
+            in the collection. A value of `None` corresponds to choosing a
             value that is >= half the number of total replicates.
         **kwargs
-            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`
+            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
 
         Returns
         -------
@@ -557,43 +557,62 @@ class PolyclonalCollection:
             Interactive heat maps.
 
         """
-        if "addtl_tooltip_stats" not in kwargs:
-            if "times_seen" in self.mut_escape_df.columns:
-                kwargs["addtl_tooltip_stats"] = ["times_seen"]
-
-        if "sites" not in kwargs and not self.sequential_integer_sites:
-            kwargs["sites"] = self.sites
-        if init_n_replicates is None:
-            init_n_replicates = int(math.ceil(len(self.models) / 2))
-        if (
-            "addtl_tooltip_stats" in kwargs
-            and kwargs["addtl_tooltip_stats"] is not None
-        ):
-            kwargs["addtl_tooltip_stats"].append("n_replicates")
-        else:
-            kwargs["addtl_tooltip_stats"] = ["n_replicates"]
-        if "addtl_slider_stats" in kwargs and kwargs["addtl_slider_stats"] is not None:
-            kwargs["addtl_slider_stats"]["n_replicates"] = init_n_replicates
-        else:
-            kwargs["addtl_slider_stats"] = {"n_replicates": init_n_replicates}
-
         if avg_type is None:
             avg_type = self.default_avg_to_plot
 
-        return polyclonal.plot.mut_escape_heatmap(
-            mut_escape_df=self.mut_escape_df.rename(
-                columns={"n_models": "n_replicates"}
-            ),
-            alphabet=(
-                polyclonal.alphabets.biochem_order_aas(self.alphabet)
-                if biochem_order_aas
-                else self.alphabet
-            ),
-            epitope_colors=self.epitope_colors,
-            stat=f"escape_{avg_type}",
-            error_stat="escape_std",
-            **kwargs,
+        kwargs["data_df"] = pd.concat(
+            [
+                (
+                    self.mut_escape_df
+                    .rename(columns={f"escape_{avg_type}": "escape"})
+                    .drop(columns=["escape_median", "escape_mean"], errors="ignore")
+                ),
+                (
+                    self.mut_escape_df
+                    [["site", "wildtype", "epitope"]]
+                    .drop_duplicates()
+                    .assign(escape=0, mutant=lambda x: x["wildtype"])
+                ),
+            ],
         )
+
+        if "addtl_tooltip_stats" in kwargs:
+            if "escape_std" not in kwargs["addtl_tooltip_stats"]:
+                kwargs["addtl_tooltip_stats"].append("escape_std")
+        else:
+            kwargs["addtl_tooltip_stats"] = ["escape_std"]
+
+        kwargs["stat_col"] = "escape"
+        kwargs["category_col"] = "epitope"
+
+        if "times_seen" in self.mut_escape_df.columns:
+            if "addtl_slider_stats" in kwargs:
+                if "times_seen" not in kwargs["addtl_slider_stats"]:
+                    kwargs["addtl_slider_stats"]["times_seen"] = 1
+            else:
+                kwargs["addtl_slider_stats"] = {"times_seen": 1}
+
+        if ("sites" not in kwargs) and not self.sequential_integer_sites:
+            kwargs["sites"] = self.sites
+
+        if "category_colors" not in kwargs:
+            kwargs["category_colors"] = self.epitope_colors
+
+        if "alphabet" not in kwargs:
+            kwargs["alphabet"] = self.alphabet
+        if biochem_order_aas:
+            kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
+                kwargs["alphabet"]
+            )
+
+        if init_n_models is None:
+            init_n_models = int(math.ceil(len(self.models) / 2))
+        if "addtl_slider_stats" in kwargs:
+            kwargs["addtl_slider_stats"]["n_models"] = init_n_models
+        else:
+            kwargs["addtl_slider_stats"] = {"n_models": init_n_models}
+
+        return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 
     def mut_escape_site_summary_df_replicates(self, **kwargs):
         """Site-level summaries of mutation escape for models.
@@ -680,64 +699,6 @@ class PolyclonalCollection:
                 epitope=lambda x: x["epitope"].tolist(),
                 site=lambda x: x["site"].tolist(),
             )
-        )
-
-    def mut_escape_lineplot(
-        self,
-        *,
-        avg_type=None,
-        min_replicates=None,
-        mut_escape_site_summary_df_kwargs=None,
-        mut_escape_lineplot_kwargs=None,
-    ):
-        """Line plots of mutation escape at each site.
-
-        Parameters
-        ----------
-        avg_type : {"mean", "median", None}
-            Type of average to plot, None defaults to
-            :attr:`PolyclonalCollection.default_avg_to_plot`.
-        min_replicates : None or int
-            Only include sites that have escape estimated for at least this many models.
-            A value of `None` corresponds to choosing a value that is >= half the number
-            of total replicates.
-        mut_escape_site_summary_df_kwargs : dict
-            Keyword args for :meth:`PolyclonalCollection.mut_escape_site_summary_df`.
-            It is often useful to set `min_times_seen` to >1.
-        mut_escape_lineplot_kwargs : dict
-            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`
-
-        Returns
-        -------
-        altair.Chart
-            Interactive heat maps.
-
-        """
-        if min_replicates is None:
-            min_replicates = int(math.ceil(len(self.models) / 2))
-        if mut_escape_site_summary_df_kwargs is None:
-            mut_escape_site_summary_df_kwargs = {}
-        if mut_escape_lineplot_kwargs is None:
-            mut_escape_lineplot_kwargs = {}
-        if "avg_to_plot" not in mut_escape_lineplot_kwargs:
-            if avg_type is None:
-                avg_type = self.default_avg_to_plot
-            mut_escape_lineplot_kwargs["avg_to_plot"] = f"escape_{avg_type}"
-        if "addtl_tooltip_stats" not in mut_escape_lineplot_kwargs:
-            mut_escape_lineplot_kwargs["addtl_tooltip_stats"] = ["n mutations"]
-        if (
-            "sites" not in mut_escape_lineplot_kwargs
-            and not self.sequential_integer_sites
-        ):
-            mut_escape_lineplot_kwargs["sites"] = self.sites
-        df = self.mut_escape_site_summary_df(**mut_escape_site_summary_df_kwargs).query(
-            "n_models >= @min_replicates"
-        )
-        return polyclonal.plot.mut_escape_lineplot(
-            mut_escape_site_summary_df=df,
-            replicate_data=True,
-            epitope_colors=self.epitope_colors,
-            **mut_escape_lineplot_kwargs,
         )
 
     def icXX_replicates(self, variants_df, **kwargs):
