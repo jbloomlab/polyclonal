@@ -533,6 +533,7 @@ class PolyclonalCollection:
         avg_type=None,
         init_n_models=None,
         prefix_epitope=None,
+        df_to_merge=None,
         **kwargs,
     ):
         """Plots of mutation escape values.
@@ -552,6 +553,13 @@ class PolyclonalCollection:
         prefix_epitope : bool or None
             Do we add the prefix "epitope " to the epitope labels? If `None`, do
             only if epitope is integer.
+        df_to_merge : None or pandas.DataFrame
+            If you want to include additional properties, specify this data frame
+            which is merged with :attr:`Polyclonal.mut_escape_df` before being passed
+            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will
+            only be included in plot if relevant columns are passed to
+            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
+            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
 
@@ -578,6 +586,9 @@ class PolyclonalCollection:
                 ),
             ],
         )
+
+        if df_to_merge is not None:
+            kwargs["data_df"] = kwargs["data_df"].merge(df_to_merge, how="left")
 
         if "category_colors" not in kwargs:
             kwargs["category_colors"] = self.epitope_colors
