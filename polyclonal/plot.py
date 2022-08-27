@@ -607,7 +607,11 @@ def lineplot_and_heatmap(
                 "site",
                 *([category_col] if show_category_label else []),
                 alt.Tooltip("_stat_site_val:Q", format=".3g", title=f"site {stat_col}"),
-                *[f"{c}:N" for c in site_prop_cols if c != "site" and not c.startswith("_stat")],
+                *[
+                    f"{c}:N"
+                    for c in site_prop_cols
+                    if c != "site" and not c.startswith("_stat")
+                ],
             ],
         )
     )
