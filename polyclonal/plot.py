@@ -272,7 +272,7 @@ def lineplot_and_heatmap(
     init_floor_at_zero=True,
     init_site_statistic="sum",
     cell_size=11,
-    lineplot_width=4,
+    lineplot_width=690,
     lineplot_height=100,
     site_zoom_bar_width=500,
     site_zoom_bar_color_col=None,
@@ -316,8 +316,8 @@ def lineplot_and_heatmap(
         Initial value for site statistic in lineplot, calculated from `stat_col`.
     cell_size : float
         Size of cells in heatmap
-    lineplot_width : float
-        Width per site in lineplot.
+    lineplot_width : float or None
+        Overall width of lineplot.
     lineplot_height : float
         Height of line plot.
     site_zoom_bar_width : float
@@ -391,8 +391,6 @@ def lineplot_and_heatmap(
         sites = natsort.natsorted(data_df["site"].unique(), alg=natsort.ns.SIGNED)
     else:
         data_df = data_df.query("site in @sites")
-        if not set(sites).issubset(data_df["site"]):
-            raise ValueError("`sites` has sites not in `data_df`")
     # order sites:
     # https://github.com/dms-vep/dms-vep-pipeline/issues/53#issuecomment-1227817963
     data_df["_stat_site_order"] = data_df["site"].map(
@@ -622,7 +620,7 @@ def lineplot_and_heatmap(
             + lineplot_base.mark_circle(opacity=0.7)
         )
         .add_parameter(site_stat, line_selection)
-        .properties(width=alt.Step(lineplot_width), height=lineplot_height)
+        .properties(width=lineplot_width, height=lineplot_height)
     )
 
     # make base chart for heatmaps
