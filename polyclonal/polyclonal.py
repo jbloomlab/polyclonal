@@ -1752,7 +1752,7 @@ class Polyclonal:
             )
         return pd.DataFrame(result_files, columns=["epitope", "PDB file"])
 
-    def mut_escape_plot(self, *, biochem_order_aas=True, **kwargs):
+    def mut_escape_plot(self, *, biochem_order_aas=True, prefix_epitope=None, **kwargs):
         r"""Plots of the mutation escape values, :math:`\beta_{m,e}`.
 
         Parameters
@@ -1760,6 +1760,9 @@ class Polyclonal:
         biochem_order_aas : bool
             Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`
             by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
+        prefix_epitope : bool or None
+            Do we add the prefix "epitope " to the epitope labels? If `None`, do
+            only if epitope is integer.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`.
 
@@ -1773,13 +1776,25 @@ class Polyclonal:
             [
                 self.mut_escape_df,
                 (
-                    self.mut_escape_df
-                    [["site", "wildtype", "epitope"]]
+                    self.mut_escape_df[["site", "wildtype", "epitope"]]
                     .drop_duplicates()
                     .assign(escape=0, mutant=lambda x: x["wildtype"])
                 ),
             ],
         )
+
+        if "category_colors" not in kwargs:
+            kwargs["category_colors"] = self.epitope_colors
+
+        if prefix_epitope or (
+            prefix_epitope is None
+            and all(type(e) == int or e.isnumeric() for e in self.epitopes)
+        ):
+            prefixed = {e: f"epitope {e}" for e in self.epitopes}
+            kwargs["data_df"]["epitope"] = kwargs["data_df"]["epitope"].map(prefixed)
+            kwargs["category_colors"] = {
+                prefixed[e]: color for e, color in kwargs["category_colors"].items()
+            }
 
         kwargs["stat_col"] = "escape"
         kwargs["category_col"] = "epitope"
@@ -1793,9 +1808,6 @@ class Polyclonal:
 
         if "sites" not in kwargs:
             kwargs["sites"] = self.sites
-
-        if "category_colors" not in kwargs:
-            kwargs["category_colors"] = self.epitope_colors
 
         if "alphabet" not in kwargs:
             kwargs["alphabet"] = self.alphabet

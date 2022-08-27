@@ -532,6 +532,7 @@ class PolyclonalCollection:
         biochem_order_aas=True,
         avg_type=None,
         init_n_models=None,
+        prefix_epitope=None,
         **kwargs,
     ):
         """Plots of mutation escape values.
@@ -548,6 +549,9 @@ class PolyclonalCollection:
             Initially only show mutations found in at least this number of models
             in the collection. A value of `None` corresponds to choosing a
             value that is >= half the number of total replicates.
+        prefix_epitope : bool or None
+            Do we add the prefix "epitope " to the epitope labels? If `None`, do
+            only if epitope is integer.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
 
@@ -563,18 +567,30 @@ class PolyclonalCollection:
         kwargs["data_df"] = pd.concat(
             [
                 (
-                    self.mut_escape_df
-                    .rename(columns={f"escape_{avg_type}": "escape"})
-                    .drop(columns=["escape_median", "escape_mean"], errors="ignore")
+                    self.mut_escape_df.rename(
+                        columns={f"escape_{avg_type}": "escape"}
+                    ).drop(columns=["escape_median", "escape_mean"], errors="ignore")
                 ),
                 (
-                    self.mut_escape_df
-                    [["site", "wildtype", "epitope"]]
+                    self.mut_escape_df[["site", "wildtype", "epitope"]]
                     .drop_duplicates()
                     .assign(escape=0, mutant=lambda x: x["wildtype"])
                 ),
             ],
         )
+
+        if "category_colors" not in kwargs:
+            kwargs["category_colors"] = self.epitope_colors
+
+        if prefix_epitope or (
+            prefix_epitope is None
+            and all(type(e) == int or e.isnumeric() for e in self.epitopes)
+        ):
+            prefixed = {e: f"epitope {e}" for e in self.epitopes}
+            kwargs["data_df"]["epitope"] = kwargs["data_df"]["epitope"].map(prefixed)
+            kwargs["category_colors"] = {
+                prefixed[e]: color for e, color in kwargs["category_colors"].items()
+            }
 
         if "addtl_tooltip_stats" in kwargs:
             if "escape_std" not in kwargs["addtl_tooltip_stats"]:
@@ -594,9 +610,6 @@ class PolyclonalCollection:
 
         if ("sites" not in kwargs) and not self.sequential_integer_sites:
             kwargs["sites"] = self.sites
-
-        if "category_colors" not in kwargs:
-            kwargs["category_colors"] = self.epitope_colors
 
         if "alphabet" not in kwargs:
             kwargs["alphabet"] = self.alphabet
