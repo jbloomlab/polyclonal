@@ -1760,7 +1760,7 @@ class Polyclonal:
         df_to_merge=None,
         **kwargs,
     ):
-        r"""Plots of the mutation escape values, :math:`\beta_{m,e}`.
+        r"""Make plot of the mutation escape values, :math:`\beta_{m,e}`.
 
         Parameters
         ----------

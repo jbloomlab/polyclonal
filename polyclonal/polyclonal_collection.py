@@ -536,7 +536,7 @@ class PolyclonalCollection:
         df_to_merge=None,
         **kwargs,
     ):
-        """Plots of mutation escape values.
+        """Make plot of mutation escape values.
 
         Parameters
         ----------
