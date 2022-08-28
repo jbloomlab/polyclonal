@@ -684,7 +684,7 @@ class Polyclonal:
         collapse_identical_variants=False,
         alphabet=polyclonal.AAS,
         sites=None,
-        epitope_colors=polyclonal.plot.TAB10_COLORS_NOGRAY,
+        epitope_colors=polyclonal.plot.DEFAULT_POSITIVE_COLORS,
         init_missing="zero",
         data_mut_escape_overlap="exact_match",
     ):
@@ -1752,64 +1752,90 @@ class Polyclonal:
             )
         return pd.DataFrame(result_files, columns=["epitope", "PDB file"])
 
-    def mut_escape_lineplot(self, min_times_seen=1, **kwargs):
-        r"""Line plots of mutation escape :math:`\beta_{m,e}` at each site.
-
-        Parameters
-        ----------
-        min_times_seen : int
-            Value passed to :meth:`Polyclonal.mut_escape_site_summary_df`.
-        **kwargs
-            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`.
-
-        Returns
-        -------
-        altair.Chart
-            Interactive plot.
-
-        """
-        kwargs["mut_escape_site_summary_df"] = self.mut_escape_site_summary_df(
-            min_times_seen=min_times_seen,
-        )
-        if "sites" not in kwargs and not self.sequential_integer_sites:
-            kwargs["sites"] = self.sites
-        if "epitope_colors" not in kwargs:
-            kwargs["epitope_colors"] = self.epitope_colors
-        if "addtl_tooltip_stats" not in kwargs:
-            kwargs["addtl_tooltip_stats"] = ["n mutations"]
-        return polyclonal.plot.mut_escape_lineplot(**kwargs)
-
-    def mut_escape_heatmap(self, *, biochem_order_aas=True, **kwargs):
-        r"""Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.
+    def mut_escape_plot(
+        self,
+        *,
+        biochem_order_aas=True,
+        prefix_epitope=None,
+        df_to_merge=None,
+        **kwargs,
+    ):
+        r"""Make plot of the mutation escape values, :math:`\beta_{m,e}`.
 
         Parameters
         ----------
         biochem_order_aas : bool
             Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`
             by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
+        prefix_epitope : bool or None
+            Do we add the prefix "epitope " to the epitope labels? If `None`, do
+            only if epitope is integer.
+        df_to_merge : None or pandas.DataFrame
+            If you want to include additional properties, specify this data frame
+            which is merged with :attr:`Polyclonal.mut_escape_df` before being passed
+            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will
+            only be included in plot if relevant columns are passed to
+            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
+            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.
         **kwargs
-            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`.
+            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`.
 
         Returns
         -------
         altair.Chart
-            Interactive heat maps.
+            Interactive line plot and heatmap.
 
         """
-        kwargs["mut_escape_df"] = self.mut_escape_df
-        if "sites" not in kwargs and not self.sequential_integer_sites:
+        kwargs["data_df"] = pd.concat(
+            [
+                self.mut_escape_df,
+                (
+                    self.mut_escape_df[["site", "wildtype", "epitope"]]
+                    .drop_duplicates()
+                    .assign(escape=0, mutant=lambda x: x["wildtype"])
+                ),
+            ],
+        )
+
+        if df_to_merge is not None:
+            if not self.sequential_integer_sites and "site" in df_to_merge.columns:
+                df_to_merge = df_to_merge.assign(site=lambda x: x["site"].astype(str))
+            kwargs["data_df"] = kwargs["data_df"].merge(df_to_merge, how="left")
+
+        if "category_colors" not in kwargs:
+            kwargs["category_colors"] = self.epitope_colors
+
+        if prefix_epitope or (
+            prefix_epitope is None
+            and all(type(e) == int or e.isnumeric() for e in self.epitopes)
+        ):
+            prefixed = {e: f"epitope {e}" for e in self.epitopes}
+            kwargs["data_df"]["epitope"] = kwargs["data_df"]["epitope"].map(prefixed)
+            kwargs["category_colors"] = {
+                prefixed[e]: color for e, color in kwargs["category_colors"].items()
+            }
+
+        kwargs["stat_col"] = "escape"
+        kwargs["category_col"] = "epitope"
+
+        if self.mutations_times_seen:
+            if "addtl_slider_stats" in kwargs:
+                if "times_seen" not in kwargs["addtl_slider_stats"]:
+                    kwargs["addtl_slider_stats"]["times_seen"] = 1
+            else:
+                kwargs["addtl_slider_stats"] = {"times_seen": 1}
+
+        if "sites" not in kwargs:
             kwargs["sites"] = self.sites
-        if "epitope_colors" not in kwargs:
-            kwargs["epitope_colors"] = self.epitope_colors
+
         if "alphabet" not in kwargs:
             kwargs["alphabet"] = self.alphabet
         if biochem_order_aas:
             kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
                 kwargs["alphabet"]
             )
-        if ("addtl_tooltip_stats" not in kwargs) and self.data_to_fit is not None:
-            kwargs["addtl_tooltip_stats"] = ["times_seen"]
-        return polyclonal.plot.mut_escape_heatmap(**kwargs)
+
+        return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 
     def filter_variants_by_seen_muts(
         self,
