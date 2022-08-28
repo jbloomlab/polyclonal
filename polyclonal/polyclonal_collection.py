@@ -588,6 +588,8 @@ class PolyclonalCollection:
         )
 
         if df_to_merge is not None:
+            if not self.sequential_integer_sites and "site" in df_to_merge.columns:
+                df_to_merge = df_to_merge.assign(site=lambda x: x["site"].astype(str))
             kwargs["data_df"] = kwargs["data_df"].merge(df_to_merge, how="left")
 
         if "category_colors" not in kwargs:
