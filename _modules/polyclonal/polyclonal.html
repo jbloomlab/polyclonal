@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 1.2 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -719,7 +719,7 @@
         <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">alphabet</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS</span><span class="p">,</span>
         <span class="n">sites</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">epitope_colors</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">TAB10_COLORS_NOGRAY</span><span class="p">,</span>
+        <span class="n">epitope_colors</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">DEFAULT_POSITIVE_COLORS</span><span class="p">,</span>
         <span class="n">init_missing</span><span class="o">=</span><span class="s2">&quot;zero&quot;</span><span class="p">,</span>
         <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;exact_match&quot;</span><span class="p">,</span>
     <span class="p">):</span>
@@ -1787,64 +1787,90 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result_files</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;PDB file&quot;</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Polyclonal.mut_escape_lineplot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_lineplot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_lineplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Line plots of mutation escape :math:`\beta_{m,e}` at each site.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        min_times_seen : int</span>
-<span class="sd">            Value passed to :meth:`Polyclonal.mut_escape_site_summary_df`.</span>
-<span class="sd">        **kwargs</span>
-<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_lineplot`.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        altair.Chart</span>
-<span class="sd">            Interactive plot.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mut_escape_site_summary_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_site_summary_df</span><span class="p">(</span>
-            <span class="n">min_times_seen</span><span class="o">=</span><span class="n">min_times_seen</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
-        <span class="k">if</span> <span class="s2">&quot;epitope_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;epitope_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
-        <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n mutations&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_lineplot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Polyclonal.mut_escape_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Heatmaps of the mutation escape values, :math:`\beta_{m,e}`.</span>
+<div class="viewcode-block" id="Polyclonal.mut_escape_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_plot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">prefix_epitope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">df_to_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Make plot of the mutation escape values, :math:`\beta_{m,e}`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        biochem_order_aas : bool</span>
 <span class="sd">            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`</span>
 <span class="sd">            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.</span>
+<span class="sd">        prefix_epitope : bool or None</span>
+<span class="sd">            Do we add the prefix &quot;epitope &quot; to the epitope labels? If `None`, do</span>
+<span class="sd">            only if epitope is integer.</span>
+<span class="sd">        df_to_merge : None or pandas.DataFrame</span>
+<span class="sd">            If you want to include additional properties, specify this data frame</span>
+<span class="sd">            which is merged with :attr:`Polyclonal.mut_escape_df` before being passed</span>
+<span class="sd">            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will</span>
+<span class="sd">            only be included in plot if relevant columns are passed to</span>
+<span class="sd">            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,</span>
+<span class="sd">            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">            Keyword args for :func:`polyclonal.plot.mut_escape_heatmap`.</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        altair.Chart</span>
-<span class="sd">            Interactive heat maps.</span>
+<span class="sd">            Interactive line plot and heatmap.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mut_escape_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span>
-        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">]]</span>
+                    <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+                    <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">escape</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">])</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">df_to_merge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="n">df_to_merge</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;category_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
+
+        <span class="k">if</span> <span class="n">prefix_epitope</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">prefix_epitope</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">prefixed</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;epitope </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">}</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">prefixed</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">prefixed</span><span class="p">[</span><span class="n">e</span><span class="p">]:</span> <span class="n">color</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stat_col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;escape&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;epitope&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;addtl_slider_stats&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">][</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;times_seen&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
-        <span class="k">if</span> <span class="s2">&quot;epitope_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;epitope_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
+
         <span class="k">if</span> <span class="s2">&quot;alphabet&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
         <span class="k">if</span> <span class="n">biochem_order_aas</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">alphabets</span><span class="o">.</span><span class="n">biochem_order_aas</span><span class="p">(</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mut_escape_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">lineplot_and_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Polyclonal.filter_variants_by_seen_muts"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts">[docs]</a>    <span class="k">def</span> <span class="nf">filter_variants_by_seen_muts</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

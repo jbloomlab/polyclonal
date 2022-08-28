@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>plot &#8212; polyclonal 1.2 documentation</title>
+    <title>plot &#8212; polyclonal 2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -40,6 +40,31 @@
   <span class="target" id="module-polyclonal.plot"></span><section id="plot">
 <h1>plot<a class="headerlink" href="#plot" title="Permalink to this headline">¶</a></h1>
 <p>Plotting functions.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="polyclonal.plot.DEFAULT_NEGATIVE_COLOR">
+<span class="sig-prename descclassname"><span class="pre">polyclonal.plot.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_NEGATIVE_COLOR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'#E69F00'</span></em><a class="headerlink" href="#polyclonal.plot.DEFAULT_NEGATIVE_COLOR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Orange from cbPalette color in hex.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="polyclonal.plot.DEFAULT_POSITIVE_COLORS">
+<span class="sig-prename descclassname"><span class="pre">polyclonal.plot.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_POSITIVE_COLORS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('#0072B2',</span> <span class="pre">'#009E73',</span> <span class="pre">'#CC79A7',</span> <span class="pre">'#56B4E9',</span> <span class="pre">'#F0E442')</span></em><a class="headerlink" href="#polyclonal.plot.DEFAULT_POSITIVE_COLORS" title="Permalink to this definition">¶</a></dt>
+<dd><p>dark blue, green, purple, light blue,yellow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>Some cbPalette colors in hex</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="polyclonal.plot.TAB10_COLORS_NOGRAY">
 <span class="sig-prename descclassname"><span class="pre">polyclonal.plot.</span></span><span class="sig-name descname"><span class="pre">TAB10_COLORS_NOGRAY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('#1f77b4',</span> <span class="pre">'#ff7f0e',</span> <span class="pre">'#2ca02c',</span> <span class="pre">'#d62728',</span> <span class="pre">'#9467bd',</span> <span class="pre">'#8c564b',</span> <span class="pre">'#e377c2',</span> <span class="pre">'#bcbd22',</span> <span class="pre">'#17becf')</span></em><a class="headerlink" href="#polyclonal.plot.TAB10_COLORS_NOGRAY" title="Permalink to this definition">¶</a></dt>
@@ -135,88 +160,47 @@ If <cite>None</cite>, choose intelligently based on <cite>corr_range</cite> and 
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="polyclonal.plot.mut_escape_heatmap">
-<span class="sig-prename descclassname"><span class="pre">polyclonal.plot.</span></span><span class="sig-name descname"><span class="pre">mut_escape_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'escape'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_stat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addtl_tooltip_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor_at_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_heatmap_lims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_bar_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_min_times_seen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_label_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'</span> <span class="pre">epitope'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diverging_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_min_times_seen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addtl_slider_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/plot.html#mut_escape_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.plot.mut_escape_heatmap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Heatmaps of the mutation escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>.</p>
+<dt class="sig sig-object py" id="polyclonal.plot.lineplot_and_heatmap">
+<span class="sig-prename descclassname"><span class="pre">polyclonal.plot.</span></span><span class="sig-name descname"><span class="pre">lineplot_and_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphabet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addtl_tooltip_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addtl_slider_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_floor_at_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_site_statistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineplot_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">690</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineplot_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_zoom_bar_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_zoom_bar_color_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_single_category_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap_negative_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap_color_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap_color_scheme_mid_0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap_max_at_least</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap_min_at_least</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site_zoom_bar_color_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'set3'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/plot.html#lineplot_and_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.plot.lineplot_and_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lineplots and heatmaps of per-site and per-mutation values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mut_escape_df</strong> (<em>pandas.DataFrame</em>) – Mutation-level escape in format of
-<a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_df"><code class="xref py py-attr docutils literal notranslate"><span class="pre">polyclonal.polyclonal.Polyclonal.mut_escape_df</span></code></a>. Any
-wildtype entries should be set to 0 or are auto-filled to 0.</p></li>
-<li><p><strong>alphabet</strong> (<em>array-like</em>) – Alphabet letters (e.g., amino acids) in order to plot them.</p></li>
-<li><p><strong>epitope_colors</strong> (<em>dict</em>) – Maps each epitope name to its color.</p></li>
-<li><p><strong>epitopes</strong> (<em>array-like</em><em> or </em><em>None</em>) – Make plots for these epitopes. If <cite>None</cite>, use all epitopes.</p></li>
-<li><p><strong>stat</strong> (<em>str</em>) – Statistic in <cite>mut_escape_df</cite> to plot as escape.</p></li>
-<li><p><strong>sites</strong> (<em>None</em><em> or </em><em>array-like</em>) – If <cite>None</cite>, the sites in <cite>mut_escape_df</cite> are assumed to represent sequential
-integers (and any missing ones are filled in). If you specify something else
-here, it should be array-like giving sites to plot in order to plot them.</p></li>
-<li><p><strong>error_stat</strong> (<em>str</em><em> or </em><em>None</em>) – Measure of error to display in tooltip.</p></li>
-<li><p><strong>addtl_tooltip_stats</strong> (<em>list</em><em> or </em><em>None</em>) – Additional mutation-level stats to show in tooltip.</p></li>
-<li><p><strong>all_alphabet</strong> (<em>bool</em>) – Plot all letters in the alphabet (e.g., amino acids) even if some
-have no data.</p></li>
-<li><p><strong>floor_at_zero</strong> (<em>bool</em>) – Set lower limit for color scale to zero, even if there are negative
-escape values or if minimum is &gt;0. If True, then the <em>percent_max_cutoff</em>
-slider is also floored the same way.</p></li>
-<li><p><strong>share_heatmap_lims</strong> (<em>bool</em>) – If <cite>True</cite>, let all epitopes share the same limits in color scale.
-If <cite>False</cite>, scale each epitopes colors to the min and max stat
-values for that epitope.</p></li>
-<li><p><strong>cell_size</strong> (<em>float</em>) – Size of cells in heatmap.</p></li>
-<li><p><strong>zoom_bar_width</strong> (<em>float</em>) – Width of zoom bar</p></li>
-<li><p><strong>init_min_times_seen</strong> (<em>int</em>) – Initial cutoff for minimum times a mutation must be seen slider. Slider
-only shown if ‘times_seen’ in <cite>addtl_tooltip_stats</cite>. Also used for calculating
-the percent max cutoff values.</p></li>
-<li><p><strong>epitope_label_suffix</strong> (<em>str</em>) – Suffix epitope labels with this.q</p></li>
-<li><p><strong>diverging_colors</strong> (<em>bool</em>) – If <cite>False</cite>, colors in <code class="docutils literal notranslate"><span class="pre">epitope_colors</span></code> are assumed to be the upper color for
-white-to-&lt;color&gt; scale. If <cite>True</cite>, they are instead diverging color schemes with
-0 as white. Valid diverging schemes: <a class="reference external" href="https://vega.github.io/vega/docs/schemes/">https://vega.github.io/vega/docs/schemes/</a></p></li>
-<li><p><strong>max_min_times_seen</strong> (<em>int</em><em> or </em><em>None</em>) – Maximum value for min times seen slider, or <cite>None</cite> for default.</p></li>
-<li><p><strong>addtl_slider_stats</strong> (<em>None</em><em> or </em><em>dict</em>) – If you want additional sliders, key by other numeric properties in
-<code class="docutils literal notranslate"><span class="pre">addtl_tooltip_stats</span></code> and value is initial setting.</p></li>
+<li><p><strong>data_df</strong> (<em>pandas.DataFrame</em>) – Data to plot. Must have columns “site”, “wildtype”, “mutant”, <cite>stat_col</cite>, and
+<cite>category_col</cite>. The wildtype values (wildtype = mutant) should be included,
+but are not used for the slider filtering or included in site summary lineplot.</p></li>
+<li><p><strong>stat_col</strong> (<em>str</em>) – Column in <cite>data_df</cite> with statistic to plot.</p></li>
+<li><p><strong>category_col</strong> (<em>str</em>) – Column in <cite>data_df</cite> with category to facet plots over. You can just create
+a dummy column with some dummy value if you only have one category.</p></li>
+<li><p><strong>alphabet</strong> (<em>array-like</em><em> or </em><em>None</em>) – Alphabet letters in order. If <cite>None</cite>, use natsorted “mutant” col of <cite>data_df</cite>.</p></li>
+<li><p><strong>sites</strong> (<em>array-like</em><em> or </em><em>None</em>) – Sites in order. If <cite>None</cite>, use natsorted “site” col of <cite>data_df</cite>.</p></li>
+<li><p><strong>addtl_tooltip_stats</strong> (<em>None</em><em> or </em><em>array-like</em>) – Additional mutation-level stats to show in the heatmap tooltips. Values in
+<cite>addtl_slider_stats</cite> automatically included.</p></li>
+<li><p><strong>addtl_slider_stats</strong> (<em>None</em><em> or </em><em>dict</em>) – Additional stats for which to have a slider, value is initial setting. Ignores
+wildtype and drops it when all mutants have been dropped at site. Null values
+are not filtered.</p></li>
+<li><p><strong>init_floor_at_zero</strong> (<em>bool</em>) – Initial value for option to put floor of zero on value is <cite>stat_col</cite>.</p></li>
+<li><p><strong>init_site_statistic</strong> (<em>{'sum'</em><em>, </em><em>'mean'</em><em>, </em><em>'max'</em><em>, </em><em>'min'}</em>) – Initial value for site statistic in lineplot, calculated from <cite>stat_col</cite>.</p></li>
+<li><p><strong>cell_size</strong> (<em>float</em>) – Size of cells in heatmap</p></li>
+<li><p><strong>lineplot_width</strong> (<em>float</em><em> or </em><em>None</em>) – Overall width of lineplot.</p></li>
+<li><p><strong>lineplot_height</strong> (<em>float</em>) – Height of line plot.</p></li>
+<li><p><strong>site_zoom_bar_width</strong> (<em>float</em>) – Width of site zoom bar.</p></li>
+<li><p><strong>site_zoom_bar_color_col</strong> (<em>float</em>) – Column in <cite>data_df</cite> with which to color zoom bar. Must be the same for all
+entries for a site.</p></li>
+<li><p><strong>plot_title</strong> (<em>str</em><em> or </em><em>None</em>) – Overall plot title.</p></li>
+<li><p><strong>show_single_category_label</strong> (<em>bool</em>) – Show the category label if just one category.</p></li>
+<li><p><strong>category_colors</strong> (<em>None</em><em> or </em><em>dict</em>) – Map each category to its color, or None to use default. These are the
+colors for <strong>positive</strong> values of <cite>stat_col</cite>.</p></li>
+<li><p><strong>heatmap_negative_color</strong> (<em>None</em><em> or </em><em>str</em>) – Color used for negative values in heatmaps, or None to use default.</p></li>
+<li><p><strong>heatmap_color_scheme</strong> (<em>None</em><em> or </em><em>str</em>) – Heatmap uses this <a class="reference external" href="https://vega.github.io/vega/docs/schemes">Vega scheme</a>
+rather than <cite>category_colors</cite> and <cite>heatmap_negative_color</cite>.</p></li>
+<li><p><strong>heatmap_color_scheme_mid_0</strong> (<em>bool</em>) – Set the heatmap color scheme so the domain mid is zero.</p></li>
+<li><p><strong>heatmap_max_at_least</strong> (<em>None</em><em> or </em><em>float</em>) – Make heatmap color max at least this large.</p></li>
+<li><p><strong>heatmap_min_at_least</strong> (<em>None</em><em> or </em><em>float</em>) – Make heatmap color min at least this small, but still set to 0 if floor of zero
+selected.</p></li>
+<li><p><strong>site_zoom_bar_color_scheme</strong> (<em>str</em>) – If using <cite>site_zoom_bar_color_col</cite>, the
+<a class="reference external" href="https://vega.github.io/vega/docs/schemes">Vega color scheme</a> to use.</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Interactive heat maps.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>altair.Chart</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="polyclonal.plot.mut_escape_lineplot">
-<span class="sig-prename descclassname"><span class="pre">polyclonal.plot.</span></span><span class="sig-name descname"><span class="pre">mut_escape_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mut_escape_site_summary_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicate_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addtl_tooltip_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitope_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epitopes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_ylims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">900</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total</span> <span class="pre">positive'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_bar_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg_to_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'escape_mean'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polyclonal/plot.html#mut_escape_lineplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#polyclonal.plot.mut_escape_lineplot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Line plots of mutation escape <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> at each site.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mut_escape_site_summary_df</strong> (<em>pandas.DataFrame</em>) – Site-level escape in format of
-<a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="xref py py-attr docutils literal notranslate"><span class="pre">polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df</span></code></a>.</p></li>
-<li><p><strong>replicate_data</strong> (<em>bool</em>) – <cite>mut_escape_site_summary_df</cite> is from a collections of replicates as from
-<a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection" title="polyclonal.polyclonal_collection.PolyclonalCollection"><code class="xref py py-class docutils literal notranslate"><span class="pre">polyclonal.polyclonal_collection.PolyclonalCollection</span></code></a>.</p></li>
-<li><p><strong>addtl_tooltip_stats</strong> (<em>list</em><em> or </em><em>None</em>) – Additional mutation-level stats to show in tooltip.</p></li>
-<li><p><strong>epitope_colors</strong> (<em>dict</em>) – Maps each epitope name to its color.</p></li>
-<li><p><strong>epitopes</strong> (<em>array-like</em><em> or </em><em>None</em>) – Make plots for these epitopes. If <cite>None</cite>, use all epitopes.</p></li>
-<li><p><strong>sites</strong> (<em>None</em><em> or </em><em>array-like</em>) – If <cite>None</cite>, the sites in <cite>mut_escape_site_summary_df</cite> represent sequential
-integers (and any missing ones are filled in). If you specify something else
-here, it should be array-like giving sites to plot in order to plot them.</p></li>
-<li><p><strong>all_sites</strong> (<em>bool</em>) – Plot all sites in range from first to last site even if some
-have no data. Has no meanining if <code class="docutils literal notranslate"><span class="pre">sites</span></code> is set.</p></li>
-<li><p><strong>share_ylims</strong> (<em>bool</em>) – Should plots for all epitopes share same y-limits?</p></li>
-<li><p><strong>height</strong> (<em>float</em>) – Height per facet.</p></li>
-<li><p><strong>width</strong> (<em>float</em>) – Width of plot.</p></li>
-<li><p><strong>init_metric</strong> (<em>str</em>) – Metric to show initially (others can be selected by dropdown). One of
-metrics in <a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df" title="polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="xref py py-attr docutils literal notranslate"><span class="pre">polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df</span></code></a>.</p></li>
-<li><p><strong>zoom_bar_width</strong> (<em>float</em>) – Width of zoom bar</p></li>
-<li><p><strong>avg_to_plot</strong> (<em>{&quot;escape_mean&quot;</em><em>, </em><em>&quot;escape_median&quot;}</em>) – If using <cite>replicate_data</cite> plot the escape mean or median.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Interactive plot.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>altair.Chart</p>
 </dd>
 </dl>
 </dd></dl>
