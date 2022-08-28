@@ -466,11 +466,13 @@ def lineplot_and_heatmap(
         mark=alt.BrushConfig(stroke="black", strokeWidth=2),
     )
     if site_zoom_bar_color_col:
-        site_zoom_bar_df = data_df[["site", site_zoom_bar_color_col]].drop_duplicates()
+        site_zoom_bar_df = data_df[
+            ["site", "_stat_site_order", site_zoom_bar_color_col]
+        ].drop_duplicates()
         if any(site_zoom_bar_df.groupby("site").size() > 1):
             raise ValueError(f"multiple {site_zoom_bar_color_col=} values for sites")
     else:
-        site_zoom_bar_df = data_df[["site"]].drop_duplicates()
+        site_zoom_bar_df = data_df[["site", "_stat_site_order"]].drop_duplicates()
     site_zoom_bar = (
         alt.Chart(site_zoom_bar_df)
         .mark_rect()
@@ -494,11 +496,7 @@ def lineplot_and_heatmap(
                 if site_zoom_bar_color_col
                 else alt.value("gray")
             ),
-            tooltip=[
-                c
-                for c in site_zoom_bar_df.columns
-                if c != category_col or show_category_label
-            ],
+            tooltip=[c for c in site_zoom_bar_df.columns if not c.startswith("_stat")],
         )
         .mark_rect()
         .add_parameter(site_brush)
