@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+2.1
+---
+- ``lineplot_and_heatmap`` filters site max value after other slider filters
+
+
 2.0
 ---
 Many of these changes are **backward incompatible** with respect to plotting.

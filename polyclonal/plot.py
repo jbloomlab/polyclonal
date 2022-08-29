@@ -425,19 +425,8 @@ def lineplot_and_heatmap(
         value=[{"floor": 0 if init_floor_at_zero else min_stat}],
     )
 
-    # create sliders for site statistic value and any additional sliders
-    site_statistics = ["sum", "mean", "max", "min"]
-    sliders = {
-        "_stat_site_max": alt.selection_point(
-            fields=["cutoff"],
-            value=[{"cutoff": min_stat}],
-            bind=alt.binding_range(
-                name=f"minimum max of {stat_col} at site",
-                min=min_stat,
-                max=max_stat,
-            ),
-        ),
-    }
+    # create sliders for max of statistic at site and any additional sliders
+    sliders = {}
     for slider_stat, init_slider_stat in addtl_slider_stats.items():
         sliders[slider_stat] = alt.selection_point(
             fields=["cutoff"],
@@ -448,6 +437,15 @@ def lineplot_and_heatmap(
                 name=f"minimum {slider_stat}",
             ),
         )
+    sliders["_stat_site_max"] = alt.selection_point(
+        fields=["cutoff"],
+        value=[{"cutoff": min_stat}],
+        bind=alt.binding_range(
+            name=f"minimum max of {stat_col} at site",
+            min=min_stat,
+            max=max_stat,
+        ),
+    )
 
     # whether to show line on line plot
     line_selection = alt.selection_point(
@@ -557,6 +555,7 @@ def lineplot_and_heatmap(
     )
 
     # make the site chart
+    site_statistics = ["sum", "mean", "max", "min"]
     if init_site_statistic not in site_statistics:
         raise ValueError(f"invalid {init_site_statistic=}")
     if set(site_statistics).intersection(req_cols):
