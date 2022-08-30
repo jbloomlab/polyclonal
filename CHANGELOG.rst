@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 2.1
 ---
 - ``lineplot_and_heatmap`` filters site max value after other slider filters
+- Add ``slider_binding_range_kwargs`` to ``lineplot_and_heatmap``
 
 
 2.0

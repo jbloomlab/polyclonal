@@ -285,6 +285,7 @@ def lineplot_and_heatmap(
     heatmap_max_at_least=None,
     heatmap_min_at_least=None,
     site_zoom_bar_color_scheme="set3",
+    slider_binding_range_kwargs=None,
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
 
@@ -347,6 +348,10 @@ def lineplot_and_heatmap(
     site_zoom_bar_color_scheme : str
         If using `site_zoom_bar_color_col`, the
         `Vega color scheme <https://vega.github.io/vega/docs/schemes>`_ to use.
+    slider_binding_range_kwargs : dict
+        Keyed by keys in ``addtl_slider_stats``, with values being dicts
+        giving keyword arguments passed to ``altair.binding_range`` (eg,
+        'min', 'max', 'step', etc.
     """
     basic_req_cols = ["site", "wildtype", "mutant", stat_col, category_col]
     if addtl_tooltip_stats is None:
@@ -427,15 +432,20 @@ def lineplot_and_heatmap(
 
     # create sliders for max of statistic at site and any additional sliders
     sliders = {}
+    if slider_binding_range_kwargs is None:
+        slider_binding_range_kwargs = {}
     for slider_stat, init_slider_stat in addtl_slider_stats.items():
+        binding_range_kwargs = {
+            "min": data_df[slider_stat].min(),
+            "max": data_df[slider_stat].max(),
+            "name": f"minimum {slider_stat}",
+        }
+        if slider_stat in slider_binding_range_kwargs:
+            binding_range_kwargs.update(slider_binding_range_kwargs[slider_stat])
         sliders[slider_stat] = alt.selection_point(
             fields=["cutoff"],
             value=[{"cutoff": init_slider_stat}],
-            bind=alt.binding_range(
-                min=data_df[slider_stat].min(),
-                max=data_df[slider_stat].max(),
-                name=f"minimum {slider_stat}",
-            ),
+            bind=alt.binding_range(**binding_range_kwargs),
         )
     sliders["_stat_site_max"] = alt.selection_point(
         fields=["cutoff"],
