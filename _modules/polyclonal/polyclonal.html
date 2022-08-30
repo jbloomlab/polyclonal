@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 2.0 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 2.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -1805,9 +1805,9 @@
 <span class="sd">        prefix_epitope : bool or None</span>
 <span class="sd">            Do we add the prefix &quot;epitope &quot; to the epitope labels? If `None`, do</span>
 <span class="sd">            only if epitope is integer.</span>
-<span class="sd">        df_to_merge : None or pandas.DataFrame</span>
-<span class="sd">            If you want to include additional properties, specify this data frame</span>
-<span class="sd">            which is merged with :attr:`Polyclonal.mut_escape_df` before being passed</span>
+<span class="sd">        df_to_merge : None or pandas.DataFrame or list</span>
+<span class="sd">            To include additional properties, specify data frame or list of them which</span>
+<span class="sd">            are merged with :attr:`Polyclonal.mut_escape_df` before being passed</span>
 <span class="sd">            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will</span>
 <span class="sd">            only be included in plot if relevant columns are passed to</span>
 <span class="sd">            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,</span>
@@ -1833,9 +1833,14 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">df_to_merge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="n">df_to_merge</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_to_merge</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`df_to_merge` must be pandas.DataFrame or list&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;category_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
