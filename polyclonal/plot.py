@@ -543,10 +543,16 @@ def lineplot_and_heatmap(
     # Transforms on base chart. The "_stat" columns is floor transformed stat_col.
     base_chart = base_chart.transform_calculate(
         _stat=alt.expr.max(alt.datum[stat_col], floor_at_zero["floor"]),
-    ).transform_joinaggregate(_stat_site_max="max(_stat)", groupby=["site"])
+    )
 
     # Filter data using slider stat
+    assert list(sliders)[-1] == "_stat_site_max"  # last for right operation order
     for slider_stat, slider in sliders.items():
+        if slider_stat == "_stat_site_max":
+            base_chart = base_chart.transform_joinaggregate(
+                _stat_site_max="max(_stat)",
+                groupby=["site"],
+            )
         base_chart = base_chart.transform_filter(
             (alt.datum[slider_stat] >= slider["cutoff"] - 1e-6)  # add rounding tol
             | ~alt.expr.isNumber(alt.datum[slider_stat])  # do not filter null values
