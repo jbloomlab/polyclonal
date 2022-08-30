@@ -1770,9 +1770,9 @@ class Polyclonal:
         prefix_epitope : bool or None
             Do we add the prefix "epitope " to the epitope labels? If `None`, do
             only if epitope is integer.
-        df_to_merge : None or pandas.DataFrame
-            If you want to include additional properties, specify this data frame
-            which is merged with :attr:`Polyclonal.mut_escape_df` before being passed
+        df_to_merge : None or pandas.DataFrame or list
+            To include additional properties, specify data frame or list of them which
+            are merged with :attr:`Polyclonal.mut_escape_df` before being passed
             to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will
             only be included in plot if relevant columns are passed to
             :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
@@ -1798,9 +1798,14 @@ class Polyclonal:
         )
 
         if df_to_merge is not None:
-            if not self.sequential_integer_sites and "site" in df_to_merge.columns:
-                df_to_merge = df_to_merge.assign(site=lambda x: x["site"].astype(str))
-            kwargs["data_df"] = kwargs["data_df"].merge(df_to_merge, how="left")
+            if isinstance(df_to_merge, pd.DataFrame):
+                df_to_merge = [df_to_merge]
+            elif not isinstance(df_to_merge, list):
+                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
+            for df in df_to_merge:
+                if not self.sequential_integer_sites and "site" in df.columns:
+                    df = df.assign(site=lambda x: x["site"].astype(str))
+                kwargs["data_df"] = kwargs["data_df"].merge(df, how="left")
 
         if "category_colors" not in kwargs:
             kwargs["category_colors"] = self.epitope_colors

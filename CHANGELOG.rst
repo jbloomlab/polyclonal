@@ -8,9 +8,9 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 2.1
 ---
-- ``lineplot_and_heatmap`` filters site max value after other slider filters
+- ``lineplot_and_heatmap`` filters site max value after other slider filters, this gives correct behavior and is sort of a bug fix for the plots.
 - Add ``slider_binding_range_kwargs`` to ``lineplot_and_heatmap``
-
+- Allow ``df_to_merge`` to be list for ``mut_escape_plot`` methods.
 
 2.0
 ---
