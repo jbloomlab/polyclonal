@@ -33,3 +33,7 @@ Contents
    polyclonal
    package_index
    acknowledgments
+
+Citation
+----------
+ `Yu TC, Thornton ZT, Hannon WW, DeWitt WS, Radford CE, Matsen IV FA, Bloom JD. A biophysical model of viral escape from polyclonal antibodies. bioRxiv. (2022) <https://doi.org/10.1101/2022.09.17.508366>`_
