@@ -16,4 +16,6 @@ The source code is `on GitHub <https://github.com/jbloomlab/polyclonal>`_.
 
 See the `polyclonal documentation <https://jbloomlab.github.io/polyclonal>`_ for details on how to install and use ``polyclonal``.
 
+See the `preprint <https://doi.org/10.1101/2022.09.17.508366>`_ for conceptual and mathematical descriptions of the model.
+
 To contribute to this package, read the instructions in `CONTRIBUTING.rst <CONTRIBUTING.rst>`_.
