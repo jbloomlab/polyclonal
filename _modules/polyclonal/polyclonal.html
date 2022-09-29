@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 2.1 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 2.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -927,8 +927,11 @@
                     <span class="p">)</span>
             <span class="k">elif</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;fill_to_data&quot;</span><span class="p">:</span>
                 <span class="c1"># sites are in mut_escape_df, sites2 in data_to_fit</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
+                    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sites in data_to_fit not subset of sites&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="s2">&quot;`mut_escape_df` has more sites than `data_to_fit`&quot;</span>
@@ -955,8 +958,11 @@
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">data_mut_escape_overlap</span> <span class="o">==</span> <span class="s2">&quot;prune_to_data&quot;</span><span class="p">:</span>
                 <span class="c1"># sites are in mut_escape_df, sites2 in data_to_fit</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites2</span>
+                    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="n">sites2</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sites in data_to_fit not subset of sites&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                         <span class="s2">&quot;`mut_escape_df` has fewer sites than `data_to_fit`&quot;</span>
