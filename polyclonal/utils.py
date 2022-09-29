@@ -311,7 +311,9 @@ def tidy_to_corr(
     if sample_col + "_2" in group_cols:
         raise ValueError(f"cannot have column named `{sample_col}_2`")
 
-    for _, g in df.groupby([sample_col] + group_cols):
+    for _, g in df.groupby(
+        [sample_col, *group_cols] if len(group_cols) else sample_col
+    ):
         if len(g[label_col]) != g[label_col].nunique():
             raise ValueError(
                 f"Entries in `df` column {label_col} not unique "
@@ -327,7 +329,11 @@ def tidy_to_corr(
     if group_cols:
         df = df.groupby(group_cols)
 
-    corr = df.corr(method=method).dropna(how="all", axis="index").reset_index()
+    corr = (
+        df.corr(method=method, numeric_only=True)
+        .dropna(how="all", axis="index")
+        .reset_index()
+    )
 
     corr.columns.name = None  # remove name of columns index
 
