@@ -8,6 +8,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 2.2
 ---
+- Require at least ``pandas`` 1.5.
 - Some minor changes to avoid ``pandas`` warnings about future deprecations.
 
 2.1

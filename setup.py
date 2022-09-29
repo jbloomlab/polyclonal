@@ -52,7 +52,7 @@ setup(
         "matplotlib>=3.1",
         "natsort>=8.0",
         "numpy>=1.17",
-        "pandas>=1.2",
+        "pandas>=1.5",
         "requests",
         "scipy>=1.7.1",
     ],
