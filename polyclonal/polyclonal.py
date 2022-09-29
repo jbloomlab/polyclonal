@@ -892,8 +892,11 @@ class Polyclonal:
                     )
             elif data_mut_escape_overlap == "fill_to_data":
                 # sites are in mut_escape_df, sites2 in data_to_fit
-                if self.sites is None and set(sites) <= set(sites2):
-                    self.sites = sites2
+                if set(sites) <= set(sites2):
+                    if self.sites is None:
+                        self.sites = sites2
+                    elif not set(self.sites).issuperset(sites2):
+                        raise ValueError("sites in data_to_fit not subset of sites")
                 else:
                     raise ValueError(
                         "`mut_escape_df` has more sites than `data_to_fit`"
@@ -920,8 +923,11 @@ class Polyclonal:
                 )
             elif data_mut_escape_overlap == "prune_to_data":
                 # sites are in mut_escape_df, sites2 in data_to_fit
-                if self.sites is None and set(sites) >= set(sites2):
-                    self.sites = sites2
+                if set(sites) >= set(sites2):
+                    if self.sites is None:
+                        self.sites = sites2
+                    elif not set(self.sites).issuperset(sites2):
+                        raise ValueError("sites in data_to_fit not subset of sites")
                 else:
                     raise ValueError(
                         "`mut_escape_df` has fewer sites than `data_to_fit`"

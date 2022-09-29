@@ -8,7 +8,9 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 2.2
 ---
+- Require at least ``pandas`` 1.5.
 - Some minor changes to avoid ``pandas`` warnings about future deprecations.
+- For ``Polyclonal`` initialization, allow `data_mut_escape_overlap` != "exact" even with `sites` set
 
 2.1
 ---
