@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.plot &#8212; polyclonal 2.1 documentation</title>
+    <title>polyclonal.plot &#8212; polyclonal 2.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -403,6 +403,13 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No columns can start with &#39;_stat&#39; in </span><span class="si">{</span><span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="n">req_cols</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="c1"># filter `data_df` by any minimums in `slider_binding_range_kwargs`</span>
+    <span class="k">if</span> <span class="n">slider_binding_range_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">slider_binding_range_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_kwargs</span> <span class="ow">in</span> <span class="n">slider_binding_range_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s2">&quot;min&quot;</span> <span class="ow">in</span> <span class="n">col_kwargs</span><span class="p">:</span>
+            <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="n">data_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">col_kwargs</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]]</span>
+
     <span class="n">categories</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="n">category_col</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="n">show_category_label</span> <span class="o">=</span> <span class="n">show_single_category_label</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
 
@@ -467,8 +474,6 @@
 
     <span class="c1"># create sliders for max of statistic at site and any additional sliders</span>
     <span class="n">sliders</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">slider_binding_range_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">slider_binding_range_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">slider_stat</span><span class="p">,</span> <span class="n">init_slider_stat</span> <span class="ow">in</span> <span class="n">addtl_slider_stats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">binding_range_kwargs</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="n">data_df</span><span class="p">[</span><span class="n">slider_stat</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
