@@ -369,6 +369,8 @@ def lineplot_and_heatmap(
     data_df = data_df[req_cols].reset_index(drop=True)
 
     # filter `data_df` by any minimums in `slider_binding_range_kwargs`
+    if slider_binding_range_kwargs is None:
+        slider_binding_range_kwargs = {}
     for col, col_kwargs in slider_binding_range_kwargs.items():
         if "min" in col_kwargs:
             data_df = data_df[data_df[col] >= col_kwargs["min"]]
@@ -437,8 +439,6 @@ def lineplot_and_heatmap(
 
     # create sliders for max of statistic at site and any additional sliders
     sliders = {}
-    if slider_binding_range_kwargs is None:
-        slider_binding_range_kwargs = {}
     for slider_stat, init_slider_stat in addtl_slider_stats.items():
         binding_range_kwargs = {
             "min": data_df[slider_stat].min(),
