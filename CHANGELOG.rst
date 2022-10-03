@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+2.3
+---
+- ``lineplot_and_heatmap`` computes the limit for the heatmap range **after** applying the minimum filters specified in the filters. This avoids having the range determined by mutations that are never plotted, and so is sort of a bug fix (prior behavior wasn't strictly a bug, but did not give sensible behavior).
+
 2.2
 ---
 - Require at least ``pandas`` 1.5.
