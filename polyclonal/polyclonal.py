@@ -1490,13 +1490,11 @@ class Polyclonal:
         return reg, dreg
 
     def _reg_similarity(self, params, weight):
-        """Regularization on similarity of escape at each site across epitopes and its gradient."""
+        """Regularization on similarity of escape across epitopes and its gradient."""
         if weight == 0:
             return (0, numpy.zeros(params.shape))
         if weight > 0 and len(self.epitopes) < 2:
-            raise ValueError(
-                f"Cannot apply similarity regularization with < 2 epitopes"
-            )
+            raise ValueError("Cannot apply similarity regularization with < 2 epitopes")
         elif weight < 0:
             raise ValueError(f"{weight=} for similarity regularization not >= 0")
         _, beta = self._a_beta_from_params(params)
