@@ -1488,7 +1488,45 @@ class Polyclonal:
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
-
+    
+    def _reg_similarity(self, params, weight):
+        """Regularization on similarity of escape at each site across epitopes and its gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        if weight > 0 and len(self.epitopes) < 2:
+            raise ValueError(f"Cannot apply similarity regularization with < 2 epitopes")
+        elif weight < 0:
+            raise ValueError(f"{weight=} for similarity regularization not >= 0")
+        _, beta = self._a_beta_from_params(params)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        reg = 0
+        dreg = numpy.zeros(beta.shape)
+        
+        for i,j in itertools.combinations(range(len(self.epitopes)), 2):
+            for siteindex in self._binary_sites.values():
+                sitebetas = beta[siteindex]
+                mi = sitebetas.shape[0]
+                assert sitebetas.shape == (mi, len(self.epitopes))
+                norm_ei = numpy.sum(sitebetas[:,i] ** 2)
+                norm_ej = numpy.sum(sitebetas[:,j] ** 2)
+                reg += weight * norm_ei * norm_ej
+                dreg_site_ei = (weight * 2 * sitebetas[:,i] * norm_ej).reshape((mi, 1))
+                dreg_site_ej = (weight * 2 * sitebetas[:,j] * norm_ei).reshape((mi, 1))  
+                zero_idx = numpy.array(list(set(range(len(self.epitopes))) - {i,j}))
+                dreg_site = numpy.insert(
+                    numpy.concatenate([dreg_site_ei, dreg_site_ej], axis=1),
+                    (zero_idx - numpy.arange(len(zero_idx))).astype(int),
+                    0,
+                    axis=1,
+                )
+                assert dreg_site.shape == (mi, len(self.epitopes))
+                dreg[siteindex] += dreg_site
+        assert reg >= 0
+        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        return reg, dreg
+        
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
         {
             "method": "L-BFGS-B",
@@ -1508,6 +1546,7 @@ class Polyclonal:
         reg_escape_weight=0.02,
         reg_escape_delta=0.1,
         reg_spread_weight=0.25,
+        reg_similarity_weight=0,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
         fit_site_level_first=True,
@@ -1534,6 +1573,9 @@ class Polyclonal:
         reg_spread_weight : float
             Strength of regularization on variance of :math:`\beta_{m,e}`
             values at each site.
+        reg_similarity_weight : float
+            Strength of regularization on similarity of :math:`\beta_{m,e}` 
+            values at each site across epitopes. 
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
             Only positive values regularized.
@@ -1599,13 +1641,14 @@ class Polyclonal:
                         params, reg_escape_weight, reg_escape_delta
                     )
                     regspread, dregspread = self._reg_spread(params, reg_spread_weight)
+                    regsimilarity, dregsimilarity = self._reg_similarity(params, reg_similarity_weight)
                     regactivity, dregactivity = self._reg_activity(
                         params,
                         reg_activity_weight,
                         reg_activity_delta,
                     )
-                    loss = fitloss + regescape + regspread + regactivity
-                    dloss = dfitloss + dregescape + dregspread + dregactivity
+                    loss = fitloss + regescape + regspread + regsimilarity + regactivity
+                    dloss = dfitloss + dregescape + dregspread + dregsimilarity + dregactivity
                     self_.last_params = params
                     self_.last_loss = (
                         loss,
@@ -1614,6 +1657,7 @@ class Polyclonal:
                             "fit_loss": fitloss,
                             "reg_escape": regescape,
                             "reg_spread": regspread,
+                            "reg_similarity": regsimilarity,
                             "reg_activity": regactivity,
                         },
                     )
