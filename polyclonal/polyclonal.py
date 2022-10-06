@@ -1510,8 +1510,8 @@ class Polyclonal:
                 norm_ei = numpy.sum(sitebetas[:, i] ** 2)
                 norm_ej = numpy.sum(sitebetas[:, j] ** 2)
                 reg += weight * norm_ei * norm_ej
-                dreg_site_ei = (weight * 2 * sitebetas[:, i] * norm_ej).reshape((mi, 1))
-                dreg_site_ej = (weight * 2 * sitebetas[:, j] * norm_ei).reshape((mi, 1))
+                dreg_site_ei = (2 * weight * sitebetas[:, i] * norm_ej).reshape((mi, 1))
+                dreg_site_ej = (2 * weight * sitebetas[:, j] * norm_ei).reshape((mi, 1))
                 zero_idx = numpy.array(list(set(range(len(self.epitopes))) - {i, j}))
                 dreg_site = numpy.insert(
                     numpy.concatenate([dreg_site_ei, dreg_site_ej], axis=1),
