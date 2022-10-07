@@ -373,7 +373,10 @@ def lineplot_and_heatmap(
         slider_binding_range_kwargs = {}
     for col, col_kwargs in slider_binding_range_kwargs.items():
         if "min" in col_kwargs:
-            data_df = data_df[data_df[col] >= col_kwargs["min"]]
+            data_df = data_df[
+                (data_df[col] >= col_kwargs["min"])
+                | (data_df["wildtype"] == data_df["mutant"])
+            ]
 
     categories = data_df[category_col].unique().tolist()
     show_category_label = show_single_category_label or (len(categories) > 1)
