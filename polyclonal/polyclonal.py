@@ -1497,26 +1497,26 @@ class Polyclonal:
             raise ValueError(f"{weight=} for similarity regularization not >= 0")
         _, beta = self._a_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
-        reg = 0
-        dreg = numpy.zeros(beta.shape)
+
         site_norm = numpy.array(
             [
                 (beta[siteindex] ** 2).sum(axis=0)
                 for siteindex in self._binary_sites.values()
             ]
         )
+        assert site_norm.shape == (len(self.sites), len(self.epitopes))
         gram = site_norm.transpose() @ site_norm
+        assert gram.shape == (len(self.epitopes), len(self.epitopes))
         inner_prod = gram * (1 - numpy.eye(*gram.shape))
-        reg += weight * (inner_prod.sum() / 2)
-        norm_expanded = numpy.repeat(
-            site_norm,
-            [len(siteindex[0]) for siteindex in self._binary_sites.values()],
-            axis=0,
-        )
+        reg = weight * (inner_prod.sum() / 2)
+
+        norm_expanded = numpy.zeros(beta.shape)
+        for i, siteindex in enumerate(self._binary_sites.values()):
+            norm_expanded[siteindex] = site_norm[i]
         norm_sum_over_epitopes = numpy.repeat(
             norm_expanded.sum(axis=1), len(self.epitopes), axis=0
         ).reshape(norm_expanded.shape[0], len(self.epitopes))
-        dreg += (
+        dreg = (
             2
             * weight
             * (
