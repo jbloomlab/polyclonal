@@ -1509,7 +1509,7 @@ class Polyclonal:
         inner_prod = gram * (1 - numpy.eye(*gram.shape))
         reg += weight * (inner_prod.sum() / 2)
         norm_expanded = numpy.repeat(
-            norm,
+            site_norm,
             [len(siteindex[0]) for siteindex in self._binary_sites.values()],
             axis=0,
         )
