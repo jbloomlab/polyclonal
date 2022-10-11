@@ -1491,36 +1491,31 @@ class Polyclonal:
 
     def _reg_similarity(self, params, weight):
         """Regularization on similarity of escape across epitopes and its gradient."""
-        if weight == 0:
+        if weight == 0 or len(self.epitopes) < 2:
             return (0, numpy.zeros(params.shape))
-        if weight > 0 and len(self.epitopes) < 2:
-            raise ValueError("Cannot apply similarity regularization with < 2 epitopes")
         elif weight < 0:
             raise ValueError(f"{weight=} for similarity regularization not >= 0")
         _, beta = self._a_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         reg = 0
         dreg = numpy.zeros(beta.shape)
-
-        for i, j in itertools.combinations(range(len(self.epitopes)), 2):
-            for siteindex in self._binary_sites.values():
-                sitebetas = beta[siteindex]
-                mi = sitebetas.shape[0]
-                assert sitebetas.shape == (mi, len(self.epitopes))
-                norm_ei = numpy.sum(sitebetas[:, i] ** 2)
-                norm_ej = numpy.sum(sitebetas[:, j] ** 2)
-                reg += weight * norm_ei * norm_ej
-                dreg_site_ei = (2 * weight * sitebetas[:, i] * norm_ej).reshape((mi, 1))
-                dreg_site_ej = (2 * weight * sitebetas[:, j] * norm_ei).reshape((mi, 1))
-                zero_idx = numpy.array(list(set(range(len(self.epitopes))) - {i, j}))
-                dreg_site = numpy.insert(
-                    numpy.concatenate([dreg_site_ei, dreg_site_ej], axis=1),
-                    (zero_idx - numpy.arange(len(zero_idx))).astype(int),
-                    0,
-                    axis=1,
-                )
-                assert dreg_site.shape == (mi, len(self.epitopes))
-                dreg[siteindex] += dreg_site
+        site_norm = numpy.array(
+            [(beta[siteindex]**2).sum(axis=0) for siteindex in self._binary_sites.values()]
+        )
+        gram = site_norm.transpose() @ site_norm
+        inner_prod = gram * (1 - numpy.eye(*gram.shape))
+        reg += weight * (inner_prod.sum() / 2)
+        norm_expanded = numpy.repeat(
+            norm,
+            [len(siteindex[0]) for siteindex in self._binary_sites.values()],
+            axis=0,
+        )
+        norm_sum_over_epitopes = numpy.repeat(
+            norm_expanded.sum(axis=1),
+            len(self.epitopes),
+            axis=0
+        ).reshape(norm_expanded.shape[0], len(self.epitopes))
+        dreg += 2 * weight * (numpy.multiply(beta, norm_sum_over_epitopes) - numpy.multiply(beta, norm_expanded))
         assert reg >= 0
         dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
@@ -1575,7 +1570,8 @@ class Polyclonal:
             values at each site.
         reg_similarity_weight : float
             Strength of regularization on similarity of :math:`\beta_{m,e}`
-            values at each site across epitopes.
+            values at each site across epitopes. Has no effect when there is
+            only one epitope.
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
             Only positive values regularized.
