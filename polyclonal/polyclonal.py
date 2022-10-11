@@ -1500,7 +1500,10 @@ class Polyclonal:
         reg = 0
         dreg = numpy.zeros(beta.shape)
         site_norm = numpy.array(
-            [(beta[siteindex]**2).sum(axis=0) for siteindex in self._binary_sites.values()]
+            [
+                (beta[siteindex] ** 2).sum(axis=0)
+                for siteindex in self._binary_sites.values()
+            ]
         )
         gram = site_norm.transpose() @ site_norm
         inner_prod = gram * (1 - numpy.eye(*gram.shape))
@@ -1511,11 +1514,16 @@ class Polyclonal:
             axis=0,
         )
         norm_sum_over_epitopes = numpy.repeat(
-            norm_expanded.sum(axis=1),
-            len(self.epitopes),
-            axis=0
+            norm_expanded.sum(axis=1), len(self.epitopes), axis=0
         ).reshape(norm_expanded.shape[0], len(self.epitopes))
-        dreg += 2 * weight * (numpy.multiply(beta, norm_sum_over_epitopes) - numpy.multiply(beta, norm_expanded))
+        dreg += (
+            2
+            * weight
+            * (
+                numpy.multiply(beta, norm_sum_over_epitopes)
+                - numpy.multiply(beta, norm_expanded)
+            )
+        )
         assert reg >= 0
         dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
