@@ -1488,7 +1488,7 @@ class Polyclonal:
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
-    
+
     def _reg_similarity(self, params, weight):
         """Regularization on similarity of escape across epitopes and its gradient."""
         if weight == 0 or len(self.epitopes) < 2:
@@ -1504,7 +1504,7 @@ class Polyclonal:
                     for siteindex in self._binary_sites.values()
                 ]
             )
-            + numpy.nextafter(0,1)
+            + numpy.nextafter(0, 1)
         )
         assert site_norm.shape == (len(self.sites), len(self.epitopes))
         gram = site_norm.transpose() @ site_norm
@@ -1517,19 +1517,15 @@ class Polyclonal:
         norm_sum_over_epitopes = numpy.repeat(
             norm_expanded.sum(axis=1), len(self.epitopes), axis=0
         ).reshape(norm_expanded.shape[0], len(self.epitopes))
-        dreg = (
-            weight
-            * (
-                numpy.multiply(beta / norm_expanded, norm_sum_over_epitopes)
-                - beta
-            )
+        dreg = weight * (
+            numpy.multiply(beta / norm_expanded, norm_sum_over_epitopes) - beta
         )
         assert reg >= 0
         dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
-    
+
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
         {
             "method": "L-BFGS-B",
@@ -1654,7 +1650,13 @@ class Polyclonal:
                         reg_activity_delta,
                     )
                     loss = fitloss + regescape + regspread + regsimilarity + regactivity
-                    dloss = dfitloss + dregescape + dregspread + dregsimilarity + dregactivity
+                    dloss = (
+                        dfitloss
+                        + dregescape
+                        + dregspread
+                        + dregsimilarity
+                        + dregactivity
+                    )
                     self_.last_params = params
                     self_.last_loss = (
                         loss,
