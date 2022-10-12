@@ -1489,7 +1489,7 @@ class Polyclonal:
         assert numpy.isfinite(dreg).all()
         return reg, dreg
 
-    def _reg_similarity(self, params, weight):
+    def _reg_similarity(self, params, weight, epsilon):
         """Regularization on similarity of escape across epitopes and its gradient."""
         if weight == 0 or len(self.epitopes) < 2:
             return (0, numpy.zeros(params.shape))
@@ -1504,7 +1504,7 @@ class Polyclonal:
                     for siteindex in self._binary_sites.values()
                 ]
             )
-            + numpy.nextafter(0, 1)
+            + epsilon
         )
         assert site_norm.shape == (len(self.sites), len(self.epitopes))
         gram = site_norm.transpose() @ site_norm
@@ -1546,6 +1546,7 @@ class Polyclonal:
         reg_escape_delta=0.1,
         reg_spread_weight=0.25,
         reg_similarity_weight=0,
+        reg_similarity_epsilon=0.0001,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
         fit_site_level_first=True,
@@ -1642,7 +1643,7 @@ class Polyclonal:
                     )
                     regspread, dregspread = self._reg_spread(params, reg_spread_weight)
                     regsimilarity, dregsimilarity = self._reg_similarity(
-                        params, reg_similarity_weight
+                        params, reg_similarity_weight, reg_similarity_epsilon
                     )
                     regactivity, dregactivity = self._reg_activity(
                         params,
