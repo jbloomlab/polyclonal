@@ -11,6 +11,10 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Add epitope similarity regularization that can be tuned by the parameter ``reg_similarity_weight``.
 - Add ``real_mAb_cocktail.ipynb`` notebook that fits model to a real mAb cocktail dataset. 
 
+2.4
+---
+- Fix bug introduced in version 2.3 that dropped wildtype sites if there were minimums set in ``slider_binding_range_kwargs`` to ``lineplot_and_heatmap``.
+
 2.3
 ---
 - ``lineplot_and_heatmap`` computes the limit for the heatmap range **after** applying the minimum filters specified in the filters. This avoids having the range determined by mutations that are never plotted, and so is sort of a bug fix (prior behavior wasn't strictly a bug, but did not give sensible behavior).
