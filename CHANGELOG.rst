@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+2.dev5
+---
+- Add epitope similarity regularization that can be tuned by the parameter ``reg_similarity_weight``.
+- Add ``real_mAb_cocktail.ipynb`` notebook that fits model to a real mAb cocktail dataset. 
+
 2.4
 ---
 - Fix bug introduced in version 2.3 that dropped wildtype sites if there were minimums set in ``slider_binding_range_kwargs`` to ``lineplot_and_heatmap``.
