@@ -1504,7 +1504,7 @@ class Polyclonal:
                 for siteindex in self._binary_sites.values()
             ]
         )
-        assert site_norm.shape == (len(self.sites), len(self.epitopes))
+        assert site_norm.shape == (len(self._binary_sites.values()), len(self.epitopes))
         gram = site_norm.transpose() @ site_norm
         assert gram.shape == (len(self.epitopes), len(self.epitopes))
         inner_prod = gram * (1 - numpy.eye(*gram.shape))
