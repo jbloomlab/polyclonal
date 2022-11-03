@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
-2.dev5
+2.5
 ---
 - Add epitope similarity regularization that can be tuned by the parameter ``reg_similarity_weight``.
 - Add ``real_mAb_cocktail.ipynb`` notebook that fits model to a real mAb cocktail dataset. 
