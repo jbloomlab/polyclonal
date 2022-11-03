@@ -8,6 +8,6 @@ The reason is that ``polyclonal`` currently uses the `GitHub development version
 Therefore, for now you have to install ``polyclonal`` from GitHub.
 To do this for version 2.5 of ``polyclonal``, you would use this command::
 
-    pip install git+https://github.com/jbloomlab/polyclonal/@2.4#egg=polyclonal
+    pip install git+https://github.com/jbloomlab/polyclonal/@2.5#egg=polyclonal
 
 The source code for ``polyclonal`` is available on GitHub at https://github.com/jbloomlab/polyclonal.
