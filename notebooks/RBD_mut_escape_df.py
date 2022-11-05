@@ -9,6 +9,8 @@ the antibody at a concentration where only ~0.1% of the unmutated RBD is
 unbound. We perform the calculations noting that
 :math:`x_{m,e}` represents the :math:`U_e` values.
 
+We also adjust values less than 1.2 be zero.
+
 """
 
 import numpy
@@ -29,7 +31,8 @@ mut_escape_df = pd.read_csv("RBD_mutation_escape_fractions.csv").assign(
     escape_fraction=lambda x: (
         x["escape_fraction"].clip(lower=escape_frac_floor, upper=escape_frac_ceil)
     ),
-    escape=lambda x: 6.9 - numpy.log(1 / x["escape_fraction"] - 1),
+    escape_unadjusted=lambda x: 6.9 - numpy.log(1 / x["escape_fraction"] - 1),
+    escape=lambda x: x["escape_unadjusted"].where(x["escape_unadjusted"] > 1.2, 0),
 )[["epitope", "mutation", "escape"]]
 
 mut_escape_df.to_csv("RBD_mut_escape_df.csv", index=False, float_format="%.4g")
