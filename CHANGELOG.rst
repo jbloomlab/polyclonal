@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+2.dev6
+------
+- Flatten mutation-escape values for RBD simulation so most values are roughly zero. Previously many values were ~0.5 rather than 0. Also adjust activities for this simulation.
+- Improve column spacing when ``Polyclonal.fit`` prints log.
+
 2.5
 ---
 - Add epitope similarity regularization that can be tuned by the parameter ``reg_similarity_weight``.
