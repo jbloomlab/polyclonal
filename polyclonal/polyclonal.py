@@ -1549,7 +1549,7 @@ class Polyclonal:
         reg_escape_weight=0.02,
         reg_escape_delta=0.1,
         reg_spread_weight=0.25,
-        reg_similarity_weight=0,
+        reg_similarity_weight=0.0,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
         fit_site_level_first=True,
@@ -1693,14 +1693,24 @@ class Polyclonal:
                 def callback(self_, params, header=False, force_output=False):
                     if force_output or (self_.i % self_.interval == 0):
                         loss, _, breakdown = lossreg.loss_reg(params, True)
+                        cols = ["step", "time_sec", "loss", *breakdown.keys()]
+                        col_widths = [max(12, len(col) + 1) for col in cols]
                         if header:
-                            cols = ["step", "time_sec", "loss", *breakdown.keys()]
-                            log.write("".join("{:>13}".format(x) for x in cols) + "\n")
+                            log.write(
+                                "".join(
+                                    f"{{:>{col_width}}}".format(x)
+                                    for x, col_width in zip(cols, col_widths)
+                                )
+                                + "\n"
+                            )
                         sec = time.time() - self_.start
                         log.write(
                             "".join(
-                                "{:>13.5g}".format(x)
-                                for x in [self_.i, sec, loss, *breakdown.values()]
+                                f"{{:>{col_width}.5g}}".format(x)
+                                for x, col_width in zip(
+                                    [self_.i, sec, loss, *breakdown.values()],
+                                    col_widths,
+                                )
                             )
                             + "\n"
                         )
