@@ -969,7 +969,7 @@ class Polyclonal:
             ) = self._binarymaps_from_df(data_to_fit, True, collapse_identical_variants)
             assert len(self._pvs) == len(self.data_to_fit)
             # for each site get mask of indices in the binary map
-            # that correspond to that site
+            # that correspond to that site in `binary_sites`
             if self._one_binarymap:
                 binary_sites = self._binarymaps.binary_sites
             else:
@@ -982,6 +982,15 @@ class Polyclonal:
                 site: numpy.where(binary_sites == site)
                 for site in numpy.unique(binary_sites)
             }
+            # get mapping of site indices to mutation indices
+            site_to_siteindex = {
+                site: i for i, site in enumerate(numpy.unique(binary_sites))
+            }
+            self._binary_siteindex_to_mutindex = numpy.array(
+                [site_to_siteindex[site] for site in binary_sites],
+                dtype="int",
+            )
+            assert self._binary_siteindex_to_mutindex.shape == (len(self.mutations),)
         else:
             self.data_to_fit = None
 
@@ -1488,6 +1497,59 @@ class Polyclonal:
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
+
+    def _site_avg_abs_diff(self, params, epsilon):
+        r"""Differentiable average absolute value of escape at each site and epitope.
+
+        Caches the result if arguments are the same as last call.
+
+        Returns the 2-tuple `(s, ds)` where `s` is of shape
+        `(len(self._binary_sites), len(self.epitopes))` and
+        `ds` is of shape `(len(self.mutations), len(self.epitopes))`
+        and gives the non-zero derivatives: for each :math:`\beta_{m,e}`
+        the derivative of the :math:`s` value for that mutation's site and epitope.
+
+        """
+        # if we already called with these arguments, return saved value
+        if (
+            hasattr(self, "_site_avg_abs_diff_previous")
+            and (epsilon == self._site_avg_abs_diff_previous_epsilon)
+            and all(params == self._site_avg_abs_diff_previous_params)
+        ):
+            return self._site_avg_abs_diff_previous
+
+        # calculate values
+        if epsilon <= 0:
+            raise ValueError(f"{epsilon=} must be > 0")
+        _, beta = self._a_beta_from_params(params)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        beta2 = beta**2
+        site_beta2 = numpy.array(
+            [beta2[siteindex].sum(axis=0) for siteindex in self._binary_sites.values()]
+        )
+        assert site_beta2.shape == (len(self._binary_sites), len(self.epitopes))
+        muts_per_site = numpy.array(
+            [len(siteindex) for siteindex in self._binary_sites.values()]
+        )
+        assert muts_per_site.shape == (len(self._binary_sites),)
+        assert muts_per_site.sum() == beta.shape[0] == len(self.mutations)
+
+        sqrt_term = numpy.sqrt(site_beta2 + epsilon)
+        s = (sqrt_term - numpy.sqrt(epsilon)) / muts_per_site
+        assert s.shape == (len(self._binary_sites), len(self.epitopes))
+
+        assert (beta.shape[0],) == self._binary_siteindex_to_mutindex.shape
+        ds = beta / ((muts_per_site * sqrt_term)[self._binary_siteindex_to_mutindex])
+        assert ds.shape == beta.shape
+
+        return_tup = (s, ds)
+
+        # cache value
+        self._site_avg_abs_diff_previous = return_tup
+        self._site_avg_abs_diff_previous_epsilon = epsilon
+        self._site_avg_abs_diff_previous_params = params
+
+        return return_tup
 
     def _reg_similarity(self, params, weight):
         """Regularization on similarity of escape across epitopes and its gradient."""
