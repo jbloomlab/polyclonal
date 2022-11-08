@@ -979,7 +979,7 @@ class Polyclonal:
                     for bmap in self._binarymaps
                 )
             self._binary_sites = {
-                site: numpy.where(binary_sites == site)
+                site: numpy.where(binary_sites == site)[0]
                 for site in numpy.unique(binary_sites)
             }
             # get mapping of site indices to mutation indices
@@ -1528,11 +1528,13 @@ class Polyclonal:
             [beta2[siteindex].sum(axis=0) for siteindex in self._binary_sites.values()]
         )
         assert site_beta2.shape == (len(self._binary_sites), len(self.epitopes))
-        muts_per_site = numpy.array(
-            [len(siteindex) for siteindex in self._binary_sites.values()]
+        muts_per_site = (
+            numpy.array([len(siteindex) for siteindex in self._binary_sites.values()])
+            .repeat(len(self.epitopes))
+            .reshape(len(self._binary_sites), len(self.epitopes))
         )
-        assert muts_per_site.shape == (len(self._binary_sites),)
-        assert muts_per_site.sum() == beta.shape[0] == len(self.mutations)
+        assert muts_per_site.shape == (len(self._binary_sites), len(self.epitopes))
+        assert muts_per_site.sum() == len(beta.ravel())
 
         sqrt_term = numpy.sqrt(site_beta2 + epsilon)
         s = (sqrt_term - numpy.sqrt(epsilon)) / muts_per_site
