@@ -146,6 +146,10 @@ class Polyclonal:
     n_epitopes : int or None
         If initializing with ``activity_wt_df=None``, specifies number
         of epitopes.
+    spatial_distances : pandas.DataFrame
+        Gives inter-residue distances. Must have columns "site_1", "site_2",
+        and "distance" where the distance is typically in angstroms.
+        Distances may be missing for some pairs. Used for the spatial regularization.
     collapse_identical_variants : {'mean', 'median', False}
         If identical variants in ``data_to_fit`` (same 'aa_substitutions'),
         collapse them and make weight proportional to number of collapsed
@@ -210,6 +214,10 @@ class Polyclonal:
         calculated as the number of variants with mutation across all concentrations
         divided by the number of concentrations, so can have non-integer values if
         there are variants only observed at some concentrations.
+    distance_matrix : pandas.DataFrame or `None`
+        If ``data_to_fit`` is not `None` and ``spatial_distances`` is not `None`,
+        then this is a matrix giving the pairwise distances between residues.
+        Pairs with no distance have values of `pd.NA` and diagonal values are 0.
 
     Example
     -------
@@ -670,6 +678,25 @@ class Polyclonal:
     7      CT      M1C G2A A4K
     8      GA              M1C
 
+    Example
+    -------
+    Add spatial distances:
+
+    >>> spatial_distances = pd.DataFrame(
+    ...     [(1, 2, 1.5), (1, 4, 7.5)],
+    ...     columns=["site_1", "site_2", "distance"],
+    ... )
+    >>> model_data = Polyclonal(
+    ...     data_to_fit=data_to_fit,
+    ...     n_epitopes=2,
+    ...     spatial_distances=spatial_distances,
+    ...     collapse_identical_variants="mean",
+    ... )
+    >>> model_data.distance_matrix
+         1     2     4
+    1  0.0   1.5   7.5
+    2  1.5   0.0  <NA>
+    4  7.5  <NA>   0.0
 
     """
 
@@ -681,6 +708,7 @@ class Polyclonal:
         data_to_fit=None,
         site_escape_df=None,
         n_epitopes=None,
+        spatial_distances=None,
         collapse_identical_variants=False,
         alphabet=polyclonal.AAS,
         sites=None,
@@ -991,8 +1019,35 @@ class Polyclonal:
                 dtype="int",
             )
             assert self._binary_siteindex_to_mutindex.shape == (len(self.mutations),)
+            if spatial_distances is not None:
+                # get distance matrix with sites in same order as in self._binary_sites
+                spatial_dist_dict = spatial_distances.set_index(["site_1", "site_2"])[
+                    "distance"
+                ].to_dict()
+                spatial_dist_dict.update(
+                    {(r2, r1): d for (r1, r2), d in spatial_dist_dict.items()}
+                )
+                self.distance_matrix = []
+                for site_1 in self._binary_sites:
+                    row = []
+                    for site_2 in self._binary_sites:
+                        if site_1 == site_2:
+                            row.append(0.0)
+                        elif (site_1, site_2) in spatial_dist_dict:
+                            row.append(spatial_dist_dict[(site_1, site_2)])
+                        else:
+                            row.append(pd.NA)
+                    self.distance_matrix.append(row)
+                self.distance_matrix = pd.DataFrame(
+                    self.distance_matrix,
+                    index=self._binary_sites,
+                    columns=self._binary_sites,
+                )
+            else:
+                self.distance_matrix = None
         else:
             self.data_to_fit = None
+            self.distance_matrix = None
 
     def _binarymaps_from_df(
         self,

@@ -12,6 +12,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Improve column spacing when ``Polyclonal.fit`` prints log.
 - Added 'atom' as output column in ``pdb_utils.extract_atom_locations``
 - Added ``pdb_utils.inter_residue_distances``
+- Added ``Polyclonal.distance_matrix`` attribute, set via ``spatial_distances`` parameter.
 
 2.5
 ---
