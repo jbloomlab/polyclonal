@@ -20,6 +20,11 @@ import pandas as pd  # noqa: F401
 import requests  # noqa: F401
 
 
+def inter_residue_distances(
+    
+):
+    pass
+
 def reassign_b_factor(
     input_pdbfile,
     output_pdbfile,
@@ -209,20 +214,19 @@ def extract_atom_locations(
     target_chains : list
         List of target chains to extract atom locations from. Chains must be in
         the PDB and match the chain ids.
-    target_atom: str
+    target_atom: str or None
         Which type of atom to extract locations for. Default is alpha carbon, or
-        'CA'. If the specified type of atom is present multiple times for a
+        'CA'. Use `None` to get all atoms for a residue.
+        If the specified type of atom is present multiple times for a
         residue, that residue will end up having multiple entries in the output.
 
     Returns
     -------
     pandas.DataFrame
-        Has columns 'chain', 'site', 'x', 'y', and 'z'.
+        Has columns 'chain', 'site', 'atom', 'x', 'y', and 'z'.
 
     Example
     -------
-    Download PDB, do the re-assignment of B factors, read the lines
-    from the resulting re-assigned PDB:
 
     >>> pdb_url = 'https://files.rcsb.org/download/6M0J.pdb'
     >>> r = requests.get(pdb_url)
@@ -231,22 +235,36 @@ def extract_atom_locations(
     ...    with open(pdbfile, 'wb') as f:
     ...        _ = f.write(r.content)
     ...    output = extract_atom_locations(pdbfile, ['A'])
+    ...    output_all_atoms = extract_atom_locations(pdbfile, ['A'], target_atom=None)
 
     Check the first ten lines of the ouput to make sure we got the expected
     atom locations:
 
     >>> output.head(n=10)
-      chain  site          x          y      z
-    0     A    19 -31.358999  50.852001  2.040
-    1     A    20 -29.424000  50.561001 -1.234
-    2     A    21 -30.722000  48.633999 -4.234
-    3     A    22 -28.080999  45.924999 -3.794
-    4     A    23 -28.982000  45.372002 -0.131
-    5     A    24 -32.637001  44.912998 -1.106
-    6     A    25 -31.709999  42.499001 -3.889
-    7     A    26 -29.688999  40.509998 -1.334
-    8     A    27 -32.740002  40.337002  0.917
-    9     A    28 -34.958000  39.424000 -2.028
+      chain  site atom          x          y      z
+    0     A    19   CA -31.358999  50.852001  2.040
+    1     A    20   CA -29.424000  50.561001 -1.234
+    2     A    21   CA -30.722000  48.633999 -4.234
+    3     A    22   CA -28.080999  45.924999 -3.794
+    4     A    23   CA -28.982000  45.372002 -0.131
+    5     A    24   CA -32.637001  44.912998 -1.106
+    6     A    25   CA -31.709999  42.499001 -3.889
+    7     A    26   CA -29.688999  40.509998 -1.334
+    8     A    27   CA -32.740002  40.337002  0.917
+    9     A    28   CA -34.958000  39.424000 -2.028
+
+    >>> output_all_atoms.head(n=10)
+      chain  site atom          x          y      z
+    0     A    19    N -31.455000  49.473999  2.505
+    1     A    19   CA -31.358999  50.852001  2.040
+    2     A    19    C -31.051001  50.891998  0.548
+    3     A    19    O -31.921000  51.243999 -0.251
+    4     A    19   CB -30.297001  51.626999  2.826
+    5     A    19   OG -30.882000  52.734001  3.490
+    6     A    20    N -29.822001  50.528000  0.169
+    7     A    20   CA -29.424000  50.561001 -1.234
+    8     A    20    C -30.215000  49.535000 -2.042
+    9     A    20    O -30.926001  48.687000 -1.500
 
     """
     # read PDB, catch warnings about discontinuous chains
@@ -274,6 +292,7 @@ def extract_atom_locations(
     # extract atom locations from target chains
     chain_list = []
     residue_list = []
+    atom_list = []
     x_list = []
     y_list = []
     z_list = []
@@ -282,19 +301,21 @@ def extract_atom_locations(
             residue_number = residue.get_id()[1]
             atoms = residue.get_atoms()
             for atom in atoms:
-                if atom.get_id() == target_atom:
+                if (target_atom is None) or (atom.get_id() == target_atom):
                     x, y, z = atom.get_coord()
                     x_list.append(x)
                     y_list.append(y)
                     z_list.append(z)
                     residue_list.append(residue_number)
                     chain_list.append(chain.id)
+                    atom_list.append(atom.get_id())
 
     # write output
     output = pd.DataFrame(
         {
             "chain": chain_list,
             "site": residue_list,
+            "atom": atom_list,
             "x": x_list,
             "y": y_list,
             "z": z_list,

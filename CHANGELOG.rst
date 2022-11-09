@@ -10,6 +10,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ------
 - Flatten mutation-escape values for RBD simulation so most values are roughly zero. Previously many values were ~0.5 rather than 0. Also adjust activities for this simulation.
 - Improve column spacing when ``Polyclonal.fit`` prints log.
+- Added 'atom' as output column in ``pdb_utils.extract_atom_locations``
+- Added ``pdb_utils.inter_residue_distances``
 
 2.5
 ---
