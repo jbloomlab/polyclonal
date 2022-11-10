@@ -1043,6 +1043,11 @@ class Polyclonal:
                     index=self._binary_sites,
                     columns=self._binary_sites,
                 )
+                # define distance matrix numpy ndarrays with NA elements as 0
+                self._distance_matrix = (
+                    self.distance_matrix.to_numpy(na_value=0).astype(float)
+                )
+                self._distance_matrix2 = self._distance_matrix**2
             else:
                 self.distance_matrix = None
         else:
@@ -1608,6 +1613,53 @@ class Polyclonal:
 
         return return_tup
 
+    def _reg_spatial(self, params, reg_spatial_weight, reg_spatial_weight2, epsilon):
+        """Regularization on spatial spread of epitopes and its gradient."""
+        if (
+            (self.distance_matrix is None)
+            or (reg_spatial_weight == reg_spatial_weight2 == 0)
+        ):
+            return (0, numpy.zeros(params.shape))
+        elif reg_spatial_weight < 0:
+            raise ValueError(f"{reg_spatial_weight=} not >= 0")
+        elif reg_spatial_weight2 < 0:
+            raise ValueError(f"{reg_spatial_weight2=} not >= 0")
+
+        d_weighted = (
+            reg_spatial_weight * self._distance_matrix
+            + reg_spatial_weight2 * self._distance_matrix2
+        )
+        n_sites = len(self._binary_sites)
+        assert d_weighted.shape == (n_sites, n_sites), f"{d_weighted.shape=}\n{n_sites=}"
+
+        d_weighted_mut_site = d_weighted[self._binary_siteindex_to_mutindex]
+        assert d_weighted_mut_site.shape == (len(self.mutations), n_sites)
+
+        s, ds = self._site_avg_abs_diff(params, epsilon)
+        assert s.shape == (n_sites, len(self.epitopes))
+        assert ds.shape == (len(self.mutations), len(self.epitopes))
+
+        reg = 0.0
+        dreg = numpy.zeros(ds.shape)
+        for i_epitope, (s_epitope, ds_epitope) in enumerate(
+            zip(s.swapaxes(0, 1), ds.swapaxes(0, 1)),
+        ):
+            s_epitope_matrix = numpy.outer(s_epitope, s_epitope)
+            assert s_epitope_matrix.shape == d_weighted.shape == (n_sites, n_sites)
+            reg += 0.5 * (s_epitope_matrix * d_weighted).sum()
+
+            s_ds_epitope_matrix = numpy.outer(ds_epitope, s_epitope)
+            assert s_ds_epitope_matrix.shape == (len(self.mutations), n_sites)
+            assert s_ds_epitope_matrix.shape == d_weighted_mut_site.shape
+            dreg_epitope = (s_ds_epitope_matrix * d_weighted_mut_site).sum(axis=1)
+            assert dreg_epitope.shape == (len(self.mutations),)
+            dreg[:, i_epitope] = dreg_epitope
+
+        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        assert dreg.shape == params.shape == self._params.shape
+
+        return reg, dreg
+
     def _reg_similarity(self, params, weight):
         """Regularization on similarity of escape across epitopes and its gradient."""
         if weight == 0 or len(self.epitopes) < 2:
@@ -1668,6 +1720,9 @@ class Polyclonal:
         reg_escape_weight=0.02,
         reg_escape_delta=0.1,
         reg_spread_weight=0.25,
+        site_avg_abs_escape_epsilon=0.1,
+        reg_spatial_weight=0.0,
+        reg_spatial_weight2=0.0,
         reg_similarity_weight=0.0,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
@@ -1699,6 +1754,17 @@ class Polyclonal:
             Strength of regularization on similarity of :math:`\beta_{m,e}`
             values at each site across epitopes. Has no effect when there is
             only one epitope.
+        site_avg_abs_escape_epsilon : float
+            The epsilon value used when computing a differentiable measure of the
+            average absolute value of escape at a site for each epitope.
+        reg_spatial_weight : float
+            Strength of regularization of spatial distance between :math:`\beta_{m,e}`
+            values at each site. Only meaningful if :attr:`Polyclonal.distance_matrix`
+            is not `None`.
+        reg_spatial_weight2 : float
+            Strength of regularization of squared spatial distance between
+            :math:`\beta_{m,e}` values at each site. Only meaningful if
+            :attr:`Polyclonal.distance_matrix` is not `None`.
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
             Only positive values regularized.
@@ -1764,6 +1830,12 @@ class Polyclonal:
                         params, reg_escape_weight, reg_escape_delta
                     )
                     regspread, dregspread = self._reg_spread(params, reg_spread_weight)
+                    regspatial, dregspatial = self._reg_spatial(
+                        params,
+                        reg_spatial_weight,
+                        reg_spatial_weight2,
+                        site_avg_abs_escape_epsilon,
+                    )
                     regsimilarity, dregsimilarity = self._reg_similarity(
                         params, reg_similarity_weight
                     )
@@ -1772,11 +1844,19 @@ class Polyclonal:
                         reg_activity_weight,
                         reg_activity_delta,
                     )
-                    loss = fitloss + regescape + regspread + regsimilarity + regactivity
+                    loss = (
+                        fitloss
+                        + regescape
+                        + regspread
+                        + regspatial
+                        + regsimilarity
+                        + regactivity
+                    )
                     dloss = (
                         dfitloss
                         + dregescape
                         + dregspread
+                        + dregspatial
                         + dregsimilarity
                         + dregactivity
                     )
@@ -1788,6 +1868,7 @@ class Polyclonal:
                             "fit_loss": fitloss,
                             "reg_escape": regescape,
                             "reg_spread": regspread,
+                            "reg_spatial": regspatial,
                             "reg_similarity": regsimilarity,
                             "reg_activity": regactivity,
                         },
