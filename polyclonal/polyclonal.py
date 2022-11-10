@@ -686,17 +686,46 @@ class Polyclonal:
     ...     [(1, 2, 1.5), (1, 4, 7.5)],
     ...     columns=["site_1", "site_2", "distance"],
     ... )
-    >>> model_data = Polyclonal(
+    >>> model_spatial = Polyclonal(
     ...     data_to_fit=data_to_fit,
     ...     n_epitopes=2,
     ...     spatial_distances=spatial_distances,
     ...     collapse_identical_variants="mean",
     ... )
-    >>> model_data.distance_matrix
+    >>> model_spatial.distance_matrix
          1     2     4
     1  0.0   1.5   7.5
     2  1.5   0.0  <NA>
     4  7.5  <NA>   0.0
+
+    Fit with lower regularization as data so small
+
+    >>> opt_res = model_spatial.fit(
+    ...     reg_escape_weight=0.001,
+    ...     reg_spread_weight=0.001,
+    ...     reg_activity_weight=0.0001,
+    ...     reg_spatial_weight=0.001,
+    ...     reg_spatial_weight2=0.0001,
+    ... )
+    >>> pred_df = model_spatial.prob_escape(variants_df=data_to_fit)
+    >>> if not numpy.allclose(
+    ...     pred_df['prob_escape'],
+    ...     pred_df['predicted_prob_escape'],
+    ...     atol=0.01,
+    ... ):
+    ...     raise ValueError(f"wrong predictions\n{pred_df}")
+    >>> if not numpy.allclose(
+    ...      activity_wt_df['activity'].sort_values(),
+    ...      m.activity_wt_df['activity'].sort_values(),
+    ...      atol=0.1,
+    ... ):
+    ...     raise ValueError(f"wrong activities\n{m.activity_wt_df}")
+    >>> if not numpy.allclose(
+    ...      mut_escape_df['escape'].sort_values(),
+    ...      m.mut_escape_df['escape'].sort_values(),
+    ...      atol=0.05,
+    ... ):
+    ...     raise ValueError(f"wrong escapes\n{m.mut_escape_df}")
 
     """
 

@@ -13,6 +13,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Added 'atom' as output column in ``pdb_utils.extract_atom_locations``
 - Added ``pdb_utils.inter_residue_distances``
 - Added ``Polyclonal.distance_matrix`` attribute, set via ``spatial_distances`` parameter.
+- Added spatial regularization to ``Polyclonal.fit``
 
 2.5
 ---
