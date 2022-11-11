@@ -9,15 +9,155 @@ Functions to manipulate `PDB <https://www.rcsb.org/>`_ files.
 
 
 import collections  # noqa: F401
+import itertools
 import os  # noqa: F401
 import tempfile  # noqa: F401
 import warnings
 
 import Bio.PDB
 
+import numpy
+
 import pandas as pd  # noqa: F401
 
 import requests  # noqa: F401
+
+
+def inter_residue_distances(
+    input_pdbfile,
+    target_chains,
+    target_atom=None,
+):
+    r"""Get inter-residue distances from a PDB file.
+
+    If a residue number is present in multiple chains, gets the closest distance
+    for each partner from all residues with that number. This is useful for
+    homo-oligomers.
+
+    Parameters
+    ----------
+    input_pdbfile : str
+        Path to input PDB file.
+    target_chains : list
+        List of target chains for which we get residues.
+    target_atom: str or None
+        Which type of atoms to consider when getting distances. `None` means
+        all atoms; you could also want to use 'CA' for alpha carbons.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Columns are "site_1", "site_2", "distance", "chain_1", and "chain_2".
+        The distance is the Euclidean distance between the sites, and
+        the chain columns indicate the chain for which the closest residue
+        is drawn for that pair. Only returns the unique combinations of
+        site_1 and site_2. Eg, has entries for sites 1 and 2, but not
+        1 and 1 or 2 and 1. The distances are in angstroms.
+
+    Example
+    -------
+    Get distances from one and multiple chains from spike trimer PDB file:
+
+    >>> pdb_url = 'https://files.rcsb.org/download/6XM4.pdb'
+    >>> r = requests.get(pdb_url)
+    >>> with tempfile.NamedTemporaryFile() as tmpf:
+    ...    _ = tmpf.write(r.content)
+    ...    tmpf.flush()
+    ...    dist_chain_a = inter_residue_distances(tmpf.name, ["A"])
+    ...    dist_chain_a_b = inter_residue_distances(tmpf.name, ["A", "B"])
+
+    >>> dist_chain_a
+            site_1  site_2    distance chain_1 chain_2
+    0           27      28    1.332629       A       A
+    1           27      29    4.612508       A       A
+    2           27      30    8.219518       A       A
+    3           27      31   11.016782       A       A
+    4           27      32   13.087037       A       A
+    ...        ...     ...         ...     ...     ...
+    548623    1308    1310   30.826773       A       A
+    548624    1308    1311   75.350853       A       A
+    548625    1309    1310   12.374796       A       A
+    548626    1309    1311  115.681534       A       A
+    548627    1310    1311  106.112328       A       A
+    <BLANKLINE>
+    [548628 rows x 5 columns]
+
+    >>> dist_chain_a_b
+            site_1  site_2   distance chain_1 chain_2
+    0           27      28   1.330841       B       B
+    1           27      29   4.502822       B       B
+    2           27      30   8.128284       B       B
+    3           27      31  10.591589       B       B
+    4           27      32  13.087037       A       A
+    ...        ...     ...        ...     ...     ...
+    572980     845     847   4.439680       B       B
+    572981     845     848   6.885335       B       B
+    572982     846     847   1.333544       B       B
+    572983     846     848   3.365701       B       B
+    572984     847     848   1.328880       B       B
+    <BLANKLINE>
+    [572985 rows x 5 columns]
+
+    There are some sites where the closest residues are in different monomers:
+
+    >>> dist_chain_a_b.query("chain_1 != chain_2")
+            site_1  site_2   distance chain_1 chain_2
+    252         27     330  46.996426       B       A
+    254         27     332  47.407013       B       A
+    255         27     333  47.920368       B       A
+    256         27     334  49.039017       B       A
+    257         27     335  51.971394       B       A
+    ...        ...     ...        ...     ...     ...
+    572727    1311     844  65.875092       A       B
+    572728    1311     845  64.882248       A       B
+    572729    1311     846  62.240368       A       B
+    572730    1311     847  60.743019       A       B
+    572731    1311     848  56.456402       A       B
+    <BLANKLINE>
+    [282044 rows x 5 columns]
+
+    """
+    coords = extract_atom_locations(input_pdbfile, target_chains, target_atom)
+
+    sites = coords["site"].unique()
+
+    site_coords = {}
+    for site in sites:
+        site_coords[site] = {}
+        for chain, df in coords.query("site == @site").groupby("chain"):
+            site_coords[site][chain] = df[["x", "y", "z"]].values
+
+    records = []
+    for site_1, site_2 in itertools.combinations(sites, 2):
+        min_d = None
+        for (chain_1, coords_1), (chain_2, coords_2) in itertools.product(
+            site_coords[site_1].items(),
+            site_coords[site_2].items(),
+        ):
+            assert coords_1.shape[1] == coords_2.shape[1] == 3
+            # repeat row of coords_1 (each row repeated N times) and coords_2 (entire
+            # array repeated M times) so we can get all combinations of distances
+            coords_1_repeat = numpy.repeat(coords_1, coords_2.shape[0], axis=0)
+            coords_2_repeat = numpy.tile(coords_2, (coords_1.shape[0], 1))
+            assert coords_1_repeat.shape == coords_2_repeat.shape
+
+            # compute the distances
+            dists = numpy.linalg.norm(coords_1_repeat - coords_2_repeat, axis=1)
+            assert dists.shape == (coords_1.shape[0] * coords_2.shape[0],), dists.shape
+
+            d = dists.min()
+            if (min_d is None) or (d < min_d):
+                min_d = d
+                min_chain_1 = chain_1
+                min_chain_2 = chain_2
+
+        assert min_d is not None
+        records.append((site_1, site_2, min_d, min_chain_1, min_chain_2))
+
+    return pd.DataFrame(
+        records,
+        columns=["site_1", "site_2", "distance", "chain_1", "chain_2"],
+    )
 
 
 def reassign_b_factor(
@@ -209,20 +349,19 @@ def extract_atom_locations(
     target_chains : list
         List of target chains to extract atom locations from. Chains must be in
         the PDB and match the chain ids.
-    target_atom: str
+    target_atom: str or None
         Which type of atom to extract locations for. Default is alpha carbon, or
-        'CA'. If the specified type of atom is present multiple times for a
+        'CA'. Use `None` to get all atoms for a residue.
+        If the specified type of atom is present multiple times for a
         residue, that residue will end up having multiple entries in the output.
 
     Returns
     -------
     pandas.DataFrame
-        Has columns 'chain', 'site', 'x', 'y', and 'z'.
+        Has columns 'chain', 'site', 'atom', 'x', 'y', and 'z'.
 
     Example
     -------
-    Download PDB, do the re-assignment of B factors, read the lines
-    from the resulting re-assigned PDB:
 
     >>> pdb_url = 'https://files.rcsb.org/download/6M0J.pdb'
     >>> r = requests.get(pdb_url)
@@ -231,22 +370,36 @@ def extract_atom_locations(
     ...    with open(pdbfile, 'wb') as f:
     ...        _ = f.write(r.content)
     ...    output = extract_atom_locations(pdbfile, ['A'])
+    ...    output_all_atoms = extract_atom_locations(pdbfile, ['A'], target_atom=None)
 
     Check the first ten lines of the ouput to make sure we got the expected
     atom locations:
 
     >>> output.head(n=10)
-      chain  site          x          y      z
-    0     A    19 -31.358999  50.852001  2.040
-    1     A    20 -29.424000  50.561001 -1.234
-    2     A    21 -30.722000  48.633999 -4.234
-    3     A    22 -28.080999  45.924999 -3.794
-    4     A    23 -28.982000  45.372002 -0.131
-    5     A    24 -32.637001  44.912998 -1.106
-    6     A    25 -31.709999  42.499001 -3.889
-    7     A    26 -29.688999  40.509998 -1.334
-    8     A    27 -32.740002  40.337002  0.917
-    9     A    28 -34.958000  39.424000 -2.028
+      chain  site atom          x          y      z
+    0     A    19   CA -31.358999  50.852001  2.040
+    1     A    20   CA -29.424000  50.561001 -1.234
+    2     A    21   CA -30.722000  48.633999 -4.234
+    3     A    22   CA -28.080999  45.924999 -3.794
+    4     A    23   CA -28.982000  45.372002 -0.131
+    5     A    24   CA -32.637001  44.912998 -1.106
+    6     A    25   CA -31.709999  42.499001 -3.889
+    7     A    26   CA -29.688999  40.509998 -1.334
+    8     A    27   CA -32.740002  40.337002  0.917
+    9     A    28   CA -34.958000  39.424000 -2.028
+
+    >>> output_all_atoms.head(n=10)
+      chain  site atom          x          y      z
+    0     A    19    N -31.455000  49.473999  2.505
+    1     A    19   CA -31.358999  50.852001  2.040
+    2     A    19    C -31.051001  50.891998  0.548
+    3     A    19    O -31.921000  51.243999 -0.251
+    4     A    19   CB -30.297001  51.626999  2.826
+    5     A    19   OG -30.882000  52.734001  3.490
+    6     A    20    N -29.822001  50.528000  0.169
+    7     A    20   CA -29.424000  50.561001 -1.234
+    8     A    20    C -30.215000  49.535000 -2.042
+    9     A    20    O -30.926001  48.687000 -1.500
 
     """
     # read PDB, catch warnings about discontinuous chains
@@ -274,6 +427,7 @@ def extract_atom_locations(
     # extract atom locations from target chains
     chain_list = []
     residue_list = []
+    atom_list = []
     x_list = []
     y_list = []
     z_list = []
@@ -282,19 +436,21 @@ def extract_atom_locations(
             residue_number = residue.get_id()[1]
             atoms = residue.get_atoms()
             for atom in atoms:
-                if atom.get_id() == target_atom:
+                if (target_atom is None) or (atom.get_id() == target_atom):
                     x, y, z = atom.get_coord()
                     x_list.append(x)
                     y_list.append(y)
                     z_list.append(z)
                     residue_list.append(residue_number)
                     chain_list.append(chain.id)
+                    atom_list.append(atom.get_id())
 
     # write output
     output = pd.DataFrame(
         {
             "chain": chain_list,
             "site": residue_list,
+            "atom": atom_list,
             "x": x_list,
             "y": y_list,
             "z": z_list,
