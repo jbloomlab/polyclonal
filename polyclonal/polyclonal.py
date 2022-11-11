@@ -1074,9 +1074,9 @@ class Polyclonal:
                     columns=self._binary_sites,
                 )
                 # define distance matrix numpy ndarrays with NA elements as 0
-                self._distance_matrix = (
-                    self.distance_matrix.to_numpy(na_value=0).astype(float)
-                )
+                self._distance_matrix = self.distance_matrix.to_numpy(
+                    na_value=0
+                ).astype(float)
                 self._distance_matrix2 = self._distance_matrix**2
             else:
                 self.distance_matrix = None
@@ -1646,9 +1646,8 @@ class Polyclonal:
 
     def _reg_spatial(self, params, reg_spatial_weight, reg_spatial_weight2, epsilon):
         """Regularization on spatial spread of epitopes and its gradient."""
-        if (
-            (self.distance_matrix is None)
-            or (reg_spatial_weight == reg_spatial_weight2 == 0)
+        if (self.distance_matrix is None) or (
+            reg_spatial_weight == reg_spatial_weight2 == 0
         ):
             return (0, numpy.zeros(params.shape))
         elif reg_spatial_weight < 0:
@@ -1661,7 +1660,10 @@ class Polyclonal:
             + reg_spatial_weight2 * self._distance_matrix2
         )
         n_sites = len(self._binary_sites)
-        assert d_weighted.shape == (n_sites, n_sites), f"{d_weighted.shape=}\n{n_sites=}"
+        assert d_weighted.shape == (
+            n_sites,
+            n_sites,
+        ), f"{d_weighted.shape=}\n{n_sites=}"
 
         d_weighted_mut_site = d_weighted[self._binary_siteindex_to_mutindex]
         assert d_weighted_mut_site.shape == (len(self.mutations), n_sites)
