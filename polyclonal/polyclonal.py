@@ -1627,8 +1627,8 @@ class Polyclonal:
         assert muts_per_site.shape == (len(self._binary_sites), len(self.epitopes))
         assert muts_per_site.sum() == len(beta.ravel())
 
-        sqrt_term = numpy.sqrt(site_beta2 + epsilon)
-        s = (sqrt_term - numpy.sqrt(epsilon)) / muts_per_site
+        sqrt_term = numpy.sqrt(site_beta2 / muts_per_site + epsilon)
+        s = sqrt_term - numpy.sqrt(epsilon)
         assert s.shape == (len(self._binary_sites), len(self.epitopes))
 
         assert (beta.shape[0],) == self._binary_siteindex_to_mutindex.shape
