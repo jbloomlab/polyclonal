@@ -1048,8 +1048,8 @@ class Polyclonal:
                 dtype="int",
             )
             assert self._binary_siteindex_to_mutindex.shape == (len(self.mutations),)
-            self._spatial_distances = spatial_distances.copy()
             if spatial_distances is not None:
+                self._spatial_distances = spatial_distances.copy()
                 # get distance matrix with sites in same order as in self._binary_sites
                 spatial_dist_dict = spatial_distances.set_index(["site_1", "site_2"])[
                     "distance"
@@ -1080,6 +1080,7 @@ class Polyclonal:
                 self._distance_matrix2 = self._distance_matrix**2
             else:
                 self.distance_matrix = None
+                self._spatial_distances = None
         else:
             self.data_to_fit = None
             self.distance_matrix = None
