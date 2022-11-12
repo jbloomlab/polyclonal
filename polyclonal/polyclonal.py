@@ -1694,6 +1694,37 @@ class Polyclonal:
 
         return reg, dreg
 
+    def _reg_uniqueness(self, params, weight, epsilon):
+        """Regularization on epitope uniqueness and its gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"reg_uniqueness_weight {weight} not >= 0")
+
+        n_sites = len(self._binary_sites)
+        s, ds = self._site_avg_abs_diff(params, epsilon)
+        assert s.shape == (n_sites, len(self.epitopes))
+        assert ds.shape == (len(self.mutations), len(self.epitopes))
+
+        s_mut = s[self._binary_siteindex_to_mutindex]
+        assert s_mut.shape == ds.shape == (len(self.mutations), len(self.epitopes))
+
+        reg = 0.0
+        dreg = numpy.zeros(ds.shape)
+        for i_epitope_1 in range(len(self.epitopes)):
+            for i_epitope_2 in range(len(self.epitopes)):
+                if i_epitope_2 > i_epitope_1:
+                    reg_term = s[:, i_epitope_1] * s[:, i_epitope_2]
+                    assert reg_term.shape == (n_sites,)
+                    reg += reg_term.sum()
+                if i_epitope_1 != i_epitope_2:
+                    dreg[:, i_epitope_1] += ds[:, i_epitope_1] * s_mut[:, i_epitope_2]
+
+        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        assert dreg.shape == params.shape == self._params.shape
+
+        return weight * reg, weight * dreg
+
     def _reg_similarity(self, params, weight):
         """Regularization on similarity of escape across epitopes and its gradient."""
         if weight == 0 or len(self.epitopes) < 2:
@@ -1758,6 +1789,7 @@ class Polyclonal:
         reg_spatial_weight=0.0,
         reg_spatial_weight2=0.0,
         reg_similarity_weight=0.0,
+        reg_uniqueness_weight=0.0,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
         fit_site_level_first=True,
@@ -1799,6 +1831,8 @@ class Polyclonal:
             Strength of regularization of squared spatial distance between
             :math:`\beta_{m,e}` values at each site. Only meaningful if
             :attr:`Polyclonal.distance_matrix` is not `None`.
+        reg_uniqueness_weight: float
+            Strength of regularization on epitope uniqueness.
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
             Only positive values regularized.
@@ -1870,6 +1904,11 @@ class Polyclonal:
                         reg_spatial_weight2,
                         site_avg_abs_escape_epsilon,
                     )
+                    reguniqueness, dreguniqueness = self._reg_uniqueness(
+                        params,
+                        reg_uniqueness_weight,
+                        site_avg_abs_escape_epsilon,
+                    )
                     regsimilarity, dregsimilarity = self._reg_similarity(
                         params, reg_similarity_weight
                     )
@@ -1883,6 +1922,7 @@ class Polyclonal:
                         + regescape
                         + regspread
                         + regspatial
+                        + reguniqueness
                         + regsimilarity
                         + regactivity
                     )
@@ -1891,6 +1931,7 @@ class Polyclonal:
                         + dregescape
                         + dregspread
                         + dregspatial
+                        + dreguniqueness
                         + dregsimilarity
                         + dregactivity
                     )
@@ -1903,6 +1944,7 @@ class Polyclonal:
                             "reg_escape": regescape,
                             "reg_spread": regspread,
                             "reg_spatial": regspatial,
+                            "reg_uniqueness": reguniqueness,
                             "reg_similarity": regsimilarity,
                             "reg_activity": regactivity,
                         },
