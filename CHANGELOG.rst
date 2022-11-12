@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 3.0
 ----
 - Make ``Polyclonal.spatial_distances`` a public attribute.
+- ``Polyclonal.fit`` allows epitopes with identical activities if they have different escape.
 
 2.6
 ------

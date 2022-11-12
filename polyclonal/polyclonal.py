@@ -1408,16 +1408,21 @@ class Polyclonal:
         return variants_df
 
     def _check_close_activities(self):
-        """Check that no two epitopes have near-identical activities."""
-        a, _ = self._a_beta_from_params(self._params)
-        a_sorted = numpy.sort(a)
-        for a1, a2 in zip(a_sorted, a_sorted[1:]):
-            if numpy.allclose(a1, a2):
-                raise ValueError(
-                    "Near-identical activities for two epitopes, "
-                    "will cause problems in fitting. Reinitialize"
-                    f" with more distinct activities:\n{a}"
-                )
+        """Check no epitopes have near-identical activities and escape."""
+        a, beta = self._a_beta_from_params(self._params)
+        assert a.shape == (len(self.epitopes),)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        for i1 in range(len(self.epitopes)):
+            a1 = a[i1]
+            e1 = beta[:, i1]
+            assert e1.shape == (len(self.mutations),)
+            for i2 in range(i1 + 1, len(self.epitopes)):
+                if numpy.allclose(a1, a[i2]) and numpy.allclose(e1, beta[:, i2]):
+                    raise ValueError(
+                        "Near-identical activities and escape for two epitopes, "
+                        "will cause problems in fitting. Reinitialize"
+                        f" with more distinct activities:\n{a}"
+                    )
 
     def site_level_model(
         self,
