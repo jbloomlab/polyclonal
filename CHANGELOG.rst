@@ -14,6 +14,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Checks and int versus str dtype adjustment for ``spatial_distances`` in ``Polyclonal``.
 - Adjust activity regularization based on concentration geometric mean so it is not sensitive to units of concentration.
 - Renamed what was previously called the epitope similarity regularization to epitope uniqueness-squared, as it's a second uniqueness regularization but operates on square of escape values.
+- Change default regularization strengths in ``Polyclonal.fit``.
+- Rename ``reg_spatial_weight2`` to ``reg_spatial2_weight`` for ``Polyclonal.fit``.
 
 2.6
 ------

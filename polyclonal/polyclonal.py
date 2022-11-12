@@ -709,7 +709,7 @@ class Polyclonal:
     ...     reg_spread_weight=0.001,
     ...     reg_activity_weight=0.0001,
     ...     reg_spatial_weight=0.001,
-    ...     reg_spatial_weight2=0.0001,
+    ...     reg_spatial2_weight=0.0001,
     ... )
     >>> pred_df = model_spatial.prob_escape(variants_df=data_to_fit)
     >>> if not numpy.allclose(
@@ -1671,20 +1671,20 @@ class Polyclonal:
 
         return return_tup
 
-    def _reg_spatial(self, params, reg_spatial_weight, reg_spatial_weight2, epsilon):
+    def _reg_spatial(self, params, reg_spatial_weight, reg_spatial2_weight, epsilon):
         """Regularization on spatial spread of epitopes and its gradient."""
         if (self.distance_matrix is None) or (
-            reg_spatial_weight == reg_spatial_weight2 == 0
+            reg_spatial_weight == reg_spatial2_weight == 0
         ):
             return (0, numpy.zeros(params.shape))
         elif reg_spatial_weight < 0:
             raise ValueError(f"{reg_spatial_weight=} not >= 0")
-        elif reg_spatial_weight2 < 0:
-            raise ValueError(f"{reg_spatial_weight2=} not >= 0")
+        elif reg_spatial2_weight < 0:
+            raise ValueError(f"{reg_spatial2_weight=} not >= 0")
 
         d_weighted = (
             reg_spatial_weight * self._distance_matrix
-            + reg_spatial_weight2 * self._distance_matrix2
+            + reg_spatial2_weight * self._distance_matrix2
         )
         n_sites = len(self._binary_sites)
         assert d_weighted.shape == (
@@ -1808,13 +1808,13 @@ class Polyclonal:
         self,
         *,
         loss_delta=0.1,
-        reg_escape_weight=0.02,
+        reg_escape_weight=0.01,
         reg_escape_delta=0.1,
-        reg_spread_weight=0.25,
+        reg_spread_weight=0.1,
         site_avg_abs_escape_epsilon=0.1,
         reg_spatial_weight=0.0,
-        reg_spatial_weight2=0.0,
-        reg_uniqueness_weight=0.0,
+        reg_spatial2_weight=0.001,
+        reg_uniqueness_weight=0.1,
         reg_uniqueness2_weight=0.0,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
@@ -1849,7 +1849,7 @@ class Polyclonal:
             Strength of regularization of spatial distance between :math:`\beta_{m,e}`
             values at each site. Only meaningful if :attr:`Polyclonal.distance_matrix`
             is not `None`.
-        reg_spatial_weight2 : float
+        reg_spatial2_weight : float
             Strength of regularization of squared spatial distance between
             :math:`\beta_{m,e}` values at each site. Only meaningful if
             :attr:`Polyclonal.distance_matrix` is not `None`.
@@ -1929,7 +1929,7 @@ class Polyclonal:
                     regspatial, dregspatial = self._reg_spatial(
                         params,
                         reg_spatial_weight,
-                        reg_spatial_weight2,
+                        reg_spatial2_weight,
                         site_avg_abs_escape_epsilon,
                     )
                     reguniqueness, dreguniqueness = self._reg_uniqueness(
