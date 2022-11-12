@@ -12,6 +12,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - ``Polyclonal.fit`` allows epitopes with identical activities if they have different escape.
 - Activity regularization penalizes both positive and negative values.
 - Checks and int versus str dtype adjustment for ``spatial_distances`` in ``Polyclonal``.
+- Adjust activity regularization based on concentration geometric mean so it is not sensitive to units of concentration.
 
 2.6
 ------

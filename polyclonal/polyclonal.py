@@ -12,6 +12,7 @@ import collections
 import copy  # noqa: F401
 import inspect
 import itertools
+import math
 import os
 import sys
 import time
@@ -29,6 +30,7 @@ import pandas as pd
 
 import scipy.optimize
 import scipy.special
+import scipy.stats
 
 import polyclonal
 import polyclonal.alphabets
@@ -1571,14 +1573,14 @@ class Polyclonal:
         assert reg >= 0
         return reg, dreg
 
-    def _reg_activity(self, params, weight, delta):
+    def _reg_activity(self, params, weight, delta, log_c_gm):
         """Regularization on activity and its gradient."""
         if weight == 0:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for activity regularization not >= 0")
         a, _ = self._a_beta_from_params(params)
-        h, dh = self._scaled_pseudo_huber(delta, a, True)
+        h, dh = self._scaled_pseudo_huber(delta, a + log_c_gm, True)
         reg = h.sum() * weight
         assert dh.shape == a.shape == (len(self.epitopes),)
         dreg = weight * numpy.concatenate([dh, numpy.zeros(len(params) - len(a))])
@@ -1879,6 +1881,8 @@ class Polyclonal:
         if self.data_to_fit is None:
             raise ValueError("cannot fit if `data_to_fit` not set")
 
+        log_c_gm = math.log(scipy.stats.gmean(self.data_to_fit["concentration"]))
+
         if log is None:
             log = sys.stdout
         if not (logfreq is None or (isinstance(logfreq, int) and logfreq > 0)):
@@ -1939,6 +1943,7 @@ class Polyclonal:
                         params,
                         reg_activity_weight,
                         reg_activity_delta,
+                        log_c_gm,
                     )
                     loss = (
                         fitloss
