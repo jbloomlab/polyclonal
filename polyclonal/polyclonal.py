@@ -208,6 +208,8 @@ class Polyclonal:
         are collapsed on columns 'concentration', 'aa_substitutions',
         and 'prob_escape', and a column 'weight' is added to represent number
         of collapsed variants. Also, row-order may be changed.
+    spatial_distances : pandas.DataFrame or None
+        Spatial distances passed when initializing this :class:`Polyclonal` object.
     mutations_times_seen : frozendict.frozendict or None
         If `data_to_fit` is not `None`, keyed by all mutations with escape values
         and values are number of variants in which the mutation is seen. It is formally
@@ -1049,7 +1051,7 @@ class Polyclonal:
             )
             assert self._binary_siteindex_to_mutindex.shape == (len(self.mutations),)
             if spatial_distances is not None:
-                self._spatial_distances = spatial_distances.copy()
+                self.spatial_distances = spatial_distances.copy()
                 # get distance matrix with sites in same order as in self._binary_sites
                 spatial_dist_dict = spatial_distances.set_index(["site_1", "site_2"])[
                     "distance"
@@ -1080,7 +1082,7 @@ class Polyclonal:
                 self._distance_matrix2 = self._distance_matrix**2
             else:
                 self.distance_matrix = None
-                self._spatial_distances = None
+                self.spatial_distances = None
         else:
             self.data_to_fit = None
             self.distance_matrix = None
@@ -1459,7 +1461,7 @@ class Polyclonal:
         return Polyclonal(
             activity_wt_df=self.activity_wt_df,
             mut_escape_df=site_escape_df,
-            spatial_distances=self._spatial_distances,
+            spatial_distances=self.spatial_distances,
             data_to_fit=site_data_to_fit,
             alphabet=("w", "m"),
             sites=None if self.sequential_integer_sites else self.sites,
