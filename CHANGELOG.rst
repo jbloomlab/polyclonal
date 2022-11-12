@@ -13,6 +13,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Activity regularization penalizes both positive and negative values.
 - Checks and int versus str dtype adjustment for ``spatial_distances`` in ``Polyclonal``.
 - Adjust activity regularization based on concentration geometric mean so it is not sensitive to units of concentration.
+- Renamed what was previously called the epitope similarity regularization to epitope uniqueness-squared, as it's a second uniqueness regularization but operates on square of escape values.
 
 2.6
 ------

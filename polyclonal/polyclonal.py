@@ -1751,12 +1751,12 @@ class Polyclonal:
 
         return weight * reg, weight * dreg
 
-    def _reg_similarity(self, params, weight):
-        """Regularization on similarity of escape across epitopes and its gradient."""
+    def _reg_uniqueness2(self, params, weight):
+        """Regularization on squared uniqueness of escape across epitopes and gradient"""
         if weight == 0 or len(self.epitopes) < 2:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
-            raise ValueError(f"{weight=} for similarity regularization not >= 0")
+            raise ValueError(f"{weight=} for uniqueness2 regularization not >= 0")
         _, beta = self._a_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
 
@@ -1814,8 +1814,8 @@ class Polyclonal:
         site_avg_abs_escape_epsilon=0.1,
         reg_spatial_weight=0.0,
         reg_spatial_weight2=0.0,
-        reg_similarity_weight=0.0,
         reg_uniqueness_weight=0.0,
+        reg_uniqueness2_weight=0.0,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
         fit_site_level_first=True,
@@ -1842,10 +1842,6 @@ class Polyclonal:
         reg_spread_weight : float
             Strength of regularization on variance of :math:`\beta_{m,e}`
             values at each site.
-        reg_similarity_weight : float
-            Strength of regularization on similarity of :math:`\beta_{m,e}`
-            values at each site across epitopes. Has no effect when there is
-            only one epitope.
         site_avg_abs_escape_epsilon : float
             The epsilon value used when computing a differentiable measure of the
             average absolute value of escape at a site for each epitope.
@@ -1859,6 +1855,11 @@ class Polyclonal:
             :attr:`Polyclonal.distance_matrix` is not `None`.
         reg_uniqueness_weight: float
             Strength of regularization on epitope uniqueness.
+        reg_uniqueness2_weight : float
+            Strength of regularization on uniqueness of squared escape.
+            values at each site across epitopes.
+        site_avg_abs_escape_epsilon : float
+            Epsilon value for caclulating site average absolute escape.
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
         reg_activity_delta : float
@@ -1936,8 +1937,8 @@ class Polyclonal:
                         reg_uniqueness_weight,
                         site_avg_abs_escape_epsilon,
                     )
-                    regsimilarity, dregsimilarity = self._reg_similarity(
-                        params, reg_similarity_weight
+                    reguniqueness2, dreguniqueness2 = self._reg_uniqueness2(
+                        params, reg_uniqueness2_weight
                     )
                     regactivity, dregactivity = self._reg_activity(
                         params,
@@ -1951,7 +1952,7 @@ class Polyclonal:
                         + regspread
                         + regspatial
                         + reguniqueness
-                        + regsimilarity
+                        + reguniqueness2
                         + regactivity
                     )
                     dloss = (
@@ -1960,7 +1961,7 @@ class Polyclonal:
                         + dregspread
                         + dregspatial
                         + dreguniqueness
-                        + dregsimilarity
+                        + dreguniqueness2
                         + dregactivity
                     )
                     self_.last_params = params
@@ -1973,7 +1974,7 @@ class Polyclonal:
                             "reg_spread": regspread,
                             "reg_spatial": regspatial,
                             "reg_uniqueness": reguniqueness,
-                            "reg_similarity": regsimilarity,
+                            "reg_uniqueness2": reguniqueness2,
                             "reg_activity": regactivity,
                         },
                     )
