@@ -14,6 +14,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Added ``pdb_utils.inter_residue_distances``
 - Added ``Polyclonal.distance_matrix`` attribute, set via ``spatial_distances`` parameter.
 - Added spatial regularization to ``Polyclonal.fit``
+- Added uniqueness regularization to ``Polyclonal.fit`` as an alternative to similarity regularization that does not go with square of site-level values.
 
 2.5
 ---
