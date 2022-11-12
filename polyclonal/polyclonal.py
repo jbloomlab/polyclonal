@@ -1560,8 +1560,6 @@ class Polyclonal:
             raise ValueError(f"{weight=} for activity regularization not >= 0")
         a, _ = self._a_beta_from_params(params)
         h, dh = self._scaled_pseudo_huber(delta, a, True)
-        h = numpy.where(a > 0, h, 0.0)
-        dh = numpy.where(a > 0, dh, 0.0)
         reg = h.sum() * weight
         assert dh.shape == a.shape == (len(self.epitopes),)
         dreg = weight * numpy.concatenate([dh, numpy.zeros(len(params) - len(a))])
@@ -1842,7 +1840,6 @@ class Polyclonal:
             Strength of regularization on epitope uniqueness.
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
-            Only positive values regularized.
         reg_activity_delta : float
             Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.
         fit_site_level_first : bool
