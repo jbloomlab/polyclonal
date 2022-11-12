@@ -11,6 +11,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Make ``Polyclonal.spatial_distances`` a public attribute.
 - ``Polyclonal.fit`` allows epitopes with identical activities if they have different escape.
 - Activity regularization penalizes both positive and negative values.
+- Checks and int versus str dtype adjustment for ``spatial_distances`` in ``Polyclonal``.
 
 2.6
 ------

@@ -1051,6 +1051,25 @@ class Polyclonal:
             )
             assert self._binary_siteindex_to_mutindex.shape == (len(self.mutations),)
             if spatial_distances is not None:
+                if (
+                    spatial_distances["site_1"].dtype
+                    != spatial_distances["site_2"].dtype
+                ):
+                    raise ValueError(
+                        "`spatial_distances` site_1 and site_2 columns different dtype"
+                    )
+                if self.sequential_integer_sites:
+                    if spatial_distances["site_1"].dtype != int:
+                        raise ValueError(
+                            "model uses sequential integer sites but spatial distances "
+                            "does not have integer sites."
+                        )
+                else:
+                    if spatial_distances["site_1"].dtype == int:
+                        for col in ["site_1", "site_2"]:
+                            spatial_distances[col] = spatial_distances[col].astype(str)
+                if not set(self.sites).union(spatial_distances["site_1"]):
+                    raise ValueError("no overlap between sites and `spatial_distances`")
                 self.spatial_distances = spatial_distances.copy()
                 # get distance matrix with sites in same order as in self._binary_sites
                 spatial_dist_dict = spatial_distances.set_index(["site_1", "site_2"])[
