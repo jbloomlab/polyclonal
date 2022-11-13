@@ -1,0 +1,854 @@
+sequential_site,sequential_wt,reference_site,reference_wt,region
+1,M,1,M,signal peptide
+2,R,2,R,signal peptide
+3,V,3,V,signal peptide
+4,K,4,K,signal peptide
+5,G,4a,-,signal peptide
+6,I,4b,-,signal peptide
+7,Q,4c,-,signal peptide
+8,M,5,E,signal peptide
+9,N,6,K,signal peptide
+10,S,7,Y,signal peptide
+11,Q,8,Q,signal peptide
+12,H,9,H,signal peptide
+13,L,10,L,signal peptide
+14,L,15,W,signal peptide
+15,R,16,R,signal peptide
+16,W,17,W,signal peptide
+17,G,18,G,signal peptide
+18,I,19,T,signal peptide
+19,M,20,M,signal peptide
+20,I,21,L,signal peptide
+21,L,22,L,signal peptide
+22,G,23,G,signal peptide
+23,M,24,M,signal peptide
+24,I,25,L,signal peptide
+25,M,26,M,signal peptide
+26,I,27,I,signal peptide
+27,C,28,C,signal peptide
+28,S,29,S,signal peptide
+29,V,30,A,signal peptide
+30,A,31,T,signal peptide
+31,G,32,E,signal peptide
+32,N,33,K,signal peptide
+33,L,34,L,signal peptide
+34,W,35,W,signal peptide
+35,V,36,V,gp120/gp41 interface
+36,T,37,T,gp120/gp41 interface
+37,V,38,V,gp120/gp41 interface
+38,Y,39,Y,gp120/gp41 interface
+39,Y,40,Y,gp120/gp41 interface
+40,G,41,G,gp120/gp41 interface
+41,V,42,V,gp120/gp41 interface
+42,P,43,P,gp120/gp41 interface
+43,V,44,V,gp120/gp41 interface
+44,W,45,W,gp120/gp41 interface
+45,K,46,K,gp120/gp41 interface
+46,D,47,E,gp120/gp41 interface
+47,A,48,A,gp120/gp41 interface
+48,E,49,T,gp120/gp41 interface
+49,T,50,T,gp120/gp41 interface
+50,T,51,T,gp120/gp41 interface
+51,L,52,L,gp120/gp41 interface
+52,F,53,F,gp120/gp41 interface
+53,C,54,C,gp120/gp41 interface
+54,A,55,A,gp120/gp41 interface
+55,S,56,S,gp120/gp41 interface
+56,D,57,D,gp120/gp41 interface
+57,A,58,A,gp120/gp41 interface
+58,K,59,K,gp120/gp41 interface
+59,A,60,A,gp120/gp41 interface
+60,Y,61,Y,gp120/gp41 interface
+61,D,62,D,gp120/gp41 interface
+62,A,63,T,gp120/gp41 interface
+63,E,64,E,gp120/gp41 interface
+64,V,65,V,gp120/gp41 interface
+65,H,66,H,gp120/gp41 interface
+66,N,67,N,gp120/gp41 interface
+67,I,68,V,gp120/gp41 interface
+68,W,69,W,gp120/gp41 interface
+69,A,70,A,gp120/gp41 interface
+70,T,71,T,gp120/gp41 interface
+71,H,72,H,gp120/gp41 interface
+72,A,73,A,gp120/gp41 interface
+73,C,74,C,gp120/gp41 interface
+74,V,75,V,gp120/gp41 interface
+75,P,76,P,gp120/gp41 interface
+76,T,77,T,gp120/gp41 interface
+77,D,78,D,gp120/gp41 interface
+78,P,79,P,gp120/gp41 interface
+79,N,80,N,gp120/gp41 interface
+80,P,81,P,gp120/gp41 interface
+81,Q,82,Q,gp120/gp41 interface
+82,E,83,E,gp120/gp41 interface
+83,I,84,V,gp120/gp41 interface
+84,N,85,V,gp120/gp41 interface
+85,L,86,L,gp120/gp41 interface
+86,E,87,V,gp120/gp41 interface
+87,N,88,N,gp120/gp41 interface
+88,V,89,V,gp120/gp41 interface
+89,T,90,T,gp120/gp41 interface
+90,E,91,E,gp120/gp41 interface
+91,E,92,N,gp120/gp41 interface
+92,F,93,F,gp120/gp41 interface
+93,N,94,N,gp120/gp41 interface
+94,M,95,M,gp120/gp41 interface
+95,W,96,W,gp120/gp41 interface
+96,K,97,K,gp120/gp41 interface
+97,N,98,N,gp120/gp41 interface
+98,N,99,D,gp120/gp41 interface
+99,M,100,M,gp120/gp41 interface
+100,V,101,V,gp120/gp41 interface
+101,E,102,E,gp120/gp41 interface
+102,Q,103,Q,gp120/gp41 interface
+103,M,104,M,gp120/gp41 interface
+104,H,105,H,gp120/gp41 interface
+105,T,106,E,gp120/gp41 interface
+106,D,107,D,gp120/gp41 interface
+107,I,108,I,gp120/gp41 interface
+108,I,109,I,gp120/gp41 interface
+109,S,110,S,gp120/gp41 interface
+110,L,111,L,gp120/gp41 interface
+111,W,112,W,gp120/gp41 interface
+112,D,113,D,gp120/gp41 interface
+113,Q,114,Q,gp120/gp41 interface
+114,G,115,S,gp120/gp41 interface
+115,L,116,L,gp120/gp41 interface
+116,K,117,K,Coreceptor binding site
+117,P,118,P,Coreceptor binding site
+118,C,119,C,Coreceptor binding site
+119,V,120,V,Coreceptor binding site
+120,K,121,K,Coreceptor binding site
+121,L,122,L,Coreceptor binding site
+122,T,123,T,Coreceptor binding site
+123,P,124,P,CD4 contact residue
+124,L,125,L,CD4 contact residue
+125,C,126,C,CD4 contact residue
+126,V,127,V,CD4 contact residue
+127,T,128,S,CD4 contact residue
+128,L,129,L,CD4 contact residue
+129,D,130,K,CD4 contact residue
+130,C,131,C,V1 loop
+131,H,132,T,V1 loop
+132,N,133,D,V1 loop
+133,V,134,L,V1 loop
+134,T,135,K,V1 loop
+135,Y,136,N,V1 loop
+136,N,137,D,V1 loop
+137,I,138,T,V1 loop
+138,T,139,N,V1 loop
+139,S,140,T,V1 loop
+140,D,141,N,V1 loop
+141,M,142,S,V1 loop
+142,K,151,K,V1 loop
+143,E,152,G,V1 loop
+144,E,153,E,V1 loop
+145,I,154,I,V1 loop
+146,T,155,K,V1 loop
+147,N,156,N,V1 loop
+148,C,157,C,V2 loop
+149,S,158,S,V2 loop
+150,Y,159,F,V2 loop
+151,N,160,N,V2 loop
+152,V,161,I,V2 loop
+153,T,162,S,V2 loop
+154,T,163,T,V2 loop
+155,V,164,S,V2 loop
+156,I,165,I,V2 loop
+157,R,166,R,V2 loop
+158,D,167,G,V2 loop
+159,K,168,K,V2 loop
+160,K,169,V,V2 loop
+161,Q,170,Q,V2 loop
+162,K,171,K,V2 loop
+163,V,172,E,V2 loop
+164,S,173,Y,V2 loop
+165,S,174,A,V2 loop
+166,L,175,F,V2 loop
+167,F,176,F,V2 loop
+168,Y,177,Y,V2 loop
+169,K,178,K,V2 loop
+170,L,179,L,V2 loop
+171,D,180,D,V2 loop
+172,V,181,I,V2 loop
+173,V,182,I,V2 loop
+174,Q,183,P,V2 loop
+175,I,184,I,V2 loop
+176,G,184a,-,V2 loop
+177,G,184b,-,V2 loop
+178,N,185,D,V2 loop
+179,N,186,N,V2 loop
+180,R,187,D,V2 loop
+181,T,188,T,V2 loop
+182,N,189,T,V2 loop
+183,S,190,S,V2 loop
+184,Q,190a,-,V2 loop
+185,Y,191,Y,V2 loop
+186,R,192,K,V2 loop
+187,L,193,L,V2 loop
+188,I,194,T,V2 loop
+189,N,195,S,V2 loop
+190,C,196,C,V2 loop
+191,N,197,N,V2 loop
+192,T,198,T,CD4 contact residue
+193,S,199,S,CD4 contact residue
+194,A,200,V,CD4 contact residue
+195,I,201,I,CD4 contact residue
+196,T,202,T,Coreceptor binding site
+197,Q,203,Q,Coreceptor binding site
+198,A,204,A,Coreceptor binding site
+199,C,205,C,Coreceptor binding site
+200,P,206,P,Coreceptor binding site
+201,K,207,K,Coreceptor binding site
+202,V,208,V,Coreceptor binding site
+203,T,209,S,Coreceptor binding site
+204,F,210,F,Coreceptor binding site
+205,E,211,E,Coreceptor binding site
+206,P,212,P,Coreceptor binding site
+207,I,213,I,Coreceptor binding site
+208,P,214,P,Coreceptor binding site
+209,I,215,I,Coreceptor binding site
+210,H,216,H,Coreceptor binding site
+211,Y,217,Y,Coreceptor binding site
+212,C,218,C,Coreceptor binding site
+213,A,219,A,Coreceptor binding site
+214,P,220,P,Coreceptor binding site
+215,A,221,A,Coreceptor binding site
+216,G,222,G,Coreceptor binding site
+217,F,223,F,Coreceptor binding site
+218,A,224,A,Coreceptor binding site
+219,I,225,I,Coreceptor binding site
+220,L,226,L,Coreceptor binding site
+221,K,227,K,Coreceptor binding site
+222,C,228,C,Coreceptor binding site
+223,K,229,N,Coreceptor binding site
+224,D,230,N,Coreceptor binding site
+225,E,231,K,Coreceptor binding site
+226,K,232,T,gp120/gp41 interface
+227,F,233,F,gp120/gp41 interface
+228,N,234,N,gp120/gp41 interface
+229,G,235,G,gp120/gp41 interface
+230,T,236,T,gp120/gp41 interface
+231,G,237,G,gp120/gp41 interface
+232,L,238,P,gp120/gp41 interface
+233,C,239,C,gp120/gp41 interface
+234,K,240,T,gp120/gp41 interface
+235,N,241,N,gp120/gp41 interface
+236,V,242,V,gp120/gp41 interface
+237,S,243,S,gp120/gp41 interface
+238,T,244,T,gp120/gp41 interface
+239,V,245,V,gp120/gp41 interface
+240,Q,246,Q,gp120/gp41 interface
+241,C,247,C,gp120/gp41 interface
+242,T,248,T,gp120/gp41 interface
+243,H,249,H,gp120/gp41 interface
+244,G,250,G,gp120/gp41 interface
+245,I,251,I,gp120/gp41 interface
+246,K,252,R,gp120/gp41 interface
+247,P,253,P,gp120/gp41 interface
+248,V,254,V,gp120/gp41 interface
+249,V,255,V,gp120/gp41 interface
+250,S,256,S,gp120/gp41 interface
+251,T,257,T,gp120/gp41 interface
+252,Q,258,Q,gp120/gp41 interface
+253,L,259,L,gp120/gp41 interface
+254,L,260,L,gp120/gp41 interface
+255,L,261,L,gp120/gp41 interface
+256,N,262,N,gp120/gp41 interface
+257,G,263,G,gp120/gp41 interface
+258,S,264,S,gp120/gp41 interface
+259,L,265,L,gp120/gp41 interface
+260,A,266,A,gp120/gp41 interface
+261,E,267,E,gp120/gp41 interface
+262,G,268,E,gp120/gp41 interface
+263,E,269,E,gp120/gp41 interface
+264,V,270,V,gp120/gp41 interface
+265,R,271,V,gp120/gp41 interface
+266,I,272,I,gp120/gp41 interface
+267,R,273,R,gp120/gp41 interface
+268,S,274,S,gp120/gp41 interface
+269,E,275,V,D loop
+270,N,276,N,D loop
+271,I,277,F,D loop
+272,T,278,T,D loop
+273,N,279,D,D loop
+274,N,280,N,D loop
+275,A,281,A,D loop
+276,K,282,K,D loop
+277,N,283,T,D loop
+278,I,284,I,D loop
+279,I,285,I,D loop
+280,V,286,V,D loop
+281,Q,287,Q,D loop
+282,L,288,L,D loop
+283,A,289,N,D loop
+284,S,290,T,D loop
+285,P,291,S,D loop
+286,V,292,V,D loop
+287,T,293,E,D loop
+288,I,294,I,D loop
+289,N,295,N,D loop
+290,C,296,C,V3 loop
+291,I,297,T,V3 loop
+292,R,298,R,Coreceptor binding site
+293,P,299,P,V3 loop
+294,N,300,N,V3 loop
+295,N,301,N,Coreceptor binding site
+296,N,302,N,V3 loop
+297,T,303,T,Coreceptor binding site
+298,R,304,R,V3 loop
+299,K,305,K,V3 loop
+300,S,306,R,Coreceptor binding site
+301,V,307,I,V3 loop
+302,H,308,R,Coreceptor binding site
+303,L,309,I,V3 loop
+304,G,312,G,Coreceptor binding site
+305,P,313,P,Coreceptor binding site
+306,G,314,G,V3 loop
+307,Q,315,R,Coreceptor binding site
+308,A,316,A,V3 loop
+309,F,317,F,Coreceptor binding site
+310,Y,317a,-,Coreceptor binding site
+311,A,318,V,Coreceptor binding site
+312,T,319,T,V3 loop
+313,D,320,I,V3 loop
+314,G,321,G,V3 loop
+315,I,322,K,V3 loop
+316,I,323,I,Coreceptor binding site
+317,G,324,G,V3 loop
+318,E,325,N,Coreceptor binding site
+319,I,326,M,Coreceptor binding site
+320,R,327,R,Coreceptor binding site
+321,Q,328,Q,V3 loop
+322,A,329,A,V3 loop
+323,H,330,H,Coreceptor binding site
+324,C,331,C,V3 loop
+325,N,332,N,V3 loop
+326,V,333,I,V3 loop
+327,S,334,S,V3 loop
+328,K,335,R,V3 loop
+329,K,336,A,V3 loop
+330,E,337,K,V3 loop
+331,W,338,W,V3 loop
+332,N,339,N,V3 loop
+333,S,340,N,V3 loop
+334,T,341,T,V3 loop
+335,L,342,L,V3 loop
+336,Q,343,K,V3 loop
+337,K,344,Q,V3 loop
+338,V,345,I,V3 loop
+339,A,346,A,V3 loop
+340,N,347,S,V3 loop
+341,Q,348,K,V3 loop
+342,L,349,L,V3 loop
+343,R,350,R,V3 loop
+344,P,351,E,V3 loop
+345,Y,352,Q,V3 loop
+346,F,353,F,V3 loop
+347,K,354,G,V3 loop
+348,N,355,N,V3 loop
+349,N,356,N,V3 loop
+350,T,357,K,V3 loop
+351,I,358,T,V3 loop
+352,I,359,I,V3 loop
+353,K,360,I,V3 loop
+354,F,361,F,V3 loop
+355,A,362,K,V3 loop
+356,N,363,Q,V3 loop
+357,S,364,S,CD4 binding loop
+358,S,365,S,CD4 binding loop
+359,G,366,G,CD4 binding loop
+360,G,367,G,CD4 binding loop
+361,D,368,D,CD4 binding loop
+362,L,369,P,CD4 binding loop
+363,E,370,E,CD4 binding loop
+364,I,371,I,CD4 binding loop
+365,T,372,V,CD4 binding loop
+366,T,373,T,CD4 binding loop
+367,H,374,H,CD4 binding loop
+368,S,375,S,CD4 binding loop
+369,F,376,F,CD4 binding loop
+370,N,377,N,Coreceptor binding site
+371,C,378,C,Coreceptor binding site
+372,G,379,G,Coreceptor binding site
+373,G,380,G,Coreceptor binding site
+374,E,381,E,Coreceptor binding site
+375,F,382,F,gp120/gp41 interface
+376,F,383,F,Coreceptor binding site
+377,Y,384,Y,Coreceptor binding site
+378,C,385,C,V4 loop
+379,N,386,N,V4 loop
+380,T,387,S,V4 loop
+381,S,388,T,V4 loop
+382,G,389,Q,V4 loop
+383,L,390,L,V4 loop
+384,F,391,F,V4 loop
+385,N,392,N,V4 loop
+386,S,393,S,V4 loop
+387,T,394,T,V4 loop
+388,W,395,W,V4 loop
+389,E,395a,-,V4 loop
+390,F,396,F,V4 loop
+391,N,397,N,V4 loop
+392,S,398,S,V4 loop
+393,T,399,T,V4 loop
+394,W,400,W,V4 loop
+395,N,406,N,V4 loop
+396,N,407,N,V4 loop
+397,S,408,T,V4 loop
+398,N,409,E,V4 loop
+399,S,410,G,V4 loop
+400,T,411,S,V4 loop
+401,E,412,D,V4 loop
+402,N,413,T,V4 loop
+403,I,414,I,V4 loop
+404,T,415,T,V4 loop
+405,L,416,L,V4 loop
+406,Q,417,P,V4 loop
+407,C,418,C,V4 loop
+408,R,419,R,Coreceptor binding site
+409,I,420,I,Coreceptor binding site
+410,K,421,K,Coreceptor binding site
+411,Q,422,Q,Coreceptor binding site
+412,I,423,I,Coreceptor binding site
+413,I,424,I,gp120/gp41 interface
+414,N,425,N,CD4 contact residue
+415,M,426,M,CD4 contact residue
+416,W,427,W,CD4 contact residue
+417,Q,428,Q,CD4 contact residue
+418,R,429,K,CD4 contact residue
+419,A,430,V,CD4 contact residue
+420,G,431,G,CD4 contact residue
+421,Q,432,K,CD4 contact residue
+422,A,433,A,gp120/gp41 interface
+423,I,434,M,gp120/gp41 interface
+424,Y,435,Y,gp120/gp41 interface
+425,A,436,A,gp120/gp41 interface
+426,P,437,P,gp120/gp41 interface
+427,P,438,P,Coreceptor binding site
+428,I,439,I,Coreceptor binding site
+429,P,440,S,Coreceptor binding site
+430,G,441,G,Coreceptor binding site
+431,V,442,Q,Coreceptor binding site
+432,I,443,I,Coreceptor binding site
+433,R,444,R,Coreceptor binding site
+434,C,445,C,Coreceptor binding site
+435,K,446,S,Coreceptor binding site
+436,S,447,S,Coreceptor binding site
+437,N,448,N,Coreceptor binding site
+438,I,449,I,Coreceptor binding site
+439,T,450,T,Coreceptor binding site
+440,G,451,G,Coreceptor binding site
+441,L,452,L,Coreceptor binding site
+442,I,453,L,Coreceptor binding site
+443,L,454,L,Coreceptor binding site
+444,T,455,T,CD4 contact residue
+445,R,456,R,CD4 contact residue
+446,D,457,D,CD4 contact residue
+447,G,458,G,CD4 contact residue
+448,G,459,G,CD4 contact residue
+449,S,460,N,CD4 contact residue
+450,N,461,S,CD4 contact residue
+451,K,462,N,V5 loop
+452,N,463,N,V5 loop
+453,T,464,E,V5 loop
+454,S,465,S,V5 loop
+455,E,466,E,V5 loop
+456,T,467,I,V5 loop
+457,F,468,F,V5 loop
+458,R,469,R,CD4 contact residue
+459,P,470,P,V5 loop
+460,G,471,G,CD4 contact residue
+461,G,472,G,CD4 contact residue
+462,G,473,G,CD4 contact residue
+463,D,474,D,CD4 contact residue
+464,M,475,M,CD4 contact residue
+465,R,476,R,CD4 contact residue
+466,D,477,D,CD4 contact residue
+467,N,478,N,CD4 contact residue
+468,W,479,W,CD4 contact residue
+469,R,480,R,CD4 contact residue
+470,S,481,S,CD4 contact residue
+471,E,482,E,CD4 contact residue
+472,L,483,L,CD4 contact residue
+473,Y,484,Y,CD4 contact residue
+474,K,485,K,CD4 contact residue
+475,Y,486,Y,CD4 contact residue
+476,K,487,K,CD4 contact residue
+477,V,488,V,CD4 contact residue
+478,V,489,V,CD4 contact residue
+479,K,490,K,CD4 contact residue
+480,I,491,I,CD4 contact residue
+481,E,492,E,CD4 contact residue
+482,P,493,P,CD4 contact residue
+483,I,494,L,CD4 contact residue
+484,G,495,G,gp120/gp41 interface
+485,V,496,V,gp120/gp41 interface
+486,A,497,A,gp120/gp41 interface
+487,P,498,P,gp120/gp41 interface
+488,T,499,T,gp120/gp41 interface
+489,R,500,K,gp120/gp41 interface
+490,A,501,A,gp120/gp41 interface
+491,K,502,K,gp120/gp41 interface
+492,R,503,R,gp120/gp41 interface
+493,R,504,R,gp120/gp41 interface
+494,V,505,V,gp120/gp41 interface
+495,V,506,V,gp120/gp41 interface
+496,E,507,Q,gp120/gp41 interface
+497,R,508,R,gp120/gp41 interface
+498,E,509,E,gp120/gp41 interface
+499,K,510,K,gp120/gp41 interface
+500,R,511,R,gp120/gp41 interface
+501,A,512,A,fusion peptide
+502,V,513,V,fusion peptide
+503,G,514,G,fusion peptide
+504,I,515,I,fusion peptide
+505,G,516,G,fusion peptide
+506,A,517,A,fusion peptide
+507,V,518,L,fusion peptide
+508,F,519,F,fusion peptide
+509,I,520,L,fusion peptide
+510,G,521,G,fusion peptide
+511,F,522,F,fusion peptide
+512,L,523,L,fusion peptide
+513,G,524,G,fusion peptide
+514,A,525,A,fusion peptide
+515,A,526,A,fusion peptide
+516,G,527,G,fusion peptide
+517,S,528,S,gp120/gp41 interface
+518,T,529,T,gp120/gp41 interface
+519,M,530,M,gp120/gp41 interface
+520,G,531,G,gp120/gp41 interface
+521,A,532,A,gp120/gp41 interface
+522,A,533,A,gp120/gp41 interface
+523,S,534,S,gp120/gp41 interface
+524,V,535,M,N-helix
+525,T,536,T,N-helix
+526,L,537,L,N-helix
+527,T,538,T,N-helix
+528,V,539,V,N-helix
+529,Q,540,Q,N-helix
+530,A,541,A,N-helix
+531,R,542,R,N-helix
+532,Q,543,Q,N-helix
+533,L,544,L,N-helix
+534,L,545,L,N-helix
+535,S,546,S,N-helix
+536,G,547,G,N-helix
+537,I,548,I,N-helix
+538,V,549,V,N-helix
+539,Q,550,Q,N-helix
+540,Q,551,Q,N-helix
+541,Q,552,Q,N-helix
+542,S,553,N,N-helix
+543,N,554,N,N-helix
+544,L,555,L,N-helix
+545,L,556,L,N-helix
+546,R,557,R,N-helix
+547,A,558,A,N-helix
+548,I,559,I,N-helix
+549,E,560,E,N-helix
+550,A,561,A,N-helix
+551,Q,562,Q,N-helix
+552,Q,563,Q,N-helix
+553,H,564,H,N-helix
+554,L,565,L,N-helix
+555,L,566,L,N-helix
+556,K,567,Q,N-helix
+557,L,568,L,N-helix
+558,T,569,T,N-helix
+559,V,570,V,N-helix
+560,W,571,W,N-helix
+561,G,572,G,N-helix
+562,I,573,I,N-helix
+563,K,574,K,N-helix
+564,Q,575,Q,N-helix
+565,L,576,L,N-helix
+566,Q,577,Q,N-helix
+567,A,578,A,N-helix
+568,R,579,R,N-helix
+569,V,580,I,N-helix
+570,L,581,L,N-helix
+571,A,582,A,N-helix
+572,V,583,V,N-helix
+573,E,584,E,N-helix
+574,R,585,R,N-helix
+575,Y,586,Y,N-helix
+576,L,587,L,N-helix
+577,K,588,K,N-helix
+578,D,589,D,N-helix
+579,Q,590,Q,N-helix
+580,Q,591,Q,N-helix
+581,L,592,L,N-helix
+582,L,593,L,N-helix
+583,G,594,G,N-helix
+584,I,595,I,N-helix
+585,W,596,W,gp120/gp41 interface
+586,G,597,G,gp120/gp41 interface
+587,C,598,C,gp120/gp41 interface
+588,S,599,S,gp120/gp41 interface
+589,G,600,G,gp120/gp41 interface
+590,K,601,K,gp120/gp41 interface
+591,L,602,L,gp120/gp41 interface
+592,I,603,I,gp120/gp41 interface
+593,C,604,C,gp120/gp41 interface
+594,T,605,T,gp120/gp41 interface
+595,T,606,T,gp120/gp41 interface
+596,N,607,A,gp120/gp41 interface
+597,V,608,V,gp120/gp41 interface
+598,P,609,P,gp120/gp41 interface
+599,W,610,W,gp120/gp41 interface
+600,N,611,N,gp120/gp41 interface
+601,S,612,A,gp120/gp41 interface
+602,S,613,S,gp120/gp41 interface
+603,W,614,W,gp120/gp41 interface
+604,S,615,S,gp120/gp41 interface
+605,N,616,N,gp120/gp41 interface
+606,K,617,K,gp120/gp41 interface
+607,S,618,S,C-helix
+608,Q,619,L,C-helix
+609,D,620,E,C-helix
+610,E,621,Q,C-helix
+611,I,622,I,C-helix
+612,W,623,W,C-helix
+613,G,624,N,C-helix
+614,N,625,H,C-helix
+615,M,626,T,C-helix
+616,T,627,T,C-helix
+617,W,628,W,C-helix
+618,L,629,M,C-helix
+619,Q,630,E,C-helix
+620,W,631,W,C-helix
+621,D,632,D,C-helix
+622,K,633,R,C-helix
+623,E,634,E,C-helix
+624,V,635,I,C-helix
+625,S,636,N,C-helix
+626,N,637,N,C-helix
+627,Y,638,Y,C-helix
+628,T,639,T,C-helix
+629,Q,640,S,C-helix
+630,I,641,L,C-helix
+631,I,642,I,C-helix
+632,Y,643,H,C-helix
+633,T,644,S,C-helix
+634,L,645,L,C-helix
+635,I,646,I,C-helix
+636,E,647,E,C-helix
+637,E,648,E,C-helix
+638,S,649,S,C-helix
+639,Q,650,Q,C-helix
+640,N,651,N,C-helix
+641,Q,652,Q,C-helix
+642,Q,653,Q,C-helix
+643,E,654,E,C-helix
+644,K,655,K,C-helix
+645,N,656,N,C-helix
+646,E,657,E,C-helix
+647,Q,658,Q,C-helix
+648,D,659,E,C-helix
+649,L,660,L,C-helix
+650,L,661,L,C-helix
+651,A,662,E,C-helix
+652,L,663,L,C-helix
+653,D,664,D,C-helix
+654,K,665,K,C-helix
+655,W,666,W,C-helix
+656,A,667,A,C-helix
+657,S,668,S,C-helix
+658,L,669,L,C-helix
+659,W,670,W,C-helix
+660,N,671,N,C-helix
+661,W,672,W,C-helix
+662,F,673,F,C-helix
+663,N,674,N,C-helix
+664,I,675,I,C-helix
+665,S,676,T,C-helix
+666,Q,677,N,C-helix
+667,W,678,W,C-helix
+668,L,679,L,C-helix
+669,W,680,W,C-helix
+670,Y,681,Y,C-helix
+671,I,682,I,C-helix
+672,K,683,K,C-helix
+673,I,684,L,C-helix
+674,F,685,F,transmembrane domain
+675,I,686,I,transmembrane domain
+676,I,687,M,transmembrane domain
+677,I,688,I,transmembrane domain
+678,V,689,V,transmembrane domain
+679,G,690,G,transmembrane domain
+680,G,691,G,transmembrane domain
+681,L,692,L,transmembrane domain
+682,I,693,V,transmembrane domain
+683,G,694,G,transmembrane domain
+684,L,695,L,transmembrane domain
+685,R,696,R,transmembrane domain
+686,I,697,I,transmembrane domain
+687,V,698,V,transmembrane domain
+688,F,699,F,transmembrane domain
+689,A,700,A,transmembrane domain
+690,V,701,V,transmembrane domain
+691,L,702,L,transmembrane domain
+692,S,703,S,transmembrane domain
+693,V,704,I,transmembrane domain
+694,I,705,V,transmembrane domain
+695,N,706,N,transmembrane domain
+696,R,707,R,transmembrane domain
+697,V,708,V,transmembrane domain
+698,R,709,R,transmembrane domain
+699,Q,710,Q,transmembrane domain
+700,G,711,G,transmembrane domain
+701,Y,712,Y,transmembrane domain
+702,S,713,S,transmembrane domain
+703,P,714,P,transmembrane domain
+704,L,715,L,transmembrane domain
+705,S,716,S,transmembrane domain
+706,F,717,F,transmembrane domain
+707,Q,718,Q,transmembrane domain
+708,T,719,T,transmembrane domain
+709,R,720,H,transmembrane domain
+710,T,721,L,transmembrane domain
+711,P,722,P,transmembrane domain
+712,N,723,T,transmembrane domain
+713,P,724,P,Cytoplasmic tail
+714,G,725,R,Cytoplasmic tail
+715,E,726,G,Cytoplasmic tail
+716,L,727,P,Cytoplasmic tail
+717,D,728,D,Cytoplasmic tail
+718,R,729,R,Cytoplasmic tail
+719,P,730,P,Cytoplasmic tail
+720,G,731,E,Cytoplasmic tail
+721,R,732,G,Cytoplasmic tail
+722,I,733,I,Cytoplasmic tail
+723,E,734,E,Cytoplasmic tail
+724,E,735,E,Cytoplasmic tail
+725,E,736,E,Cytoplasmic tail
+726,G,737,G,Cytoplasmic tail
+727,G,738,G,Cytoplasmic tail
+728,E,739,E,Cytoplasmic tail
+729,Q,740,R,Cytoplasmic tail
+730,D,741,D,Cytoplasmic tail
+731,R,742,R,Cytoplasmic tail
+732,G,743,D,Cytoplasmic tail
+733,R,744,R,Cytoplasmic tail
+734,S,745,S,Cytoplasmic tail
+735,I,746,I,Cytoplasmic tail
+736,R,747,R,Cytoplasmic tail
+737,L,748,L,Cytoplasmic tail
+738,V,749,V,Cytoplasmic tail
+739,S,750,N,Cytoplasmic tail
+740,G,751,G,Cytoplasmic tail
+741,F,752,S,Cytoplasmic tail
+742,L,753,L,Cytoplasmic tail
+743,A,754,A,Cytoplasmic tail
+744,L,755,L,Cytoplasmic tail
+745,A,756,I,Cytoplasmic tail
+746,W,757,W,Cytoplasmic tail
+747,D,758,D,Cytoplasmic tail
+748,D,759,D,Cytoplasmic tail
+749,L,760,L,Cytoplasmic tail
+750,R,761,R,Cytoplasmic tail
+751,S,762,S,Cytoplasmic tail
+752,L,763,L,Cytoplasmic tail
+753,C,764,C,Cytoplasmic tail
+754,L,765,L,Cytoplasmic tail
+755,F,766,F,Cytoplasmic tail
+756,S,767,S,Cytoplasmic tail
+757,Y,768,Y,Cytoplasmic tail
+758,H,769,H,Cytoplasmic tail
+759,R,770,R,Cytoplasmic tail
+760,L,771,L,Cytoplasmic tail
+761,R,772,R,Cytoplasmic tail
+762,D,773,D,Cytoplasmic tail
+763,F,774,L,Cytoplasmic tail
+764,I,775,L,Cytoplasmic tail
+765,L,776,L,Cytoplasmic tail
+766,I,777,I,Cytoplasmic tail
+767,A,778,V,Cytoplasmic tail
+768,T,779,T,Cytoplasmic tail
+769,R,780,R,Cytoplasmic tail
+770,T,781,I,Cytoplasmic tail
+771,V,782,V,Cytoplasmic tail
+772,E,783,E,Cytoplasmic tail
+773,L,784,L,Cytoplasmic tail
+774,L,785,L,Cytoplasmic tail
+775,G,786,G,Cytoplasmic tail
+776,H,786a,-,Cytoplasmic tail
+777,S,786b,-,Cytoplasmic tail
+778,S,786c,-,Cytoplasmic tail
+779,L,786d,-,Cytoplasmic tail
+780,K,786e,-,Cytoplasmic tail
+781,G,786f,-,Cytoplasmic tail
+782,L,786g,-,Cytoplasmic tail
+783,R,787,R,Cytoplasmic tail
+784,L,788,R,Cytoplasmic tail
+785,G,789,G,Cytoplasmic tail
+786,W,790,W,Cytoplasmic tail
+787,E,791,E,Cytoplasmic tail
+788,S,792,A,Cytoplasmic tail
+789,L,793,L,Cytoplasmic tail
+790,K,794,K,Cytoplasmic tail
+791,Y,795,Y,Cytoplasmic tail
+792,L,796,W,Cytoplasmic tail
+793,G,797,W,Cytoplasmic tail
+794,N,798,N,Cytoplasmic tail
+795,L,799,L,Cytoplasmic tail
+796,L,800,L,Cytoplasmic tail
+797,V,801,Q,Cytoplasmic tail
+798,Y,802,Y,Cytoplasmic tail
+799,W,803,W,Cytoplasmic tail
+800,G,804,S,Cytoplasmic tail
+801,R,805,Q,Cytoplasmic tail
+802,E,806,E,Cytoplasmic tail
+803,L,807,L,Cytoplasmic tail
+804,K,808,K,Cytoplasmic tail
+805,I,809,N,Cytoplasmic tail
+806,S,810,S,Cytoplasmic tail
+807,A,811,A,Cytoplasmic tail
+808,I,812,V,Cytoplasmic tail
+809,N,813,S,Cytoplasmic tail
+810,L,814,L,Cytoplasmic tail
+811,C,815,L,Cytoplasmic tail
+812,D,816,N,Cytoplasmic tail
+813,T,817,A,Cytoplasmic tail
+814,I,818,T,Cytoplasmic tail
+815,A,819,A,Cytoplasmic tail
+816,I,820,I,Cytoplasmic tail
+817,A,821,A,Cytoplasmic tail
+818,V,822,V,Cytoplasmic tail
+819,A,823,A,Cytoplasmic tail
+820,G,824,E,Cytoplasmic tail
+821,W,825,G,Cytoplasmic tail
+822,T,826,T,Cytoplasmic tail
+823,D,827,D,Cytoplasmic tail
+824,R,828,R,Cytoplasmic tail
+825,V,829,V,Cytoplasmic tail
+826,I,830,I,Cytoplasmic tail
+827,E,831,E,Cytoplasmic tail
+828,L,832,V,Cytoplasmic tail
+829,G,833,V,Cytoplasmic tail
+830,Q,834,Q,Cytoplasmic tail
+831,R,835,G,Cytoplasmic tail
+832,L,836,A,Cytoplasmic tail
+833,C,837,C,Cytoplasmic tail
+834,R,838,R,Cytoplasmic tail
+835,A,839,A,Cytoplasmic tail
+836,I,840,I,Cytoplasmic tail
+837,L,841,R,Cytoplasmic tail
+838,H,842,H,Cytoplasmic tail
+839,I,843,I,Cytoplasmic tail
+840,P,844,P,Cytoplasmic tail
+841,R,845,R,Cytoplasmic tail
+842,R,846,R,Cytoplasmic tail
+843,I,847,I,Cytoplasmic tail
+844,R,848,R,Cytoplasmic tail
+845,Q,849,Q,Cytoplasmic tail
+846,G,850,G,Cytoplasmic tail
+847,F,851,L,Cytoplasmic tail
+848,E,852,E,Cytoplasmic tail
+849,R,853,R,Cytoplasmic tail
+850,A,854,I,Cytoplasmic tail
+851,L,855,L,Cytoplasmic tail
+852,L,856,L,Cytoplasmic tail
+853,*,856a,-,Cytoplasmic tail
