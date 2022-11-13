@@ -18,6 +18,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Rename ``reg_spatial_weight2`` to ``reg_spatial2_weight`` for ``Polyclonal.fit``.
 - Update default values of regularization weights.
 - Added antibody cocktail and HIV serum examples.
+- Updated examples, for instance by adding spatial regularization to RBD example and slightly changing simulated data.
 
 2.6
 ------
