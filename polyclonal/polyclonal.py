@@ -505,6 +505,7 @@ class Polyclonal:
     ...         reg_escape_weight=0.001,
     ...         reg_spread_weight=0.001,
     ...         reg_activity_weight=0.0001,
+    ...         reg_uniqueness2_weight=0,
     ...     )
     ...     pred_df = m.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
@@ -526,20 +527,12 @@ class Polyclonal:
 
     >>> model_data.mut_escape_site_summary_df().round(1)
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
-    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
+    0       1     1        M  -0.0             0.0 -0.0 -0.0            -0.0            1
     1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     2       1     4        A   2.0             4.0  2.5  1.5             0.0            2
     3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
     4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
     5       2     4        A   0.0             0.0  0.0  0.0             0.0            2
-    >>> model_data.mut_escape_site_summary_df(min_times_seen=4).round(1)
-      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
-    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
-    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
-    2       1     4        A   2.5             2.5  2.5  2.5             0.0            1
-    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
-    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
-    5       2     4        A   0.0             0.0  0.0  0.0             0.0            1
 
     You can also exclude mutations to specific characters (typically you would want to
     do this for stop codons and/or gaps):
@@ -710,6 +703,7 @@ class Polyclonal:
     ...     reg_activity_weight=0.0001,
     ...     reg_spatial_weight=0.001,
     ...     reg_spatial2_weight=0.0001,
+    ...     reg_uniqueness2_weight=0,
     ... )
     >>> pred_df = model_spatial.prob_escape(variants_df=data_to_fit)
     >>> if not numpy.allclose(
