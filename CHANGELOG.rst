@@ -16,6 +16,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Renamed what was previously called the epitope similarity regularization to epitope uniqueness-squared, as it's a second uniqueness regularization but operates on square of escape values.
 - Change default regularization strengths in ``Polyclonal.fit``.
 - Rename ``reg_spatial_weight2`` to ``reg_spatial2_weight`` for ``Polyclonal.fit``.
+- Update default values of regularization weights.
 
 2.6
 ------
