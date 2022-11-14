@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Specifying epitopes &#8212; polyclonal 2.3 documentation</title>
+    <title>Specifying epitopes &#8212; polyclonal 3.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Experimental design" href="expt_design.html" />
-    <link rel="prev" title="Reference site numbering" href="reference_site_numbering.html" />
+    <link rel="prev" title="Real serum example" href="real_serum.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -307,7 +307,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>First, we read in a simulated “noisy” dataset containing 30,000 variants measured at three different sera concentrations. The variants in this library were simulated to contain a Poisson-distributed number of mutations, with an average of three mutations per gene.</p>
+<p>First, we read in a simulated “noisy” dataset containing variants measured at three different sera concentrations. The variants in this library were simulated to contain a Poisson-distributed number of mutations, with an average of three mutations per gene.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -358,47 +358,47 @@ div.rendered_html tbody tr:hover {
     <tr>
       <th>0</th>
       <td>avg3muts</td>
-      <td>AAAAAGATTGCAGTTG</td>
+      <td>AAAACTGCTGAGGAGA</td>
       <td>0.25</td>
-      <td>0.00000</td>
+      <td>0.054700</td>
       <td></td>
-      <td>0.1128</td>
+      <td>0.08212</td>
     </tr>
     <tr>
       <th>1</th>
       <td>avg3muts</td>
-      <td>AAAACCTGTCAGAGAC</td>
+      <td>AAAAGCAGGCTACTCT</td>
       <td>0.25</td>
-      <td>0.01090</td>
+      <td>0.000000</td>
       <td></td>
-      <td>0.1128</td>
+      <td>0.08212</td>
     </tr>
     <tr>
       <th>2</th>
       <td>avg3muts</td>
-      <td>AAAACTGACATGTGTT</td>
+      <td>AAAAGCTATAGGTGCC</td>
       <td>0.25</td>
-      <td>0.01458</td>
+      <td>0.007613</td>
       <td></td>
-      <td>0.1128</td>
+      <td>0.08212</td>
     </tr>
     <tr>
       <th>3</th>
       <td>avg3muts</td>
-      <td>AAAAGCAGATTAACAA</td>
+      <td>AAAAGGTATTAGTGGC</td>
       <td>0.25</td>
-      <td>0.09465</td>
+      <td>0.001363</td>
       <td></td>
-      <td>0.1128</td>
+      <td>0.08212</td>
     </tr>
     <tr>
       <th>4</th>
       <td>avg3muts</td>
-      <td>AAACGCTCATCCGCTC</td>
+      <td>AAAAGTGCCTTCGTTA</td>
       <td>0.25</td>
-      <td>0.03299</td>
+      <td>0.000000</td>
       <td></td>
-      <td>0.1128</td>
+      <td>0.08212</td>
     </tr>
     <tr>
       <th>...</th>
@@ -410,53 +410,53 @@ div.rendered_html tbody tr:hover {
       <td>...</td>
     </tr>
     <tr>
-      <th>89995</th>
+      <th>119995</th>
       <td>avg3muts</td>
-      <td>CGAAGTGCCGGGCGTT</td>
+      <td>GAGCATGATCGACGAA</td>
       <td>1.00</td>
-      <td>0.16530</td>
-      <td>Y508V H519D</td>
-      <td>1.2960</td>
+      <td>0.000000</td>
+      <td>Y508V H519I</td>
+      <td>0.10830</td>
     </tr>
     <tr>
-      <th>89996</th>
+      <th>119996</th>
       <td>avg3muts</td>
-      <td>CGAAGTGCCGGGCGTT</td>
+      <td>GAGCATGATCGACGAA</td>
       <td>4.00</td>
-      <td>0.04718</td>
-      <td>Y508V H519D</td>
-      <td>1.2960</td>
+      <td>0.000000</td>
+      <td>Y508V H519I</td>
+      <td>0.10830</td>
     </tr>
     <tr>
-      <th>89997</th>
+      <th>119997</th>
       <td>avg3muts</td>
-      <td>CCCTGCACCCCACATA</td>
+      <td>CTTAAAATAGCTGGTC</td>
       <td>0.25</td>
-      <td>0.04110</td>
+      <td>0.000000</td>
       <td>Y508W</td>
-      <td>0.2285</td>
+      <td>0.08212</td>
     </tr>
     <tr>
-      <th>89998</th>
+      <th>119998</th>
       <td>avg3muts</td>
-      <td>CCCTGCACCCCACATA</td>
+      <td>CTTAAAATAGCTGGTC</td>
       <td>1.00</td>
-      <td>0.00000</td>
+      <td>0.012260</td>
       <td>Y508W</td>
-      <td>0.2285</td>
+      <td>0.08212</td>
     </tr>
     <tr>
-      <th>89999</th>
+      <th>119999</th>
       <td>avg3muts</td>
-      <td>CCCTGCACCCCACATA</td>
+      <td>CTTAAAATAGCTGGTC</td>
       <td>4.00</td>
-      <td>0.02268</td>
+      <td>0.000000</td>
       <td>Y508W</td>
-      <td>0.2285</td>
+      <td>0.08212</td>
     </tr>
   </tbody>
 </table>
-<p>90000 rows × 6 columns</p>
+<p>120000 rows × 6 columns</p>
 </div></div>
 </div>
 <p>We’ll also read in the “true” mutation-escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, as a reference for later.</p>
@@ -505,31 +505,31 @@ div.rendered_html tbody tr:hover {
       <th>0</th>
       <td>1</td>
       <td>N331A</td>
-      <td>0.08226</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>1</th>
       <td>1</td>
       <td>N331D</td>
-      <td>0.77700</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>2</th>
       <td>1</td>
       <td>N331E</td>
-      <td>0.08226</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>3</th>
       <td>1</td>
       <td>N331F</td>
-      <td>0.08226</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>4</th>
       <td>1</td>
       <td>N331G</td>
-      <td>1.70100</td>
+      <td>1.701</td>
     </tr>
     <tr>
       <th>...</th>
@@ -541,31 +541,31 @@ div.rendered_html tbody tr:hover {
       <th>5791</th>
       <td>3</td>
       <td>T531R</td>
-      <td>0.72620</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>5792</th>
       <td>3</td>
       <td>T531S</td>
-      <td>0.72620</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>5793</th>
       <td>3</td>
       <td>T531V</td>
-      <td>0.72480</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>5794</th>
       <td>3</td>
       <td>T531W</td>
-      <td>0.72280</td>
+      <td>0.000</td>
     </tr>
     <tr>
       <th>5795</th>
       <td>3</td>
       <td>T531Y</td>
-      <td>0.72620</td>
+      <td>0.000</td>
     </tr>
   </tbody>
 </table>
@@ -610,7 +610,11 @@ div.rendered_html tbody tr:hover {
             <span class="n">data_to_fit</span><span class="o">=</span><span class="n">noisy_data</span><span class="p">,</span>
             <span class="n">n_epitopes</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">opt_res</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">logfreq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">reg_activity_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">opt_res</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+            <span class="n">logfreq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+            <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="n">reg_uniqueness2_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">fit_mut_escape</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span><span class="p">:</span> <span class="n">model</span><span class="p">})</span>
         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
 </pre></div>
@@ -695,18 +699,26 @@ Model with 4 epitopes specified was already fit.
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-2a0c9c444b8b40fea77e1a79bd92c2a9"></div>
+<div id="altair-viz-a18a18c8ce5a4a02b252efc2cd188bf8"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-2a0c9c444b8b40fea77e1a79bd92c2a9") {
-      outputDiv = document.getElementById("altair-viz-2a0c9c444b8b40fea77e1a79bd92c2a9");
+    if (outputDiv.id !== "altair-viz-a18a18c8ce5a4a02b252efc2cd188bf8") {
+      outputDiv = document.getElementById("altair-viz-a18a18c8ce5a4a02b252efc2cd188bf8");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -752,7 +764,7 @@ Model with 4 epitopes specified was already fit.
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-23388e3bcca0ecc22b4a40069516553f"}, "facet": {"field": "Number of fit epitopes", "type": "quantitative"}, "spec": {"mark": {"type": "rect", "opacity": 0.95, "stroke": "black"}, "encoding": {"color": {"field": "Correlation (R^2)", "scale": {"scheme": "viridis"}, "type": "quantitative"}, "tooltip": [{"field": "Fit epitope class", "type": "ordinal"}, {"field": "True epitope class", "type": "ordinal"}, {"field": "Correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "Fit epitope class", "type": "ordinal"}, "y": {"field": "True epitope class", "type": "ordinal"}}, "height": 100, "width": 130}, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-23388e3bcca0ecc22b4a40069516553f": [{"Number of fit epitopes": 2, "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.13025978798944138}, {"Number of fit epitopes": 2, "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.022014315883480316}, {"Number of fit epitopes": 2, "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.8933616455998665}, {"Number of fit epitopes": 2, "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": -0.060155534087288624}, {"Number of fit epitopes": 2, "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.05647598022229042}, {"Number of fit epitopes": 2, "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": 0.8208531911173653}, {"Number of fit epitopes": 3, "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": -0.08501361219286736}, {"Number of fit epitopes": 3, "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.06906681189089688}, {"Number of fit epitopes": 3, "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": 0.8430109411737478}, {"Number of fit epitopes": 3, "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": -0.060463549266153375}, {"Number of fit epitopes": 3, "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9716929320135305}, {"Number of fit epitopes": 3, "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": 0.2482836676167688}, {"Number of fit epitopes": 3, "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": 0.9478140516198484}, {"Number of fit epitopes": 3, "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05559132624411912}, {"Number of fit epitopes": 3, "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": -0.06702498893195892}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": -0.08423801265634971}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.0690890431364686}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": 0.017144509763519104}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "4", "Correlation (R^2)": 0.8386723686732871}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": -0.06058082305751302}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9719756076020122}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": 0.41602945660448104}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "4", "Correlation (R^2)": 0.2530682866656774}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": 0.9459314978938086}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.055493487221188284}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.15728685234025752}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "4", "Correlation (R^2)": -0.06682705241111202}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-4a4d86f009e05898a8cc6bcfb030112f"}, "facet": {"field": "Number of fit epitopes", "type": "quantitative"}, "spec": {"mark": {"type": "rect", "opacity": 0.95, "stroke": "black"}, "encoding": {"color": {"field": "Correlation (R^2)", "scale": {"scheme": "viridis"}, "type": "quantitative"}, "tooltip": [{"field": "Fit epitope class", "type": "ordinal"}, {"field": "True epitope class", "type": "ordinal"}, {"field": "Correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "Fit epitope class", "type": "ordinal"}, "y": {"field": "True epitope class", "type": "ordinal"}}, "height": 100, "width": 130}, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-4a4d86f009e05898a8cc6bcfb030112f": [{"Number of fit epitopes": 2, "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": -0.07933196078372097}, {"Number of fit epitopes": 2, "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.14026078544320103}, {"Number of fit epitopes": 2, "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": -0.05838225069214065}, {"Number of fit epitopes": 2, "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.8329342819237245}, {"Number of fit epitopes": 2, "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": 0.9310395874345984}, {"Number of fit epitopes": 2, "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05679500705590149}, {"Number of fit epitopes": 3, "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.05932797106008702}, {"Number of fit epitopes": 3, "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.8034772146578196}, {"Number of fit epitopes": 3, "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": -0.08978254555367132}, {"Number of fit epitopes": 3, "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.9683604199853935}, {"Number of fit epitopes": 3, "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.2002915394609174}, {"Number of fit epitopes": 3, "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.057752566089737674}, {"Number of fit epitopes": 3, "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.058457093398139995}, {"Number of fit epitopes": 3, "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.07297049359510571}, {"Number of fit epitopes": 3, "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.968577771568023}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.05844472475558725}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.024333631899603216}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": 0.8104243392070462}, {"Number of fit epitopes": 4, "True epitope class": "1", "Fit epitope class": "4", "Correlation (R^2)": -0.09086533707859155}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.9482396080367836}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.317110482176994}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": 0.20501454517936693}, {"Number of fit epitopes": 4, "True epitope class": "2", "Fit epitope class": "4", "Correlation (R^2)": -0.05800983471876021}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.05783996213533368}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": 0.0686254822938297}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": -0.07255798523416271}, {"Number of fit epitopes": 4, "True epitope class": "3", "Fit epitope class": "4", "Correlation (R^2)": 0.9659369637182172}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>We can also visualize the wildtype activity values, <span class="math notranslate nohighlight">\(a_{wt,e}\)</span>.</p>
@@ -780,13 +792,13 @@ Number of fit epitopes: 2
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-bad2b74ba198472a8c59bdb0b52e0550"></div>
+<div id="altair-viz-cdf57e35429e41e5b57cf2ecf2722246"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-bad2b74ba198472a8c59bdb0b52e0550") {
-      outputDiv = document.getElementById("altair-viz-bad2b74ba198472a8c59bdb0b52e0550");
+    if (outputDiv.id !== "altair-viz-cdf57e35429e41e5b57cf2ecf2722246") {
+      outputDiv = document.getElementById("altair-viz-cdf57e35429e41e5b57cf2ecf2722246");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -832,7 +844,7 @@ Number of fit epitopes: 2
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-5326fa7fdfa406ea5562fc22e1bf50f6"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2"], "range": ["#0072B2", "#009E73"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-5326fa7fdfa406ea5562fc22e1bf50f6": [{"epitope": "1", "activity": 3.385356941892216}, {"epitope": "2", "activity": 2.3599648971761695}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-c745bdc6811a50f90c2c6669d9a3794c"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2"], "range": ["#0072B2", "#009E73"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-c745bdc6811a50f90c2c6669d9a3794c": [{"epitope": "1", "activity": 2.617384938766121}, {"epitope": "2", "activity": 4.073439704937735}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <div class="nboutput docutils container">
@@ -847,13 +859,13 @@ Number of fit epitopes: 3
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-23b3debbf3c64e74bba193addc245920"></div>
+<div id="altair-viz-d91a7f5fd583423bbc5099cd2a07d5f4"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-23b3debbf3c64e74bba193addc245920") {
-      outputDiv = document.getElementById("altair-viz-23b3debbf3c64e74bba193addc245920");
+    if (outputDiv.id !== "altair-viz-d91a7f5fd583423bbc5099cd2a07d5f4") {
+      outputDiv = document.getElementById("altair-viz-d91a7f5fd583423bbc5099cd2a07d5f4");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -899,7 +911,7 @@ Number of fit epitopes: 3
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-b292415d4546dddd7bedee0c7ffd2998"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3"], "range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-b292415d4546dddd7bedee0c7ffd2998": [{"epitope": "1", "activity": 2.0416606341449692}, {"epitope": "2", "activity": 3.1712990937397363}, {"epitope": "3", "activity": 1.1444126468146338}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-99c8b3068a3909b55366c1108e404eae"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3"], "range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-99c8b3068a3909b55366c1108e404eae": [{"epitope": "1", "activity": 3.160735996502857}, {"epitope": "2", "activity": 1.8115102597437482}, {"epitope": "3", "activity": 2.339303050117927}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <div class="nboutput docutils container">
@@ -914,13 +926,13 @@ Number of fit epitopes: 4
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-8dd89e1174114b26912b652c2bd45fab"></div>
+<div id="altair-viz-d8b6e51289354ed1adf1da3e1d94fb43"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-8dd89e1174114b26912b652c2bd45fab") {
-      outputDiv = document.getElementById("altair-viz-8dd89e1174114b26912b652c2bd45fab");
+    if (outputDiv.id !== "altair-viz-d8b6e51289354ed1adf1da3e1d94fb43") {
+      outputDiv = document.getElementById("altair-viz-d8b6e51289354ed1adf1da3e1d94fb43");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -966,7 +978,7 @@ Number of fit epitopes: 4
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-5683afc7a5ff66b1e5b8b8cbd64cb554"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3", "4"], "range": ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3", "4"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-5683afc7a5ff66b1e5b8b8cbd64cb554": [{"epitope": "1", "activity": 2.040401071366097}, {"epitope": "2", "activity": 3.1713239846088115}, {"epitope": "3", "activity": -12.26492279258742}, {"epitope": "4", "activity": 1.145568162312503}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-b55fceadbce8f72ea9cee0f2eacc13ae"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3", "4"], "range": ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3", "4"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-b55fceadbce8f72ea9cee0f2eacc13ae": [{"epitope": "1", "activity": 3.1551618606741103}, {"epitope": "2", "activity": -4.346848500280315}, {"epitope": "3", "activity": 1.8530799972133278}, {"epitope": "4", "activity": 2.337792844468794}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>In the simulation ground truth, there are three epitopes (class 1, 2, and 3). The order of immunodominance from highest to lowest is class 2 &gt; class 3 &gt; class 1.</p>
@@ -1083,17 +1095,17 @@ Number of fit epitopes: 4
     <tr>
       <th>0</th>
       <td>2</td>
-      <td>0.967</td>
+      <td>0.798</td>
     </tr>
     <tr>
       <th>1</th>
       <td>3</td>
-      <td>0.993</td>
+      <td>0.947</td>
     </tr>
     <tr>
       <th>2</th>
       <td>4</td>
-      <td>0.993</td>
+      <td>0.900</td>
     </tr>
   </tbody>
 </table>
@@ -1117,8 +1129,16 @@ Number of fit epitopes: 4
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area docutils container">
-<img alt="_images/specify_epitopes_23_0.png" src="_images/specify_epitopes_23_0.png" />
+<img alt="_images/specify_epitopes_23_1.png" src="_images/specify_epitopes_23_1.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1127,7 +1147,7 @@ Number of fit epitopes: 4
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;ggplot: (8743933876471)&gt;
+&lt;ggplot: (8756316515780)&gt;
 </pre></div></div>
 </div>
 <p>Although the IC90 prediction appears excellent regardless of the number of fit epitopes, adding the 3rd epitope does lead to a small improvement in the prediction.</p>
@@ -1237,7 +1257,11 @@ Number of fit epitopes: 4
             <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;fill_to_data&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">opt_res</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">logfreq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">reg_activity_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">opt_res</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+            <span class="n">logfreq</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+            <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="n">reg_uniqueness2_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">fit_mut_escape</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">model_string</span><span class="p">:</span> <span class="n">model</span><span class="p">})</span>
         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fit_polyclonal_models/</span><span class="si">{</span><span class="n">model_string</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">))</span>
 </pre></div>
@@ -1250,8 +1274,42 @@ Number of fit epitopes: 4
 <div class="highlight"><pre>
 noisy_[0.25, 1, 4]conc_3muts_2epitopes_seed484_444 was already fit.
 noisy_[0.25, 1, 4]conc_3muts_3epitopes_seed417_484_444 was already fit.
-noisy_[0.25, 1, 4]conc_3muts_4epitopes_seed417_484_444_386 was already fit.
-noisy_[0.25, 1, 4]conc_3muts_4epitopes_seed417_484_444_460 was already fit.
+# First fitting site-level model.
+# Starting optimization of 696 parameters at Sun Nov 13 08:44:40 2022.
+        step    time_sec        loss    fit_loss  reg_escape  reg_spread reg_spatial reg_uniqueness reg_uniqueness2 reg_activity
+           0      0.0851      3560.3      3550.3     0.39602           0           0              0               0       9.6104
+         500      48.037      1742.1      1713.5      10.379           0           0              0               0       18.213
+        1000      95.488      1733.1      1701.1      11.434           0           0              0               0       20.568
+        1437      136.44      1732.3      1697.4      12.225           0           0              0               0       22.592
+# Successfully finished at Sun Nov 13 08:46:56 2022.
+# Starting optimization of 7732 parameters at Sun Nov 13 08:46:57 2022.
+        step    time_sec        loss    fit_loss  reg_escape  reg_spread reg_spatial reg_uniqueness reg_uniqueness2 reg_activity
+           0     0.10628      1983.7      1822.1         139   2.524e-29           0              0               0       22.592
+         500      58.905      555.49      432.78      89.901      25.506           0              0               0       7.3041
+        1000      118.25      458.52      357.62      65.451      29.038           0              0               0       6.4114
+        1500      175.52      418.86      329.71      52.531      29.644           0              0               0       6.9682
+        2000      234.21       401.5      322.02      41.408      28.391           0              0               0       9.6848
+        2500      292.82      397.72      321.56      37.565      27.691           0              0               0       10.901
+        2971      347.39      396.84      321.41       36.81        27.5           0              0               0        11.12
+# Successfully finished at Sun Nov 13 08:52:44 2022.
+# First fitting site-level model.
+# Starting optimization of 696 parameters at Sun Nov 13 08:52:47 2022.
+        step    time_sec        loss    fit_loss  reg_escape  reg_spread reg_spatial reg_uniqueness reg_uniqueness2 reg_activity
+           0    0.082639      3560.6      3550.6     0.39602           0           0              0               0       9.6104
+         500      46.314      1739.4      1710.9      10.279           0           0              0               0       18.162
+        1000      92.455      1734.4      1700.4      11.872           0           0              0               0       22.127
+        1203      111.01      1734.2      1699.3      12.203           0           0              0               0       22.722
+# Successfully finished at Sun Nov 13 08:54:38 2022.
+# Starting optimization of 7732 parameters at Sun Nov 13 08:54:39 2022.
+        step    time_sec        loss    fit_loss  reg_escape  reg_spread reg_spatial reg_uniqueness reg_uniqueness2 reg_activity
+           0     0.10838      1983.6      1823.6      137.32  2.9836e-29           0              0               0       22.722
+         500      59.235      546.59      427.09      85.115      26.383           0              0               0       8.0012
+        1000       117.6      450.41      349.24      64.985      29.519           0              0               0       6.6593
+        1500      176.12      421.21      331.73      51.812      29.393           0              0               0       8.2717
+        2000      234.09      402.15      323.01       40.37      28.297           0              0               0       10.477
+        2500      290.84      398.15      322.06      37.436      27.645           0              0               0       11.009
+        2876      333.77      397.87      322.09      37.096      27.535           0              0               0       11.153
+# Successfully finished at Sun Nov 13 09:00:12 2022.
 </pre></div></div>
 </div>
 <p>Like before, we can correlate the <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> values for each of the epitopes fit by these <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> models to the <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> values for each of the three “true” epitopes.</p>
@@ -1327,18 +1385,26 @@ noisy_[0.25, 1, 4]conc_3muts_4epitopes_seed417_484_444_460 was already fit.
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-7ed3058fb8a24e57bca85046f009164d"></div>
+<div id="altair-viz-ef45298ff7db41b5ba94e98c2a9017cd"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-7ed3058fb8a24e57bca85046f009164d") {
-      outputDiv = document.getElementById("altair-viz-7ed3058fb8a24e57bca85046f009164d");
+    if (outputDiv.id !== "altair-viz-ef45298ff7db41b5ba94e98c2a9017cd") {
+      outputDiv = document.getElementById("altair-viz-ef45298ff7db41b5ba94e98c2a9017cd");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1384,7 +1450,7 @@ noisy_[0.25, 1, 4]conc_3muts_4epitopes_seed417_484_444_460 was already fit.
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-8f1dbe0ea89791fdd87d52a37744d84e"}, "facet": {"field": "Epitope seeding", "type": "nominal"}, "spec": {"mark": {"type": "rect", "opacity": 0.95, "stroke": "black"}, "encoding": {"color": {"field": "Correlation (R^2)", "scale": {"scheme": "viridis"}, "type": "quantitative"}, "tooltip": [{"field": "Fit epitope class", "type": "ordinal"}, {"field": "True epitope class", "type": "ordinal"}, {"field": "Correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "Fit epitope class", "type": "ordinal"}, "y": {"field": "True epitope class", "type": "ordinal"}}, "height": 100, "width": 130}, "columns": 2, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-8f1dbe0ea89791fdd87d52a37744d84e": [{"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.13138781468204194}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.021050248848707074}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.8918801023736119}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": -0.059003503297078284}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.056424383119903415}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": 0.8081958961728121}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.8480962713528496}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.06921402729550773}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": -0.08462638340258007}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.2452443144607387}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9716253469099021}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.06039675153983088}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.06694185437140326}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05558465171562319}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.9466546811148004}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.846312333547085}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.06943115108982548}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": 0.02547393012811242}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "4", "Correlation (R^2)": -0.0848977072342043}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.24720922969043904}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9714205786637667}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.02535897287849829}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "4", "Correlation (R^2)": -0.060665180487722}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.06724520988244602}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05534313451498091}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": -0.007451993393124812}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "4", "Correlation (R^2)": 0.9481898378326934}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": -0.0042919197604411536}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.06910861235774918}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": -0.08497049169179491}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "4", "Correlation (R^2)": 0.8461864523434255}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": -0.011427588640682764}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9715393319446862}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.06050079841467925}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "4", "Correlation (R^2)": 0.2472681250057173}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.00014240285444311866}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.055501919032942104}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.9473365806707775}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "4", "Correlation (R^2)": -0.0669339514808384}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-624eccb16bc5cb91d0ff3e60db505df9"}, "facet": {"field": "Epitope seeding", "type": "nominal"}, "spec": {"mark": {"type": "rect", "opacity": 0.95, "stroke": "black"}, "encoding": {"color": {"field": "Correlation (R^2)", "scale": {"scheme": "viridis"}, "type": "quantitative"}, "tooltip": [{"field": "Fit epitope class", "type": "ordinal"}, {"field": "True epitope class", "type": "ordinal"}, {"field": "Correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "Fit epitope class", "type": "ordinal"}, "y": {"field": "True epitope class", "type": "ordinal"}}, "height": 100, "width": 130}, "columns": 2, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-624eccb16bc5cb91d0ff3e60db505df9": [{"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.14033468079970324}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": -0.07919895838689506}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.8331029273272299}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": -0.05838687444866966}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.05680267925273883}, {"Epitope seeding": "2epitopes_seed484_444", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": 0.9317040309748076}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.7903875492822057}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.06082976043744945}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": -0.08890947070044011}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.19953126292094775}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9745353554161248}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.05789153218602261}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.0729574780270961}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05857458437519138}, {"Epitope seeding": "3epitopes_seed417_484_444", "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.9686315897159}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.81115217422517}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.0605909832863074}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": -0.09048622257029895}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "1", "Fit epitope class": "4", "Correlation (R^2)": 0.025717684402448034}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.20392058044236427}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9735081429927286}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.057887712407979505}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "2", "Fit epitope class": "4", "Correlation (R^2)": 0.2833074530213572}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.0713306605662217}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05883050701786486}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.9689377371924416}, {"Epitope seeding": "4epitopes_seed417_484_444_386", "True epitope class": "3", "Fit epitope class": "4", "Correlation (R^2)": 0.09856381126201633}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "1", "Correlation (R^2)": 0.8085034447857993}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "2", "Correlation (R^2)": 0.05828425695909513}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "3", "Correlation (R^2)": -0.09090722827396527}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "1", "Fit epitope class": "4", "Correlation (R^2)": 0.023732359089012597}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "1", "Correlation (R^2)": 0.20748442762134653}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "2", "Correlation (R^2)": 0.9471526883904942}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "3", "Correlation (R^2)": -0.058097471666383856}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "2", "Fit epitope class": "4", "Correlation (R^2)": 0.24987441650354186}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "1", "Correlation (R^2)": -0.0715104282971576}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "2", "Correlation (R^2)": -0.05803957980756185}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "3", "Correlation (R^2)": 0.9662508843107203}, {"Epitope seeding": "4epitopes_seed417_484_444_460", "True epitope class": "3", "Fit epitope class": "4", "Correlation (R^2)": 0.07677303236603701}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>We can also visualize the wildtype activity values, <span class="math notranslate nohighlight">\(a_{wt,e}\)</span>.</p>
@@ -1417,13 +1483,13 @@ Epitope seeding: 2epitopes_seed484_444
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-8ac173099f21445fa30576a519c12c97"></div>
+<div id="altair-viz-a6edcd1ed03d4328b9aefabfdf14a47f"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-8ac173099f21445fa30576a519c12c97") {
-      outputDiv = document.getElementById("altair-viz-8ac173099f21445fa30576a519c12c97");
+    if (outputDiv.id !== "altair-viz-a6edcd1ed03d4328b9aefabfdf14a47f") {
+      outputDiv = document.getElementById("altair-viz-a6edcd1ed03d4328b9aefabfdf14a47f");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1469,7 +1535,7 @@ Epitope seeding: 2epitopes_seed484_444
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-d3ae61725decd6064cb5e8a27b64d681"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2"], "range": ["#0072B2", "#009E73"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-d3ae61725decd6064cb5e8a27b64d681": [{"epitope": "1", "activity": 3.3891457556136397}, {"epitope": "2", "activity": 2.354588116812652}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-23315a8d26f786150f9671b5f1514309"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2"], "range": ["#0072B2", "#009E73"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-23315a8d26f786150f9671b5f1514309": [{"epitope": "1", "activity": 4.073916387633656}, {"epitope": "2", "activity": 2.617279148416267}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <div class="nboutput docutils container">
@@ -1484,13 +1550,13 @@ Epitope seeding: 3epitopes_seed417_484_444
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-579bcb6c5edd4820b6d7d2dffdb0e382"></div>
+<div id="altair-viz-a37bcf900fbf4ead82dde4f724b50297"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-579bcb6c5edd4820b6d7d2dffdb0e382") {
-      outputDiv = document.getElementById("altair-viz-579bcb6c5edd4820b6d7d2dffdb0e382");
+    if (outputDiv.id !== "altair-viz-a37bcf900fbf4ead82dde4f724b50297") {
+      outputDiv = document.getElementById("altair-viz-a37bcf900fbf4ead82dde4f724b50297");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1536,7 +1602,7 @@ Epitope seeding: 3epitopes_seed417_484_444
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-ed9883510acc662da78f402d754b12dc"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3"], "range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-ed9883510acc662da78f402d754b12dc": [{"epitope": "1", "activity": 1.144704877096642}, {"epitope": "2", "activity": 3.1709168556437377}, {"epitope": "3", "activity": 2.042135928000493}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-c17ca8edc2d6029358e09dbf87966ef4"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3"], "range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-c17ca8edc2d6029358e09dbf87966ef4": [{"epitope": "1", "activity": 1.794815516621941}, {"epitope": "2", "activity": 3.1683056913179564}, {"epitope": "3", "activity": 2.34320341449989}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <div class="nboutput docutils container">
@@ -1551,13 +1617,13 @@ Epitope seeding: 4epitopes_seed417_484_444_386
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-1a29c23a4e9043d78355adf58d65f8c0"></div>
+<div id="altair-viz-4b49564be0714c62afcbef8cf70dcd06"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-1a29c23a4e9043d78355adf58d65f8c0") {
-      outputDiv = document.getElementById("altair-viz-1a29c23a4e9043d78355adf58d65f8c0");
+    if (outputDiv.id !== "altair-viz-4b49564be0714c62afcbef8cf70dcd06") {
+      outputDiv = document.getElementById("altair-viz-4b49564be0714c62afcbef8cf70dcd06");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1603,7 +1669,7 @@ Epitope seeding: 4epitopes_seed417_484_444_386
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-1a1b5bdeb61ff6633d34b97ea975eac0"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3", "4"], "range": ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3", "4"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-1a1b5bdeb61ff6633d34b97ea975eac0": [{"epitope": "1", "activity": 1.1304632510213404}, {"epitope": "2", "activity": 3.187777646694249}, {"epitope": "3", "activity": -6.782045333831276}, {"epitope": "4", "activity": 2.0427455606729645}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-824c783b427b1eacf88fe0fcc92a849d"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3", "4"], "range": ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3", "4"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-824c783b427b1eacf88fe0fcc92a849d": [{"epitope": "1", "activity": 1.84167770253583}, {"epitope": "2", "activity": 3.1522670446303374}, {"epitope": "3", "activity": 2.3412090367137375}, {"epitope": "4", "activity": -4.177652040505196}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <div class="nboutput docutils container">
@@ -1618,13 +1684,13 @@ Epitope seeding: 4epitopes_seed417_484_444_460
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-493ef2ba3cf141ceaf629f4983597958"></div>
+<div id="altair-viz-06a91b4c96994d949b5f46efc3274c1b"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-493ef2ba3cf141ceaf629f4983597958") {
-      outputDiv = document.getElementById("altair-viz-493ef2ba3cf141ceaf629f4983597958");
+    if (outputDiv.id !== "altair-viz-06a91b4c96994d949b5f46efc3274c1b") {
+      outputDiv = document.getElementById("altair-viz-06a91b4c96994d949b5f46efc3274c1b");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1670,7 +1736,7 @@ Epitope seeding: 4epitopes_seed417_484_444_460
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-1c94372307e48e62da8789215f70d2e5"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3", "4"], "range": ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3", "4"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-1c94372307e48e62da8789215f70d2e5": [{"epitope": "1", "activity": -8.474086708483714}, {"epitope": "2", "activity": 3.1734222504454115}, {"epitope": "3", "activity": 2.0405449248791245}, {"epitope": "4", "activity": 1.1441778246820222}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"grid": false}}, "data": {"name": "data-beb7593959a3287244b1f74c3e6bbfac"}, "mark": {"type": "bar", "size": 18.75}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"domain": ["1", "2", "3", "4"], "range": ["#0072B2", "#009E73", "#CC79A7", "#56B4E9"]}, "type": "nominal"}, "tooltip": [{"field": "epitope", "type": "nominal"}, {"field": "activity", "format": ".2f", "type": "quantitative"}], "x": {"field": "activity", "title": "activity", "type": "quantitative"}, "y": {"field": "epitope", "sort": ["1", "2", "3", "4"], "type": "nominal"}}, "height": {"step": 25}, "width": 110, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-beb7593959a3287244b1f74c3e6bbfac": [{"epitope": "1", "activity": 1.8564744476965511}, {"epitope": "2", "activity": 3.149552645367495}, {"epitope": "3", "activity": 2.3394524556341634}, {"epitope": "4", "activity": -4.200335461430708}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>These results look similar to the ones obtained without seeding sites above. But importantly, we can see that the models are not negatively impacted by seeding sites that are not within a targeted epitope or within the same epitope as an already seeded site. Although not seen on this simulated dataset, keep in mind that seeding sites could be helpful and lead to better results if the library mutation rate is low.</p>
@@ -1772,22 +1838,22 @@ Epitope seeding: 4epitopes_seed417_484_444_460
     <tr>
       <th>0</th>
       <td>2epitopes_seed484_444</td>
-      <td>0.967</td>
+      <td>0.799</td>
     </tr>
     <tr>
       <th>1</th>
       <td>3epitopes_seed417_484_444</td>
-      <td>0.993</td>
+      <td>0.965</td>
     </tr>
     <tr>
       <th>2</th>
       <td>4epitopes_seed417_484_444_386</td>
-      <td>0.992</td>
+      <td>0.966</td>
     </tr>
     <tr>
       <th>3</th>
       <td>4epitopes_seed417_484_444_460</td>
-      <td>0.993</td>
+      <td>0.899</td>
     </tr>
   </tbody>
 </table>
@@ -1798,31 +1864,30 @@ Epitope seeding: 4epitopes_seed417_484_444_460
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="p">(</span>
+<span></span><span class="n">_</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">ggplot</span><span class="p">(</span><span class="n">ic90_data</span><span class="p">,</span> <span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;predicted_log_IC90&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;log_IC90&quot;</span><span class="p">))</span>
     <span class="o">+</span> <span class="n">geom_point</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="o">+</span> <span class="n">facet_wrap</span><span class="p">(</span><span class="s2">&quot;epitope_seeding&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="o">+</span> <span class="n">theme_classic</span><span class="p">()</span>
     <span class="o">+</span> <span class="n">theme</span><span class="p">(</span><span class="n">figure_size</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">))</span>
-<span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area docutils container">
-<img alt="_images/specify_epitopes_40_0.png" src="_images/specify_epitopes_40_0.png" />
-</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;ggplot: (8743928257567)&gt;
-</pre></div></div>
+<img alt="_images/specify_epitopes_40_1.png" src="_images/specify_epitopes_40_1.png" />
+</div>
 </div>
 </section>
 <section id="Summary">
@@ -1874,10 +1939,13 @@ and polyclonal mix.</p>
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regularization.html">Regularization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_cocktail.html">Real antibody cocktail example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_serum.html">Real serum example</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
@@ -1891,7 +1959,7 @@ and polyclonal mix.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="reference_site_numbering.html" title="previous chapter">Reference site numbering</a></li>
+      <li>Previous: <a href="real_serum.html" title="previous chapter">Real serum example</a></li>
       <li>Next: <a href="expt_design.html" title="next chapter">Experimental design</a></li>
   </ul></li>
 </ul>

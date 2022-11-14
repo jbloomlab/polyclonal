@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.pdb_utils &#8212; polyclonal 0.1 documentation</title>
+    <title>polyclonal.pdb_utils &#8212; polyclonal 3.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -44,15 +44,155 @@
 
 
 <span class="kn">import</span> <span class="nn">collections</span>  <span class="c1"># noqa: F401</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">os</span>  <span class="c1"># noqa: F401</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>  <span class="c1"># noqa: F401</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">Bio.PDB</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span>
+
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># noqa: F401</span>
 
 <span class="kn">import</span> <span class="nn">requests</span>  <span class="c1"># noqa: F401</span>
+
+
+<div class="viewcode-block" id="inter_residue_distances"><a class="viewcode-back" href="../../polyclonal.pdb_utils.html#polyclonal.pdb_utils.inter_residue_distances">[docs]</a><span class="k">def</span> <span class="nf">inter_residue_distances</span><span class="p">(</span>
+    <span class="n">input_pdbfile</span><span class="p">,</span>
+    <span class="n">target_chains</span><span class="p">,</span>
+    <span class="n">target_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get inter-residue distances from a PDB file.</span>
+
+<span class="sd">    If a residue number is present in multiple chains, gets the closest distance</span>
+<span class="sd">    for each partner from all residues with that number. This is useful for</span>
+<span class="sd">    homo-oligomers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_pdbfile : str</span>
+<span class="sd">        Path to input PDB file.</span>
+<span class="sd">    target_chains : list</span>
+<span class="sd">        List of target chains for which we get residues.</span>
+<span class="sd">    target_atom: str or None</span>
+<span class="sd">        Which type of atoms to consider when getting distances. `None` means</span>
+<span class="sd">        all atoms; you could also want to use &#39;CA&#39; for alpha carbons.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas.DataFrame</span>
+<span class="sd">        Columns are &quot;site_1&quot;, &quot;site_2&quot;, &quot;distance&quot;, &quot;chain_1&quot;, and &quot;chain_2&quot;.</span>
+<span class="sd">        The distance is the Euclidean distance between the sites, and</span>
+<span class="sd">        the chain columns indicate the chain for which the closest residue</span>
+<span class="sd">        is drawn for that pair. Only returns the unique combinations of</span>
+<span class="sd">        site_1 and site_2. Eg, has entries for sites 1 and 2, but not</span>
+<span class="sd">        1 and 1 or 2 and 1. The distances are in angstroms.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Get distances from one and multiple chains from spike trimer PDB file:</span>
+
+<span class="sd">    &gt;&gt;&gt; pdb_url = &#39;https://files.rcsb.org/download/6XM4.pdb&#39;</span>
+<span class="sd">    &gt;&gt;&gt; r = requests.get(pdb_url)</span>
+<span class="sd">    &gt;&gt;&gt; with tempfile.NamedTemporaryFile() as tmpf:</span>
+<span class="sd">    ...    _ = tmpf.write(r.content)</span>
+<span class="sd">    ...    tmpf.flush()</span>
+<span class="sd">    ...    dist_chain_a = inter_residue_distances(tmpf.name, [&quot;A&quot;])</span>
+<span class="sd">    ...    dist_chain_a_b = inter_residue_distances(tmpf.name, [&quot;A&quot;, &quot;B&quot;])</span>
+
+<span class="sd">    &gt;&gt;&gt; dist_chain_a</span>
+<span class="sd">            site_1  site_2    distance chain_1 chain_2</span>
+<span class="sd">    0           27      28    1.332629       A       A</span>
+<span class="sd">    1           27      29    4.612508       A       A</span>
+<span class="sd">    2           27      30    8.219518       A       A</span>
+<span class="sd">    3           27      31   11.016782       A       A</span>
+<span class="sd">    4           27      32   13.087037       A       A</span>
+<span class="sd">    ...        ...     ...         ...     ...     ...</span>
+<span class="sd">    548623    1308    1310   30.826773       A       A</span>
+<span class="sd">    548624    1308    1311   75.350853       A       A</span>
+<span class="sd">    548625    1309    1310   12.374796       A       A</span>
+<span class="sd">    548626    1309    1311  115.681534       A       A</span>
+<span class="sd">    548627    1310    1311  106.112328       A       A</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    [548628 rows x 5 columns]</span>
+
+<span class="sd">    &gt;&gt;&gt; dist_chain_a_b</span>
+<span class="sd">            site_1  site_2   distance chain_1 chain_2</span>
+<span class="sd">    0           27      28   1.330841       B       B</span>
+<span class="sd">    1           27      29   4.502822       B       B</span>
+<span class="sd">    2           27      30   8.128284       B       B</span>
+<span class="sd">    3           27      31  10.591589       B       B</span>
+<span class="sd">    4           27      32  13.087037       A       A</span>
+<span class="sd">    ...        ...     ...        ...     ...     ...</span>
+<span class="sd">    572980     845     847   4.439680       B       B</span>
+<span class="sd">    572981     845     848   6.885335       B       B</span>
+<span class="sd">    572982     846     847   1.333544       B       B</span>
+<span class="sd">    572983     846     848   3.365701       B       B</span>
+<span class="sd">    572984     847     848   1.328880       B       B</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    [572985 rows x 5 columns]</span>
+
+<span class="sd">    There are some sites where the closest residues are in different monomers:</span>
+
+<span class="sd">    &gt;&gt;&gt; dist_chain_a_b.query(&quot;chain_1 != chain_2&quot;)</span>
+<span class="sd">            site_1  site_2   distance chain_1 chain_2</span>
+<span class="sd">    252         27     330  46.996426       B       A</span>
+<span class="sd">    254         27     332  47.407013       B       A</span>
+<span class="sd">    255         27     333  47.920368       B       A</span>
+<span class="sd">    256         27     334  49.039017       B       A</span>
+<span class="sd">    257         27     335  51.971394       B       A</span>
+<span class="sd">    ...        ...     ...        ...     ...     ...</span>
+<span class="sd">    572727    1311     844  65.875092       A       B</span>
+<span class="sd">    572728    1311     845  64.882248       A       B</span>
+<span class="sd">    572729    1311     846  62.240368       A       B</span>
+<span class="sd">    572730    1311     847  60.743019       A       B</span>
+<span class="sd">    572731    1311     848  56.456402       A       B</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    [282044 rows x 5 columns]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">extract_atom_locations</span><span class="p">(</span><span class="n">input_pdbfile</span><span class="p">,</span> <span class="n">target_chains</span><span class="p">,</span> <span class="n">target_atom</span><span class="p">)</span>
+
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+    <span class="n">site_coords</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+        <span class="n">site_coords</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">chain</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;site == @site&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;chain&quot;</span><span class="p">):</span>
+            <span class="n">site_coords</span><span class="p">[</span><span class="n">site</span><span class="p">][</span><span class="n">chain</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">site_1</span><span class="p">,</span> <span class="n">site_2</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">min_d</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">chain_1</span><span class="p">,</span> <span class="n">coords_1</span><span class="p">),</span> <span class="p">(</span><span class="n">chain_2</span><span class="p">,</span> <span class="n">coords_2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span>
+            <span class="n">site_coords</span><span class="p">[</span><span class="n">site_1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+            <span class="n">site_coords</span><span class="p">[</span><span class="n">site_2</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+        <span class="p">):</span>
+            <span class="k">assert</span> <span class="n">coords_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">coords_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span>
+            <span class="c1"># repeat row of coords_1 (each row repeated N times) and coords_2 (entire</span>
+            <span class="c1"># array repeated M times) so we can get all combinations of distances</span>
+            <span class="n">coords_1_repeat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">coords_1</span><span class="p">,</span> <span class="n">coords_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">coords_2_repeat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">coords_2</span><span class="p">,</span> <span class="p">(</span><span class="n">coords_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">coords_1_repeat</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">coords_2_repeat</span><span class="o">.</span><span class="n">shape</span>
+
+            <span class="c1"># compute the distances</span>
+            <span class="n">dists</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">coords_1_repeat</span> <span class="o">-</span> <span class="n">coords_2_repeat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">dists</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">coords_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">coords_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],),</span> <span class="n">dists</span><span class="o">.</span><span class="n">shape</span>
+
+            <span class="n">d</span> <span class="o">=</span> <span class="n">dists</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">min_d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">d</span> <span class="o">&lt;</span> <span class="n">min_d</span><span class="p">):</span>
+                <span class="n">min_d</span> <span class="o">=</span> <span class="n">d</span>
+                <span class="n">min_chain_1</span> <span class="o">=</span> <span class="n">chain_1</span>
+                <span class="n">min_chain_2</span> <span class="o">=</span> <span class="n">chain_2</span>
+
+        <span class="k">assert</span> <span class="n">min_d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">site_1</span><span class="p">,</span> <span class="n">site_2</span><span class="p">,</span> <span class="n">min_d</span><span class="p">,</span> <span class="n">min_chain_1</span><span class="p">,</span> <span class="n">min_chain_2</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">records</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;site_1&quot;</span><span class="p">,</span> <span class="s2">&quot;site_2&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="s2">&quot;chain_1&quot;</span><span class="p">,</span> <span class="s2">&quot;chain_2&quot;</span><span class="p">],</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="reassign_b_factor"><a class="viewcode-back" href="../../polyclonal.pdb_utils.html#polyclonal.pdb_utils.reassign_b_factor">[docs]</a><span class="k">def</span> <span class="nf">reassign_b_factor</span><span class="p">(</span>
@@ -244,20 +384,19 @@
 <span class="sd">    target_chains : list</span>
 <span class="sd">        List of target chains to extract atom locations from. Chains must be in</span>
 <span class="sd">        the PDB and match the chain ids.</span>
-<span class="sd">    target_atom: str</span>
+<span class="sd">    target_atom: str or None</span>
 <span class="sd">        Which type of atom to extract locations for. Default is alpha carbon, or</span>
-<span class="sd">        &#39;CA&#39;. If the specified type of atom is present multiple times for a</span>
+<span class="sd">        &#39;CA&#39;. Use `None` to get all atoms for a residue.</span>
+<span class="sd">        If the specified type of atom is present multiple times for a</span>
 <span class="sd">        residue, that residue will end up having multiple entries in the output.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    pandas.DataFrame</span>
-<span class="sd">        Has columns &#39;chain&#39;, &#39;site&#39;, &#39;x&#39;, &#39;y&#39;, and &#39;z&#39;.</span>
+<span class="sd">        Has columns &#39;chain&#39;, &#39;site&#39;, &#39;atom&#39;, &#39;x&#39;, &#39;y&#39;, and &#39;z&#39;.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
-<span class="sd">    Download PDB, do the re-assignment of B factors, read the lines</span>
-<span class="sd">    from the resulting re-assigned PDB:</span>
 
 <span class="sd">    &gt;&gt;&gt; pdb_url = &#39;https://files.rcsb.org/download/6M0J.pdb&#39;</span>
 <span class="sd">    &gt;&gt;&gt; r = requests.get(pdb_url)</span>
@@ -266,22 +405,36 @@
 <span class="sd">    ...    with open(pdbfile, &#39;wb&#39;) as f:</span>
 <span class="sd">    ...        _ = f.write(r.content)</span>
 <span class="sd">    ...    output = extract_atom_locations(pdbfile, [&#39;A&#39;])</span>
+<span class="sd">    ...    output_all_atoms = extract_atom_locations(pdbfile, [&#39;A&#39;], target_atom=None)</span>
 
 <span class="sd">    Check the first ten lines of the ouput to make sure we got the expected</span>
 <span class="sd">    atom locations:</span>
 
 <span class="sd">    &gt;&gt;&gt; output.head(n=10)</span>
-<span class="sd">      chain  site          x          y      z</span>
-<span class="sd">    0     A    19 -31.358999  50.852001  2.040</span>
-<span class="sd">    1     A    20 -29.424000  50.561001 -1.234</span>
-<span class="sd">    2     A    21 -30.722000  48.633999 -4.234</span>
-<span class="sd">    3     A    22 -28.080999  45.924999 -3.794</span>
-<span class="sd">    4     A    23 -28.982000  45.372002 -0.131</span>
-<span class="sd">    5     A    24 -32.637001  44.912998 -1.106</span>
-<span class="sd">    6     A    25 -31.709999  42.499001 -3.889</span>
-<span class="sd">    7     A    26 -29.688999  40.509998 -1.334</span>
-<span class="sd">    8     A    27 -32.740002  40.337002  0.917</span>
-<span class="sd">    9     A    28 -34.958000  39.424000 -2.028</span>
+<span class="sd">      chain  site atom          x          y      z</span>
+<span class="sd">    0     A    19   CA -31.358999  50.852001  2.040</span>
+<span class="sd">    1     A    20   CA -29.424000  50.561001 -1.234</span>
+<span class="sd">    2     A    21   CA -30.722000  48.633999 -4.234</span>
+<span class="sd">    3     A    22   CA -28.080999  45.924999 -3.794</span>
+<span class="sd">    4     A    23   CA -28.982000  45.372002 -0.131</span>
+<span class="sd">    5     A    24   CA -32.637001  44.912998 -1.106</span>
+<span class="sd">    6     A    25   CA -31.709999  42.499001 -3.889</span>
+<span class="sd">    7     A    26   CA -29.688999  40.509998 -1.334</span>
+<span class="sd">    8     A    27   CA -32.740002  40.337002  0.917</span>
+<span class="sd">    9     A    28   CA -34.958000  39.424000 -2.028</span>
+
+<span class="sd">    &gt;&gt;&gt; output_all_atoms.head(n=10)</span>
+<span class="sd">      chain  site atom          x          y      z</span>
+<span class="sd">    0     A    19    N -31.455000  49.473999  2.505</span>
+<span class="sd">    1     A    19   CA -31.358999  50.852001  2.040</span>
+<span class="sd">    2     A    19    C -31.051001  50.891998  0.548</span>
+<span class="sd">    3     A    19    O -31.921000  51.243999 -0.251</span>
+<span class="sd">    4     A    19   CB -30.297001  51.626999  2.826</span>
+<span class="sd">    5     A    19   OG -30.882000  52.734001  3.490</span>
+<span class="sd">    6     A    20    N -29.822001  50.528000  0.169</span>
+<span class="sd">    7     A    20   CA -29.424000  50.561001 -1.234</span>
+<span class="sd">    8     A    20    C -30.215000  49.535000 -2.042</span>
+<span class="sd">    9     A    20    O -30.926001  48.687000 -1.500</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># read PDB, catch warnings about discontinuous chains</span>
@@ -309,6 +462,7 @@
     <span class="c1"># extract atom locations from target chains</span>
     <span class="n">chain_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">residue_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">atom_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">x_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">y_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">z_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -317,19 +471,21 @@
             <span class="n">residue_number</span> <span class="o">=</span> <span class="n">residue</span><span class="o">.</span><span class="n">get_id</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">atoms</span> <span class="o">=</span> <span class="n">residue</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">target_atom</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">target_atom</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">target_atom</span><span class="p">):</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get_coord</span><span class="p">()</span>
                     <span class="n">x_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                     <span class="n">y_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
                     <span class="n">z_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
                     <span class="n">residue_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residue_number</span><span class="p">)</span>
                     <span class="n">chain_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="n">atom_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
     <span class="c1"># write output</span>
     <span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
         <span class="p">{</span>
             <span class="s2">&quot;chain&quot;</span><span class="p">:</span> <span class="n">chain_list</span><span class="p">,</span>
             <span class="s2">&quot;site&quot;</span><span class="p">:</span> <span class="n">residue_list</span><span class="p">,</span>
+            <span class="s2">&quot;atom&quot;</span><span class="p">:</span> <span class="n">atom_list</span><span class="p">,</span>
             <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_list</span><span class="p">,</span>
             <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_list</span><span class="p">,</span>
             <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="n">z_list</span><span class="p">,</span>
@@ -386,9 +542,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_serum.html">Real serum example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../partition_function.html">Distinct epitopes assumption</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../polyclonal.html">polyclonal package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package_index.html">package index</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../acknowledgments.html">Acknowledgements</a></li>

@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Regularization &#8212; polyclonal 3.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bootstrapping model fits" href="RBD_bootstrap.html" />
+    <link rel="prev" title="Fit model to data" href="fit_RBD.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="regularization">
+<h1>Regularization<a class="headerlink" href="#regularization" title="Permalink to this headline">¶</a></h1>
+<p>The prior example used <a class="reference external" href="https://en.wikipedia.org/wiki/Regularization_(mathematics)">regularization</a> of the model parameters.
+This is an absolutely crucial aspect of the fitting, as it helps ensure the model gives “sensibe” results that are not overfit.</p>
+<p>The default values of the regularization weights are hopefully reasonable, but in many cases you may need to tune the regularization weights to give more sensible results.</p>
+<p>Here we briefly summarize the regularization parameters and what they do (for more technical details, see <a class="reference external" href="https://jbloomlab.github.io/polyclonal/optimization.html">here</a>.</p>
+<p>All the regularization weights are set as parameters to <a class="reference external" href="https://jbloomlab.github.io/polyclonal/polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit">Polyclonal.fit</a>.
+Specifically:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Mutation escape-value regularization</strong> (<code class="docutils literal notranslate"><span class="pre">reg_escape_weight</span></code>): this weight determines how strongly we bias all the mutation-escape values to be zero. The idea behind this regularization is that most mutations do not mediate escape, and so if many many sites show escape that probably indicates noise or over-fitting that we want to regularizat away.</p></li>
+<li><p><strong>Spread of escape a site regularization</strong> (<code class="docutils literal notranslate"><span class="pre">reg_spread_weight</span></code>): this weight determines how strongly we bias all of the different mutations at a site to have the same escape. The idea behind this regularization is that <em>usually</em> (but not always) different mutations at a site will have similar effects on escape.</p></li>
+<li><p><strong>Spatial regularization</strong> (<code class="docutils literal notranslate"><span class="pre">reg_spatial_weight</span></code> and <code class="docutils literal notranslate"><span class="pre">reg_spatial_weight2</span></code>): these weights determine how strongly we bias each epitope to have sites that are proximal in three dimensional structure. Using this regularization requires that you provide the spatial distances between sites when initializing the <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> object (via the <code class="docutils literal notranslate"><span class="pre">spatial_distances</span></code> parameter), otherwise these weights have no effects. The first weight penalizes the distance between sites in the same epitope with lots of escape, and the second weight penalizes the <strong>square</strong> of the distance between sites in the same epitope with lots of escape.</p></li>
+<li><p><strong>Epitope uniqueness regularization</strong> (<code class="docutils literal notranslate"><span class="pre">reg_uniqueness_weight</span></code> and <code class="docutils literal notranslate"><span class="pre">reg_uniqueness2_weight</span></code>): these weights penalize two different epitopes having strong escape at the same site, based on the notion epitopes should be largely unique. The first weight penalizes the product of average escape at a site, the second weight can be stronger as it penalizes the product of the <strong>square</strong> of escape at a site.</p></li>
+<li><p><strong>Epitope activity regularization</strong> (<code class="docutils literal notranslate"><span class="pre">reg_activity_weight</span></code>): this weight penalizes epitopes having very high or very low activity. To be precise, it penalizes how much the activities differ from the log of the geometric mean concentrations used for the input data (this will be zero if you have put your concentrations on a scale where the values are ~1). This can be quite useful to avoid both fitting too many and too few epitopes.</p></li>
+</ul>
+</div></blockquote>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/BloomLogo.jpg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">polyclonal</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Model mutational escape from polyclonal antibodies.</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=jbloomlab&repo=polyclonal&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">polyclonal documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="biophysical_model.html">Biophysical model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Regularization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_cocktail.html">Real antibody cocktail example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_serum.html">Real serum example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="partition_function.html">Distinct epitopes assumption</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.html">polyclonal package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package_index.html">package index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgements</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fit_RBD.html" title="previous chapter">Fit model to data</a></li>
+      <li>Next: <a href="RBD_bootstrap.html" title="next chapter">Bootstrapping model fits</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019--2022.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/regularization.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/jbloomlab/polyclonal" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

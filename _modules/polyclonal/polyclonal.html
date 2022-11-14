@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 2.2 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 3.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -47,6 +47,7 @@
 <span class="kn">import</span> <span class="nn">copy</span>  <span class="c1"># noqa: F401</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -64,6 +65,7 @@
 
 <span class="kn">import</span> <span class="nn">scipy.optimize</span>
 <span class="kn">import</span> <span class="nn">scipy.special</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
 
 <span class="kn">import</span> <span class="nn">polyclonal</span>
 <span class="kn">import</span> <span class="nn">polyclonal.alphabets</span>
@@ -181,6 +183,10 @@
 <span class="sd">    n_epitopes : int or None</span>
 <span class="sd">        If initializing with ``activity_wt_df=None``, specifies number</span>
 <span class="sd">        of epitopes.</span>
+<span class="sd">    spatial_distances : pandas.DataFrame</span>
+<span class="sd">        Gives inter-residue distances. Must have columns &quot;site_1&quot;, &quot;site_2&quot;,</span>
+<span class="sd">        and &quot;distance&quot; where the distance is typically in angstroms.</span>
+<span class="sd">        Distances may be missing for some pairs. Used for the spatial regularization.</span>
 <span class="sd">    collapse_identical_variants : {&#39;mean&#39;, &#39;median&#39;, False}</span>
 <span class="sd">        If identical variants in ``data_to_fit`` (same &#39;aa_substitutions&#39;),</span>
 <span class="sd">        collapse them and make weight proportional to number of collapsed</span>
@@ -239,12 +245,18 @@
 <span class="sd">        are collapsed on columns &#39;concentration&#39;, &#39;aa_substitutions&#39;,</span>
 <span class="sd">        and &#39;prob_escape&#39;, and a column &#39;weight&#39; is added to represent number</span>
 <span class="sd">        of collapsed variants. Also, row-order may be changed.</span>
+<span class="sd">    spatial_distances : pandas.DataFrame or None</span>
+<span class="sd">        Spatial distances passed when initializing this :class:`Polyclonal` object.</span>
 <span class="sd">    mutations_times_seen : frozendict.frozendict or None</span>
 <span class="sd">        If `data_to_fit` is not `None`, keyed by all mutations with escape values</span>
 <span class="sd">        and values are number of variants in which the mutation is seen. It is formally</span>
 <span class="sd">        calculated as the number of variants with mutation across all concentrations</span>
 <span class="sd">        divided by the number of concentrations, so can have non-integer values if</span>
 <span class="sd">        there are variants only observed at some concentrations.</span>
+<span class="sd">    distance_matrix : pandas.DataFrame or `None`</span>
+<span class="sd">        If ``data_to_fit`` is not `None` and ``spatial_distances`` is not `None`,</span>
+<span class="sd">        then this is a matrix giving the pairwise distances between residues.</span>
+<span class="sd">        Pairs with no distance have values of `pd.NA` and diagonal values are 0.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
@@ -528,6 +540,7 @@
 <span class="sd">    ...         reg_escape_weight=0.001,</span>
 <span class="sd">    ...         reg_spread_weight=0.001,</span>
 <span class="sd">    ...         reg_activity_weight=0.0001,</span>
+<span class="sd">    ...         reg_uniqueness2_weight=0,</span>
 <span class="sd">    ...     )</span>
 <span class="sd">    ...     pred_df = m.prob_escape(variants_df=data_to_fit)</span>
 <span class="sd">    ...     if not numpy.allclose(pred_df[&#39;prob_escape&#39;],</span>
@@ -549,20 +562,12 @@
 
 <span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df().round(1)</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
-<span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
+<span class="sd">    0       1     1        M  -0.0             0.0 -0.0 -0.0            -0.0            1</span>
 <span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    2       1     4        A   2.0             4.0  2.5  1.5             0.0            2</span>
 <span class="sd">    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
 <span class="sd">    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
 <span class="sd">    5       2     4        A   0.0             0.0  0.0  0.0             0.0            2</span>
-<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df(min_times_seen=4).round(1)</span>
-<span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
-<span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
-<span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
-<span class="sd">    2       1     4        A   2.5             2.5  2.5  2.5             0.0            1</span>
-<span class="sd">    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
-<span class="sd">    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1</span>
-<span class="sd">    5       2     4        A   0.0             0.0  0.0  0.0             0.0            1</span>
 
 <span class="sd">    You can also exclude mutations to specific characters (typically you would want to</span>
 <span class="sd">    do this for stop codons and/or gaps):</span>
@@ -705,6 +710,55 @@
 <span class="sd">    7      CT      M1C G2A A4K</span>
 <span class="sd">    8      GA              M1C</span>
 
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    Add spatial distances:</span>
+
+<span class="sd">    &gt;&gt;&gt; spatial_distances = pd.DataFrame(</span>
+<span class="sd">    ...     [(1, 2, 1.5), (1, 4, 7.5)],</span>
+<span class="sd">    ...     columns=[&quot;site_1&quot;, &quot;site_2&quot;, &quot;distance&quot;],</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; model_spatial = Polyclonal(</span>
+<span class="sd">    ...     data_to_fit=data_to_fit,</span>
+<span class="sd">    ...     n_epitopes=2,</span>
+<span class="sd">    ...     spatial_distances=spatial_distances,</span>
+<span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; model_spatial.distance_matrix</span>
+<span class="sd">         1     2     4</span>
+<span class="sd">    1  0.0   1.5   7.5</span>
+<span class="sd">    2  1.5   0.0  &lt;NA&gt;</span>
+<span class="sd">    4  7.5  &lt;NA&gt;   0.0</span>
+
+<span class="sd">    Fit with lower regularization as data so small</span>
+
+<span class="sd">    &gt;&gt;&gt; opt_res = model_spatial.fit(</span>
+<span class="sd">    ...     reg_escape_weight=0.001,</span>
+<span class="sd">    ...     reg_spread_weight=0.001,</span>
+<span class="sd">    ...     reg_activity_weight=0.0001,</span>
+<span class="sd">    ...     reg_spatial_weight=0.001,</span>
+<span class="sd">    ...     reg_spatial2_weight=0.0001,</span>
+<span class="sd">    ...     reg_uniqueness2_weight=0,</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; pred_df = model_spatial.prob_escape(variants_df=data_to_fit)</span>
+<span class="sd">    &gt;&gt;&gt; if not numpy.allclose(</span>
+<span class="sd">    ...     pred_df[&#39;prob_escape&#39;],</span>
+<span class="sd">    ...     pred_df[&#39;predicted_prob_escape&#39;],</span>
+<span class="sd">    ...     atol=0.01,</span>
+<span class="sd">    ... ):</span>
+<span class="sd">    ...     raise ValueError(f&quot;wrong predictions\n{pred_df}&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; if not numpy.allclose(</span>
+<span class="sd">    ...      activity_wt_df[&#39;activity&#39;].sort_values(),</span>
+<span class="sd">    ...      m.activity_wt_df[&#39;activity&#39;].sort_values(),</span>
+<span class="sd">    ...      atol=0.1,</span>
+<span class="sd">    ... ):</span>
+<span class="sd">    ...     raise ValueError(f&quot;wrong activities\n{m.activity_wt_df}&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; if not numpy.allclose(</span>
+<span class="sd">    ...      mut_escape_df[&#39;escape&#39;].sort_values(),</span>
+<span class="sd">    ...      m.mut_escape_df[&#39;escape&#39;].sort_values(),</span>
+<span class="sd">    ...      atol=0.05,</span>
+<span class="sd">    ... ):</span>
+<span class="sd">    ...     raise ValueError(f&quot;wrong escapes\n{m.mut_escape_df}&quot;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -716,6 +770,7 @@
         <span class="n">data_to_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">site_escape_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">n_epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">spatial_distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">alphabet</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">AAS</span><span class="p">,</span>
         <span class="n">sites</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1004,7 +1059,7 @@
             <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binarymaps_from_df</span><span class="p">(</span><span class="n">data_to_fit</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">collapse_identical_variants</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pvs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">)</span>
             <span class="c1"># for each site get mask of indices in the binary map</span>
-            <span class="c1"># that correspond to that site</span>
+            <span class="c1"># that correspond to that site in `binary_sites`</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_one_binarymap</span><span class="p">:</span>
                 <span class="n">binary_sites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binarymaps</span><span class="o">.</span><span class="n">binary_sites</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1014,11 +1069,73 @@
                     <span class="k">for</span> <span class="n">bmap</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binarymaps</span>
                 <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">site</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">binary_sites</span> <span class="o">==</span> <span class="n">site</span><span class="p">)</span>
+                <span class="n">site</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">binary_sites</span> <span class="o">==</span> <span class="n">site</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">binary_sites</span><span class="p">)</span>
             <span class="p">}</span>
+            <span class="c1"># get mapping of site indices to mutation indices</span>
+            <span class="n">site_to_siteindex</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">site</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">binary_sites</span><span class="p">))</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_binary_siteindex_to_mutindex</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">site_to_siteindex</span><span class="p">[</span><span class="n">site</span><span class="p">]</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">binary_sites</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_siteindex_to_mutindex</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),)</span>
+            <span class="k">if</span> <span class="n">spatial_distances</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">spatial_distances</span><span class="p">[</span><span class="s2">&quot;site_1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+                    <span class="o">!=</span> <span class="n">spatial_distances</span><span class="p">[</span><span class="s2">&quot;site_2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;`spatial_distances` site_1 and site_2 columns different dtype&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">spatial_distances</span><span class="p">[</span><span class="s2">&quot;site_1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;model uses sequential integer sites but spatial distances &quot;</span>
+                            <span class="s2">&quot;does not have integer sites.&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">spatial_distances</span><span class="p">[</span><span class="s2">&quot;site_1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;site_1&quot;</span><span class="p">,</span> <span class="s2">&quot;site_2&quot;</span><span class="p">]:</span>
+                            <span class="n">spatial_distances</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">spatial_distances</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">spatial_distances</span><span class="p">[</span><span class="s2">&quot;site_1&quot;</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no overlap between sites and `spatial_distances`&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spatial_distances</span> <span class="o">=</span> <span class="n">spatial_distances</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="c1"># get distance matrix with sites in same order as in self._binary_sites</span>
+                <span class="n">spatial_dist_dict</span> <span class="o">=</span> <span class="n">spatial_distances</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;site_1&quot;</span><span class="p">,</span> <span class="s2">&quot;site_2&quot;</span><span class="p">])[</span>
+                    <span class="s2">&quot;distance&quot;</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+                <span class="n">spatial_dist_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                    <span class="p">{(</span><span class="n">r2</span><span class="p">,</span> <span class="n">r1</span><span class="p">):</span> <span class="n">d</span> <span class="k">for</span> <span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">),</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">spatial_dist_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">site_1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">:</span>
+                    <span class="n">row</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">site_2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">site_1</span> <span class="o">==</span> <span class="n">site_2</span><span class="p">:</span>
+                            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="p">(</span><span class="n">site_1</span><span class="p">,</span> <span class="n">site_2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">spatial_dist_dict</span><span class="p">:</span>
+                            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spatial_dist_dict</span><span class="p">[(</span><span class="n">site_1</span><span class="p">,</span> <span class="n">site_2</span><span class="p">)])</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">NA</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span><span class="p">,</span>
+                    <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">,</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="c1"># define distance matrix numpy ndarrays with NA elements as 0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_distance_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span>
+                    <span class="n">na_value</span><span class="o">=</span><span class="mi">0</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_distance_matrix2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_matrix</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spatial_distances</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_binarymaps_from_df</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1341,16 +1458,21 @@
         <span class="k">return</span> <span class="n">variants_df</span></div>
 
     <span class="k">def</span> <span class="nf">_check_close_activities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check that no two epitopes have near-identical activities.&quot;&quot;&quot;</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
-        <span class="n">a_sorted</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a_sorted</span><span class="p">,</span> <span class="n">a_sorted</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
-            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Near-identical activities for two epitopes, &quot;</span>
-                    <span class="s2">&quot;will cause problems in fitting. Reinitialize&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot; with more distinct activities:</span><span class="se">\n</span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;Check no epitopes have near-identical activities and escape.&quot;&quot;&quot;</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)):</span>
+            <span class="n">a1</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span>
+            <span class="n">e1</span> <span class="o">=</span> <span class="n">beta</span><span class="p">[:,</span> <span class="n">i1</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">e1</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),)</span>
+            <span class="k">for</span> <span class="n">i2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i2</span><span class="p">])</span> <span class="ow">and</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">beta</span><span class="p">[:,</span> <span class="n">i2</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Near-identical activities and escape for two epitopes, &quot;</span>
+                        <span class="s2">&quot;will cause problems in fitting. Reinitialize&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot; with more distinct activities:</span><span class="se">\n</span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
 
 <div class="viewcode-block" id="Polyclonal.site_level_model"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.site_level_model">[docs]</a>    <span class="k">def</span> <span class="nf">site_level_model</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1394,6 +1516,7 @@
         <span class="k">return</span> <span class="n">Polyclonal</span><span class="p">(</span>
             <span class="n">activity_wt_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">,</span>
             <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">site_escape_df</span><span class="p">,</span>
+            <span class="n">spatial_distances</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spatial_distances</span><span class="p">,</span>
             <span class="n">data_to_fit</span><span class="o">=</span><span class="n">site_data_to_fit</span><span class="p">,</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
             <span class="n">sites</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span>
@@ -1479,16 +1602,14 @@
         <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
-    <span class="k">def</span> <span class="nf">_reg_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reg_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">log_c_gm</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Regularization on activity and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for activity regularization not &gt;= 0&quot;</span><span class="p">)</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="n">h</span><span class="p">,</span> <span class="n">dh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled_pseudo_huber</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="n">dh</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dh</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">dh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled_pseudo_huber</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">log_c_gm</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">reg</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">weight</span>
         <span class="k">assert</span> <span class="n">dh</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="n">dreg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dh</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">))])</span>
@@ -1524,6 +1645,182 @@
         <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
+    <span class="k">def</span> <span class="nf">_site_avg_abs_diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Differentiable average absolute value of escape at each site and epitope.</span>
+
+<span class="sd">        Caches the result if arguments are the same as last call.</span>
+
+<span class="sd">        Returns the 2-tuple `(s, ds)` where `s` is of shape</span>
+<span class="sd">        `(len(self._binary_sites), len(self.epitopes))` and</span>
+<span class="sd">        `ds` is of shape `(len(self.mutations), len(self.epitopes))`</span>
+<span class="sd">        and gives the non-zero derivatives: for each :math:`\beta_{m,e}`</span>
+<span class="sd">        the derivative of the :math:`s` value for that mutation&#39;s site and epitope.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if we already called with these arguments, return saved value</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_site_avg_abs_diff_previous&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">epsilon</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff_previous_epsilon</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">params</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff_previous_params</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff_previous</span>
+
+        <span class="c1"># calculate values</span>
+        <span class="k">if</span> <span class="n">epsilon</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epsilon</span><span class="si">=}</span><span class="s2"> must be &gt; 0&quot;</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="n">beta2</span> <span class="o">=</span> <span class="n">beta</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">site_beta2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">beta2</span><span class="p">[</span><span class="n">siteindex</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">siteindex</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">site_beta2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="n">muts_per_site</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">siteindex</span><span class="p">)</span> <span class="k">for</span> <span class="n">siteindex</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+            <span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">muts_per_site</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">muts_per_site</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+
+        <span class="n">sqrt_term</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">site_beta2</span> <span class="o">/</span> <span class="n">muts_per_site</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">sqrt_term</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">epsilon</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+
+        <span class="k">assert</span> <span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_siteindex_to_mutindex</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">/</span> <span class="p">((</span><span class="n">muts_per_site</span> <span class="o">*</span> <span class="n">sqrt_term</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_siteindex_to_mutindex</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">ds</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">return_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ds</span><span class="p">)</span>
+
+        <span class="c1"># cache value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff_previous</span> <span class="o">=</span> <span class="n">return_tup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff_previous_epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff_previous_params</span> <span class="o">=</span> <span class="n">params</span>
+
+        <span class="k">return</span> <span class="n">return_tup</span>
+
+    <span class="k">def</span> <span class="nf">_reg_spatial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">reg_spatial_weight</span><span class="p">,</span> <span class="n">reg_spatial2_weight</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on spatial spread of epitopes and its gradient.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">reg_spatial_weight</span> <span class="o">==</span> <span class="n">reg_spatial2_weight</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">reg_spatial_weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reg_spatial_weight</span><span class="si">=}</span><span class="s2"> not &gt;= 0&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">reg_spatial2_weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reg_spatial2_weight</span><span class="si">=}</span><span class="s2"> not &gt;= 0&quot;</span><span class="p">)</span>
+
+        <span class="n">d_weighted</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">reg_spatial_weight</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_matrix</span>
+            <span class="o">+</span> <span class="n">reg_spatial2_weight</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_matrix2</span>
+        <span class="p">)</span>
+        <span class="n">n_sites</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">d_weighted</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
+            <span class="n">n_sites</span><span class="p">,</span>
+            <span class="n">n_sites</span><span class="p">,</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">d_weighted</span><span class="o">.</span><span class="n">shape</span><span class="si">=}</span><span class="se">\n</span><span class="si">{</span><span class="n">n_sites</span><span class="si">=}</span><span class="s2">&quot;</span>
+
+        <span class="n">d_weighted_mut_site</span> <span class="o">=</span> <span class="n">d_weighted</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_siteindex_to_mutindex</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">d_weighted_mut_site</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="n">n_sites</span><span class="p">)</span>
+
+        <span class="n">s</span><span class="p">,</span> <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_sites</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">ds</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+
+        <span class="n">reg</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_epitope</span><span class="p">,</span> <span class="p">(</span><span class="n">s_epitope</span><span class="p">,</span> <span class="n">ds_epitope</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">ds</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="p">):</span>
+            <span class="n">s_epitope_matrix</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">s_epitope</span><span class="p">,</span> <span class="n">s_epitope</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">s_epitope_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">d_weighted</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_sites</span><span class="p">,</span> <span class="n">n_sites</span><span class="p">)</span>
+            <span class="n">reg</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">s_epitope_matrix</span> <span class="o">*</span> <span class="n">d_weighted</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+            <span class="n">s_ds_epitope_matrix</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">ds_epitope</span><span class="p">,</span> <span class="n">s_epitope</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">s_ds_epitope_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="n">n_sites</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">s_ds_epitope_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">d_weighted_mut_site</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">dreg_epitope</span> <span class="o">=</span> <span class="p">(</span><span class="n">s_ds_epitope_matrix</span> <span class="o">*</span> <span class="n">d_weighted_mut_site</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">dreg_epitope</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),)</span>
+            <span class="n">dreg</span><span class="p">[:,</span> <span class="n">i_epitope</span><span class="p">]</span> <span class="o">=</span> <span class="n">dreg_epitope</span>
+
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
+
+    <span class="k">def</span> <span class="nf">_reg_uniqueness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on epitope uniqueness and its gradient.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reg_uniqueness_weight </span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2"> not &gt;= 0&quot;</span><span class="p">)</span>
+
+        <span class="n">n_sites</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="p">)</span>
+        <span class="n">s</span><span class="p">,</span> <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_avg_abs_diff</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_sites</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">ds</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+
+        <span class="n">s_mut</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_siteindex_to_mutindex</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">s_mut</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ds</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+
+        <span class="n">reg</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_epitope_1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">i_epitope_2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">i_epitope_2</span> <span class="o">&gt;</span> <span class="n">i_epitope_1</span><span class="p">:</span>
+                    <span class="n">reg_term</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:,</span> <span class="n">i_epitope_1</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span><span class="p">[:,</span> <span class="n">i_epitope_2</span><span class="p">]</span>
+                    <span class="k">assert</span> <span class="n">reg_term</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_sites</span><span class="p">,)</span>
+                    <span class="n">reg</span> <span class="o">+=</span> <span class="n">reg_term</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">i_epitope_1</span> <span class="o">!=</span> <span class="n">i_epitope_2</span><span class="p">:</span>
+                    <span class="n">dreg</span><span class="p">[:,</span> <span class="n">i_epitope_1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ds</span><span class="p">[:,</span> <span class="n">i_epitope_1</span><span class="p">]</span> <span class="o">*</span> <span class="n">s_mut</span><span class="p">[:,</span> <span class="n">i_epitope_2</span><span class="p">]</span>
+
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">return</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">reg</span><span class="p">,</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">dreg</span>
+
+    <span class="k">def</span> <span class="nf">_reg_uniqueness2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on squared uniqueness of escape across epitopes and gradient&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for uniqueness2 regularization not &gt;= 0&quot;</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+
+        <span class="n">site_norm</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">beta</span><span class="p">[</span><span class="n">siteindex</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">siteindex</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">site_norm</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="n">gram</span> <span class="o">=</span> <span class="n">site_norm</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span> <span class="o">@</span> <span class="n">site_norm</span>
+        <span class="k">assert</span> <span class="n">gram</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="n">inner_prod</span> <span class="o">=</span> <span class="n">gram</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="o">*</span><span class="n">gram</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">inner_prod</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">norm_expanded</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">siteindex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_binary_sites</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">norm_expanded</span><span class="p">[</span><span class="n">siteindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">site_norm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">norm_sum_over_epitopes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span>
+            <span class="n">norm_expanded</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">norm_expanded</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mi">2</span>
+            <span class="o">*</span> <span class="n">weight</span>
+            <span class="o">*</span> <span class="p">(</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">norm_sum_over_epitopes</span><span class="p">)</span>
+                <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">norm_expanded</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
+
     <span class="n">DEFAULT_SCIPY_MINIMIZE_KWARGS</span> <span class="o">=</span> <span class="n">frozendict</span><span class="o">.</span><span class="n">frozendict</span><span class="p">(</span>
         <span class="p">{</span>
             <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">,</span>
@@ -1542,7 +1839,12 @@
         <span class="n">loss_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
         <span class="n">reg_escape_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-        <span class="n">reg_spread_weight</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+        <span class="n">reg_spread_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">site_avg_abs_escape_epsilon</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">reg_spatial_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">reg_spatial2_weight</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+        <span class="n">reg_uniqueness_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">reg_uniqueness2_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">reg_activity_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">reg_activity_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">fit_site_level_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1569,9 +1871,26 @@
 <span class="sd">        reg_spread_weight : float</span>
 <span class="sd">            Strength of regularization on variance of :math:`\beta_{m,e}`</span>
 <span class="sd">            values at each site.</span>
+<span class="sd">        site_avg_abs_escape_epsilon : float</span>
+<span class="sd">            The epsilon value used when computing a differentiable measure of the</span>
+<span class="sd">            average absolute value of escape at a site for each epitope.</span>
+<span class="sd">        reg_spatial_weight : float</span>
+<span class="sd">            Strength of regularization of spatial distance between :math:`\beta_{m,e}`</span>
+<span class="sd">            values at each site. Only meaningful if :attr:`Polyclonal.distance_matrix`</span>
+<span class="sd">            is not `None`.</span>
+<span class="sd">        reg_spatial2_weight : float</span>
+<span class="sd">            Strength of regularization of squared spatial distance between</span>
+<span class="sd">            :math:`\beta_{m,e}` values at each site. Only meaningful if</span>
+<span class="sd">            :attr:`Polyclonal.distance_matrix` is not `None`.</span>
+<span class="sd">        reg_uniqueness_weight: float</span>
+<span class="sd">            Strength of regularization on epitope uniqueness.</span>
+<span class="sd">        reg_uniqueness2_weight : float</span>
+<span class="sd">            Strength of regularization on uniqueness of squared escape.</span>
+<span class="sd">            values at each site across epitopes.</span>
+<span class="sd">        site_avg_abs_escape_epsilon : float</span>
+<span class="sd">            Epsilon value for caclulating site average absolute escape.</span>
 <span class="sd">        reg_activity_weight : float</span>
 <span class="sd">            Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.</span>
-<span class="sd">            Only positive values regularized.</span>
 <span class="sd">        reg_activity_delta : float</span>
 <span class="sd">            Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.</span>
 <span class="sd">        fit_site_level_first : bool</span>
@@ -1591,6 +1910,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot fit if `data_to_fit` not set&quot;</span><span class="p">)</span>
+
+        <span class="n">log_c_gm</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">gmean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">[</span><span class="s2">&quot;concentration&quot;</span><span class="p">]))</span>
 
         <span class="k">if</span> <span class="n">log</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">log</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
@@ -1634,13 +1955,44 @@
                         <span class="n">params</span><span class="p">,</span> <span class="n">reg_escape_weight</span><span class="p">,</span> <span class="n">reg_escape_delta</span>
                     <span class="p">)</span>
                     <span class="n">regspread</span><span class="p">,</span> <span class="n">dregspread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_spread</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">reg_spread_weight</span><span class="p">)</span>
+                    <span class="n">regspatial</span><span class="p">,</span> <span class="n">dregspatial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_spatial</span><span class="p">(</span>
+                        <span class="n">params</span><span class="p">,</span>
+                        <span class="n">reg_spatial_weight</span><span class="p">,</span>
+                        <span class="n">reg_spatial2_weight</span><span class="p">,</span>
+                        <span class="n">site_avg_abs_escape_epsilon</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">reguniqueness</span><span class="p">,</span> <span class="n">dreguniqueness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_uniqueness</span><span class="p">(</span>
+                        <span class="n">params</span><span class="p">,</span>
+                        <span class="n">reg_uniqueness_weight</span><span class="p">,</span>
+                        <span class="n">site_avg_abs_escape_epsilon</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">reguniqueness2</span><span class="p">,</span> <span class="n">dreguniqueness2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_uniqueness2</span><span class="p">(</span>
+                        <span class="n">params</span><span class="p">,</span> <span class="n">reg_uniqueness2_weight</span>
+                    <span class="p">)</span>
                     <span class="n">regactivity</span><span class="p">,</span> <span class="n">dregactivity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_activity</span><span class="p">(</span>
                         <span class="n">params</span><span class="p">,</span>
                         <span class="n">reg_activity_weight</span><span class="p">,</span>
                         <span class="n">reg_activity_delta</span><span class="p">,</span>
+                        <span class="n">log_c_gm</span><span class="p">,</span>
                     <span class="p">)</span>
-                    <span class="n">loss</span> <span class="o">=</span> <span class="n">fitloss</span> <span class="o">+</span> <span class="n">regescape</span> <span class="o">+</span> <span class="n">regspread</span> <span class="o">+</span> <span class="n">regactivity</span>
-                    <span class="n">dloss</span> <span class="o">=</span> <span class="n">dfitloss</span> <span class="o">+</span> <span class="n">dregescape</span> <span class="o">+</span> <span class="n">dregspread</span> <span class="o">+</span> <span class="n">dregactivity</span>
+                    <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">fitloss</span>
+                        <span class="o">+</span> <span class="n">regescape</span>
+                        <span class="o">+</span> <span class="n">regspread</span>
+                        <span class="o">+</span> <span class="n">regspatial</span>
+                        <span class="o">+</span> <span class="n">reguniqueness</span>
+                        <span class="o">+</span> <span class="n">reguniqueness2</span>
+                        <span class="o">+</span> <span class="n">regactivity</span>
+                    <span class="p">)</span>
+                    <span class="n">dloss</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">dfitloss</span>
+                        <span class="o">+</span> <span class="n">dregescape</span>
+                        <span class="o">+</span> <span class="n">dregspread</span>
+                        <span class="o">+</span> <span class="n">dregspatial</span>
+                        <span class="o">+</span> <span class="n">dreguniqueness</span>
+                        <span class="o">+</span> <span class="n">dreguniqueness2</span>
+                        <span class="o">+</span> <span class="n">dregactivity</span>
+                    <span class="p">)</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">last_params</span> <span class="o">=</span> <span class="n">params</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="n">loss</span><span class="p">,</span>
@@ -1649,6 +2001,9 @@
                             <span class="s2">&quot;fit_loss&quot;</span><span class="p">:</span> <span class="n">fitloss</span><span class="p">,</span>
                             <span class="s2">&quot;reg_escape&quot;</span><span class="p">:</span> <span class="n">regescape</span><span class="p">,</span>
                             <span class="s2">&quot;reg_spread&quot;</span><span class="p">:</span> <span class="n">regspread</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_spatial&quot;</span><span class="p">:</span> <span class="n">regspatial</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_uniqueness&quot;</span><span class="p">:</span> <span class="n">reguniqueness</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_uniqueness2&quot;</span><span class="p">:</span> <span class="n">reguniqueness2</span><span class="p">,</span>
                             <span class="s2">&quot;reg_activity&quot;</span><span class="p">:</span> <span class="n">regactivity</span><span class="p">,</span>
                         <span class="p">},</span>
                     <span class="p">)</span>
@@ -1672,14 +2027,24 @@
                 <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">force_output</span> <span class="ow">or</span> <span class="p">(</span><span class="n">self_</span><span class="o">.</span><span class="n">i</span> <span class="o">%</span> <span class="n">self_</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                         <span class="n">loss</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">breakdown</span> <span class="o">=</span> <span class="n">lossreg</span><span class="o">.</span><span class="n">loss_reg</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="s2">&quot;time_sec&quot;</span><span class="p">,</span> <span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+                        <span class="n">col_widths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
                         <span class="k">if</span> <span class="n">header</span><span class="p">:</span>
-                            <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="s2">&quot;time_sec&quot;</span><span class="p">,</span> <span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-                            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:&gt;13}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                                <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="s2">:&gt;</span><span class="si">{</span><span class="n">col_width</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">col_width</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">col_widths</span><span class="p">)</span>
+                                <span class="p">)</span>
+                                <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
                         <span class="n">sec</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">self_</span><span class="o">.</span><span class="n">start</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
                             <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                                <span class="s2">&quot;</span><span class="si">{:&gt;13.5g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-                                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">self_</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="s2">:&gt;</span><span class="si">{</span><span class="n">col_width</span><span class="si">}</span><span class="s2">.5g</span><span class="se">}}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">col_width</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                                    <span class="p">[</span><span class="n">self_</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="n">sec</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+                                    <span class="n">col_widths</span><span class="p">,</span>
+                                <span class="p">)</span>
                             <span class="p">)</span>
                             <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
                         <span class="p">)</span>
@@ -2341,10 +2706,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../regularization.html">Regularization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_serum.html">Real serum example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>
