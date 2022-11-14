@@ -12,6 +12,7 @@ import collections
 import copy  # noqa: F401
 import inspect
 import itertools
+import math
 import os
 import sys
 import time
@@ -29,6 +30,7 @@ import pandas as pd
 
 import scipy.optimize
 import scipy.special
+import scipy.stats
 
 import polyclonal
 import polyclonal.alphabets
@@ -208,6 +210,8 @@ class Polyclonal:
         are collapsed on columns 'concentration', 'aa_substitutions',
         and 'prob_escape', and a column 'weight' is added to represent number
         of collapsed variants. Also, row-order may be changed.
+    spatial_distances : pandas.DataFrame or None
+        Spatial distances passed when initializing this :class:`Polyclonal` object.
     mutations_times_seen : frozendict.frozendict or None
         If `data_to_fit` is not `None`, keyed by all mutations with escape values
         and values are number of variants in which the mutation is seen. It is formally
@@ -501,6 +505,7 @@ class Polyclonal:
     ...         reg_escape_weight=0.001,
     ...         reg_spread_weight=0.001,
     ...         reg_activity_weight=0.0001,
+    ...         reg_uniqueness2_weight=0,
     ...     )
     ...     pred_df = m.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
@@ -522,20 +527,12 @@ class Polyclonal:
 
     >>> model_data.mut_escape_site_summary_df().round(1)
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
-    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
+    0       1     1        M  -0.0             0.0 -0.0 -0.0            -0.0            1
     1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     2       1     4        A   2.0             4.0  2.5  1.5             0.0            2
     3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
     4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
     5       2     4        A   0.0             0.0  0.0  0.0             0.0            2
-    >>> model_data.mut_escape_site_summary_df(min_times_seen=4).round(1)
-      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
-    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
-    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
-    2       1     4        A   2.5             2.5  2.5  2.5             0.0            1
-    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
-    4       2     2        G   3.0             3.0  3.0  3.0             0.0            1
-    5       2     4        A   0.0             0.0  0.0  0.0             0.0            1
 
     You can also exclude mutations to specific characters (typically you would want to
     do this for stop codons and/or gaps):
@@ -705,7 +702,8 @@ class Polyclonal:
     ...     reg_spread_weight=0.001,
     ...     reg_activity_weight=0.0001,
     ...     reg_spatial_weight=0.001,
-    ...     reg_spatial_weight2=0.0001,
+    ...     reg_spatial2_weight=0.0001,
+    ...     reg_uniqueness2_weight=0,
     ... )
     >>> pred_df = model_spatial.prob_escape(variants_df=data_to_fit)
     >>> if not numpy.allclose(
@@ -1049,7 +1047,26 @@ class Polyclonal:
             )
             assert self._binary_siteindex_to_mutindex.shape == (len(self.mutations),)
             if spatial_distances is not None:
-                self._spatial_distances = spatial_distances.copy()
+                if (
+                    spatial_distances["site_1"].dtype
+                    != spatial_distances["site_2"].dtype
+                ):
+                    raise ValueError(
+                        "`spatial_distances` site_1 and site_2 columns different dtype"
+                    )
+                if self.sequential_integer_sites:
+                    if spatial_distances["site_1"].dtype != int:
+                        raise ValueError(
+                            "model uses sequential integer sites but spatial distances "
+                            "does not have integer sites."
+                        )
+                else:
+                    if spatial_distances["site_1"].dtype == int:
+                        for col in ["site_1", "site_2"]:
+                            spatial_distances[col] = spatial_distances[col].astype(str)
+                if not set(self.sites).union(spatial_distances["site_1"]):
+                    raise ValueError("no overlap between sites and `spatial_distances`")
+                self.spatial_distances = spatial_distances.copy()
                 # get distance matrix with sites in same order as in self._binary_sites
                 spatial_dist_dict = spatial_distances.set_index(["site_1", "site_2"])[
                     "distance"
@@ -1080,7 +1097,7 @@ class Polyclonal:
                 self._distance_matrix2 = self._distance_matrix**2
             else:
                 self.distance_matrix = None
-                self._spatial_distances = None
+                self.spatial_distances = None
         else:
             self.data_to_fit = None
             self.distance_matrix = None
@@ -1406,16 +1423,21 @@ class Polyclonal:
         return variants_df
 
     def _check_close_activities(self):
-        """Check that no two epitopes have near-identical activities."""
-        a, _ = self._a_beta_from_params(self._params)
-        a_sorted = numpy.sort(a)
-        for a1, a2 in zip(a_sorted, a_sorted[1:]):
-            if numpy.allclose(a1, a2):
-                raise ValueError(
-                    "Near-identical activities for two epitopes, "
-                    "will cause problems in fitting. Reinitialize"
-                    f" with more distinct activities:\n{a}"
-                )
+        """Check no epitopes have near-identical activities and escape."""
+        a, beta = self._a_beta_from_params(self._params)
+        assert a.shape == (len(self.epitopes),)
+        assert beta.shape == (len(self.mutations), len(self.epitopes))
+        for i1 in range(len(self.epitopes)):
+            a1 = a[i1]
+            e1 = beta[:, i1]
+            assert e1.shape == (len(self.mutations),)
+            for i2 in range(i1 + 1, len(self.epitopes)):
+                if numpy.allclose(a1, a[i2]) and numpy.allclose(e1, beta[:, i2]):
+                    raise ValueError(
+                        "Near-identical activities and escape for two epitopes, "
+                        "will cause problems in fitting. Reinitialize"
+                        f" with more distinct activities:\n{a}"
+                    )
 
     def site_level_model(
         self,
@@ -1459,7 +1481,7 @@ class Polyclonal:
         return Polyclonal(
             activity_wt_df=self.activity_wt_df,
             mut_escape_df=site_escape_df,
-            spatial_distances=self._spatial_distances,
+            spatial_distances=self.spatial_distances,
             data_to_fit=site_data_to_fit,
             alphabet=("w", "m"),
             sites=None if self.sequential_integer_sites else self.sites,
@@ -1545,16 +1567,14 @@ class Polyclonal:
         assert reg >= 0
         return reg, dreg
 
-    def _reg_activity(self, params, weight, delta):
+    def _reg_activity(self, params, weight, delta, log_c_gm):
         """Regularization on activity and its gradient."""
         if weight == 0:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for activity regularization not >= 0")
         a, _ = self._a_beta_from_params(params)
-        h, dh = self._scaled_pseudo_huber(delta, a, True)
-        h = numpy.where(a > 0, h, 0.0)
-        dh = numpy.where(a > 0, dh, 0.0)
+        h, dh = self._scaled_pseudo_huber(delta, a + log_c_gm, True)
         reg = h.sum() * weight
         assert dh.shape == a.shape == (len(self.epitopes),)
         dreg = weight * numpy.concatenate([dh, numpy.zeros(len(params) - len(a))])
@@ -1645,20 +1665,20 @@ class Polyclonal:
 
         return return_tup
 
-    def _reg_spatial(self, params, reg_spatial_weight, reg_spatial_weight2, epsilon):
+    def _reg_spatial(self, params, reg_spatial_weight, reg_spatial2_weight, epsilon):
         """Regularization on spatial spread of epitopes and its gradient."""
         if (self.distance_matrix is None) or (
-            reg_spatial_weight == reg_spatial_weight2 == 0
+            reg_spatial_weight == reg_spatial2_weight == 0
         ):
             return (0, numpy.zeros(params.shape))
         elif reg_spatial_weight < 0:
             raise ValueError(f"{reg_spatial_weight=} not >= 0")
-        elif reg_spatial_weight2 < 0:
-            raise ValueError(f"{reg_spatial_weight2=} not >= 0")
+        elif reg_spatial2_weight < 0:
+            raise ValueError(f"{reg_spatial2_weight=} not >= 0")
 
         d_weighted = (
             reg_spatial_weight * self._distance_matrix
-            + reg_spatial_weight2 * self._distance_matrix2
+            + reg_spatial2_weight * self._distance_matrix2
         )
         n_sites = len(self._binary_sites)
         assert d_weighted.shape == (
@@ -1725,12 +1745,12 @@ class Polyclonal:
 
         return weight * reg, weight * dreg
 
-    def _reg_similarity(self, params, weight):
-        """Regularization on similarity of escape across epitopes and its gradient."""
+    def _reg_uniqueness2(self, params, weight):
+        """Regularization on squared uniqueness of escape across epitopes and gradient"""
         if weight == 0 or len(self.epitopes) < 2:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
-            raise ValueError(f"{weight=} for similarity regularization not >= 0")
+            raise ValueError(f"{weight=} for uniqueness2 regularization not >= 0")
         _, beta = self._a_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
 
@@ -1784,12 +1804,12 @@ class Polyclonal:
         loss_delta=0.1,
         reg_escape_weight=0.02,
         reg_escape_delta=0.1,
-        reg_spread_weight=0.25,
+        reg_spread_weight=0.1,
         site_avg_abs_escape_epsilon=0.1,
         reg_spatial_weight=0.0,
-        reg_spatial_weight2=0.0,
-        reg_similarity_weight=0.0,
-        reg_uniqueness_weight=0.0,
+        reg_spatial2_weight=0.0001,
+        reg_uniqueness_weight=0,
+        reg_uniqueness2_weight=0.1,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
         fit_site_level_first=True,
@@ -1816,10 +1836,6 @@ class Polyclonal:
         reg_spread_weight : float
             Strength of regularization on variance of :math:`\beta_{m,e}`
             values at each site.
-        reg_similarity_weight : float
-            Strength of regularization on similarity of :math:`\beta_{m,e}`
-            values at each site across epitopes. Has no effect when there is
-            only one epitope.
         site_avg_abs_escape_epsilon : float
             The epsilon value used when computing a differentiable measure of the
             average absolute value of escape at a site for each epitope.
@@ -1827,15 +1843,19 @@ class Polyclonal:
             Strength of regularization of spatial distance between :math:`\beta_{m,e}`
             values at each site. Only meaningful if :attr:`Polyclonal.distance_matrix`
             is not `None`.
-        reg_spatial_weight2 : float
+        reg_spatial2_weight : float
             Strength of regularization of squared spatial distance between
             :math:`\beta_{m,e}` values at each site. Only meaningful if
             :attr:`Polyclonal.distance_matrix` is not `None`.
         reg_uniqueness_weight: float
             Strength of regularization on epitope uniqueness.
+        reg_uniqueness2_weight : float
+            Strength of regularization on uniqueness of squared escape.
+            values at each site across epitopes.
+        site_avg_abs_escape_epsilon : float
+            Epsilon value for caclulating site average absolute escape.
         reg_activity_weight : float
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
-            Only positive values regularized.
         reg_activity_delta : float
             Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.
         fit_site_level_first : bool
@@ -1855,6 +1875,8 @@ class Polyclonal:
         """
         if self.data_to_fit is None:
             raise ValueError("cannot fit if `data_to_fit` not set")
+
+        log_c_gm = math.log(scipy.stats.gmean(self.data_to_fit["concentration"]))
 
         if log is None:
             log = sys.stdout
@@ -1901,7 +1923,7 @@ class Polyclonal:
                     regspatial, dregspatial = self._reg_spatial(
                         params,
                         reg_spatial_weight,
-                        reg_spatial_weight2,
+                        reg_spatial2_weight,
                         site_avg_abs_escape_epsilon,
                     )
                     reguniqueness, dreguniqueness = self._reg_uniqueness(
@@ -1909,13 +1931,14 @@ class Polyclonal:
                         reg_uniqueness_weight,
                         site_avg_abs_escape_epsilon,
                     )
-                    regsimilarity, dregsimilarity = self._reg_similarity(
-                        params, reg_similarity_weight
+                    reguniqueness2, dreguniqueness2 = self._reg_uniqueness2(
+                        params, reg_uniqueness2_weight
                     )
                     regactivity, dregactivity = self._reg_activity(
                         params,
                         reg_activity_weight,
                         reg_activity_delta,
+                        log_c_gm,
                     )
                     loss = (
                         fitloss
@@ -1923,7 +1946,7 @@ class Polyclonal:
                         + regspread
                         + regspatial
                         + reguniqueness
-                        + regsimilarity
+                        + reguniqueness2
                         + regactivity
                     )
                     dloss = (
@@ -1932,7 +1955,7 @@ class Polyclonal:
                         + dregspread
                         + dregspatial
                         + dreguniqueness
-                        + dregsimilarity
+                        + dreguniqueness2
                         + dregactivity
                     )
                     self_.last_params = params
@@ -1945,7 +1968,7 @@ class Polyclonal:
                             "reg_spread": regspread,
                             "reg_spatial": regspatial,
                             "reg_uniqueness": reguniqueness,
-                            "reg_similarity": regsimilarity,
+                            "reg_uniqueness2": reguniqueness2,
                             "reg_activity": regactivity,
                         },
                     )

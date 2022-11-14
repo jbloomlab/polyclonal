@@ -24,10 +24,13 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
+   regularization
    RBD_bootstrap
    RBD_average
    real_LyCoV1404
    reference_site_numbering
+   real_cocktail
+   real_serum
    specify_epitopes
    expt_design
    optimization

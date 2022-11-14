@@ -6,6 +6,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+3.0
+----
+- Make ``Polyclonal.spatial_distances`` a public attribute.
+- ``Polyclonal.fit`` allows epitopes with identical activities if they have different escape.
+- Activity regularization penalizes both positive and negative values.
+- Checks and int versus str dtype adjustment for ``spatial_distances`` in ``Polyclonal``.
+- Adjust activity regularization based on concentration geometric mean so it is not sensitive to units of concentration.
+- Renamed what was previously called the epitope similarity regularization to epitope uniqueness-squared, as it's a second uniqueness regularization but operates on square of escape values.
+- Change default regularization strengths in ``Polyclonal.fit``.
+- Rename ``reg_spatial_weight2`` to ``reg_spatial2_weight`` for ``Polyclonal.fit``.
+- Update default values of regularization weights.
+- Added antibody cocktail and HIV serum examples.
+- Updated examples, for instance by adding spatial regularization to RBD example and slightly changing simulated data.
+
 2.6
 ------
 - Flatten mutation-escape values for RBD simulation so most values are roughly zero. Previously many values were ~0.5 rather than 0. Also adjust activities for this simulation.

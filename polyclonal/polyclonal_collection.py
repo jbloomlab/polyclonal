@@ -191,6 +191,7 @@ def _create_bootstrap_polyclonal(
         sites=(
             None if root_polyclonal.sequential_integer_sites else root_polyclonal.sites
         ),
+        spatial_distances=root_polyclonal.spatial_distances,
     )
 
 
