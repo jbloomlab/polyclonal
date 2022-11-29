@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+3.1
+----
+- Change default positive colors.
+
 3.0
 ----
 - Make ``Polyclonal.spatial_distances`` a public attribute.
