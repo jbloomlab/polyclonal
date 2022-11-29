@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Sera concentrations &#8212; polyclonal 3.0 documentation</title>
+    <title>Sera concentrations &#8212; polyclonal 3.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -647,12 +647,12 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Model with [0.125] fit and saved.
-Model with [0.25] fit and saved.
-Model with [0.5] fit and saved.
-Model with [1] fit and saved.
-Model with [2] fit and saved.
-Model with [4] fit and saved.
+Model with [0.125] was already fit.
+Model with [0.25] was already fit.
+Model with [0.5] was already fit.
+Model with [1] was already fit.
+Model with [2] was already fit.
+Model with [4] was already fit.
 </pre></div></div>
 </div>
 <p>We can look at the correlation between the “true” and inferred mutation-escape values, <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, for the fit models. These mutation-escape values represent the extent to which mutations mediate escape from specific epitopes.</p>
@@ -707,7 +707,7 @@ Model with [4] fit and saved.
     <span class="n">column</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
     <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;icxx_set:O&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
     <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
-        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
+        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">,</span> <span class="s2">&quot;#4C3549&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">),</span>
 <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span><span class="p">)</span>
 </pre></div>
@@ -718,7 +718,7 @@ Model with [4] fit and saved.
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
+/home/tyu2/.local/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
   for col_name, dtype in df.dtypes.iteritems():
 </pre></div></div>
 </div>
@@ -727,13 +727,13 @@ Model with [4] fit and saved.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-52ff54ac8ca04d9b814e72809bc9fd52"></div>
+<div id="altair-viz-517cdcd5a6174091994094ab4107e9e5"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-52ff54ac8ca04d9b814e72809bc9fd52") {
-      outputDiv = document.getElementById("altair-viz-52ff54ac8ca04d9b814e72809bc9fd52");
+    if (outputDiv.id !== "altair-viz-517cdcd5a6174091994094ab4107e9e5") {
+      outputDiv = document.getElementById("altair-viz-517cdcd5a6174091994094ab4107e9e5");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -779,7 +779,7 @@ Model with [4] fit and saved.
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-8cf1de1071b8cf3f72e40839af01a692"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "ordinal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-8cf1de1071b8cf3f72e40839af01a692": [{"epitope": "class 1", "correlation (R^2)": 0.6494946791057244, "icxx_set": "IC95.141"}, {"epitope": "class 2", "correlation (R^2)": 0.9411429752536082, "icxx_set": "IC95.141"}, {"epitope": "class 3", "correlation (R^2)": 0.9235798092082146, "icxx_set": "IC95.141"}, {"epitope": "class 1", "correlation (R^2)": 0.633408776422364, "icxx_set": "IC98.854"}, {"epitope": "class 2", "correlation (R^2)": 0.9449715250188195, "icxx_set": "IC98.854"}, {"epitope": "class 3", "correlation (R^2)": 0.9328787988314352, "icxx_set": "IC98.854"}, {"epitope": "class 1", "correlation (R^2)": 0.5855229863399843, "icxx_set": "IC99.79"}, {"epitope": "class 2", "correlation (R^2)": 0.9447264445598186, "icxx_set": "IC99.79"}, {"epitope": "class 3", "correlation (R^2)": 0.9320465960897137, "icxx_set": "IC99.79"}, {"epitope": "class 1", "correlation (R^2)": 0.47277660829732004, "icxx_set": "IC99.968"}, {"epitope": "class 2", "correlation (R^2)": 0.9255322091240006, "icxx_set": "IC99.968"}, {"epitope": "class 3", "correlation (R^2)": 0.9266370719977781, "icxx_set": "IC99.968"}, {"epitope": "class 1", "correlation (R^2)": 0.3998783246881719, "icxx_set": "IC99.995"}, {"epitope": "class 2", "correlation (R^2)": 0.9295250314996651, "icxx_set": "IC99.995"}, {"epitope": "class 3", "correlation (R^2)": 0.9009690071099429, "icxx_set": "IC99.995"}, {"epitope": "class 1", "correlation (R^2)": 0.3722224083975561, "icxx_set": "IC99.999"}, {"epitope": "class 2", "correlation (R^2)": 0.9126328899571241, "icxx_set": "IC99.999"}, {"epitope": "class 3", "correlation (R^2)": 0.8726719283299381, "icxx_set": "IC99.999"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-8cf1de1071b8cf3f72e40839af01a692"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#0072B2", "#CC79A7", "#4C3549"]}, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "ordinal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-8cf1de1071b8cf3f72e40839af01a692": [{"epitope": "class 1", "correlation (R^2)": 0.6494946791057244, "icxx_set": "IC95.141"}, {"epitope": "class 2", "correlation (R^2)": 0.9411429752536082, "icxx_set": "IC95.141"}, {"epitope": "class 3", "correlation (R^2)": 0.9235798092082146, "icxx_set": "IC95.141"}, {"epitope": "class 1", "correlation (R^2)": 0.633408776422364, "icxx_set": "IC98.854"}, {"epitope": "class 2", "correlation (R^2)": 0.9449715250188195, "icxx_set": "IC98.854"}, {"epitope": "class 3", "correlation (R^2)": 0.9328787988314352, "icxx_set": "IC98.854"}, {"epitope": "class 1", "correlation (R^2)": 0.5855229863399843, "icxx_set": "IC99.79"}, {"epitope": "class 2", "correlation (R^2)": 0.9447264445598186, "icxx_set": "IC99.79"}, {"epitope": "class 3", "correlation (R^2)": 0.9320465960897137, "icxx_set": "IC99.79"}, {"epitope": "class 1", "correlation (R^2)": 0.47277660829732004, "icxx_set": "IC99.968"}, {"epitope": "class 2", "correlation (R^2)": 0.9255322091240006, "icxx_set": "IC99.968"}, {"epitope": "class 3", "correlation (R^2)": 0.9266370719977781, "icxx_set": "IC99.968"}, {"epitope": "class 1", "correlation (R^2)": 0.3998783246881719, "icxx_set": "IC99.995"}, {"epitope": "class 2", "correlation (R^2)": 0.9295250314996651, "icxx_set": "IC99.995"}, {"epitope": "class 3", "correlation (R^2)": 0.9009690071099429, "icxx_set": "IC99.995"}, {"epitope": "class 1", "correlation (R^2)": 0.3722224083975561, "icxx_set": "IC99.999"}, {"epitope": "class 2", "correlation (R^2)": 0.9126328899571241, "icxx_set": "IC99.999"}, {"epitope": "class 3", "correlation (R^2)": 0.8726719283299381, "icxx_set": "IC99.999"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Additionally, we’ll look at the correlation between “true” and predicted IC90’s for each of the fit models. To do this, we’ll predict the IC90’s of variants in a separate library with a with a different (higher) mutation rate. We therefore read in the “exact” simulated data from a library containing variants with an average of four mutations per gene.</p>
@@ -857,7 +857,7 @@ Model with [4] fit and saved.
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
+/home/tyu2/.local/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
   for col_name, dtype in df.dtypes.iteritems():
 </pre></div></div>
 </div>
@@ -866,13 +866,13 @@ Model with [4] fit and saved.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-2df54c21653c4105b76d78346fd77253"></div>
+<div id="altair-viz-f9d08b355c564a1797e593ca476d283c"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-2df54c21653c4105b76d78346fd77253") {
-      outputDiv = document.getElementById("altair-viz-2df54c21653c4105b76d78346fd77253");
+    if (outputDiv.id !== "altair-viz-f9d08b355c564a1797e593ca476d283c") {
+      outputDiv = document.getElementById("altair-viz-f9d08b355c564a1797e593ca476d283c");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -918,7 +918,7 @@ Model with [4] fit and saved.
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-c4361424f912a1b6377c4296bc6f7305"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-c4361424f912a1b6377c4296bc6f7305": [{"correlation (R^2)": 0.9735547111012681, "icxx_set": "IC95.141"}, {"correlation (R^2)": 0.9706927418536281, "icxx_set": "IC98.854"}, {"correlation (R^2)": 0.9371232495080029, "icxx_set": "IC99.79"}, {"correlation (R^2)": 0.8524044532251414, "icxx_set": "IC99.968"}, {"correlation (R^2)": 0.7156542863450766, "icxx_set": "IC99.995"}, {"correlation (R^2)": 0.5676210971236344, "icxx_set": "IC99.999"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-20bba568f249810ece7bb6819d46dd5a"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 200, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-20bba568f249810ece7bb6819d46dd5a": [{"correlation (R^2)": 0.9735547111012681, "icxx_set": "IC95.141"}, {"correlation (R^2)": 0.9706927418536281, "icxx_set": "IC98.854"}, {"correlation (R^2)": 0.9371232495080029, "icxx_set": "IC99.79"}, {"correlation (R^2)": 0.8524044532251411, "icxx_set": "IC99.968"}, {"correlation (R^2)": 0.7156542863450766, "icxx_set": "IC99.995"}, {"correlation (R^2)": 0.5676210971236344, "icxx_set": "IC99.999"}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Across all models fit on data with single concentrations, the correlation was very strong.</p>
@@ -963,11 +963,11 @@ Model with [4] fit and saved.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Model with [0.25, 1] fit and saved.
-Model with [0.5, 1] fit and saved.
-Model with [1, 2] fit and saved.
-Model with [1, 4] fit and saved.
-Model with [0.5, 1, 2] fit and saved.
+Model with [0.25, 1] was already fit.
+Model with [0.5, 1] was already fit.
+Model with [1, 2] was already fit.
+Model with [1, 4] was already fit.
+Model with [0.5, 1, 2] was already fit.
 Model with [0.25, 1, 4] was already fit.
 Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 </pre></div></div>
@@ -1030,7 +1030,7 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
     <span class="n">y</span><span class="o">=</span><span class="s2">&quot;correlation (R^2):Q&quot;</span><span class="p">,</span>
     <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;icxx_set&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">)],</span>
     <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
-        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
+        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">,</span> <span class="s2">&quot;#4C3549&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">),</span>
     <span class="n">row</span><span class="o">=</span><span class="s2">&quot;epitope:N&quot;</span><span class="p">,</span>
 <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
@@ -1046,7 +1046,7 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
+/home/tyu2/.local/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
   for col_name, dtype in df.dtypes.iteritems():
 </pre></div></div>
 </div>
@@ -1055,13 +1055,13 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-fc4a121397af4037911d09faf06ee178"></div>
+<div id="altair-viz-76de93894ce04dc8950bde4ca99d3450"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-fc4a121397af4037911d09faf06ee178") {
-      outputDiv = document.getElementById("altair-viz-fc4a121397af4037911d09faf06ee178");
+    if (outputDiv.id !== "altair-viz-76de93894ce04dc8950bde4ca99d3450") {
+      outputDiv = document.getElementById("altair-viz-76de93894ce04dc8950bde4ca99d3450");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1107,7 +1107,7 @@ Model with [0.125, 0.25, 0.5, 1, 2, 4] was already fit.
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"labelLimit": 300}}, "data": {"name": "data-9144978891006e066ec4547894540e20"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "row": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "nominal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-9144978891006e066ec4547894540e20": [{"epitope": "class 1", "correlation (R^2)": 0.47277660829732004, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 2", "correlation (R^2)": 0.9255322091240006, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 3", "correlation (R^2)": 0.9266370719977781, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 1", "correlation (R^2)": 0.6909266584026795, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9525609389728366, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9404001493279208, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6265691352114429, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9557568037529991, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9387576633420915, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.4940309374276288, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9380210668269039, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9271310579812604, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.5442101528058595, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.933233971350855, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9329567842547906, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6672003017549143, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.9550005721717503, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9409394223955386, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.6903693412396601, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.973458806521, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9496508848872558, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.2141445291871195, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 2", "correlation (R^2)": 0.917913155093109, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 3", "correlation (R^2)": 0.9306125189745491, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"labelLimit": 300}}, "data": {"name": "data-a4d697f23857208c41016677ef312adf"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#0072B2", "#CC79A7", "#4C3549"]}, "type": "nominal"}, "row": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "nominal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-a4d697f23857208c41016677ef312adf": [{"epitope": "class 1", "correlation (R^2)": 0.47277660829732004, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 2", "correlation (R^2)": 0.9255322091240006, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 3", "correlation (R^2)": 0.9266370719977781, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 1", "correlation (R^2)": 0.6909266584026795, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9525609389728366, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9404001493279208, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6265691352114429, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9557568037529991, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9387576633420915, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.4940309374276288, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9380210668269039, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9271310579812604, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.5442101528058595, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.933233971350855, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9329567842547906, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6672003017549143, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.9550005721717503, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9409394223955386, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.6903693412396601, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.973458806521, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9496508848872558, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.7317139483963229, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 2", "correlation (R^2)": 0.9568631207505862, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 3", "correlation (R^2)": 0.9549092400778721, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>We see that the performance of models fit on data with two or three concentrations is nearly indistinguishable from that of the model fit on data with all six concentrations. Additionally, adding two or three concentrations does lead to a modest improvement in the correlation, especially for the class 1 epitope, which is expected to be the hardest to predict since it has the lowest wildtype activity. We can also summarize this by plotting the number of concentrations used for fitting on the
@@ -1128,7 +1128,7 @@ x-axis.</p>
         <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;correlation (R^2)&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3f&quot;</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
-        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
+        <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">,</span> <span class="s2">&quot;#4C3549&quot;</span><span class="p">]),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">),</span>
 <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;inferred vs. true mutation escape values&quot;</span><span class="p">)</span>
 </pre></div>
@@ -1139,13 +1139,13 @@ x-axis.</p>
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-9280dc1d080946ed807b924fb1609503"></div>
+<div id="altair-viz-f7fa1cfbcaef410a96500452d34e7882"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-9280dc1d080946ed807b924fb1609503") {
-      outputDiv = document.getElementById("altair-viz-9280dc1d080946ed807b924fb1609503");
+    if (outputDiv.id !== "altair-viz-f7fa1cfbcaef410a96500452d34e7882") {
+      outputDiv = document.getElementById("altair-viz-f7fa1cfbcaef410a96500452d34e7882");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1191,7 +1191,7 @@ x-axis.</p>
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-9144978891006e066ec4547894540e20"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#0072B2", "#009E73", "#CC79A7"]}, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "ordinal"}, {"field": "num_concs", "type": "ordinal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "num_concs", "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 150, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-9144978891006e066ec4547894540e20": [{"epitope": "class 1", "correlation (R^2)": 0.47277660829732004, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 2", "correlation (R^2)": 0.9255322091240006, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 3", "correlation (R^2)": 0.9266370719977781, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 1", "correlation (R^2)": 0.6909266584026795, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9525609389728366, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9404001493279208, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6265691352114429, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9557568037529991, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9387576633420915, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.4940309374276288, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9380210668269039, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9271310579812604, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.5442101528058595, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.933233971350855, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9329567842547906, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6672003017549143, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.9550005721717503, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9409394223955386, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.6903693412396601, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.973458806521, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9496508848872558, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.2141445291871195, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 2", "correlation (R^2)": 0.917913155093109, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 3", "correlation (R^2)": 0.9306125189745491, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-a4d697f23857208c41016677ef312adf"}, "mark": {"type": "circle", "size": 125}, "encoding": {"color": {"field": "epitope", "legend": null, "scale": {"range": ["#0072B2", "#CC79A7", "#4C3549"]}, "type": "nominal"}, "column": {"field": "epitope", "type": "nominal"}, "tooltip": [{"field": "icxx_set", "type": "ordinal"}, {"field": "num_concs", "type": "ordinal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "num_concs", "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "inferred vs. true mutation escape values", "width": 150, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-a4d697f23857208c41016677ef312adf": [{"epitope": "class 1", "correlation (R^2)": 0.47277660829732004, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 2", "correlation (R^2)": 0.9255322091240006, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 3", "correlation (R^2)": 0.9266370719977781, "icxx_set": "IC99.968", "num_concs": 1}, {"epitope": "class 1", "correlation (R^2)": 0.6909266584026795, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9525609389728366, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9404001493279208, "icxx_set": "IC98.854,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6265691352114429, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9557568037529991, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9387576633420915, "icxx_set": "IC99.79,IC99.968", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.4940309374276288, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.9380210668269039, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9271310579812604, "icxx_set": "IC99.968,IC99.995", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.5442101528058595, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 2", "correlation (R^2)": 0.933233971350855, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 3", "correlation (R^2)": 0.9329567842547906, "icxx_set": "IC99.968,IC99.999", "num_concs": 2}, {"epitope": "class 1", "correlation (R^2)": 0.6672003017549143, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.9550005721717503, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9409394223955386, "icxx_set": "IC99.79,IC99.968,IC99.995", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.6903693412396601, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 2", "correlation (R^2)": 0.973458806521, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 3", "correlation (R^2)": 0.9496508848872558, "icxx_set": "IC98.854,IC99.968,IC99.999", "num_concs": 3}, {"epitope": "class 1", "correlation (R^2)": 0.7317139483963229, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 2", "correlation (R^2)": 0.9568631207505862, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}, {"epitope": "class 3", "correlation (R^2)": 0.9549092400778721, "icxx_set": "IC95.141,IC98.854,IC99.79,IC99.968,IC99.995,IC99.999", "num_concs": 6}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Again, lets look at the correlation between “true” and predicted IC90’s for each of the fit models.</p>
@@ -1258,7 +1258,7 @@ x-axis.</p>
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
+/home/tyu2/.local/lib/python3.8/site-packages/altair/utils/core.py:317: FutureWarning: iteritems is deprecated and will be removed in a future version. Use .items instead.
   for col_name, dtype in df.dtypes.iteritems():
 </pre></div></div>
 </div>
@@ -1267,13 +1267,13 @@ x-axis.</p>
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
-<div id="altair-viz-1850f3c1a80b474783bb4728b4cfd06f"></div>
+<div id="altair-viz-77fd88ba83ec4c418398a88c2dd39a86"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-1850f3c1a80b474783bb4728b4cfd06f") {
-      outputDiv = document.getElementById("altair-viz-1850f3c1a80b474783bb4728b4cfd06f");
+    if (outputDiv.id !== "altair-viz-77fd88ba83ec4c418398a88c2dd39a86") {
+      outputDiv = document.getElementById("altair-viz-77fd88ba83ec4c418398a88c2dd39a86");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm//vega@5?noext",
@@ -1319,7 +1319,7 @@ x-axis.</p>
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-5a90cd4e1e27e501ced392a087625ee4"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-5a90cd4e1e27e501ced392a087625ee4": [{"correlation (R^2)": 0.8524044532251414, "icxx_set": ["IC99.968"]}, {"correlation (R^2)": 0.9660764694719598, "icxx_set": ["IC98.854", "IC99.968"]}, {"correlation (R^2)": 0.9425893159550649, "icxx_set": ["IC99.79", "IC99.968"]}, {"correlation (R^2)": 0.8242406059856914, "icxx_set": ["IC99.968", "IC99.995"]}, {"correlation (R^2)": 0.8256362539344196, "icxx_set": ["IC99.968", "IC99.999"]}, {"correlation (R^2)": 0.9199170200617324, "icxx_set": ["IC99.79", "IC99.968", "IC99.995"]}, {"correlation (R^2)": 0.9647391925377282, "icxx_set": ["IC98.854", "IC99.968", "IC99.999"]}, {"correlation (R^2)": 0.9149773299753913, "icxx_set": ["IC95.141", "IC98.854", "IC99.79", "IC99.968", "IC99.995", "IC99.999"]}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-dbc277a6a2b7f964ce12499caf84a24e"}, "mark": {"type": "circle", "size": 125}, "encoding": {"tooltip": [{"field": "icxx_set", "type": "nominal"}, {"field": "correlation (R^2)", "format": ".3f", "type": "quantitative"}], "x": {"axis": {"labelAngle": 0}, "field": "icxx_set", "sort": {"field": "x", "order": "descending"}, "type": "ordinal"}, "y": {"field": "correlation (R^2)", "type": "quantitative"}}, "height": 200, "title": "predicted vs. true IC90", "width": 375, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-dbc277a6a2b7f964ce12499caf84a24e": [{"correlation (R^2)": 0.8524044532251411, "icxx_set": ["IC99.968"]}, {"correlation (R^2)": 0.96607646947196, "icxx_set": ["IC98.854", "IC99.968"]}, {"correlation (R^2)": 0.9425893159550646, "icxx_set": ["IC99.79", "IC99.968"]}, {"correlation (R^2)": 0.8242406059856914, "icxx_set": ["IC99.968", "IC99.995"]}, {"correlation (R^2)": 0.8256362539344192, "icxx_set": ["IC99.968", "IC99.999"]}, {"correlation (R^2)": 0.9199170200617324, "icxx_set": ["IC99.79", "IC99.968", "IC99.995"]}, {"correlation (R^2)": 0.9647391925377282, "icxx_set": ["IC98.854", "IC99.968", "IC99.999"]}, {"correlation (R^2)": 0.9096933604307439, "icxx_set": ["IC95.141", "IC98.854", "IC99.79", "IC99.968", "IC99.995", "IC99.999"]}]}}, {"mode": "vega-lite"});
 </script></div>
 </div>
 <p>Fitting with more concentrations maintained the excellent IC90 prediction exhibited by models fit on data with a single concentration.</p>
