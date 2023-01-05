@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+3.2
+---
+- Allow non-integer PDB numbers in B-factor re-assignment in ``reassign_b_factor``.
+
 3.1
 ----
 - Change default positive colors.
