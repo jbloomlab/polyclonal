@@ -270,12 +270,24 @@ def reassign_b_factor(
     for col in cols:
         if col not in df.columns:
             raise ValueError(f"`df` lacks column {col}")
-    df = df[cols].drop_duplicates()
+    df = df[cols].drop_duplicates()  # also makes a copy, which is important
     if len(df) != len(df.groupby([site_col, chain_col])):
         raise ValueError("non-unique metric for a site in a chain")
 
     if df[site_col].dtype != int:
-        raise ValueError("function currently requires `site_col` to be int")
+        # if we have string type, convert to int
+        if df[site_col].map(type).eq(str).all():
+            encodes_int = df[site_col].str.fullmatch(r"\d+")
+            if encodes_int.all():
+                df[site_col] = df[site_col].astype(int)
+            else:
+                # this may raise an error if there are sites like 214a; before fixing
+                # such errors, need to check the `residue.get_id()[1]` command below
+                raise ValueError(
+                    f"`site_col` has non-integer entries:\n{df[site_col][~encodes_int]}"
+                )
+        else:
+            raise ValueError(f"`site_col` is neither str nor int:\n{df[site_col]}")
 
     # read PDB, catch warnings about discontinuous chains
     with warnings.catch_warnings():
