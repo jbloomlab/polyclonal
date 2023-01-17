@@ -290,6 +290,7 @@ def lineplot_and_heatmap(
     show_lineplot=True,
     show_heatmap=True,
     scale_stat_col=1,
+    rename_stat_col=None,
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
 
@@ -364,12 +365,20 @@ def lineplot_and_heatmap(
         Show the lineplot in the returned chart.
     scale_stat_col : float
         Multiply numbers in `stat_col` by this number before plotting.
+    rename_stat_col : None or str
+        If a str, rename `stat_col` to this. Also changes y-axis labels.
 
     Returns
     -------
     altair.Chart
         Interactive plot.
     """
+    if rename_stat_col:
+        if rename_stat_col in data_df.columns:
+            raise ValueError(f"{rename_stat_col=} already in {data_df.columns=}")
+        data_df = data_df.rename(columns={stat_col: rename_stat_col})
+        stat_col = rename_stat_col
+
     basic_req_cols = ["site", "wildtype", "mutant", stat_col, category_col]
     if addtl_tooltip_stats is None:
         addtl_tooltip_stats = []
