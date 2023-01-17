@@ -289,6 +289,7 @@ def lineplot_and_heatmap(
     show_zoombar=True,
     show_lineplot=True,
     show_heatmap=True,
+    scale_stat_col=1,
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
 
@@ -361,6 +362,8 @@ def lineplot_and_heatmap(
         Show the lineplot in the returned chart.
     show_heatmap : bool
         Show the lineplot in the returned chart.
+    scale_stat_col : float
+        Multiply numbers in `stat_col` by this number before plotting.
 
     Returns
     -------
@@ -380,7 +383,11 @@ def lineplot_and_heatmap(
         raise ValueError(f"Missing required columns\n{data_df.columns=}\n{req_cols=}")
     if any(c.startswith("_stat") for c in req_cols):  # used for calculated stats
         raise ValueError(f"No columns can start with '_stat' in {data_df.columns=}")
-    data_df = data_df[req_cols].reset_index(drop=True)
+    data_df = (
+        data_df[req_cols]
+        .reset_index(drop=True)
+        .assign(**{stat_col: lambda x: x[stat_col] * scale_stat_col})
+    )
 
     # filter `data_df` by any minimums in `slider_binding_range_kwargs`
     if slider_binding_range_kwargs is None:

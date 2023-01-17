@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 3.3
 ---
 - Add options for lineplot only or heatmap only in ``plot.lineplot_and_heatmap`` (these are ``show_zoombar``, ``show_lineplot``, and ``show_heatmap``).
+- Add ``scale_stat_col`` option to ``plot.lineplot_and_heatmap``.
 
 3.2
 ---
