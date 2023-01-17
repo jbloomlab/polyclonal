@@ -286,6 +286,9 @@ def lineplot_and_heatmap(
     heatmap_min_at_least=None,
     site_zoom_bar_color_scheme="set3",
     slider_binding_range_kwargs=None,
+    show_zoombar=True,
+    show_lineplot=True,
+    show_heatmap=True,
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
 
@@ -352,6 +355,17 @@ def lineplot_and_heatmap(
         Keyed by keys in ``addtl_slider_stats``, with values being dicts
         giving keyword arguments passed to ``altair.binding_range`` (eg,
         'min', 'max', 'step', etc.
+    show_zoombar : bool
+        Show the zoom bar in the returned chart.
+    show_lineplot : bool
+        Show the lineplot in the returned chart.
+    show_heatmap : bool
+        Show the lineplot in the returned chart.
+
+    Returns
+    -------
+    altair.Chart
+        Interactive plot.
     """
     basic_req_cols = ["site", "wildtype", "mutant", stat_col, category_col]
     if addtl_tooltip_stats is None:
@@ -769,8 +783,15 @@ def lineplot_and_heatmap(
         else "independent",
     )
 
+    chartlist = []
+    if show_zoombar:
+        chartlist.append(site_zoom_bar)
+    if show_lineplot:
+        chartlist.append(site_lineplot)
+    if show_heatmap:
+        chartlist.append(heatmaps)
     chart = (
-        alt.vconcat(site_zoom_bar, site_lineplot, heatmaps)
+        alt.vconcat(*chartlist)
         .add_parameter(floor_at_zero, site_brush, *sliders.values())
         .configure(padding=10)
         .configure_axis(labelOverlap="parity", grid=False)
