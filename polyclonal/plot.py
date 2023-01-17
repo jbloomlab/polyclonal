@@ -286,6 +286,11 @@ def lineplot_and_heatmap(
     heatmap_min_at_least=None,
     site_zoom_bar_color_scheme="set3",
     slider_binding_range_kwargs=None,
+    show_zoombar=True,
+    show_lineplot=True,
+    show_heatmap=True,
+    scale_stat_col=1,
+    rename_stat_col=None,
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
 
@@ -352,7 +357,28 @@ def lineplot_and_heatmap(
         Keyed by keys in ``addtl_slider_stats``, with values being dicts
         giving keyword arguments passed to ``altair.binding_range`` (eg,
         'min', 'max', 'step', etc.
+    show_zoombar : bool
+        Show the zoom bar in the returned chart.
+    show_lineplot : bool
+        Show the lineplot in the returned chart.
+    show_heatmap : bool
+        Show the lineplot in the returned chart.
+    scale_stat_col : float
+        Multiply numbers in `stat_col` by this number before plotting.
+    rename_stat_col : None or str
+        If a str, rename `stat_col` to this. Also changes y-axis labels.
+
+    Returns
+    -------
+    altair.Chart
+        Interactive plot.
     """
+    if rename_stat_col:
+        if rename_stat_col in data_df.columns:
+            raise ValueError(f"{rename_stat_col=} already in {data_df.columns=}")
+        data_df = data_df.rename(columns={stat_col: rename_stat_col})
+        stat_col = rename_stat_col
+
     basic_req_cols = ["site", "wildtype", "mutant", stat_col, category_col]
     if addtl_tooltip_stats is None:
         addtl_tooltip_stats = []
@@ -366,7 +392,11 @@ def lineplot_and_heatmap(
         raise ValueError(f"Missing required columns\n{data_df.columns=}\n{req_cols=}")
     if any(c.startswith("_stat") for c in req_cols):  # used for calculated stats
         raise ValueError(f"No columns can start with '_stat' in {data_df.columns=}")
-    data_df = data_df[req_cols].reset_index(drop=True)
+    data_df = (
+        data_df[req_cols]
+        .reset_index(drop=True)
+        .assign(**{stat_col: lambda x: x[stat_col] * scale_stat_col})
+    )
 
     # filter `data_df` by any minimums in `slider_binding_range_kwargs`
     if slider_binding_range_kwargs is None:
@@ -769,8 +799,15 @@ def lineplot_and_heatmap(
         else "independent",
     )
 
+    chartlist = []
+    if show_zoombar:
+        chartlist.append(site_zoom_bar)
+    if show_lineplot:
+        chartlist.append(site_lineplot)
+    if show_heatmap:
+        chartlist.append(heatmaps)
     chart = (
-        alt.vconcat(site_zoom_bar, site_lineplot, heatmaps)
+        alt.vconcat(*chartlist)
         .add_parameter(floor_at_zero, site_brush, *sliders.values())
         .configure(padding=10)
         .configure_axis(labelOverlap="parity", grid=False)
