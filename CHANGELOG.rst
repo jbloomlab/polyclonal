@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+3.4
+---
+- Plotting improvements:
+ - Add ``heatmap_max_fixed`` and ``heatmap_min_fixed`` to ``plot.lineplot_and_heatmap``
+
 3.3
 ---
 - Add options for lineplot only or heatmap only in ``plot.lineplot_and_heatmap`` (these are ``show_zoombar``, ``show_lineplot``, and ``show_heatmap``).
