@@ -284,6 +284,8 @@ def lineplot_and_heatmap(
     heatmap_color_scheme_mid_0=True,
     heatmap_max_at_least=None,
     heatmap_min_at_least=None,
+    heatmap_max_fixed=None,
+    heatmap_min_fixed=None,
     site_zoom_bar_color_scheme="set3",
     slider_binding_range_kwargs=None,
     show_zoombar=True,
@@ -350,6 +352,12 @@ def lineplot_and_heatmap(
     heatmap_min_at_least : None or float
         Make heatmap color min at least this small, but still set to 0 if floor of zero
         selected.
+    heatmap_max_fixed : None or float
+        Fix heatmap max to this value, even if it clamps data. Overrides
+        `heatmap_max_at_least`.
+    heatmap_min_fixed : None or float
+        Fix heatmap min to this value, even if it clamps data. Overrides
+        `heatmap_min_at_least`.
     site_zoom_bar_color_scheme : str
         If using `site_zoom_bar_color_col`, the
         `Vega color scheme <https://vega.github.io/vega/docs/schemes>`_ to use.
@@ -456,9 +464,13 @@ def lineplot_and_heatmap(
     min_stat = data_df[stat_col].min()  # used as min in heatmap when not flooring at 0
     if heatmap_min_at_least is not None:
         min_stat = min(min_stat, heatmap_min_at_least)
+    if heatmap_min_fixed is not None:
+        min_stat = heatmap_min_fixed
     max_stat = data_df[stat_col].max()  # used as max in heatmap
     if heatmap_max_at_least is not None:
         max_stat = max(max_stat, heatmap_max_at_least)
+    if heatmap_max_fixed is not None:
+        max_stat = heatmap_max_fixed
     floor_at_zero = alt.selection_point(
         name="floor_at_zero",
         bind=alt.binding_radio(
@@ -756,6 +768,7 @@ def lineplot_and_heatmap(
                         domainMin=alt.ExprRef("floor_at_zero.floor"),
                         zero=True,
                         nice=False,
+                        clamp=True,
                         type="linear",
                         **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
                         **(
