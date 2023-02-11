@@ -14,6 +14,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
  - added ``PolyclonalCollection.unique_descriptor_names`` attribute.
  - added ``PolyclonalCollection.mut_escape_df_model_values`` property
  - added ``per_model_tooltip`` option to ``PolyclonalCollection.mut_escape_plot``, and make this the default when <=5 models.
+- Heatmap tooltips now show missing (null) numerical values as *NaN* rather than as 0.
 
 3.3
 ---
