@@ -30,3 +30,5 @@ The directory also contains [6M0J.pdb](6M0J.pdb), which is just a downloaded ver
 These are real data from deep mutational scanning:
 
  - [Lib-2_2022-06-22_thaw-1_LyCoV-1404_1_prob_escape.csv](Lib-2_2022-06-22_thaw-1_LyCoV-1404_1_prob_escape.csv) and [BA.1_site_numbering_map.csv](BA.1_site_numbering_map.csv) are real data from Omicron BA.1 spike deep mutational scanning.
+
+ - [Omicron_BA.1_muteffects_observed.csv](Omicron_BA.1_muteffects_observed.csv) is functional effects of mutations to Omicron BA.1 spike from real data.
