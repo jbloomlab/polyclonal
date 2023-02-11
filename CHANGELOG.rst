@@ -15,6 +15,12 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
  - added ``PolyclonalCollection.mut_escape_df_model_values`` property
  - added ``per_model_tooltip`` option to ``PolyclonalCollection.mut_escape_plot``, and make this the default when <=5 models.
 - Heatmap tooltips now show missing (null) numerical values as *NaN* rather than as 0.
+- Update ``altair`` version to commit to *f8912bad75d4247ab726b639968b13315161660a* (note that the latest version still not merged on ``altair`` main branch, so still having to install from GitHub). In this new version, ``alt.add_parameter`` becomes ``alt.add_params`` and ``alt.parameter`` becomes ``alt.param``.
+- Implemented slider that hides rather than filters mutations on the heatmaps. This is designed for mutation effect filtering where we'd like to be able to see which mutations have poor effects. They are now filtered from lineplot calculation and shown as gray. Adds the following parameters to ``plot.lineplot_and_heatmap``:
+ - ``addtl_slider_stats_hide_not_filter``
+ - ``hide_color``
+ - also very slight changes to colors in background of heatmap.
+- Updated notebooks to use new plotting.
 
 3.3
 ---
