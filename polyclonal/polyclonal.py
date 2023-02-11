@@ -2179,7 +2179,7 @@ class Polyclonal:
                 kwargs["data_df"] = kwargs["data_df"].merge(
                     df,
                     how="left",
-                    validate="1:1",
+                    validate="many_to_one",
                 )
 
         if "category_colors" not in kwargs:
