@@ -634,13 +634,16 @@ def lineplot_and_heatmap(
         if slider_stat not in addtl_slider_stats_hide_not_filter:
             base_chart = base_chart.transform_filter(
                 (alt.datum[slider_stat] >= (slider["cutoff"] - 1e-6))  # rounding tol
-                | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null values
+                | ~alt.expr.isFinite(
+                    alt.datum[slider_stat]
+                )  # do not filter null values
             )
     # get stats to hide, not filter
     if addtl_slider_stats_hide_not_filter:
         # https://stackoverflow.com/a/61502057/4191652
         sel = [
-            alt.datum[slider_stat] <= (sliders[slider_stat]["cutoff"] - 1e-6)  # roundtol
+            alt.datum[slider_stat]
+            <= (sliders[slider_stat]["cutoff"] - 1e-6)  # roundtol
             for slider_stat in addtl_slider_stats_hide_not_filter
         ]
         base_chart = base_chart.transform_calculate(
@@ -679,8 +682,7 @@ def lineplot_and_heatmap(
     )
     site_prop_cols = lookup_dfs["site"].columns if "site" in lookup_dfs else ["site"]
     lineplot_base = (
-        base_chart
-        .transform_filter(
+        base_chart.transform_filter(
             (alt.datum.wildtype != alt.datum.mutant) & ~alt.datum["_stat_hide"]
         )
         .transform_aggregate(
@@ -782,8 +784,7 @@ def lineplot_and_heatmap(
     heatmaps = []
     for category in categories:
         heatmap_no_color = (
-            heatmap_base
-            .transform_filter(alt.datum[category_col] == category)
+            heatmap_base.transform_filter(alt.datum[category_col] == category)
             .encode(
                 x=alt.X(
                     "site:O",
@@ -813,51 +814,45 @@ def lineplot_and_heatmap(
                 ),
             )
         )
-        heatmap = (
-            heatmap_no_color
-            .transform_filter(~alt.datum["_stat_hide"])
-            .encode(
-                color=alt.Color(
-                    "_stat:Q",
-                    legend=alt.Legend(
-                        orient="left",
-                        title=stat_col,
-                        titleOrient="left",
-                        gradientLength=100,
-                        gradientStrokeColor="black",
-                        gradientStrokeWidth=0.5,
-                    ),
-                    scale=alt.Scale(
-                        domainMax=max_stat,
-                        domainMin=alt.ExprRef("floor_at_zero.floor"),
-                        zero=True,
-                        nice=False,
-                        clamp=True,
-                        type="linear",
-                        **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
-                        **(
-                            {"scheme": heatmap_color_scheme}
-                            if heatmap_color_scheme
-                            else {
-                                "range": (
-                                    color_gradient_hex(
-                                        heatmap_negative_color, "white", n=20
-                                    )
-                                    + color_gradient_hex(
-                                        "white", category_colors[category], n=20
-                                    )[1:]
+        heatmap = heatmap_no_color.transform_filter(~alt.datum["_stat_hide"]).encode(
+            color=alt.Color(
+                "_stat:Q",
+                legend=alt.Legend(
+                    orient="left",
+                    title=stat_col,
+                    titleOrient="left",
+                    gradientLength=100,
+                    gradientStrokeColor="black",
+                    gradientStrokeWidth=0.5,
+                ),
+                scale=alt.Scale(
+                    domainMax=max_stat,
+                    domainMin=alt.ExprRef("floor_at_zero.floor"),
+                    zero=True,
+                    nice=False,
+                    clamp=True,
+                    type="linear",
+                    **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
+                    **(
+                        {"scheme": heatmap_color_scheme}
+                        if heatmap_color_scheme
+                        else {
+                            "range": (
+                                color_gradient_hex(
+                                    heatmap_negative_color, "white", n=20
                                 )
-                            }
-                        ),
+                                + color_gradient_hex(
+                                    "white", category_colors[category], n=20
+                                )[1:]
+                            )
+                        }
                     ),
                 ),
-            )
+            ),
         )
-        heatmap_hide = (
-            heatmap_no_color
-            .transform_filter(alt.datum["_stat_hide"])
-            .encode(color=alt.value(hide_color))
-        )
+        heatmap_hide = heatmap_no_color.transform_filter(
+            alt.datum["_stat_hide"]
+        ).encode(color=alt.value(hide_color))
         heatmaps.append(heatmap_bg + heatmap_hide + heatmap + heatmap_wildtype)
     heatmaps = alt.vconcat(*heatmaps, spacing=10).resolve_scale(
         x="shared",
