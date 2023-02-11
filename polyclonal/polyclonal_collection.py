@@ -278,6 +278,9 @@ class PolyclonalCollection:
         The descriptor labels are all columns in `models_df` except one named "model".
     descriptor_names : list
         The names that key the entries in :attr:`PolyclonalCollection.model_descriptors`.
+    unique_descriptor_names : list
+        Names of descriptors in :attr:`PolyclonalCollection.descriptor_names` that are
+        not shared across all models.
     epitopes : tuple
         Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
         extracted from :attr:`PolyclonalCollection.models`.
@@ -309,6 +312,11 @@ class PolyclonalCollection:
         if not len(descriptors_df.columns):
             raise ValueError("not descriptor columns in `models_df`")
         self.descriptor_names = descriptors_df.columns.tolist()
+        self.unique_descriptor_names = [
+            name
+            for name in self.descriptor_names
+            if descriptors_df[name].nunique(dropna=False) > 1
+        ]
         if len(descriptors_df.drop_duplicates()) != len(self.models):
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
@@ -438,6 +446,34 @@ class PolyclonalCollection:
             )
         )
 
+    @property
+    def mut_escape_df_w_model_values(self):
+        """pandas.DataFrame: Summarized mutation escape plus per model values.
+
+        Like :attr:`PolyclonalCollection.mut_escape_df` but then having additional
+        columns giving per-model escape.
+
+        """
+        merge_cols = ["epitope", "site", "wildtype", "mutant", "mutation"]
+        return self.mut_escape_df.merge(
+            (
+                self.mut_escape_df_replicates.assign(
+                    model_name=lambda x: (
+                        x[self.unique_descriptor_names]
+                        .astype(str)
+                        .agg(
+                            " ".join,
+                            axis=1,
+                        )
+                    ),
+                )
+                .pivot_table(index=merge_cols, values="escape", columns="model_name")
+                .reset_index()
+            ),
+            on=merge_cols,
+            validate="one_to_one",
+        )
+
     def mut_escape_corr(self, method="pearson"):
         """Correlation of mutation escape values across models for each epitope.
 
@@ -535,6 +571,7 @@ class PolyclonalCollection:
         init_n_models=None,
         prefix_epitope=None,
         df_to_merge=None,
+        per_model_tooltip=None,
         **kwargs,
     ):
         """Make plot of mutation escape values.
@@ -561,6 +598,12 @@ class PolyclonalCollection:
             only be included in plot if relevant columns are passed to
             :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
             `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.
+        per_model_tooltip : None or bool
+            In the heatmap, do the tooltips report per-model escape values or the
+            standard deviation across models. If `None` then report per-model
+            when <= 5 models and standard deviation if > 5 models. If `True`,
+            always report per-model values. If `False`, always report standard
+            deviation.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
 
@@ -573,17 +616,38 @@ class PolyclonalCollection:
         if avg_type is None:
             avg_type = self.default_avg_to_plot
 
+        if per_model_tooltip is None:
+            per_model_tooltip = len(self.models) <= 5
+
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = []
+
+        if per_model_tooltip:
+            df = self.mut_escape_df_w_model_values
+            model_names = df.columns[-len(self.models) :]
+            for name in model_names:
+                if name not in kwargs["addtl_tooltip_stats"]:
+                    kwargs["addtl_tooltip_stats"].append(name)
+        else:
+            df = self.mut_escape_df
+            if "escape_std" not in kwargs["addtl_tooltip_stats"]:
+                kwargs["addtl_tooltip_stats"].append("escape_std")
+
         kwargs["data_df"] = pd.concat(
             [
+                df.rename(columns={f"escape_{avg_type}": "escape"}),
                 (
-                    self.mut_escape_df.rename(
-                        columns={f"escape_{avg_type}": "escape"}
-                    ).drop(columns=["escape_median", "escape_mean"], errors="ignore")
-                ),
-                (
-                    self.mut_escape_df[["site", "wildtype", "epitope"]]
+                    df[["site", "wildtype", "epitope"]]
                     .drop_duplicates()
-                    .assign(escape=0, mutant=lambda x: x["wildtype"])
+                    .assign(
+                        escape=0,
+                        mutant=lambda x: x["wildtype"],
+                        **(
+                            {name: 0 for name in model_names}
+                            if per_model_tooltip
+                            else {}
+                        ),
+                    )
                 ),
             ],
         )
@@ -610,12 +674,6 @@ class PolyclonalCollection:
             kwargs["category_colors"] = {
                 prefixed[e]: color for e, color in kwargs["category_colors"].items()
             }
-
-        if "addtl_tooltip_stats" in kwargs:
-            if "escape_std" not in kwargs["addtl_tooltip_stats"]:
-                kwargs["addtl_tooltip_stats"].append("escape_std")
-        else:
-            kwargs["addtl_tooltip_stats"] = ["escape_std"]
 
         kwargs["stat_col"] = "escape"
         kwargs["category_col"] = "epitope"
