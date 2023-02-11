@@ -292,7 +292,7 @@ def lineplot_and_heatmap(
     heatmap_min_fixed=None,
     site_zoom_bar_color_scheme="set3",
     slider_binding_range_kwargs=None,
-    hide_color="gray",
+    hide_color="silver",
     show_zoombar=True,
     show_lineplot=True,
     show_heatmap=True,
@@ -773,16 +773,17 @@ def lineplot_and_heatmap(
             groupby=["site"],
             value=None,
         )
-        .mark_rect(color="gray", opacity=0.2)
+        .mark_rect(color="#E0E0E0")
     )
 
     # Make heatmaps for each category and vertically concatenate. We do this in loop
     # rather than faceting to enable compound chart w wildtype marks and category
     # specific coloring.
-    heatmaps = alt.vconcat(
-        *[
-            heatmap_bg
-            + heatmap_base.transform_filter(alt.datum[category_col] == category)
+    heatmaps = []
+    for category in categories:
+        heatmap_no_color = (
+            heatmap_base
+            .transform_filter(alt.datum[category_col] == category)
             .encode(
                 x=alt.X(
                     "site:O",
@@ -796,44 +797,6 @@ def lineplot_and_heatmap(
                         ticks=category == categories[-1],
                         title="site" if category == categories[-1] else None,
                     ),
-                ),
-                color=alt.condition(
-                    alt.datum["_stat_hide"],
-                    alt.value("hide_color"),
-                    alt.Color(
-                        "_stat:Q",
-                        legend=alt.Legend(
-                            orient="left",
-                            title=stat_col,
-                            titleOrient="left",
-                            gradientLength=100,
-                            gradientStrokeColor="black",
-                            gradientStrokeWidth=0.5,
-                        ),
-                        scale=alt.Scale(
-                            domainMax=max_stat,
-                            domainMin=alt.ExprRef("floor_at_zero.floor"),
-                            zero=True,
-                            nice=False,
-                            clamp=True,
-                            type="linear",
-                            **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
-                            **(
-                                {"scheme": heatmap_color_scheme}
-                                if heatmap_color_scheme
-                                else {
-                                    "range": (
-                                        color_gradient_hex(
-                                            heatmap_negative_color, "white", n=20
-                                        )
-                                        + color_gradient_hex(
-                                            "white", category_colors[category], n=20
-                                        )[1:]
-                                    )
-                                }
-                            ),
-                        ),
-                    )
                 ),
                 stroke=alt.value("black"),
                 tooltip=heatmap_tooltips,
@@ -849,11 +812,54 @@ def lineplot_and_heatmap(
                     orient="left",
                 ),
             )
-            + heatmap_wildtype
-            for category in categories
-        ],
-        spacing=10,
-    ).resolve_scale(
+        )
+        heatmap = (
+            heatmap_no_color
+            .transform_filter(~alt.datum["_stat_hide"])
+            .encode(
+                color=alt.Color(
+                    "_stat:Q",
+                    legend=alt.Legend(
+                        orient="left",
+                        title=stat_col,
+                        titleOrient="left",
+                        gradientLength=100,
+                        gradientStrokeColor="black",
+                        gradientStrokeWidth=0.5,
+                    ),
+                    scale=alt.Scale(
+                        domainMax=max_stat,
+                        domainMin=alt.ExprRef("floor_at_zero.floor"),
+                        zero=True,
+                        nice=False,
+                        clamp=True,
+                        type="linear",
+                        **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
+                        **(
+                            {"scheme": heatmap_color_scheme}
+                            if heatmap_color_scheme
+                            else {
+                                "range": (
+                                    color_gradient_hex(
+                                        heatmap_negative_color, "white", n=20
+                                    )
+                                    + color_gradient_hex(
+                                        "white", category_colors[category], n=20
+                                    )[1:]
+                                )
+                            }
+                        ),
+                    ),
+                ),
+            )
+        )
+        heatmap_hide = (
+            heatmap_no_color
+            .transform_filter(alt.datum["_stat_hide"])
+            .encode(color=alt.value(hide_color))
+        )
+        heatmaps.append(heatmap_bg + heatmap_hide + heatmap + heatmap_wildtype)
+    heatmaps = alt.vconcat(*heatmaps, spacing=10).resolve_scale(
         x="shared",
         color="shared"
         if heatmap_color_scheme or len(categories) == 1
