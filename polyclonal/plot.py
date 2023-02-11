@@ -8,6 +8,9 @@ Plotting functions.
 """
 
 
+import functools
+import operator
+
 import altair as alt
 
 import matplotlib.colors
@@ -23,8 +26,8 @@ TAB10_COLORS_NOGRAY = tuple(
 )
 """tuple: Tableau 10 color palette without gray."""
 
-DEFAULT_POSITIVE_COLORS = ("#0072B2", "#CC79A7", "#4C3549", "#009E73")
-"""tuple: Some colors in hex: french blue, wild orchid, dark byzantium, green."""
+DEFAULT_POSITIVE_COLORS = ("#0072B2", "#CC79A7", "#009E73", "#4C3549")
+"""tuple: Some colors in hex: french blue, wild orchid, green, dark byzantium."""
 
 DEFAULT_NEGATIVE_COLOR = "#E69F00"
 """str: Orange from cbPalette color in hex."""
@@ -269,6 +272,7 @@ def lineplot_and_heatmap(
     sites=None,
     addtl_tooltip_stats=None,
     addtl_slider_stats=None,
+    addtl_slider_stats_hide_not_filter=None,
     init_floor_at_zero=True,
     init_site_statistic="sum",
     cell_size=11,
@@ -288,6 +292,7 @@ def lineplot_and_heatmap(
     heatmap_min_fixed=None,
     site_zoom_bar_color_scheme="set3",
     slider_binding_range_kwargs=None,
+    hide_color="silver",
     show_zoombar=True,
     show_lineplot=True,
     show_heatmap=True,
@@ -318,6 +323,10 @@ def lineplot_and_heatmap(
         Additional stats for which to have a slider, value is initial setting. Ignores
         wildtype and drops it when all mutants have been dropped at site. Null values
         are not filtered.
+    addtl_slider_stats_hide_not_filtered : None or list
+        By default, `addtl_slider_stats` are filtered entirely from data set. If you just
+        them excluded from lineplot calculation but marked as filtered on heat map,
+        add names of stats to this list.
     init_floor_at_zero : bool
         Initial value for option to put floor of zero on value is `stat_col`.
     init_site_statistic : {'sum', 'mean', 'max', 'min'}
@@ -365,6 +374,8 @@ def lineplot_and_heatmap(
         Keyed by keys in ``addtl_slider_stats``, with values being dicts
         giving keyword arguments passed to ``altair.binding_range`` (eg,
         'min', 'max', 'step', etc.
+    hide_color : str
+        Color given to any cells hidden by `addtl_slider_stats_hide_not_filter`.
     show_zoombar : bool
         Show the zoom bar in the returned chart.
     show_lineplot : bool
@@ -392,6 +403,11 @@ def lineplot_and_heatmap(
         addtl_tooltip_stats = []
     if addtl_slider_stats is None:
         addtl_slider_stats = {}
+    if addtl_slider_stats_hide_not_filter is None:
+        addtl_slider_stats_hide_not_filter = []
+    addtl_slider_stats_hide_not_filter = set(addtl_slider_stats).intersection(
+        addtl_slider_stats_hide_not_filter
+    )
     req_cols = basic_req_cols + addtl_tooltip_stats + list(addtl_slider_stats)
     if site_zoom_bar_color_col:
         req_cols.append(site_zoom_bar_color_col)
@@ -558,7 +574,7 @@ def lineplot_and_heatmap(
             tooltip=[c for c in site_zoom_bar_df.columns if not c.startswith("_stat")],
         )
         .mark_rect()
-        .add_parameter(site_brush)
+        .add_params(site_brush)
         .properties(width=site_zoom_bar_width, height=cell_size, title="site zoom bar")
     )
 
@@ -615,10 +631,26 @@ def lineplot_and_heatmap(
                 _stat_site_max="max(_stat)",
                 groupby=["site"],
             )
-        base_chart = base_chart.transform_filter(
-            (alt.datum[slider_stat] >= slider["cutoff"] - 1e-6)  # add rounding tol
-            | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null values
+        if slider_stat not in addtl_slider_stats_hide_not_filter:
+            base_chart = base_chart.transform_filter(
+                (alt.datum[slider_stat] >= (slider["cutoff"] - 1e-6))  # rounding tol
+                | ~alt.expr.isFinite(
+                    alt.datum[slider_stat]
+                )  # do not filter null values
+            )
+    # get stats to hide, not filter
+    if addtl_slider_stats_hide_not_filter:
+        # https://stackoverflow.com/a/61502057/4191652
+        sel = [
+            alt.datum[slider_stat]
+            <= (sliders[slider_stat]["cutoff"] - 1e-6)  # roundtol
+            for slider_stat in addtl_slider_stats_hide_not_filter
+        ]
+        base_chart = base_chart.transform_calculate(
+            _stat_hide=functools.reduce(operator.or_, sel)
         )
+    else:
+        base_chart = base_chart.transform_calculate(_stat_hide="false")
     # Remove any sites that are only wildtype and filter with site zoom brush
     base_chart = (
         base_chart.transform_calculate(
@@ -650,7 +682,9 @@ def lineplot_and_heatmap(
     )
     site_prop_cols = lookup_dfs["site"].columns if "site" in lookup_dfs else ["site"]
     lineplot_base = (
-        base_chart.transform_filter(alt.datum.wildtype != alt.datum.mutant)
+        base_chart.transform_filter(
+            (alt.datum.wildtype != alt.datum.mutant) & ~alt.datum["_stat_hide"]
+        )
         .transform_aggregate(
             **{f"_stat_{stat}": f"{stat}(_stat)" for stat in site_statistics},
             groupby=[*site_prop_cols, category_col],
@@ -699,7 +733,7 @@ def lineplot_and_heatmap(
             )
             + lineplot_base.mark_circle(opacity=0.7)
         )
-        .add_parameter(site_stat, line_selection)
+        .add_params(site_stat, line_selection)
         .properties(width=lineplot_width, height=lineplot_height)
     )
 
@@ -741,16 +775,16 @@ def lineplot_and_heatmap(
             groupby=["site"],
             value=None,
         )
-        .mark_rect(color="gray", opacity=0.25)
+        .mark_rect(color="#E0E0E0")
     )
 
     # Make heatmaps for each category and vertically concatenate. We do this in loop
     # rather than faceting to enable compound chart w wildtype marks and category
     # specific coloring.
-    heatmaps = alt.vconcat(
-        *[
-            heatmap_bg
-            + heatmap_base.transform_filter(alt.datum[category_col] == category)
+    heatmaps = []
+    for category in categories:
+        heatmap_no_color = (
+            heatmap_base.transform_filter(alt.datum[category_col] == category)
             .encode(
                 x=alt.X(
                     "site:O",
@@ -763,40 +797,6 @@ def lineplot_and_heatmap(
                         labels=category == categories[-1],
                         ticks=category == categories[-1],
                         title="site" if category == categories[-1] else None,
-                    ),
-                ),
-                color=alt.Color(
-                    "_stat:Q",
-                    legend=alt.Legend(
-                        orient="left",
-                        title=stat_col,
-                        titleOrient="left",
-                        gradientLength=100,
-                        gradientStrokeColor="black",
-                        gradientStrokeWidth=0.5,
-                    ),
-                    scale=alt.Scale(
-                        domainMax=max_stat,
-                        domainMin=alt.ExprRef("floor_at_zero.floor"),
-                        zero=True,
-                        nice=False,
-                        clamp=True,
-                        type="linear",
-                        **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
-                        **(
-                            {"scheme": heatmap_color_scheme}
-                            if heatmap_color_scheme
-                            else {
-                                "range": (
-                                    color_gradient_hex(
-                                        heatmap_negative_color, "white", n=20
-                                    )
-                                    + color_gradient_hex(
-                                        "white", category_colors[category], n=20
-                                    )[1:]
-                                )
-                            }
-                        ),
                     ),
                 ),
                 stroke=alt.value("black"),
@@ -813,11 +813,48 @@ def lineplot_and_heatmap(
                     orient="left",
                 ),
             )
-            + heatmap_wildtype
-            for category in categories
-        ],
-        spacing=10,
-    ).resolve_scale(
+        )
+        heatmap = heatmap_no_color.transform_filter(~alt.datum["_stat_hide"]).encode(
+            color=alt.Color(
+                "_stat:Q",
+                legend=alt.Legend(
+                    orient="left",
+                    title=stat_col,
+                    titleOrient="left",
+                    gradientLength=100,
+                    gradientStrokeColor="black",
+                    gradientStrokeWidth=0.5,
+                ),
+                scale=alt.Scale(
+                    domainMax=max_stat,
+                    domainMin=alt.ExprRef("floor_at_zero.floor"),
+                    zero=True,
+                    nice=False,
+                    clamp=True,
+                    type="linear",
+                    **({"domainMid": 0} if heatmap_color_scheme_mid_0 else {}),
+                    **(
+                        {"scheme": heatmap_color_scheme}
+                        if heatmap_color_scheme
+                        else {
+                            "range": (
+                                color_gradient_hex(
+                                    heatmap_negative_color, "white", n=20
+                                )
+                                + color_gradient_hex(
+                                    "white", category_colors[category], n=20
+                                )[1:]
+                            )
+                        }
+                    ),
+                ),
+            ),
+        )
+        heatmap_hide = heatmap_no_color.transform_filter(
+            alt.datum["_stat_hide"]
+        ).encode(color=alt.value(hide_color))
+        heatmaps.append(heatmap_bg + heatmap_hide + heatmap + heatmap_wildtype)
+    heatmaps = alt.vconcat(*heatmaps, spacing=10).resolve_scale(
         x="shared",
         color="shared"
         if heatmap_color_scheme or len(categories) == 1
@@ -833,7 +870,7 @@ def lineplot_and_heatmap(
         chartlist.append(heatmaps)
     chart = (
         alt.vconcat(*chartlist)
-        .add_parameter(floor_at_zero, site_brush, *sliders.values())
+        .add_params(floor_at_zero, site_brush, *sliders.values())
         .configure(padding=10)
         .configure_axis(labelOverlap="parity", grid=False)
         .resolve_scale(color="independent")
