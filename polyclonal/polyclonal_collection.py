@@ -660,7 +660,11 @@ class PolyclonalCollection:
             for df in df_to_merge:
                 if not self.sequential_integer_sites and "site" in df.columns:
                     df = df.assign(site=lambda x: x["site"].astype(str))
-                kwargs["data_df"] = kwargs["data_df"].merge(df, how="left")
+                kwargs["data_df"] = kwargs["data_df"].merge(
+                    df,
+                    how="left",
+                    validate="1:1",
+                )
 
         if "category_colors" not in kwargs:
             kwargs["category_colors"] = self.epitope_colors
