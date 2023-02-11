@@ -10,6 +10,10 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ---
 - Plotting improvements:
  - Add ``heatmap_max_fixed`` and ``heatmap_min_fixed`` to ``plot.lineplot_and_heatmap``
+- Make it easier to access per-model measurements for averages of models:
+ - added ``PolyclonalCollection.unique_descriptor_names`` attribute.
+ - added ``PolyclonalCollection.mut_escape_df_model_values`` property
+ - added ``per_model_tooltip`` option to ``PolyclonalCollection.mut_escape_plot``, and make this the default when <=5 models.
 
 3.3
 ---
