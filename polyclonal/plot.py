@@ -452,9 +452,10 @@ def lineplot_and_heatmap(
     )
 
     # get tooltips for heatmap
+    float_cols = [c for c in req_cols if data_df[c].dtype == float]
     heatmap_tooltips = [
         alt.Tooltip(c, type="quantitative", format=".3g")
-        if data_df[c].dtype == float
+        if c in float_cols
         else alt.Tooltip(c, type="nominal")
         for c in req_cols
         if c != category_col or show_category_label
@@ -589,6 +590,17 @@ def lineplot_and_heatmap(
                 fields=[c for c in lookup_df.columns if c != lookup_col],
             ),
         )
+    # convert null values to NaN so they show as NaN in tooltips rather than as 0.0
+    for col in float_cols:
+        base_chart = base_chart.transform_calculate(
+            **{
+                col: alt.expr.if_(
+                    alt.expr.isFinite(alt.datum[col]),
+                    alt.datum[col],
+                    alt.expr.NaN,
+                )
+            }
+        )
 
     # Transforms on base chart. The "_stat" columns is floor transformed stat_col.
     base_chart = base_chart.transform_calculate(
@@ -605,7 +617,7 @@ def lineplot_and_heatmap(
             )
         base_chart = base_chart.transform_filter(
             (alt.datum[slider_stat] >= slider["cutoff"] - 1e-6)  # add rounding tol
-            | ~alt.expr.isNumber(alt.datum[slider_stat])  # do not filter null values
+            | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null values
         )
     # Remove any sites that are only wildtype and filter with site zoom brush
     base_chart = (
