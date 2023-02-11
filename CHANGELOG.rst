@@ -20,6 +20,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
  - ``addtl_slider_stats_hide_not_filter``
  - ``hide_color``
  - also very slight changes to colors in background of heatmap.
+- Re-order default positive color scheme to put green before dark byzantium to give better clarity relative to hidden / filtered values in heatmaps.
 - Updated notebooks to use new plotting.
 
 3.3
