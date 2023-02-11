@@ -574,7 +574,7 @@ def lineplot_and_heatmap(
             tooltip=[c for c in site_zoom_bar_df.columns if not c.startswith("_stat")],
         )
         .mark_rect()
-        .add_parameter(site_brush)
+        .add_params(site_brush)
         .properties(width=site_zoom_bar_width, height=cell_size, title="site zoom bar")
     )
 
@@ -731,7 +731,7 @@ def lineplot_and_heatmap(
             )
             + lineplot_base.mark_circle(opacity=0.7)
         )
-        .add_parameter(site_stat, line_selection)
+        .add_params(site_stat, line_selection)
         .properties(width=lineplot_width, height=lineplot_height)
     )
 
@@ -869,7 +869,7 @@ def lineplot_and_heatmap(
         chartlist.append(heatmaps)
     chart = (
         alt.vconcat(*chartlist)
-        .add_parameter(floor_at_zero, site_brush, *sliders.values())
+        .add_params(floor_at_zero, site_brush, *sliders.values())
         .configure(padding=10)
         .configure_axis(labelOverlap="parity", grid=False)
         .resolve_scale(color="independent")
