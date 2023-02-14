@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+4.0
+---
+- Remove bootstrapping from docs as this isn't really a recommended procedure.
+
 3.4
 ---
 - Plotting improvements:
