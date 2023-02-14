@@ -75,11 +75,13 @@ class Polyclonal:
     .. math::
        :label: U_e
 
-       U_e\left(v,c\right)=\frac{1}{1+c\exp\left(-\phi_e\left(v\right)\right)}
+       U_e\left(v,c\right)=
+         \frac{1-t_e}{1+\left[c\exp\left(-\phi_e\left(v\right)\right)\right]^{n_e}}+t_e
 
     where smaller (more negative) values of :math:`\phi_e\left(v\right)`
     correspond to higher overall binding activity against epitope :math:`e`
-    variant :math:`v`.
+    variant :math:`v`, :math:`n_e` is the Hill coefficient, and :math:`t_e`
+    is the non-neutralized fraction.
 
     We define :math:`\phi_e\left(v\right)` in terms of the underlying
     quantities of biological interest as
@@ -124,6 +126,11 @@ class Polyclonal:
        and ``n_epitopes`` holding the number of epitopes. Then call
        :meth:`Polyclonal.fit`.
 
+    For the first and second approaches, you can optionally set initial values
+    for :math:`n_e` (the Hill coefficient) and :math:`t_e` (the non-neutralizable
+    fraction) via ``hill_coefficient_df`` and ``non_neutralized_frac_df``.
+    If these are not set, we initialize :math:`n_e = 1` and :math:`t_e = 0`.
+
     Parameters
     ----------
     data_to_fit : pandas.DataFrame or None
@@ -140,6 +147,12 @@ class Polyclonal:
         Should have columns named 'mutation', 'epitope', and 'escape' that
         give the :math:`\beta_{m,e}` values (in the 'escape' column), with
         mutations written like "G7M".
+    hill_coefficient_df : pandas.DataFrame or None
+        Should have columns named 'epitope' and 'hill_coefficient' that sets initial
+        :math:`n_e`, or set to `None` for :math:`n_e = 1`.
+    non_neutralized_frac_df : pandas.DataFrame or None
+        Should have columns named 'epitope' and 'non_neutralized_frac' that sets initial
+        :math:`t_e`, or set to `None` for :math:`t_e = 1`.
     site_escape_df : pandas.DataFrame or None
         Use if you want to initialize all mutations at a given site to have
         the same :math:`\beta_{m,e}` values. In this case, columns should be
@@ -730,9 +743,11 @@ class Polyclonal:
     def __init__(
         self,
         *,
+        data_to_fit=None,
         activity_wt_df=None,
         mut_escape_df=None,
-        data_to_fit=None,
+        hill_coefficient_df=None,
+        non_neutralized_frac_df=None,
         site_escape_df=None,
         n_epitopes=None,
         spatial_distances=None,
@@ -848,6 +863,44 @@ class Polyclonal:
             raise ValueError("not enough `epitope_colors`")
         else:
             self.epitope_colors = dict(zip(self.epitopes, epitope_colors))
+
+        if hill_coefficient_df is not None:
+            hill_req_cols = {"epitope", "hill_coefficient"}
+            if not hill_req_cols.issubset(hill_coefficient_df.columns):
+                raise ValueError(f"`hill_coefficient_df` lacks columns {hill_req_cols}")
+            hill_coefficient_df = hill_coefficient_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+            if (
+                set(hill_coefficient_df["epitope"]) != set(self.epitopes)
+                or len(hill_coefficient_df) != len(self.epitopes)
+            ):
+                raise ValueError(
+                    "`hill_coefficient_df` does not have unique required epitopes"
+                )
+        else:
+            hill_coefficient_df = pd.DataFrame(
+                {"epitope": self.epitopes, "hill_coefficient": 1.0}
+            )
+
+        if non_neutralized_frac_df is not None:
+            t_req_cols = {"epitope", "non_neutralized_frac"}
+            if not t_req_cols.issubset(non_neutralized_frac_df.columns):
+                raise ValueError(f"`non_neutralized_frac_df` lacks columns {t_req_cols}")
+            non_neutralized_frac_df = non_neutralized_frac_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+            if (
+                set(non_neutralized_frac_df["epitope"]) != set(self.epitopes)
+                or len(non_neutralized_frac_df) != len(self.epitopes)
+            ):
+                raise ValueError(
+                    "`non_neutralized_frac_df` does not have unique required epitopes"
+                )
+        else:
+            non_neutralized_frac_df = pd.DataFrame(
+                {"epitope": self.epitopes, "non_neutralized_frac": 1.0}
+            )
 
         def _init_mut_escape_df(mutations):
             # initialize mutation escape values
@@ -1011,7 +1064,12 @@ class Polyclonal:
                 raise ValueError(f"invalid set of mutations for {epitope=}")
 
         # set internal params with activities and escapes
-        self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
+        self._params = self._params_from_dfs(
+            activity_wt_df,
+            mut_escape_df,
+            hill_coefficient_df,
+            non_neutralized_frac_df,
+        )
 
         if data_to_fit is not None:
             (
@@ -1177,8 +1235,14 @@ class Polyclonal:
 
         return (one_binarymap, binarymaps, cs, pvs, weights, sorted_df)
 
-    def _params_from_dfs(self, activity_wt_df, mut_escape_df):
-        """Params vector from data frames of activities and escapes."""
+    def _params_from_dfs(
+        self,
+        activity_wt_df,
+        mut_escape_df,
+        hill_coefficient_df,
+        non_neutralized_frac_df,
+    ):
+        """Params vector from data frames activities, escapes, n, and t."""
         # first E entries are activities
         assert len(activity_wt_df) == len(self.epitopes)
         assert len(self.epitopes) == activity_wt_df["epitope"].nunique()
@@ -1286,6 +1350,16 @@ class Polyclonal:
                 "activity": a,
             }
         )
+
+    @property
+    def hill_coefficient_df(self):
+        r"""pandas.DataFrame: Hill coefficients :math:`n_e` for epitopes."""
+        return pd.DataFrame({"epitope": self.epitopes, "hill_coefficient": 1.0})
+
+    @property
+    def non_neutralized_frac_df(self):
+        r"""pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes."""
+        return pd.DataFrame({"epitope": self.epitopes, "non_neutralized_frac": 0.0})
 
     @property
     def mut_escape_df(self):
@@ -1481,6 +1555,8 @@ class Polyclonal:
         return Polyclonal(
             activity_wt_df=self.activity_wt_df,
             mut_escape_df=site_escape_df,
+            hill_coefficient_df=self.hill_coefficient_df,
+            non_neutralized_frac_df=self.non_neutralized_frac_df,
             spatial_distances=self.spatial_distances,
             data_to_fit=site_data_to_fit,
             alphabet=("w", "m"),
@@ -1905,6 +1981,8 @@ class Polyclonal:
                         validate="one_to_many",
                     )
                 ),
+                hill_coefficient_df=site_model.hill_coefficient_df,
+                non_neutralized_frac_df=site_model.non_neutralized_frac_df,
             )
 
         class LossReg:
@@ -2614,6 +2692,20 @@ class Polyclonal:
             ),
             mut_escape_df=(
                 self.mut_escape_df.assign(epitope=lambda x: x["epitope"].map(map_dict))
+                .sort_values("epitope", key=lambda c: c.map(epitope_order))
+                .reset_index(drop=True)
+            ),
+            hill_coefficient_df=(
+                self.hill_coefficient_df.assign(
+                    epitope=lambda x: x["epitope"].map(map_dict),
+                )
+                .sort_values("epitope", key=lambda c: c.map(epitope_order))
+                .reset_index(drop=True)
+            ),
+            non_neutralized_frac_df=(
+                self.non_neutralized_frac_df.assign(
+                    epitope=lambda x: x["epitope"].map(map_dict),
+                )
                 .sort_values("epitope", key=lambda c: c.map(epitope_order))
                 .reset_index(drop=True)
             ),
