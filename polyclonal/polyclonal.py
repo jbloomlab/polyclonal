@@ -871,10 +871,9 @@ class Polyclonal:
             hill_coefficient_df = hill_coefficient_df.assign(
                 epitope=lambda x: x["epitope"].astype(str)
             )
-            if (
-                set(hill_coefficient_df["epitope"]) != set(self.epitopes)
-                or len(hill_coefficient_df) != len(self.epitopes)
-            ):
+            if set(hill_coefficient_df["epitope"]) != set(self.epitopes) or len(
+                hill_coefficient_df
+            ) != len(self.epitopes):
                 raise ValueError(
                     "`hill_coefficient_df` does not have unique required epitopes"
                 )
@@ -886,14 +885,15 @@ class Polyclonal:
         if non_neutralized_frac_df is not None:
             t_req_cols = {"epitope", "non_neutralized_frac"}
             if not t_req_cols.issubset(non_neutralized_frac_df.columns):
-                raise ValueError(f"`non_neutralized_frac_df` lacks columns {t_req_cols}")
+                raise ValueError(
+                    f"`non_neutralized_frac_df` lacks columns {t_req_cols}"
+                )
             non_neutralized_frac_df = non_neutralized_frac_df.assign(
                 epitope=lambda x: x["epitope"].astype(str)
             )
-            if (
-                set(non_neutralized_frac_df["epitope"]) != set(self.epitopes)
-                or len(non_neutralized_frac_df) != len(self.epitopes)
-            ):
+            if set(non_neutralized_frac_df["epitope"]) != set(self.epitopes) or len(
+                non_neutralized_frac_df
+            ) != len(self.epitopes):
                 raise ValueError(
                     "`non_neutralized_frac_df` does not have unique required epitopes"
                 )
@@ -1246,7 +1246,7 @@ class Polyclonal:
         # first E entries are activities, next E are Hill coefficients, then
         # non-neutralized fracs
         params = []
-        for (df, col) in [
+        for df, col in [
             (activity_wt_df, "activity"),
             (hill_coefficient_df, "hill_coefficient"),
             (non_neutralized_frac_df, "non_neutralized_frac"),
@@ -1258,7 +1258,9 @@ class Polyclonal:
             params.extend(
                 df.assign(
                     epitope=lambda x: pd.Categorical(
-                        x["epitope"], self.epitopes, ordered=True,
+                        x["epitope"],
+                        self.epitopes,
+                        ordered=True,
                     )
                 )
                 .sort_values("epitope")[col]
@@ -1295,8 +1297,8 @@ class Polyclonal:
         if params.shape != (params_len,):
             raise ValueError(f"invalid {params.shape=}")
         a = params[: len(self.epitopes)]
-        n = params[len(self.epitopes): 2 * len(self.epitopes)]
-        t = params[2 * len(self.epitopes): 3 * len(self.epitopes)]
+        n = params[len(self.epitopes) : 2 * len(self.epitopes)]
+        t = params[2 * len(self.epitopes) : 3 * len(self.epitopes)]
         beta = params[3 * len(self.epitopes) :].reshape(
             len(self.mutations), len(self.epitopes)
         )
@@ -2008,10 +2010,10 @@ class Polyclonal:
             # split params to unfixed and fixed params
             assert p.shape == self._params.shape
             ne = len(self.epitopes)
-            a = p[: ne]
-            n = p[ne: 2 * ne]
-            t = p[2 * ne: 3 * ne]
-            beta = p[3 * ne:]
+            a = p[:ne]
+            n = p[ne : 2 * ne]
+            t = p[2 * ne : 3 * ne]
+            beta = p[3 * ne :]
             if fix_hill_coefficient and fix_non_neutralized_frac:
                 return numpy.concatenate((a, beta)), n, t
             elif fix_hill_coefficient:
@@ -2025,11 +2027,11 @@ class Polyclonal:
             # unfixed params plus n and t to all params
             ne = len(self.epitopes)
             if n is not None:
-                p = numpy.concatenate((pfixed[: ne], n, pfixed[ne:]))
+                p = numpy.concatenate((pfixed[:ne], n, pfixed[ne:]))
             else:
                 p = pfixed
             if t is not None:
-                p = numpy.concatenate((p[: 2 * ne], t, p[2 * ne:]))
+                p = numpy.concatenate((p[: 2 * ne], t, p[2 * ne :]))
             assert p.shape == self._params.shape
             return p
 
@@ -2123,7 +2125,10 @@ class Polyclonal:
                 def callback(self_, p, header=False, force_output=False):
                     if force_output or (self_.i % self_.interval == 0):
                         loss, _, breakdown = lossreg.loss_reg(
-                            p, self.fixed_n, self.fixed_t, True,
+                            p,
+                            self.fixed_n,
+                            self.fixed_t,
+                            True,
                         )
                         cols = ["step", "time_sec", "loss", *breakdown.keys()]
                         col_widths = [max(12, len(col) + 1) for col in cols]
@@ -2444,7 +2449,7 @@ class Polyclonal:
             assert exp_phi_e.shape == (len(self.epitopes),)
 
             def _func(c, expterm):
-                pv = numpy.prod((1 - t) / (1.0 + (c * expterm)**n) + t)
+                pv = numpy.prod((1 - t) / (1.0 + (c * expterm) ** n) + t)
                 return 1 - x - pv
 
             if _func(min_c, exp_phi_e) > 0:
@@ -2549,9 +2554,9 @@ class Polyclonal:
         # broadcasting of n and t as at: https://stackoverflow.com/a/55749006
         nb = n[None, :, None]
         tb = t[None, :, None]
-        U_v_e_c = (
-            (1 - tb) / (1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs))**nb) + tb
-        )
+        U_v_e_c = (1 - tb) / (
+            1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs)) ** nb
+        ) + tb
         assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
         n_vc = bmap.nvariants * len(cs)
         U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
@@ -2573,15 +2578,14 @@ class Polyclonal:
         dpvc_dt = p_vc * numpy.swapaxes(U_term_partial, 0, 1)
         assert dpvc_dt.shape == (len(self.epitopes), n_vc)
         # calculate gradient with respect to n
-        phi_e_v_minus_logc = (
-            numpy.repeat(phi_e_v, len(cs)).reshape(*phi_e_v.shape, len(cs))
-            - numpy.log(cs)
-        )
+        phi_e_v_minus_logc = numpy.repeat(phi_e_v, len(cs)).reshape(
+            *phi_e_v.shape, len(cs)
+        ) - numpy.log(cs)
         assert phi_e_v_minus_logc.shape == U_v_e_c.shape
         dpvc_dn = dpvc_dt * numpy.swapaxes(
-            numpy.moveaxis(
-                phi_e_v_minus_logc * (U_v_e_c - tb), 1, 2
-            ).reshape(n_vc, len(self.epitopes), order="F"),
+            numpy.moveaxis(phi_e_v_minus_logc * (U_v_e_c - tb), 1, 2).reshape(
+                n_vc, len(self.epitopes), order="F"
+            ),
             0,
             1,
         )
