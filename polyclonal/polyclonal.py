@@ -2030,9 +2030,7 @@ class Polyclonal:
                 p = pfixed
             if t is not None:
                 p = numpy.concatenate((p[: 2 * ne], t, p[2 * ne:]))
-            assert (
-                p.shape == self._params.shape
-            ), f"{p.shape=}, {self._params.shape=}, {pfixed.shape=}, {ne=}, {n=}, {t=}"
+            assert p.shape == self._params.shape
             return p
 
         class LossReg:
@@ -2109,7 +2107,7 @@ class Polyclonal:
 
         if logfreq:
             log.write(
-                f"# Starting optimization of {len(self._params)} "
+                f"# Starting optimization of {len(startparams_fixed)} "
                 f"parameters at {time.asctime()}.\n"
             )
 
