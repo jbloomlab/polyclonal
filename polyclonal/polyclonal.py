@@ -2004,7 +2004,7 @@ class Polyclonal:
                 non_neutralized_frac_df=site_model.non_neutralized_frac_df,
             )
 
-        def fixed_params_transform(p):
+        def transform_params_to_fixed(p):
             # split params to unfixed and fixed params
             assert p.shape == self._params.shape
             ne = len(self.epitopes)
@@ -2021,7 +2021,7 @@ class Polyclonal:
             else:
                 return p, None, None
 
-        def unfixed_params_transform(pfixed, n, t):
+        def transform_params_to_unfixed(pfixed, n, t):
             # unfixed params plus n and t to all params
             ne = len(self.epitopes)
             if n is not None:
@@ -2030,7 +2030,9 @@ class Polyclonal:
                 p = pfixed
             if t is not None:
                 p = numpy.concatenate((p[: 2 * ne], t, p[2 * ne:]))
-            assert p.shape == self._params.shape
+            assert (
+                p.shape == self._params.shape
+            ), f"{p.shape=}, {self._params.shape=}, {pfixed.shape=}, {ne=}, {n=}, {t=}"
             return p
 
         class LossReg:
@@ -2040,7 +2042,7 @@ class Polyclonal:
                 self_.last_params = None
 
             def loss_reg(self_, params_unfixed, n, t, breakdown=False):
-                params = unfixed_params_transform(params_unfixed, n, t)
+                params = transform_params_to_unfixed(params_unfixed, n, t)
                 if (self_.last_params is None) or (params != self_.last_params).any():
                     fitloss, dfitloss = self._loss_dloss(params, loss_delta)
                     regescape, dregescape = self._reg_escape(
@@ -2076,7 +2078,7 @@ class Polyclonal:
                         + reguniqueness2
                         + regactivity
                     )
-                    dloss, _, _ = fixed_params_transform(
+                    dloss, _, _ = transform_params_to_fixed(
                         dfitloss
                         + dregescape
                         + dregspread
@@ -2103,7 +2105,7 @@ class Polyclonal:
 
         lossreg = LossReg()
 
-        startparams_unfixed, fixed_n, fixed_t = fixed_params_transform(self._params)
+        startparams_fixed, fixed_n, fixed_t = transform_params_to_fixed(self._params)
 
         if logfreq:
             log.write(
@@ -2120,10 +2122,10 @@ class Polyclonal:
                     self.fixed_n = fixed_n
                     self.fixed_t = fixed_t
 
-                def callback(self_, params, header=False, force_output=False):
+                def callback(self_, p, header=False, force_output=False):
                     if force_output or (self_.i % self_.interval == 0):
                         loss, _, breakdown = lossreg.loss_reg(
-                            params, self.fixed_n, self.fixed_t, True,
+                            p, self.fixed_n, self.fixed_t, True,
                         )
                         cols = ["step", "time_sec", "loss", *breakdown.keys()]
                         col_widths = [max(12, len(col) + 1) for col in cols]
@@ -2151,17 +2153,17 @@ class Polyclonal:
 
             scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
             callback_logger = Callback(logfreq, time.time(), fixed_n, fixed_t)
-            callback_logger.callback(self._params, header=True, force_output=True)
+            callback_logger.callback(startparams_fixed, header=True, force_output=True)
             scipy_minimize_kwargs["callback"] = callback_logger.callback
 
         opt_res = scipy.optimize.minimize(
             fun=lossreg.loss_reg,
-            x0=startparams_unfixed,
+            x0=startparams_fixed,
             args=(fixed_n, fixed_t),
             jac=True,
             **scipy_minimize_kwargs,
         )
-        self._params = unfixed_params_transform(opt_res.x, fixed_n, fixed_t)
+        self._params = transform_params_to_unfixed(opt_res.x, fixed_n, fixed_t)
         if logfreq:
             callback_logger.callback(opt_res.x, force_output=True)
             log.write(f"# Successfully finished at {time.asctime()}.\n")
