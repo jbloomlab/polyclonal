@@ -323,7 +323,7 @@ def lineplot_and_heatmap(
         Additional stats for which to have a slider, value is initial setting. Ignores
         wildtype and drops it when all mutants have been dropped at site. Null values
         are not filtered.
-    addtl_slider_stats_hide_not_filtered : None or list
+    addtl_slider_stats_hide_not_filter : None or list
         By default, `addtl_slider_stats` are filtered entirely from data set. If you just
         them excluded from lineplot calculation but marked as filtered on heat map,
         add names of stats to this list.

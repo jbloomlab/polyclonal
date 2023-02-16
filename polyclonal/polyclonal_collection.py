@@ -282,7 +282,7 @@ class PolyclonalCollection:
         Names of descriptors in :attr:`PolyclonalCollection.descriptor_names` that are
         not shared across all models.
     epitopes : tuple
-        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope`,
         extracted from :attr:`PolyclonalCollection.models`.
     epitope_colors : dict
         Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
