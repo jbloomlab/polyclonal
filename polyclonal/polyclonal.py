@@ -1902,6 +1902,8 @@ class Polyclonal:
         scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
         log=None,
         logfreq=None,
+        fix_hill_coefficient=True,
+        fix_non_neutralized_frac=True,
     ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -1953,6 +1955,12 @@ class Polyclonal:
             Where to log output. If ``None``, use ``sys.stdout``.
         logfreq : None or int
             How frequently to write updates on fitting to ``log``.
+        fix_hill_coefficient : bool
+            Do not optimize the hill coefficients :math:`n_e` and instead keep fixed
+            at current values.
+        fix_non_neutralized_frac : bool
+            Do not optimize the non-neutralized fractions :math:`t_e` and instead keep
+            fixed at current values.
 
         Return
         ------
@@ -1995,13 +2003,41 @@ class Polyclonal:
                 non_neutralized_frac_df=site_model.non_neutralized_frac_df,
             )
 
+        def fixed_params_transform(pfixed):
+            # split params to unfixed and fixed params
+            ne = len(self.epitopes)
+            a = pfixed[: ne]
+            n = pfixed[ne: 2 * ne]
+            t = pfixed[2 * ne: 3 * ne]
+            beta = pfixed[3 * ne: ]
+            if fix_hill_coefficient and fix_non_neutralized_frac:
+                return numpy.concatenate((a, beta)), n, t
+            elif fix_hill_coefficient:
+                return numpy.concatenate(a, t, beta), n, None
+            elif fix_non_neutralized_frac:
+                return numpy.concatenate(a, n, beta), None, t
+            else:
+                return pfixed, None, None
+
+        def unfixed_params_transform(punfixed, n, t):
+            # unfixed params plus n and t to all params
+            ne = len(self.epitopes)
+            if n is not None:
+                p = numpy.concatenate((punfixed[: ne], n, punfixed[ne:]))
+            else:
+                p = punfixed
+            if t is not None:
+                p = numpy.concatenate((punfixed[: 2 * ne], t, punfixed[2 * ne:]))
+            return p
+
         class LossReg:
             # compute loss in class to remember last call
             def __init__(self_):
                 self_.last_loss = None
                 self_.last_params = None
 
-            def loss_reg(self_, params, breakdown=False):
+            def loss_reg(self_, params_unfixed, n, t, breakdown=False):
+                params = unfixed_params_transform(unfixed_params, n, t)
                 if (self_.last_params is None) or (params != self_.last_params).any():
                     fitloss, dfitloss = self._loss_dloss(params, loss_delta)
                     regescape, dregescape = self._reg_escape(
@@ -2037,7 +2073,7 @@ class Polyclonal:
                         + reguniqueness2
                         + regactivity
                     )
-                    dloss = (
+                    dloss, _, _ = fixed_params_transform(
                         dfitloss
                         + dregescape
                         + dregspread
@@ -2064,6 +2100,8 @@ class Polyclonal:
 
         lossreg = LossReg()
 
+        startparams_unfixed, fixed_n, fixed_t = fixed_params_transform(self._params)
+
         if logfreq:
             log.write(
                 f"# Starting optimization of {len(self._params)} "
@@ -2072,14 +2110,18 @@ class Polyclonal:
 
             class Callback:
                 # to log minimization
-                def __init__(self_, interval, start):
+                def __init__(self_, interval, start, fixed_n, fixed_t):
                     self_.interval = interval
                     self_.i = 0
                     self_.start = start
+                    self.fixed_n = fixed_n
+                    self.fixed_t = fixed_t
 
                 def callback(self_, params, header=False, force_output=False):
                     if force_output or (self_.i % self_.interval == 0):
-                        loss, _, breakdown = lossreg.loss_reg(params, True)
+                        loss, _, breakdown = lossreg.loss_reg(
+                            params, self.fixed_n, self.fixed_t, True,
+                        )
                         cols = ["step", "time_sec", "loss", *breakdown.keys()]
                         col_widths = [max(12, len(col) + 1) for col in cols]
                         if header:
@@ -2105,19 +2147,20 @@ class Polyclonal:
                     self_.i += 1
 
             scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
-            callback_logger = Callback(logfreq, time.time())
+            callback_logger = Callback(logfreq, time.time(), fixed_n, fixed_t)
             callback_logger.callback(self._params, header=True, force_output=True)
             scipy_minimize_kwargs["callback"] = callback_logger.callback
 
         opt_res = scipy.optimize.minimize(
             fun=lossreg.loss_reg,
-            x0=self._params,
+            x0=startparams_unfixed,
+            args=(fixed_n, fixed_t),
             jac=True,
             **scipy_minimize_kwargs,
         )
-        self._params = opt_res.x
+        self._params = unfixed_params_transform(opt_res.x, fixed_n, fixed_t)
         if logfreq:
-            callback_logger.callback(self._params, force_output=True)
+            callback_logger.callback(opt_res.x, force_output=True)
             log.write(f"# Successfully finished at {time.asctime()}.\n")
         if not opt_res.success:
             log.write(f"# Optimization FAILED at {time.asctime()}.\n")
@@ -2535,7 +2578,7 @@ class Polyclonal:
             1,
         )
         assert dpvc_dn.shape == (len(self.epitopes), n_vc)
-        # calculate gradient with respect to beta 
+        # calculate gradient with respect to beta
         dpevc = -dpvc_da.ravel(order="C")
         n_vce = n_vc * len(self.epitopes)
         assert dpevc.shape == (n_vce,)
