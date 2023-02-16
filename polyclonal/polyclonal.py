@@ -152,7 +152,7 @@ class Polyclonal:
         :math:`n_e`, or set to `None` for :math:`n_e = 1`.
     non_neutralized_frac_df : pandas.DataFrame or None
         Should have columns named 'epitope' and 'non_neutralized_frac' that sets initial
-        :math:`t_e`, or set to `None` for :math:`t_e = 1`.
+        :math:`t_e`, or set to `None` for :math:`t_e = 0`.
     site_escape_df : pandas.DataFrame or None
         Use if you want to initialize all mutations at a given site to have
         the same :math:`\beta_{m,e}` values. In this case, columns should be
@@ -899,7 +899,7 @@ class Polyclonal:
                 )
         else:
             non_neutralized_frac_df = pd.DataFrame(
-                {"epitope": self.epitopes, "non_neutralized_frac": 1.0}
+                {"epitope": self.epitopes, "non_neutralized_frac": 0.0}
             )
 
         def _init_mut_escape_df(mutations):
@@ -1248,12 +1248,13 @@ class Polyclonal:
         params = []
         for (df, col) in [
             (activity_wt_df, "activity"),
-            (hill_coefficient_df, "hill_cofficient"),
+            (hill_coefficient_df, "hill_coefficient"),
             (non_neutralized_frac_df, "non_neutralized_frac"),
         ]:
             assert len(df) == len(self.epitopes)
             assert len(self.epitopes) == df["epitope"].nunique()
             assert set(self.epitopes) == set(df["epitope"])
+            assert col in df, f"{col=}\n{df=}\n"
             params.extend(
                 df.assign(
                     epitope=lambda x: pd.Categorical(
@@ -1366,7 +1367,7 @@ class Polyclonal:
     def non_neutralized_frac_df(self):
         r"""pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes."""
         _, _, t, _ = self._a_n_t_beta_from_params(self._params)
-        assert t.shape == (len(self.epitpes),)
+        assert t.shape == (len(self.epitopes),)
         return pd.DataFrame({"epitope": self.epitopes, "non_neutralized_frac": t})
 
     @property
@@ -2003,13 +2004,14 @@ class Polyclonal:
                 non_neutralized_frac_df=site_model.non_neutralized_frac_df,
             )
 
-        def fixed_params_transform(pfixed):
+        def fixed_params_transform(p):
             # split params to unfixed and fixed params
+            assert p.shape == self._params.shape
             ne = len(self.epitopes)
-            a = pfixed[: ne]
-            n = pfixed[ne: 2 * ne]
-            t = pfixed[2 * ne: 3 * ne]
-            beta = pfixed[3 * ne: ]
+            a = p[: ne]
+            n = p[ne: 2 * ne]
+            t = p[2 * ne: 3 * ne]
+            beta = p[3 * ne:]
             if fix_hill_coefficient and fix_non_neutralized_frac:
                 return numpy.concatenate((a, beta)), n, t
             elif fix_hill_coefficient:
@@ -2017,17 +2019,18 @@ class Polyclonal:
             elif fix_non_neutralized_frac:
                 return numpy.concatenate(a, n, beta), None, t
             else:
-                return pfixed, None, None
+                return p, None, None
 
-        def unfixed_params_transform(punfixed, n, t):
+        def unfixed_params_transform(pfixed, n, t):
             # unfixed params plus n and t to all params
             ne = len(self.epitopes)
             if n is not None:
-                p = numpy.concatenate((punfixed[: ne], n, punfixed[ne:]))
+                p = numpy.concatenate((pfixed[: ne], n, pfixed[ne:]))
             else:
-                p = punfixed
+                p = pfixed
             if t is not None:
-                p = numpy.concatenate((punfixed[: 2 * ne], t, punfixed[2 * ne:]))
+                p = numpy.concatenate((p[: 2 * ne], t, p[2 * ne:]))
+            assert p.shape == self._params.shape
             return p
 
         class LossReg:
@@ -2037,7 +2040,7 @@ class Polyclonal:
                 self_.last_params = None
 
             def loss_reg(self_, params_unfixed, n, t, breakdown=False):
-                params = unfixed_params_transform(unfixed_params, n, t)
+                params = unfixed_params_transform(params_unfixed, n, t)
                 if (self_.last_params is None) or (params != self_.last_params).any():
                     fitloss, dfitloss = self._loss_dloss(params, loss_delta)
                     regescape, dregescape = self._reg_escape(
@@ -2546,7 +2549,9 @@ class Polyclonal:
         # broadcasting of n and t as at: https://stackoverflow.com/a/55749006
         nb = n[None, :, None]
         tb = t[None, :, None]
-        U_v_e_c = (1 - tb) / (1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs))**nb) + tb
+        U_v_e_c = (
+            (1 - tb) / (1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs))**nb) + tb
+        )
         assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
         n_vc = bmap.nvariants * len(cs)
         U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
@@ -2569,11 +2574,14 @@ class Polyclonal:
         assert dpvc_dt.shape == (len(self.epitopes), n_vc)
         # calculate gradient with respect to n
         phi_e_v_minus_logc = (
-            numpy.repeat(phi_e_v, len(cs)).reshape(*phi_e_v, len(cs)) - numpy.log(cs)
+            numpy.repeat(phi_e_v, len(cs)).reshape(*phi_e_v.shape, len(cs))
+            - numpy.log(cs)
         )
         assert phi_e_v_minus_logc.shape == U_v_e_c.shape
         dpvc_dn = dpvc_dt * numpy.swapaxes(
-            phi_e_v_minus_logc * (U_v_e_c - tb),
+            numpy.moveaxis(
+                phi_e_v_minus_logc * (U_v_e_c - tb), 1, 2
+            ).reshape(n_vc, len(self.epitopes), order="F"),
             0,
             1,
         )
