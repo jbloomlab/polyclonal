@@ -1243,19 +1243,26 @@ class Polyclonal:
         non_neutralized_frac_df,
     ):
         """Params vector from data frames activities, escapes, n, and t."""
-        # first E entries are activities
-        assert len(activity_wt_df) == len(self.epitopes)
-        assert len(self.epitopes) == activity_wt_df["epitope"].nunique()
-        assert set(self.epitopes) == set(activity_wt_df["epitope"])
-        params = (
-            activity_wt_df.assign(
-                epitope=lambda x: pd.Categorical(
-                    x["epitope"], self.epitopes, ordered=True
+        # first E entries are activities, next E are Hill coefficients, then
+        # non-neutralized fracs
+        params = []
+        for (df, col) in [
+            (activity_wt_df, "activity"),
+            (hill_coefficient_df, "hill_cofficient"),
+            (non_neutralized_frac_df, "non_neutralized_frac"),
+        ]:
+            assert len(df) == len(self.epitopes)
+            assert len(self.epitopes) == df["epitope"].nunique()
+            assert set(self.epitopes) == set(df["epitope"])
+            params.extend(
+                df.assign(
+                    epitope=lambda x: pd.Categorical(
+                        x["epitope"], self.epitopes, ordered=True,
+                    )
                 )
+                .sort_values("epitope")[col]
+                .tolist()
             )
-            .sort_values("epitope")["activity"]
-            .tolist()
-        )
 
         # Remaining MxE entries are beta values
         assert len(mut_escape_df) == len(self.epitopes) * len(self.mutations)
@@ -1280,19 +1287,21 @@ class Polyclonal:
             raise ValueError("some parameters are NaN")
         return params
 
-    def _a_beta_from_params(self, params):
-        """Vector of activities and MxE matrix of betas from params vector."""
-        params_len = len(self.epitopes) * (1 + len(self.mutations))
+    def _a_n_t_beta_from_params(self, params):
+        """Vector of activities, n_e, t_e, and MxE matrix of betas from params vector."""
+        assert not numpy.isnan(params).any()
+        params_len = len(self.epitopes) * (3 + len(self.mutations))
         if params.shape != (params_len,):
             raise ValueError(f"invalid {params.shape=}")
         a = params[: len(self.epitopes)]
-        beta = params[len(self.epitopes) :].reshape(
+        n = params[len(self.epitopes): 2 * len(self.epitopes)]
+        t = params[2 * len(self.epitopes): 3 * len(self.epitopes)]
+        beta = params[3 * len(self.epitopes) :].reshape(
             len(self.mutations), len(self.epitopes)
         )
-        assert a.shape == (len(self.epitopes),)
+        assert a.shape == n.shape == t.shape == (len(self.epitopes),)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
-        assert (not numpy.isnan(a).any()) and (not numpy.isnan(beta).any())
-        return (a, beta)
+        return (a, n, t, beta)
 
     def _muts_from_data_to_fit(self, data_to_fit):
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
@@ -1342,29 +1351,28 @@ class Polyclonal:
     @property
     def activity_wt_df(self):
         r"""pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes."""
-        a, _ = self._a_beta_from_params(self._params)
+        a, _, _, _ = self._a_n_t_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
-        return pd.DataFrame(
-            {
-                "epitope": self.epitopes,
-                "activity": a,
-            }
-        )
+        return pd.DataFrame({"epitope": self.epitopes, "activity": a})
 
     @property
     def hill_coefficient_df(self):
         r"""pandas.DataFrame: Hill coefficients :math:`n_e` for epitopes."""
-        return pd.DataFrame({"epitope": self.epitopes, "hill_coefficient": 1.0})
+        _, n, _, _ = self._a_n_t_beta_from_params(self._params)
+        assert n.shape == (len(self.epitopes),)
+        return pd.DataFrame({"epitope": self.epitopes, "hill_coefficient": n})
 
     @property
     def non_neutralized_frac_df(self):
         r"""pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes."""
-        return pd.DataFrame({"epitope": self.epitopes, "non_neutralized_frac": 0.0})
+        _, _, t, _ = self._a_n_t_beta_from_params(self._params)
+        assert t.shape == (len(self.epitpes),)
+        return pd.DataFrame({"epitope": self.epitopes, "non_neutralized_frac": t})
 
     @property
     def mut_escape_df(self):
         r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation."""
-        _, beta = self._a_beta_from_params(self._params)
+        _, _, _, beta = self._a_n_t_beta_from_params(self._params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         df = pd.concat(
             [
@@ -1498,7 +1506,7 @@ class Polyclonal:
 
     def _check_close_activities(self):
         """Check no epitopes have near-identical activities and escape."""
-        a, beta = self._a_beta_from_params(self._params)
+        a, _, _, beta = self._a_n_t_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         for i1 in range(len(self.epitopes)):
@@ -1633,11 +1641,13 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for escape regularization not >= 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         h, dh = self._scaled_pseudo_huber(delta, beta, True)
         reg = h.sum() * weight
         assert dh.shape == beta.shape
-        dreg = weight * numpy.concatenate([numpy.zeros(len(self.epitopes)), dh.ravel()])
+        dreg = weight * numpy.concatenate(
+            [numpy.zeros(3 * len(self.epitopes)), dh.ravel()]
+        )
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         assert reg >= 0
@@ -1649,7 +1659,7 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for activity regularization not >= 0")
-        a, _ = self._a_beta_from_params(params)
+        a, _, _, _ = self._a_n_t_beta_from_params(params)
         h, dh = self._scaled_pseudo_huber(delta, a + log_c_gm, True)
         reg = h.sum() * weight
         assert dh.shape == a.shape == (len(self.epitopes),)
@@ -1665,7 +1675,7 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for spread regularization not >= 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         reg = 0
         dreg = numpy.zeros(beta.shape)
@@ -1681,7 +1691,7 @@ class Polyclonal:
             assert dreg_site.shape == (mi, len(self.epitopes))
             dreg[siteindex] += dreg_site
         assert reg >= 0
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
@@ -1709,7 +1719,7 @@ class Polyclonal:
         # calculate values
         if epsilon <= 0:
             raise ValueError(f"{epsilon=} must be > 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         beta2 = beta**2
         site_beta2 = numpy.array(
@@ -1785,7 +1795,7 @@ class Polyclonal:
             assert dreg_epitope.shape == (len(self.mutations),)
             dreg[:, i_epitope] = dreg_epitope
 
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape == self._params.shape
 
         return reg, dreg
@@ -1816,7 +1826,7 @@ class Polyclonal:
                 if i_epitope_1 != i_epitope_2:
                     dreg[:, i_epitope_1] += ds[:, i_epitope_1] * s_mut[:, i_epitope_2]
 
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape == self._params.shape
 
         return weight * reg, weight * dreg
@@ -1827,7 +1837,7 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for uniqueness2 regularization not >= 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
 
         site_norm = numpy.array(
@@ -1857,7 +1867,7 @@ class Polyclonal:
             )
         )
         assert reg >= 0
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
@@ -2375,10 +2385,9 @@ class Polyclonal:
             raise ValueError(f"{x=} not >0 and <1")
         if col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have {col=}")
-
         reduced_df = variants_df[["aa_substitutions"]].drop_duplicates()
         bmap = self._get_binarymap(reduced_df)
-        a, beta = self._a_beta_from_params(self._params)
+        a, n, t, beta = self._a_n_t_beta_from_params(self._params)
         exp_phi_e_v = numpy.exp(-bmap.binary_variants.dot(beta) + a)
         assert exp_phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         variants = reduced_df["aa_substitutions"].tolist()
@@ -2389,7 +2398,7 @@ class Polyclonal:
             assert exp_phi_e.shape == (len(self.epitopes),)
 
             def _func(c, expterm):
-                pv = numpy.prod(1.0 / (1.0 + c * expterm))
+                pv = numpy.prod((1 - t) / (1.0 + (c * expterm)**n) + t)
                 return 1 - x - pv
 
             if _func(min_c, exp_phi_e) > 0:
@@ -2481,8 +2490,8 @@ class Polyclonal:
             len(params) is nepitopes * (1 + binarylength).
 
         """
-        a, beta = self._a_beta_from_params(params)
-        assert a.shape == (len(self.epitopes),)
+        a, n, t, beta = self._a_n_t_beta_from_params(params)
+        assert a.shape == n.shape == t.shape == (len(self.epitopes),)
         assert beta.shape == (bmap.binarylength, len(self.epitopes))
         assert beta.shape[0] == bmap.binary_variants.shape[1]
         assert bmap.binary_variants.shape == (bmap.nvariants, bmap.binarylength)
@@ -2491,7 +2500,10 @@ class Polyclonal:
         phi_e_v = bmap.binary_variants.dot(beta) - a
         assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
-        U_v_e_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
+        # broadcasting of n and t as at: https://stackoverflow.com/a/55749006
+        nb = n[None, :, None]
+        tb = t[None, :, None]
+        U_v_e_c = (1 - tb) / (1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs))**nb) + tb
         assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
         n_vc = bmap.nvariants * len(cs)
         U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
@@ -2500,38 +2512,63 @@ class Polyclonal:
         assert U_vc_e.shape == (n_vc, len(self.epitopes))
         p_vc = U_vc_e.prod(axis=1)
         assert p_vc.shape == (n_vc,)
-        if calc_grad:
-            dpvc_da = p_vc * (numpy.swapaxes(U_vc_e, 0, 1) - 1)
-            assert dpvc_da.shape == (len(self.epitopes), n_vc)
-            dpevc = -dpvc_da.ravel(order="C")
-            n_vce = n_vc * len(self.epitopes)
-            assert dpevc.shape == (n_vce,)
-            # Stack then transpose C X E binary_variants to multiply dpvce
-            # Stacking should be fast: https://stackoverflow.com/a/45990096
-            # Note after transpose this yields CSC matrix
-            stacked_binary_variants = scipy.sparse.vstack(
-                [bmap.binary_variants] * len(cs) * len(self.epitopes)
-            ).transpose()
-            assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
-            dpevc_dbeta = stacked_binary_variants.multiply(
-                numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce))
-            )
-            assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
-            # in params, betas sorted first by mutation, then by epitope;
-            # dpevc_dbeta sorted by concentration, then variant, then epitope
-            dpvc_dbetaparams = dpevc_dbeta.reshape(
-                bmap.binarylength * len(self.epitopes), n_vc
-            )
-            assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
-            # combine to make dpvc_dparams, noting activities before betas
-            # in params
-            dpvc_dparams = scipy.sparse.vstack(
-                [scipy.sparse.csr_matrix(dpvc_da), dpvc_dbetaparams.tocsr()]
-            )
-            assert type(dpvc_dparams) == scipy.sparse.csr_matrix
-            assert dpvc_dparams.shape == (len(params), n_vc)
-            return p_vc, dpvc_dparams
-        return p_vc
+
+        if not calc_grad:
+            return p_vc
+
+        # calculate gradient with respect to a
+        U_term_partial = (1 - U_vc_e) / U_vc_e / (1 - t)
+        U_term = (U_vc_e - t) * U_term_partial
+        dpvc_da = -p_vc * numpy.swapaxes(n * U_term, 0, 1)
+        assert dpvc_da.shape == (len(self.epitopes), n_vc)
+        # calculate gradient with respect to t
+        dpvc_dt = p_vc * numpy.swapaxes(U_term_partial, 0, 1)
+        assert dpvc_dt.shape == (len(self.epitopes), n_vc)
+        # calculate gradient with respect to n
+        phi_e_v_minus_logc = (
+            numpy.repeat(phi_e_v, len(cs)).reshape(*phi_e_v, len(cs)) - numpy.log(cs)
+        )
+        assert phi_e_v_minus_logc.shape == U_v_e_c.shape
+        dpvc_dn = dpvc_dt * numpy.swapaxes(
+            phi_e_v_minus_logc * (U_v_e_c - tb),
+            0,
+            1,
+        )
+        assert dpvc_dn.shape == (len(self.epitopes), n_vc)
+        # calculate gradient with respect to beta 
+        dpevc = -dpvc_da.ravel(order="C")
+        n_vce = n_vc * len(self.epitopes)
+        assert dpevc.shape == (n_vce,)
+        # Stack then transpose C X E binary_variants to multiply dpvce
+        # Stacking should be fast: https://stackoverflow.com/a/45990096
+        # Note after transpose this yields CSC matrix
+        stacked_binary_variants = scipy.sparse.vstack(
+            [bmap.binary_variants] * len(cs) * len(self.epitopes)
+        ).transpose()
+        assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
+        dpevc_dbeta = stacked_binary_variants.multiply(
+            numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce))
+        )
+        assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
+        # in params, betas sorted first by mutation, then by epitope;
+        # dpevc_dbeta sorted by concentration, then variant, then epitope
+        dpvc_dbetaparams = dpevc_dbeta.reshape(
+            bmap.binarylength * len(self.epitopes), n_vc
+        )
+        assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
+        # combine to make dpvc_dparams, noting activities before betas
+        # in params
+        dpvc_dparams = scipy.sparse.vstack(
+            [
+                scipy.sparse.csr_matrix(dpvc_da),
+                scipy.sparse.csr_matrix(dpvc_dn),
+                scipy.sparse.csr_matrix(dpvc_dt),
+                dpvc_dbetaparams.tocsr(),
+            ]
+        )
+        assert type(dpvc_dparams) == scipy.sparse.csr_matrix
+        assert dpvc_dparams.shape == (len(params), n_vc)
+        return p_vc, dpvc_dparams
 
     def _get_binarymap(
         self,
