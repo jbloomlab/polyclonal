@@ -2262,8 +2262,44 @@ class Polyclonal:
             raise PolyclonalFitError(f"Optimization failed:\n{opt_res}")
         return opt_res
 
+    def curves_plot(self, **kwargs):
+        r"""Plot neutralization / binding curve for unmutated protein at each epitope.
+
+        This curve effectively illustrates the epitope activity, Hill curve coefficient,
+        and non-neutralizable fraction.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.curves_plot`.
+
+        Returns
+        -------
+        altair.Chart
+            Interactive plot
+
+        """
+        for col in "epitope", "curve_specs_df":
+            if col in kwargs:
+                raise ValueError(f"**kwargs cannot contain {col=}")
+
+        curve_specs_df = (
+            self.activity_wt_df
+            .merge(self.hill_coefficient_df)
+            .merge(self.non_neutralized_frac_df)
+        ).assign(color=lambda x: x["epitope"].map(self.epitope_colors))
+
+        assert len(curve_specs_df) == len(self.epitopes)
+        assert self.epitopes == tuple(curve_specs_df["epitope"])
+
+        return polyclonal.plot.curves_plot(curve_specs_df, "epitope", **kwargs)
+
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
+
+        Note
+        ----
+        Consider :meth:`Polyclonal.curves_plot` as better way to show similar data.
 
         Parameters
         ----------
