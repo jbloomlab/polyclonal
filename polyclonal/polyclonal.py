@@ -1875,6 +1875,55 @@ class Polyclonal:
         assert numpy.isfinite(dreg).all()
         return reg, dreg
 
+    def _reg_hill_coefficient(self, params, weight):
+        """Regularization on Hill coefficients and gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for Hill coefficient regularization not >= 0")
+        _, n, _, _ = self._a_n_t_beta_from_params(params)
+        assert n.shape == (len(self.epitopes),)
+        if (n <= 0).any():
+            raise ValueError(f"some Hill coefficients not >0:\n{n=}")
+        log_n = numpy.log(n)
+        reg = weight * (log_n**2).sum()
+        assert reg >= 0
+        dreg = 2 * weight * log_n / n
+        dreg = numpy.concatenate(
+            [
+                numpy.zeros(len(self.epitopes)),
+                dreg,
+                numpy.zeros(len(params) - 2 * len(self.epitopes)),
+            ]
+        )
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        return reg, dreg
+
+    def _reg_non_neutralized_frac(self, params, weight):
+        """Regularization on non-neutralized fraction and gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for non-neutralized frac not >= 0")
+        _, _, t, _ = self._a_n_t_beta_from_params(params)
+        assert t.shape == (len(self.epitopes),)
+        if (0 > t).any() or (t > 1).any():
+            raise ValueError(f"some non-neutralized fracs not in [0, 1]:\n{t=}")
+        reg = weight * (t**2).sum()
+        assert reg >= 0
+        dreg = 2 * weight * t
+        dreg = numpy.concatenate(
+            [
+                numpy.zeros(2 * len(self.epitopes)),
+                dreg,
+                numpy.zeros(len(params) - 3 * len(self.epitopes)),
+            ]
+        )
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        return reg, dreg
+
     DEFAULT_SCIPY_MINIMIZE_KWARGS = frozendict.frozendict(
         {
             "method": "L-BFGS-B",
@@ -1901,6 +1950,8 @@ class Polyclonal:
         reg_uniqueness2_weight=0.1,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
+        reg_hill_coefficient_weight=50.0,
+        reg_non_neutralized_frac_weight=1000.0,
         fit_site_level_first=True,
         scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
         log=None,
@@ -1949,6 +2000,11 @@ class Polyclonal:
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
         reg_activity_delta : float
             Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.
+        reg_hill_coefficient_weight : float
+            Weight of regularization on Hill coefficients :math:`n_e` that differ from 1.
+        reg_non_neutralized_frac_weight : float
+            Weight of regularization on non-neutralized fractions :math:`t_e` that
+            differ from 0.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
@@ -2069,6 +2125,12 @@ class Polyclonal:
                         reg_activity_delta,
                         log_c_gm,
                     )
+                    reghillcoefficient, dreghillcoefficient = self._reg_hill_coefficient(
+                        params, reg_hill_coefficient_weight
+                    )
+                    regnonneutfrac, dregnonneutfrac = self._reg_non_neutralized_frac(
+                        params, reg_non_neutralized_frac_weight,
+                    )
                     loss = (
                         fitloss
                         + regescape
@@ -2077,6 +2139,8 @@ class Polyclonal:
                         + reguniqueness
                         + reguniqueness2
                         + regactivity
+                        + reghillcoefficient
+                        + regnonneutfrac
                     )
                     dloss, _, _ = transform_params_to_fixed(
                         dfitloss
@@ -2086,6 +2150,8 @@ class Polyclonal:
                         + dreguniqueness
                         + dreguniqueness2
                         + dregactivity
+                        + dreghillcoefficient
+                        + dregnonneutfrac
                     )
                     self_.last_params = params
                     self_.last_loss = (
@@ -2099,6 +2165,8 @@ class Polyclonal:
                             "reg_uniqueness": reguniqueness,
                             "reg_uniqueness2": reguniqueness2,
                             "reg_activity": regactivity,
+                            "reg_hill_coefficient": reghillcoefficient,
+                            "reg_non_neutralized_frac": regnonneutfrac,
                         },
                     )
                 return self_.last_loss if breakdown else self_.last_loss[:2]
@@ -2159,11 +2227,30 @@ class Polyclonal:
             callback_logger.callback(startparams_fixed, header=True, force_output=True)
             scipy_minimize_kwargs["callback"] = callback_logger.callback
 
+        # set bounds so non-neutralized frac must always be between 0 and 1
+        if "bounds" in scipy_minimize_kwargs:
+            raise ValueError("Cannot specify 'bounds' in `scipy_minimize_kwargs`")
+        if fix_non_neutralized_frac:
+            assert fixed_t is not None
+            bounds = None
+        else:
+            bounds = [(None, None)] * startparams_fixed
+            assert fixed_t is None
+            if fix_hill_coefficient:
+                assert fixed_n is not None
+                start_t_bounds = len(self.epitopes)
+            else:
+                assert fixed_n is None
+                start_t_bounds = len(self.epitopes) * 2
+            for i_t_bounds in range(start_t_bounds, start_t_bounds + len(self.epitopes)):
+                bounds[i_t_bounds] = (0, 1)
+
         opt_res = scipy.optimize.minimize(
             fun=lossreg.loss_reg,
             x0=startparams_fixed,
             args=(fixed_n, fixed_t),
             jac=True,
+            bounds=bounds,
             **scipy_minimize_kwargs,
         )
         self._params = transform_params_to_unfixed(opt_res.x, fixed_n, fixed_t)
