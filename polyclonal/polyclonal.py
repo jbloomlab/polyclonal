@@ -2234,7 +2234,7 @@ class Polyclonal:
             assert fixed_t is not None
             bounds = None
         else:
-            bounds = [(None, None)] * startparams_fixed
+            bounds = [(None, None)] * len(startparams_fixed)
             assert fixed_t is None
             if fix_hill_coefficient:
                 assert fixed_n is not None
