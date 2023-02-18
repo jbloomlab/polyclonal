@@ -9,6 +9,7 @@ Plotting functions.
 
 
 import functools
+import math
 import operator
 
 import altair as alt
@@ -16,6 +17,10 @@ import altair as alt
 import matplotlib.colors
 
 import natsort
+
+import numpy
+
+import pandas as pd
 
 
 alt.data_transformers.disable_max_rows()
@@ -148,6 +153,122 @@ def activity_wt_barplot(
     return barplot.configure_axis(grid=False).properties(
         width=width, height={"step": height_per_bar}
     )
+
+
+def curves_plot(
+    curve_specs_df,
+    name_col,
+    *,
+    unbound_label="fraction not neutralized",
+    npoints=200,
+    concentration_range=50,
+    height=125,
+    width=225,
+):
+    r"""Plot Hill curves.
+
+    The curves are defined by
+    :math:`U_e = \frac{1 - t_e}{1 + \left[c \exp \left(a_e\right)\right]^{n_e}} + t_e`
+    where :math:`U_e` is the unbound fraction (plotted on y-axis), :math:`c` is the
+    concentration (plotted on x-axis), :math:`a_e` is the activity, :math:`n_e` is
+    the Hill coefficient, and :math:`t_e` is the non-neutralizable fraction. A different
+    plot is made for each curve name (eg, epitope :math:`e`).
+
+    Parameters
+    -----------
+    curve_specs_df : pandas.DataFrame
+        Should have columns `name_col` (giving name, eg epitope), 'activity',
+        'hill_coefficient', 'non_neutralized_frac', and 'color' specifying each
+        curve.
+    name_col : pandas.DataFrame
+        Name of column in `curve_specs_df` giving the curve name (eg, epitope)
+    unbound_label : str
+        Label for the y-axis, :math:`U_e`.
+    npoints : int
+        Number of points used to calculate the smoothed line that is plotted.
+    concentration_range : float or tuple
+        If a float, then plot concentrations from this many fold lower than minimum
+        :math:`\exp\left(-a_e\right)` to this many folder greater than maximum
+        :math:`\excp\left(-a_e\right)`. If a 2-tuple, then plot concentrations in the
+        specified fixed range.
+    height : float
+        Plot height.
+    width : float
+        Plot width.
+
+    Returns
+    --------
+    altair.Chart
+        Interactive plot.
+
+    """
+    req_cols = {
+        name_col, "activity", "hill_coefficient", "non_neutralized_frac", "color"
+    }
+    if not req_cols.issubset(curve_specs_df):
+        raise ValueError(f"{curve_specs_df.columns} lacks columns in {req_cols}")
+    if len(curve_specs_df) != curve_specs_df[name_col].nunique(dropna=False):
+        raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
+
+    # get concentrations to plot
+    if isinstance(concentration_range, (float, int)):
+        exp_neg_a = numpy.exp(-curve_specs_df["activity"])
+        min_c = exp_neg_a.min() / concentration_range
+        max_c = exp_neg_a.max() * concentration_range
+    else:
+        min_c, max_c = concentration_range
+    if min_c >= max_c:
+        raise ValueError(f"invalid concentration range of {min_c} to {max_c=}")
+    cs = numpy.logspace(math.log10(min_c), math.log10(max_c), npoints, base=10)
+
+    if {"u", "c"}.intersection(curve_specs_df.columns):
+        raise ValueError("`curve_specs_df` cannot have columns 'u' or 'c'")
+    df = (
+        curve_specs_df
+        .merge(pd.DataFrame({"c": cs}), how="cross")
+        .assign(
+            u=lambda x: (
+                (1 - x["non_neutralized_frac"])
+                / (1 + (x["c"] * numpy.exp(x["activity"]))**x["hill_coefficient"])
+                + x["non_neutralized_frac"]
+            ),
+        )
+    )
+
+    select_name = alt.selection_point(
+        fields=[name_col],
+        bind="legend",
+    )
+
+    chart = (
+        alt.Chart(df)
+        .encode(
+            x=alt.X(
+                "c",
+                title="concentration",
+                scale=alt.Scale(type="log", nice=False),
+            ),
+            y=alt.Y("u", title=unbound_label),
+            color=alt.Color(name_col, sort=curve_specs_df[name_col].tolist()),
+            tooltip=[
+                name_col,
+                alt.Tooltip("activity", format=".3g"),
+                alt.Tooltip("hill_coefficient", format=".3g"),
+                alt.Tooltip("non_neutralized_frac", format=".3g"),
+                alt.Tooltip("c", format=".3g", title="concentration"),
+                alt.Tooltip("u", format=".3g", title=unbound_label),
+            ],
+            size=alt.value(3),
+            opacity=alt.condition(select_name, alt.value(1), alt.value(0.25)),
+        )
+        .mark_line()
+        .configure_axis(grid=False, labelOverlap=True)
+        .configure_legend(symbolStrokeWidth=3)
+        .properties(height=height, width=width)
+        .add_params(select_name)
+    )
+
+    return chart
 
 
 def corr_heatmap(
