@@ -2262,6 +2262,20 @@ class Polyclonal:
             raise PolyclonalFitError(f"Optimization failed:\n{opt_res}")
         return opt_res
 
+    @property
+    def curve_specs_df(self):
+        """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs."""
+        curve_specs_df = (
+            self.activity_wt_df
+            .merge(self.hill_coefficient_df)
+            .merge(self.non_neutralized_frac_df)
+        )
+
+        assert len(curve_specs_df) == len(self.epitopes)
+        assert self.epitopes == tuple(curve_specs_df["epitope"])
+
+        return curve_specs_df
+
     def curves_plot(self, **kwargs):
         r"""Plot neutralization / binding curve for unmutated protein at each epitope.
 
@@ -2283,14 +2297,9 @@ class Polyclonal:
             if col in kwargs:
                 raise ValueError(f"**kwargs cannot contain {col=}")
 
-        curve_specs_df = (
-            self.activity_wt_df
-            .merge(self.hill_coefficient_df)
-            .merge(self.non_neutralized_frac_df)
-        ).assign(color=lambda x: x["epitope"].map(self.epitope_colors))
-
-        assert len(curve_specs_df) == len(self.epitopes)
-        assert self.epitopes == tuple(curve_specs_df["epitope"])
+        curve_specs_df = self.curve_specs_df.assign(
+            color=lambda x: x["epitope"].map(self.epitope_colors)
+        )
 
         return polyclonal.plot.curves_plot(curve_specs_df, "epitope", **kwargs)
 

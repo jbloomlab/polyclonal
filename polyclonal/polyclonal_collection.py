@@ -412,6 +412,40 @@ class PolyclonalCollection:
             non_neutralized_frac_std=pd.NamedAgg("non_neutralized_frac", "std"),
         )
 
+    @property
+    def curve_specs_df_replicates(self):
+        """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.
+
+        Per-replicate values.
+
+        """
+        return pd.concat(
+            [
+                m.curve_specs_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def curve_specs_df(self):
+        """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.
+
+        Values summarized across models.
+
+        """
+        return self.curve_specs_df_replicates.groupby(
+            "epitope",
+            as_index=False,
+            sort=False,
+        ).aggregate(
+            **{
+                f"{param}_{stat}": pd.NamedAgg(param, stat)
+                for param in ["activity", "hill_coefficient", "non_neutralized_frac"]
+                for stat in ["mean", "median", "std"]
+            }
+        )
+
     def activity_wt_barplot(self, avg_type=None, **kwargs):
         """Bar plot of epitope activities mean across models.
 
