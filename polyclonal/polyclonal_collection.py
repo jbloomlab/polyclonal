@@ -364,6 +364,54 @@ class PolyclonalCollection:
             activity_std=pd.NamedAgg("activity", "std"),
         )
 
+    @property
+    def hill_coefficient_df_replicates(self):
+        """pandas.DataFrame: Hill coefficients for all models."""
+        return pd.concat(
+            [
+                m.hill_coefficient_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def hill_coefficient_df(self):
+        """pandas.DataFrame: Hill coefficients summarized across models."""
+        return self.hill_coefficient_df_replicates.groupby(
+            "epitope",
+            as_index=False,
+            sort=False,
+        ).aggregate(
+            hill_coefficient_mean=pd.NamedAgg("hill_coefficient", "mean"),
+            hill_coefficient_median=pd.NamedAgg("hill_coefficient", "median"),
+            hill_coefficient_std=pd.NamedAgg("hill_coefficient", "std"),
+        )
+
+    @property
+    def non_neutralized_frac_df_replicates(self):
+        """pandas.DataFrame: non-neutralizable fraction for all models."""
+        return pd.concat(
+            [
+                m.non_neutralized_frac_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def non_neutralized_frac_df(self):
+        """pandas.DataFrame: non-neutralizable fraction summarized across models."""
+        return self.non_neutralized_frac_df_replicates.groupby(
+            "epitope",
+            as_index=False,
+            sort=False,
+        ).aggregate(
+            non_neutralized_frac_mean=pd.NamedAgg("non_neutralized_frac", "mean"),
+            non_neutralized_frac_median=pd.NamedAgg("non_neutralized_frac", "median"),
+            non_neutralized_frac_std=pd.NamedAgg("non_neutralized_frac", "std"),
+        )
+
     def activity_wt_barplot(self, avg_type=None, **kwargs):
         """Bar plot of epitope activities mean across models.
 
