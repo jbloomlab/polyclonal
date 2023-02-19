@@ -159,11 +159,15 @@ def curves_plot(
     curve_specs_df,
     name_col,
     *,
+    names_to_colors=None,
     unbound_label="fraction not neutralized",
     npoints=200,
     concentration_range=50,
     height=125,
     width=225,
+    addtl_tooltip_cols=None,
+    replicate_col=None,
+    weighted_replicates=None,
 ):
     r"""Plot Hill curves.
 
@@ -178,10 +182,13 @@ def curves_plot(
     -----------
     curve_specs_df : pandas.DataFrame
         Should have columns `name_col` (giving name, eg epitope), 'activity',
-        'hill_coefficient', 'non_neutralized_frac', and 'color' specifying each
+        'hill_coefficient', and 'non_neutralized_frac' specifying each curves.
         curve.
     name_col : pandas.DataFrame
         Name of column in `curve_specs_df` giving the curve name (eg, epitope)
+    names_to_color : dict or None
+        To specify colors for each entry in `name_col` (eg, epitope), provide
+        dict mapping names to colors.
     unbound_label : str
         Label for the y-axis, :math:`U_e`.
     npoints : int
@@ -195,6 +202,15 @@ def curves_plot(
         Plot height.
     width : float
         Plot width.
+    addtl_tooltip_cols : None or list
+        Additional columns in `curve_specs_df` to show as tooltips.
+    replicate_col : None or str
+        If there are multiple replicates with `name_col`, specify column with their names
+        here and a line is plotted for each.
+    weighted_replicates : None or list
+        If you want to plot only some replicates (such as 'mean') with a heavily weighted
+        line and the rest with a thinner line, provide list of those to plot with
+        heavily weighted line. `None` means all are heavily weighted.
 
     Returns
     --------
@@ -202,12 +218,18 @@ def curves_plot(
         Interactive plot.
 
     """
-    req_cols = {
-        name_col, "activity", "hill_coefficient", "non_neutralized_frac", "color"
-    }
+    req_cols = {name_col, "activity", "hill_coefficient", "non_neutralized_frac"}
+    if replicate_col:
+        req_cols.add(replicate_col)
     if not req_cols.issubset(curve_specs_df):
         raise ValueError(f"{curve_specs_df.columns} lacks columns in {req_cols}")
-    if len(curve_specs_df) != curve_specs_df[name_col].nunique(dropna=False):
+    if (
+        len(curve_specs_df)
+        != len(
+            curve_specs_df[[name_col, replicate_col] if replicate_col else [name_col]]
+            .drop_duplicates()
+        )
+    ):
         raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
 
     # get concentrations to plot
@@ -235,10 +257,35 @@ def curves_plot(
         )
     )
 
+    addtl_tooltips = []
+    if addtl_tooltip_cols:
+        for c in addtl_tooltip_cols:
+            if c not in curve_specs_df.columns:
+                raise ValueError(
+                    f"`addtl_tooltip_stats` column {c} not in `curve_specs_df`"
+                )
+            if curve_specs_df[c].dtype == float:
+                addtl_tooltips.append(alt.Tooltip(c, format=".3g"))
+            else:
+                addtl_tooltips.append(c)
+
     select_name = alt.selection_point(
         fields=[name_col],
         bind="legend",
     )
+
+    names = curve_specs_df[name_col].unique().tolist()
+
+    # properties of heavy and light lines
+    is_weighted_col = "is_weighted_replicate"
+    assert is_weighted_col not in df.columns
+    if replicate_col:
+        if weighted_replicates is None:
+            df[is_weighted_col] = 1
+        else:
+            df[is_weighted_col] = df[replicate_col].isin(weighted_replicates).astype(int)
+    else:
+        df[is_weighted_col] = 1
 
     chart = (
         alt.Chart(df)
@@ -249,7 +296,15 @@ def curves_plot(
                 scale=alt.Scale(type="log", nice=False),
             ),
             y=alt.Y("u", title=unbound_label),
-            color=alt.Color(name_col, sort=curve_specs_df[name_col].tolist()),
+            color=alt.Color(
+                name_col,
+                sort=names,
+                scale=(
+                    alt.Scale(domain=names, range=[names_to_colors[n] for n in names])
+                    if names_to_colors
+                    else alt.Scale()
+                ),
+            ),
             tooltip=[
                 name_col,
                 alt.Tooltip("activity", format=".3g"),
@@ -257,15 +312,27 @@ def curves_plot(
                 alt.Tooltip("non_neutralized_frac", format=".3g"),
                 alt.Tooltip("c", format=".3g", title="concentration"),
                 alt.Tooltip("u", format=".3g", title=unbound_label),
+                is_weighted_col,
+                *addtl_tooltips,
             ],
-            size=alt.value(3),
-            opacity=alt.condition(select_name, alt.value(1), alt.value(0.25)),
+            strokeWidth=alt.StrokeWidth(
+                is_weighted_col,
+                scale=alt.Scale(domain=(0, 1), range=(1, 2.5), nice=False),
+                legend=None,
+            ),
+            opacity=alt.Opacity(
+                is_weighted_col,
+                scale=alt.Scale(domain=(0, 1), range=(0.5, 1), nice=False),
+                legend=None,
+            ),
+            detail=(alt.Detail(replicate_col) if replicate_col else alt.Detail()),
         )
         .mark_line()
         .configure_axis(grid=False, labelOverlap=True)
         .configure_legend(symbolStrokeWidth=3)
         .properties(height=height, width=width)
         .add_params(select_name)
+        .transform_filter(select_name)
     )
 
     return chart

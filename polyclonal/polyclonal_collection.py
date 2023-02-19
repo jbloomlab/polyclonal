@@ -446,6 +446,75 @@ class PolyclonalCollection:
             }
         )
 
+    def curves_plot(self, *, avg_type=None, per_model_lines=5, **kwargs):
+        r"""Plot neutralization / binding curve for unmutated protein at each epitope.
+
+        This curve effectively illustrates the epitope activity, Hill curve coefficient,
+        and non-neutralizable fraction.
+
+        Parameters
+        ----------
+        avg_type : {"mean", "median", None}
+            Type of average to plot, `None` defaults to
+            :attr:`PolyclonalCollection.default_avg_to_plot`.
+        per_model_lines : int
+            Do we plot thin lines for each model, or just the average? If the number
+            of models in the collection is <= than this number, then we plot per-model
+            lines, otherwise we just plot the average. A value of -1 means we always plot
+            per-model lines.
+        **kwargs
+            Keywords args for :func:`polyclonal.plot.curves_plot`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive plot.
+
+        """
+        if avg_type is None:
+            avg_type = self.default_avg_to_plot
+        params = ["activity", "hill_coefficient", "non_neutralized_frac"]
+
+        df = (
+            self.curve_specs_df
+            .rename(columns={f"{c}_{avg_type}": c for c in params})
+            .drop(
+                columns=[f"{c}_{s}" for c in params for s in ["mean", "median"]],
+                errors="ignore",
+            )
+        )
+
+        if per_model_lines >= len(self.models) or per_model_lines == -1:
+            addtl_tooltip_cols = ["model_name"]
+            replicate_col = "model_name"
+            df = pd.concat(
+                [
+                    self.curve_specs_df_replicates.assign(
+                        model_name=lambda x: (
+                            x[self.unique_descriptor_names]
+                            .astype(str)
+                            .agg(" ".join, axis=1)
+                        )
+                    ),
+                    df.assign(model_name=avg_type),
+                ]
+            )[["model_name", "epitope", *params]]
+            if len(df) != len(df[["model_name", "epitope"]].drop_duplicates()):
+                raise ValueError(f"duplicated model name:\n{df=}")
+        else:
+            addtl_tooltip_cols = [f"{c}_std" for c in params]
+            replicate_col = None
+
+        return polyclonal.plot.curves_plot(
+            df,
+            "epitope",
+            addtl_tooltip_cols=addtl_tooltip_cols,
+            names_to_colors=self.epitope_colors,
+            replicate_col=replicate_col,
+            weighted_replicates=[avg_type],
+            **kwargs,
+        )
+
     def activity_wt_barplot(self, avg_type=None, **kwargs):
         """Bar plot of epitope activities mean across models.
 

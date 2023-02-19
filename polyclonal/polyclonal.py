@@ -2297,11 +2297,12 @@ class Polyclonal:
             if col in kwargs:
                 raise ValueError(f"**kwargs cannot contain {col=}")
 
-        curve_specs_df = self.curve_specs_df.assign(
-            color=lambda x: x["epitope"].map(self.epitope_colors)
+        return polyclonal.plot.curves_plot(
+            self.curve_specs_df,
+            "epitope",
+            names_to_colors=self.epitope_colors,
+            **kwargs,
         )
-
-        return polyclonal.plot.curves_plot(curve_specs_df, "epitope", **kwargs)
 
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
