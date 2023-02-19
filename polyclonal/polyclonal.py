@@ -2227,20 +2227,20 @@ class Polyclonal:
             callback_logger.callback(startparams_fixed, header=True, force_output=True)
             scipy_minimize_kwargs["callback"] = callback_logger.callback
 
-        # set bounds so non-neutralized frac must always be between 0 and 1
+        # set bounds so non-neutralized frac must always be between 0 and 1 and
+        # the Hill coefficienty must always be >0
         if "bounds" in scipy_minimize_kwargs:
             raise ValueError("Cannot specify 'bounds' in `scipy_minimize_kwargs`")
-        if fix_non_neutralized_frac:
-            assert fixed_t is not None
-            bounds = None
-        else:
-            bounds = [(None, None)] * len(startparams_fixed)
+        bounds = [(None, None)] * len(startparams_fixed)
+        if not fix_hill_coefficient:
+            assert fixed_n is None
+            for i_n_bounds in range(len(self.epitopes), 2 * len(self.epitopes)):
+                bounds[i_n_bounds] = (1e-8, None)
+        if not fix_non_neutralized_frac:
             assert fixed_t is None
             if fix_hill_coefficient:
-                assert fixed_n is not None
                 start_t_bounds = len(self.epitopes)
             else:
-                assert fixed_n is None
                 start_t_bounds = len(self.epitopes) * 2
             for i_t_bounds in range(start_t_bounds, start_t_bounds + len(self.epitopes)):
                 bounds[i_t_bounds] = (0, 1)
