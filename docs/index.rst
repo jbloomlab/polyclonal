@@ -24,6 +24,7 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
+   fit_2epitope
    regularization
    RBD_average
    real_LyCoV1404

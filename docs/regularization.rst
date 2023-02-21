@@ -1,7 +1,7 @@
 Regularization
 --------------
 
-The prior example used `regularization <https://en.wikipedia.org/wiki/Regularization_(mathematics)>`_ of the model parameters.
+The prior examples used `regularization <https://en.wikipedia.org/wiki/Regularization_(mathematics)>`_ of the model parameters.
 This is an absolutely crucial aspect of the fitting, as it helps ensure the model gives "sensibe" results that are not overfit.
 
 The default values of the regularization weights are hopefully reasonable, but in many cases you may need to tune the regularization weights to give more sensible results.
