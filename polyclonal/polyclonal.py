@@ -1948,7 +1948,7 @@ class Polyclonal:
         self,
         *,
         loss_delta=0.1,
-        reg_escape_weight=0.02,
+        reg_escape_weight=0.05,
         reg_escape_delta=0.1,
         reg_spread_weight=0.1,
         site_avg_abs_escape_epsilon=0.1,
