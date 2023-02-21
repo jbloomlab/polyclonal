@@ -1956,8 +1956,8 @@ class Polyclonal:
         scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
         log=None,
         logfreq=None,
-        fix_hill_coefficient=True,
-        fix_non_neutralized_frac=True,
+        fix_hill_coefficient=False,
+        fix_non_neutralized_frac=False,
     ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
