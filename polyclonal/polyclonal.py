@@ -263,10 +263,10 @@ class Polyclonal:
     (1, 2, 4)
     >>> model.wts
     {1: 'M', 2: 'G', 4: 'A'}
-    >>> model.activity_wt_df
-      epitope  activity
-    0      e1       2.0
-    1      e2       1.0
+    >>> model.curve_specs_df
+      epitope  activity  hill_coefficient  non_neutralized_frac
+    0      e1       2.0               1.0                   0.0
+    1      e2       1.0               1.0                   0.0
     >>> model.mut_escape_df
       epitope  site wildtype mutant mutation  escape
     0      e1     1        M      C      M1C     2.0
@@ -433,10 +433,10 @@ class Polyclonal:
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
 
-    >>> model_data.activity_wt_df
-      epitope  activity
-    0       1       1.0
-    1       2       0.0
+    >>> model_data.curve_specs_df
+      epitope  activity  hill_coefficient  non_neutralized_frac
+    0       1       1.0               1.0                   0.0
+    1       2       0.0               1.0                   0.0
     >>> model_data.mut_escape_df
       epitope  site wildtype mutant mutation  escape  times_seen
     0       1     1        M      C      M1C     0.0           6
@@ -457,10 +457,10 @@ class Polyclonal:
     ...     init_missing=1,
     ...     collapse_identical_variants="mean",
     ... )
-    >>> model_data2.activity_wt_df.round(3)
-      epitope  activity
-    0       1     0.417
-    1       2     0.720
+    >>> model_data2.curve_specs_df.round(3)
+      epitope  activity  hill_coefficient  non_neutralized_frac
+    0       1     0.417               1.0                   0.0
+    1       2     0.720               1.0                   0.0
 
     You can set some or all mutation escapes to initial values:
 
@@ -538,9 +538,14 @@ class Polyclonal:
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{m.mut_escape_df}")
 
-    >>> model_data.mut_escape_site_summary_df().round(1)
+    The applymap on next line is to make doctest pass even with negative zeros
+
+    >>> (
+    ...     model_data.mut_escape_site_summary_df()
+    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)
+    ... )
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
-    0       1     1        M  -0.0             0.0 -0.0 -0.0            -0.0            1
+    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
     1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     2       1     4        A   2.0             4.0  2.5  1.5             0.0            2
     3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
@@ -550,7 +555,10 @@ class Polyclonal:
     You can also exclude mutations to specific characters (typically you would want to
     do this for stop codons and/or gaps):
 
-    >>> model_data.mut_escape_site_summary_df(exclude_chars={"C", "K"}).round(1)
+    >>> (
+    ...     model_data.mut_escape_site_summary_df(exclude_chars={"C", "K"})
+    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)
+    ... )
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     1       1     4        A   1.5             1.5  1.5  1.5             0.0            1
