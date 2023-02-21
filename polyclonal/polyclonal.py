@@ -2073,9 +2073,9 @@ class Polyclonal:
             if fix_hill_coefficient and fix_non_neutralized_frac:
                 return numpy.concatenate((a, beta)), n, t
             elif fix_hill_coefficient:
-                return numpy.concatenate(a, t, beta), n, None
+                return numpy.concatenate((a, t, beta)), n, None
             elif fix_non_neutralized_frac:
-                return numpy.concatenate(a, n, beta), None, t
+                return numpy.concatenate((a, n, beta)), None, t
             else:
                 return p, None, None
 
