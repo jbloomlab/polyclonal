@@ -9,6 +9,7 @@ Plotting functions.
 
 
 import functools
+import math
 import operator
 
 import altair as alt
@@ -16,6 +17,10 @@ import altair as alt
 import matplotlib.colors
 
 import natsort
+
+import numpy
+
+import pandas as pd
 
 
 alt.data_transformers.disable_max_rows()
@@ -26,8 +31,8 @@ TAB10_COLORS_NOGRAY = tuple(
 )
 """tuple: Tableau 10 color palette without gray."""
 
-DEFAULT_POSITIVE_COLORS = ("#0072B2", "#CC79A7", "#009E73", "#4C3549")
-"""tuple: Some colors in hex: french blue, wild orchid, green, dark byzantium."""
+DEFAULT_POSITIVE_COLORS = ("#0072B2", "#CC79A7", "#009E73", "#17BECF", "#BCDB22")
+"""tuple: Colors in hex: french blue, wild orchid, green, light blue, olive."""
 
 DEFAULT_NEGATIVE_COLOR = "#E69F00"
 """str: Orange from cbPalette color in hex."""
@@ -148,6 +153,185 @@ def activity_wt_barplot(
     return barplot.configure_axis(grid=False).properties(
         width=width, height={"step": height_per_bar}
     )
+
+
+def curves_plot(
+    curve_specs_df,
+    name_col,
+    *,
+    names_to_colors=None,
+    unbound_label="fraction not neutralized",
+    npoints=200,
+    concentration_range=50,
+    height=125,
+    width=225,
+    addtl_tooltip_cols=None,
+    replicate_col=None,
+    weighted_replicates=None,
+):
+    r"""Plot Hill curves.
+
+    The curves are defined by
+    :math:`U_e = \frac{1 - t_e}{1 + \left[c \exp \left(a_e\right)\right]^{n_e}} + t_e`
+    where :math:`U_e` is the unbound fraction (plotted on y-axis), :math:`c` is the
+    concentration (plotted on x-axis), :math:`a_e` is the activity, :math:`n_e` is
+    the Hill coefficient, and :math:`t_e` is the non-neutralizable fraction. A different
+    plot is made for each curve name (eg, epitope :math:`e`).
+
+    Parameters
+    -----------
+    curve_specs_df : pandas.DataFrame
+        Should have columns `name_col` (giving name, eg epitope), 'activity',
+        'hill_coefficient', and 'non_neutralized_frac' specifying each curves.
+        curve.
+    name_col : pandas.DataFrame
+        Name of column in `curve_specs_df` giving the curve name (eg, epitope)
+    names_to_color : dict or None
+        To specify colors for each entry in `name_col` (eg, epitope), provide
+        dict mapping names to colors.
+    unbound_label : str
+        Label for the y-axis, :math:`U_e`.
+    npoints : int
+        Number of points used to calculate the smoothed line that is plotted.
+    concentration_range : float or tuple
+        If a float, then plot concentrations from this many fold lower than minimum
+        :math:`\exp\left(-a_e\right)` to this many folder greater than maximum
+        :math:`\excp\left(-a_e\right)`. If a 2-tuple, then plot concentrations in the
+        specified fixed range.
+    height : float
+        Plot height.
+    width : float
+        Plot width.
+    addtl_tooltip_cols : None or list
+        Additional columns in `curve_specs_df` to show as tooltips.
+    replicate_col : None or str
+        If there are multiple replicates with `name_col`, specify column with their names
+        here and a line is plotted for each.
+    weighted_replicates : None or list
+        If you want to plot only some replicates (such as 'mean') with a heavily weighted
+        line and the rest with a thinner line, provide list of those to plot with
+        heavily weighted line. `None` means all are heavily weighted.
+
+    Returns
+    --------
+    altair.Chart
+        Interactive plot.
+
+    """
+    req_cols = {name_col, "activity", "hill_coefficient", "non_neutralized_frac"}
+    if replicate_col:
+        req_cols.add(replicate_col)
+    if not req_cols.issubset(curve_specs_df):
+        raise ValueError(f"{curve_specs_df.columns} lacks columns in {req_cols}")
+    if len(curve_specs_df) != len(
+        curve_specs_df[
+            [name_col, replicate_col] if replicate_col else [name_col]
+        ].drop_duplicates()
+    ):
+        raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
+
+    # get concentrations to plot
+    if isinstance(concentration_range, (float, int)):
+        exp_neg_a = numpy.exp(-curve_specs_df["activity"])
+        min_c = exp_neg_a.min() / concentration_range
+        max_c = exp_neg_a.max() * concentration_range
+    else:
+        min_c, max_c = concentration_range
+    if min_c >= max_c:
+        raise ValueError(f"invalid concentration range of {min_c} to {max_c=}")
+    cs = numpy.logspace(math.log10(min_c), math.log10(max_c), npoints, base=10)
+
+    if {"u", "c"}.intersection(curve_specs_df.columns):
+        raise ValueError("`curve_specs_df` cannot have columns 'u' or 'c'")
+    df = curve_specs_df.merge(pd.DataFrame({"c": cs}), how="cross").assign(
+        u=lambda x: (
+            (1 - x["non_neutralized_frac"])
+            / (1 + (x["c"] * numpy.exp(x["activity"])) ** x["hill_coefficient"])
+            + x["non_neutralized_frac"]
+        ),
+    )
+
+    addtl_tooltips = []
+    if addtl_tooltip_cols:
+        for c in addtl_tooltip_cols:
+            if c not in curve_specs_df.columns:
+                raise ValueError(
+                    f"`addtl_tooltip_stats` column {c} not in `curve_specs_df`"
+                )
+            if curve_specs_df[c].dtype == float:
+                addtl_tooltips.append(alt.Tooltip(c, format=".3g"))
+            else:
+                addtl_tooltips.append(c)
+
+    select_name = alt.selection_point(
+        fields=[name_col],
+        bind="legend",
+    )
+
+    names = curve_specs_df[name_col].unique().tolist()
+
+    # properties of heavy and light lines
+    is_weighted_col = "is_weighted_replicate"
+    assert is_weighted_col not in df.columns
+    if replicate_col:
+        if weighted_replicates is None:
+            df[is_weighted_col] = 1
+        else:
+            df[is_weighted_col] = (
+                df[replicate_col].isin(weighted_replicates).astype(int)
+            )
+    else:
+        df[is_weighted_col] = 1
+
+    chart = (
+        alt.Chart(df)
+        .encode(
+            x=alt.X(
+                "c",
+                title="concentration",
+                scale=alt.Scale(type="log", nice=False),
+            ),
+            y=alt.Y("u", title=unbound_label),
+            color=alt.Color(
+                name_col,
+                sort=names,
+                scale=(
+                    alt.Scale(domain=names, range=[names_to_colors[n] for n in names])
+                    if names_to_colors
+                    else alt.Scale()
+                ),
+            ),
+            tooltip=[
+                name_col,
+                alt.Tooltip("activity", format=".3g"),
+                alt.Tooltip("hill_coefficient", format=".3g"),
+                alt.Tooltip("non_neutralized_frac", format=".3g"),
+                alt.Tooltip("c", format=".3g", title="concentration"),
+                alt.Tooltip("u", format=".3g", title=unbound_label),
+                is_weighted_col,
+                *addtl_tooltips,
+            ],
+            strokeWidth=alt.StrokeWidth(
+                is_weighted_col,
+                scale=alt.Scale(domain=(0, 1), range=(1, 2.5), nice=False),
+                legend=None,
+            ),
+            opacity=alt.Opacity(
+                is_weighted_col,
+                scale=alt.Scale(domain=(0, 1), range=(0.5, 1), nice=False),
+                legend=None,
+            ),
+            detail=(alt.Detail(replicate_col) if replicate_col else alt.Detail()),
+        )
+        .mark_line()
+        .configure_axis(grid=False, labelOverlap=True)
+        .configure_legend(symbolStrokeWidth=3)
+        .properties(height=height, width=width)
+        .add_params(select_name)
+        .transform_filter(select_name)
+    )
+
+    return chart
 
 
 def corr_heatmap(
@@ -323,7 +507,7 @@ def lineplot_and_heatmap(
         Additional stats for which to have a slider, value is initial setting. Ignores
         wildtype and drops it when all mutants have been dropped at site. Null values
         are not filtered.
-    addtl_slider_stats_hide_not_filtered : None or list
+    addtl_slider_stats_hide_not_filter : None or list
         By default, `addtl_slider_stats` are filtered entirely from data set. If you just
         them excluded from lineplot calculation but marked as filtered on heat map,
         add names of stats to this list.

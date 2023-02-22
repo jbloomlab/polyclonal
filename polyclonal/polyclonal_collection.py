@@ -282,7 +282,7 @@ class PolyclonalCollection:
         Names of descriptors in :attr:`PolyclonalCollection.descriptor_names` that are
         not shared across all models.
     epitopes : tuple
-        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
+        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope`,
         extracted from :attr:`PolyclonalCollection.models`.
     epitope_colors : dict
         Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,
@@ -362,6 +362,155 @@ class PolyclonalCollection:
             activity_mean=pd.NamedAgg("activity", "mean"),
             activity_median=pd.NamedAgg("activity", "median"),
             activity_std=pd.NamedAgg("activity", "std"),
+        )
+
+    @property
+    def hill_coefficient_df_replicates(self):
+        """pandas.DataFrame: Hill coefficients for all models."""
+        return pd.concat(
+            [
+                m.hill_coefficient_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def hill_coefficient_df(self):
+        """pandas.DataFrame: Hill coefficients summarized across models."""
+        return self.hill_coefficient_df_replicates.groupby(
+            "epitope",
+            as_index=False,
+            sort=False,
+        ).aggregate(
+            hill_coefficient_mean=pd.NamedAgg("hill_coefficient", "mean"),
+            hill_coefficient_median=pd.NamedAgg("hill_coefficient", "median"),
+            hill_coefficient_std=pd.NamedAgg("hill_coefficient", "std"),
+        )
+
+    @property
+    def non_neutralized_frac_df_replicates(self):
+        """pandas.DataFrame: non-neutralizable fraction for all models."""
+        return pd.concat(
+            [
+                m.non_neutralized_frac_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def non_neutralized_frac_df(self):
+        """pandas.DataFrame: non-neutralizable fraction summarized across models."""
+        return self.non_neutralized_frac_df_replicates.groupby(
+            "epitope",
+            as_index=False,
+            sort=False,
+        ).aggregate(
+            non_neutralized_frac_mean=pd.NamedAgg("non_neutralized_frac", "mean"),
+            non_neutralized_frac_median=pd.NamedAgg("non_neutralized_frac", "median"),
+            non_neutralized_frac_std=pd.NamedAgg("non_neutralized_frac", "std"),
+        )
+
+    @property
+    def curve_specs_df_replicates(self):
+        """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.
+
+        Per-replicate values.
+
+        """
+        return pd.concat(
+            [
+                m.curve_specs_df.assign(**desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
+    @property
+    def curve_specs_df(self):
+        """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.
+
+        Values summarized across models.
+
+        """
+        return self.curve_specs_df_replicates.groupby(
+            "epitope",
+            as_index=False,
+            sort=False,
+        ).aggregate(
+            **{
+                f"{param}_{stat}": pd.NamedAgg(param, stat)
+                for param in ["activity", "hill_coefficient", "non_neutralized_frac"]
+                for stat in ["mean", "median", "std"]
+            }
+        )
+
+    def curves_plot(self, *, avg_type=None, per_model_lines=5, **kwargs):
+        r"""Plot neutralization / binding curve for unmutated protein at each epitope.
+
+        This curve effectively illustrates the epitope activity, Hill curve coefficient,
+        and non-neutralizable fraction.
+
+        Parameters
+        ----------
+        avg_type : {"mean", "median", None}
+            Type of average to plot, `None` defaults to
+            :attr:`PolyclonalCollection.default_avg_to_plot`.
+        per_model_lines : int
+            Do we plot thin lines for each model, or just the average? If the number
+            of models in the collection is <= than this number, then we plot per-model
+            lines, otherwise we just plot the average. A value of -1 means we always plot
+            per-model lines.
+        **kwargs
+            Keywords args for :func:`polyclonal.plot.curves_plot`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive plot.
+
+        """
+        if avg_type is None:
+            avg_type = self.default_avg_to_plot
+        params = ["activity", "hill_coefficient", "non_neutralized_frac"]
+
+        df = self.curve_specs_df.rename(
+            columns={f"{c}_{avg_type}": c for c in params}
+        ).drop(
+            columns=[f"{c}_{s}" for c in params for s in ["mean", "median"]],
+            errors="ignore",
+        )
+
+        if per_model_lines >= len(self.models) or per_model_lines == -1:
+            addtl_tooltip_cols = ["model_name"]
+            replicate_col = "model_name"
+            df = pd.concat(
+                [
+                    self.curve_specs_df_replicates.assign(
+                        model_name=lambda x: (
+                            x[self.unique_descriptor_names]
+                            .astype(str)
+                            .agg(" ".join, axis=1)
+                        )
+                    ),
+                    df.assign(model_name=avg_type),
+                ]
+            )[["model_name", "epitope", *params]]
+            if len(df) != len(df[["model_name", "epitope"]].drop_duplicates()):
+                raise ValueError(f"duplicated model name:\n{df=}")
+        else:
+            addtl_tooltip_cols = [f"{c}_std" for c in params]
+            replicate_col = None
+
+        return polyclonal.plot.curves_plot(
+            df,
+            "epitope",
+            addtl_tooltip_cols=addtl_tooltip_cols,
+            names_to_colors=self.epitope_colors,
+            replicate_col=replicate_col,
+            weighted_replicates=[avg_type],
+            **kwargs,
         )
 
     def activity_wt_barplot(self, avg_type=None, **kwargs):

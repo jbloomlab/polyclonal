@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+4.0
+---
+- Enable (and activate by default) fitting of a Hill coefficient and non-neutralized fraction in the curves. Previously, the Hill coefficient had been constrained to one and the non-neutralized fraction to zero. This is a **major change** that will alter the results of fitting models. To get the old behavior, call ``Polyclonal.fit`` with ``fix_hill_coefficient=True`` and ``fix_non_neutralized_frac=True``. Specific changes associated with this update include:
+  - Add ``hill_coefficient_df`` and ``non_neutralized_frac_df`` as parameters and properties of ``Polyclonal`` and ``PolyclonalCollection``.
+  - Restructure internal organization of ``Polyclonal._params`` (this was private, so external code should not be using anyway).
+  - Add regularization to Hill coefficient and non-neutralized fraction to ``Polyclonal.fit``.
+  - Add the "two-epitope" example to illustrate the non-one Hill coefficient and non-neutralized fractions not equal to zero.
+- Update ``reg_escape_weight`` to 0.05 in ``Polyclonal.fit`` because it seems like many people in lab were using larger values. This will **change results** of fitting models because old default was 0.02.
+- Add the ``curves_plot`` and ``curve_specs_df`` to ``Polyclonal`` / ``PolyclonalCollection``,  ``curves_plot`` to the ``plots`` module, and prefer use of this over the activity barplots in the docs. The reason is that this shows the activity, Hill coefficient, and non-neutralized frac.
+- Remove bootstrapping from docs as this isn't really a recommended procedure.
+- Updated the default colors for epitopes (changing fourth to light blue and adding olive as fifth)
+
 3.4
 ---
 - Plotting improvements:

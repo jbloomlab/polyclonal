@@ -1,7 +1,7 @@
 Regularization
 --------------
 
-The prior example used `regularization <https://en.wikipedia.org/wiki/Regularization_(mathematics)>`_ of the model parameters.
+The prior examples used `regularization <https://en.wikipedia.org/wiki/Regularization_(mathematics)>`_ of the model parameters.
 This is an absolutely crucial aspect of the fitting, as it helps ensure the model gives "sensibe" results that are not overfit.
 
 The default values of the regularization weights are hopefully reasonable, but in many cases you may need to tune the regularization weights to give more sensible results.
@@ -20,3 +20,10 @@ Specifically:
  - **Epitope uniqueness regularization** (``reg_uniqueness_weight`` and ``reg_uniqueness2_weight``): these weights penalize two different epitopes having strong escape at the same site, based on the notion epitopes should be largely unique. The first weight penalizes the product of average escape at a site, the second weight can be stronger as it penalizes the product of the **square** of escape at a site.
 
  - **Epitope activity regularization** (``reg_activity_weight``): this weight penalizes epitopes having very high or very low activity. To be precise, it penalizes how much the activities differ from the log of the geometric mean concentrations used for the input data (this will be zero if you have put your concentrations on a scale where the values are ~1). This can be quite useful to avoid both fitting too many and too few epitopes.
+ 
+ - **Hill coefficient regularization** (``reg_Hill_coefficient``): this weight penalizes Hill coefficients :math:`n_e` that differ from one. To be precise, it symmetrically penalizes :math:`1 / n_e` for :math:`n_e < 1` and :math:`n_e` for :math:`n_e > 1`. This regularization should generally be large to ensure the Hill coefficient does not get wildly different from one.
+ 
+ - **non-neutralized fraction regularization** (``reg_non_neutralized_frac``): this weight penalizes non-neutralizable fractions :math:`t_e` that differ from zero. Note that the optimization also uses bounds that constrain :math:`t_e \ge 0`. This regularization should be large to ensure the non-neutralizable fraction does not get dramatically larger than zero.
+
+In addition to regularization, the ``fix_hill_coefficient`` and ``fix_non_neutralized_frac`` options to `Polyclonal.fit <https://jbloomlab.github.io/polyclonal/polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit>`_ allow you to fix the Hill coefficient and non-neutralized fractions to their initial values, which by default are one and zero.
+Normally fitting rather than fixing these parameters should give a better fit to the data, but sometimes the fitting causes problems in optimization or yields unrealistic values, in which case fixing one or both of these parameters could be helpful.

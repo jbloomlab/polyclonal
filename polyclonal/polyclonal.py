@@ -75,11 +75,13 @@ class Polyclonal:
     .. math::
        :label: U_e
 
-       U_e\left(v,c\right)=\frac{1}{1+c\exp\left(-\phi_e\left(v\right)\right)}
+       U_e\left(v,c\right)=
+         \frac{1-t_e}{1+\left[c\exp\left(-\phi_e\left(v\right)\right)\right]^{n_e}}+t_e
 
     where smaller (more negative) values of :math:`\phi_e\left(v\right)`
     correspond to higher overall binding activity against epitope :math:`e`
-    variant :math:`v`.
+    variant :math:`v`, :math:`n_e` is the Hill coefficient, and :math:`t_e`
+    is the non-neutralized fraction.
 
     We define :math:`\phi_e\left(v\right)` in terms of the underlying
     quantities of biological interest as
@@ -124,6 +126,11 @@ class Polyclonal:
        and ``n_epitopes`` holding the number of epitopes. Then call
        :meth:`Polyclonal.fit`.
 
+    For the first and second approaches, you can optionally set initial values
+    for :math:`n_e` (the Hill coefficient) and :math:`t_e` (the non-neutralizable
+    fraction) via ``hill_coefficient_df`` and ``non_neutralized_frac_df``.
+    If these are not set, we initialize :math:`n_e = 1` and :math:`t_e = 0`.
+
     Parameters
     ----------
     data_to_fit : pandas.DataFrame or None
@@ -140,6 +147,12 @@ class Polyclonal:
         Should have columns named 'mutation', 'epitope', and 'escape' that
         give the :math:`\beta_{m,e}` values (in the 'escape' column), with
         mutations written like "G7M".
+    hill_coefficient_df : pandas.DataFrame or None
+        Should have columns named 'epitope' and 'hill_coefficient' that sets initial
+        :math:`n_e`, or set to `None` for :math:`n_e = 1`.
+    non_neutralized_frac_df : pandas.DataFrame or None
+        Should have columns named 'epitope' and 'non_neutralized_frac' that sets initial
+        :math:`t_e`, or set to `None` for :math:`t_e = 0`.
     site_escape_df : pandas.DataFrame or None
         Use if you want to initialize all mutations at a given site to have
         the same :math:`\beta_{m,e}` values. In this case, columns should be
@@ -250,10 +263,10 @@ class Polyclonal:
     (1, 2, 4)
     >>> model.wts
     {1: 'M', 2: 'G', 4: 'A'}
-    >>> model.activity_wt_df
-      epitope  activity
-    0      e1       2.0
-    1      e2       1.0
+    >>> model.curve_specs_df
+      epitope  activity  hill_coefficient  non_neutralized_frac
+    0      e1       2.0               1.0                   0.0
+    1      e2       1.0               1.0                   0.0
     >>> model.mut_escape_df
       epitope  site wildtype mutant mutation  escape
     0      e1     1        M      C      M1C     2.0
@@ -420,10 +433,10 @@ class Polyclonal:
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
 
-    >>> model_data.activity_wt_df
-      epitope  activity
-    0       1       1.0
-    1       2       0.0
+    >>> model_data.curve_specs_df
+      epitope  activity  hill_coefficient  non_neutralized_frac
+    0       1       1.0               1.0                   0.0
+    1       2       0.0               1.0                   0.0
     >>> model_data.mut_escape_df
       epitope  site wildtype mutant mutation  escape  times_seen
     0       1     1        M      C      M1C     0.0           6
@@ -444,10 +457,10 @@ class Polyclonal:
     ...     init_missing=1,
     ...     collapse_identical_variants="mean",
     ... )
-    >>> model_data2.activity_wt_df.round(3)
-      epitope  activity
-    0       1     0.417
-    1       2     0.720
+    >>> model_data2.curve_specs_df.round(3)
+      epitope  activity  hill_coefficient  non_neutralized_frac
+    0       1     0.417               1.0                   0.0
+    1       2     0.720               1.0                   0.0
 
     You can set some or all mutation escapes to initial values:
 
@@ -525,9 +538,14 @@ class Polyclonal:
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{m.mut_escape_df}")
 
-    >>> model_data.mut_escape_site_summary_df().round(1)
+    The applymap on next line is to make doctest pass even with negative zeros
+
+    >>> (
+    ...     model_data.mut_escape_site_summary_df()
+    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)
+    ... )
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
-    0       1     1        M  -0.0             0.0 -0.0 -0.0            -0.0            1
+    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
     1       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     2       1     4        A   2.0             4.0  2.5  1.5             0.0            2
     3       2     1        M   2.0             2.0  2.0  2.0             0.0            1
@@ -537,7 +555,10 @@ class Polyclonal:
     You can also exclude mutations to specific characters (typically you would want to
     do this for stop codons and/or gaps):
 
-    >>> model_data.mut_escape_site_summary_df(exclude_chars={"C", "K"}).round(1)
+    >>> (
+    ...     model_data.mut_escape_site_summary_df(exclude_chars={"C", "K"})
+    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)
+    ... )
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     2        G   0.0             0.0  0.0  0.0             0.0            1
     1       1     4        A   1.5             1.5  1.5  1.5             0.0            1
@@ -730,9 +751,11 @@ class Polyclonal:
     def __init__(
         self,
         *,
+        data_to_fit=None,
         activity_wt_df=None,
         mut_escape_df=None,
-        data_to_fit=None,
+        hill_coefficient_df=None,
+        non_neutralized_frac_df=None,
         site_escape_df=None,
         n_epitopes=None,
         spatial_distances=None,
@@ -848,6 +871,44 @@ class Polyclonal:
             raise ValueError("not enough `epitope_colors`")
         else:
             self.epitope_colors = dict(zip(self.epitopes, epitope_colors))
+
+        if hill_coefficient_df is not None:
+            hill_req_cols = {"epitope", "hill_coefficient"}
+            if not hill_req_cols.issubset(hill_coefficient_df.columns):
+                raise ValueError(f"`hill_coefficient_df` lacks columns {hill_req_cols}")
+            hill_coefficient_df = hill_coefficient_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+            if set(hill_coefficient_df["epitope"]) != set(self.epitopes) or len(
+                hill_coefficient_df
+            ) != len(self.epitopes):
+                raise ValueError(
+                    "`hill_coefficient_df` does not have unique required epitopes"
+                )
+        else:
+            hill_coefficient_df = pd.DataFrame(
+                {"epitope": self.epitopes, "hill_coefficient": 1.0}
+            )
+
+        if non_neutralized_frac_df is not None:
+            t_req_cols = {"epitope", "non_neutralized_frac"}
+            if not t_req_cols.issubset(non_neutralized_frac_df.columns):
+                raise ValueError(
+                    f"`non_neutralized_frac_df` lacks columns {t_req_cols}"
+                )
+            non_neutralized_frac_df = non_neutralized_frac_df.assign(
+                epitope=lambda x: x["epitope"].astype(str)
+            )
+            if set(non_neutralized_frac_df["epitope"]) != set(self.epitopes) or len(
+                non_neutralized_frac_df
+            ) != len(self.epitopes):
+                raise ValueError(
+                    "`non_neutralized_frac_df` does not have unique required epitopes"
+                )
+        else:
+            non_neutralized_frac_df = pd.DataFrame(
+                {"epitope": self.epitopes, "non_neutralized_frac": 0.0}
+            )
 
         def _init_mut_escape_df(mutations):
             # initialize mutation escape values
@@ -1011,7 +1072,12 @@ class Polyclonal:
                 raise ValueError(f"invalid set of mutations for {epitope=}")
 
         # set internal params with activities and escapes
-        self._params = self._params_from_dfs(activity_wt_df, mut_escape_df)
+        self._params = self._params_from_dfs(
+            activity_wt_df,
+            mut_escape_df,
+            hill_coefficient_df,
+            non_neutralized_frac_df,
+        )
 
         if data_to_fit is not None:
             (
@@ -1177,21 +1243,37 @@ class Polyclonal:
 
         return (one_binarymap, binarymaps, cs, pvs, weights, sorted_df)
 
-    def _params_from_dfs(self, activity_wt_df, mut_escape_df):
-        """Params vector from data frames of activities and escapes."""
-        # first E entries are activities
-        assert len(activity_wt_df) == len(self.epitopes)
-        assert len(self.epitopes) == activity_wt_df["epitope"].nunique()
-        assert set(self.epitopes) == set(activity_wt_df["epitope"])
-        params = (
-            activity_wt_df.assign(
-                epitope=lambda x: pd.Categorical(
-                    x["epitope"], self.epitopes, ordered=True
+    def _params_from_dfs(
+        self,
+        activity_wt_df,
+        mut_escape_df,
+        hill_coefficient_df,
+        non_neutralized_frac_df,
+    ):
+        """Params vector from data frames activities, escapes, n, and t."""
+        # first E entries are activities, next E are Hill coefficients, then
+        # non-neutralized fracs
+        params = []
+        for df, col in [
+            (activity_wt_df, "activity"),
+            (hill_coefficient_df, "hill_coefficient"),
+            (non_neutralized_frac_df, "non_neutralized_frac"),
+        ]:
+            assert len(df) == len(self.epitopes)
+            assert len(self.epitopes) == df["epitope"].nunique()
+            assert set(self.epitopes) == set(df["epitope"])
+            assert col in df, f"{col=}\n{df=}\n"
+            params.extend(
+                df.assign(
+                    epitope=lambda x: pd.Categorical(
+                        x["epitope"],
+                        self.epitopes,
+                        ordered=True,
+                    )
                 )
+                .sort_values("epitope")[col]
+                .tolist()
             )
-            .sort_values("epitope")["activity"]
-            .tolist()
-        )
 
         # Remaining MxE entries are beta values
         assert len(mut_escape_df) == len(self.epitopes) * len(self.mutations)
@@ -1216,19 +1298,21 @@ class Polyclonal:
             raise ValueError("some parameters are NaN")
         return params
 
-    def _a_beta_from_params(self, params):
-        """Vector of activities and MxE matrix of betas from params vector."""
-        params_len = len(self.epitopes) * (1 + len(self.mutations))
+    def _a_n_t_beta_from_params(self, params):
+        """Vector of activities, n_e, t_e, and MxE matrix of betas from params vector."""
+        assert not numpy.isnan(params).any()
+        params_len = len(self.epitopes) * (3 + len(self.mutations))
         if params.shape != (params_len,):
             raise ValueError(f"invalid {params.shape=}")
         a = params[: len(self.epitopes)]
-        beta = params[len(self.epitopes) :].reshape(
+        n = params[len(self.epitopes) : 2 * len(self.epitopes)]
+        t = params[2 * len(self.epitopes) : 3 * len(self.epitopes)]
+        beta = params[3 * len(self.epitopes) :].reshape(
             len(self.mutations), len(self.epitopes)
         )
-        assert a.shape == (len(self.epitopes),)
+        assert a.shape == n.shape == t.shape == (len(self.epitopes),)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
-        assert (not numpy.isnan(a).any()) and (not numpy.isnan(beta).any())
-        return (a, beta)
+        return (a, n, t, beta)
 
     def _muts_from_data_to_fit(self, data_to_fit):
         """Get wildtypes, sites, and mutations from ``data_to_fit``."""
@@ -1278,19 +1362,28 @@ class Polyclonal:
     @property
     def activity_wt_df(self):
         r"""pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes."""
-        a, _ = self._a_beta_from_params(self._params)
+        a, _, _, _ = self._a_n_t_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
-        return pd.DataFrame(
-            {
-                "epitope": self.epitopes,
-                "activity": a,
-            }
-        )
+        return pd.DataFrame({"epitope": self.epitopes, "activity": a})
+
+    @property
+    def hill_coefficient_df(self):
+        r"""pandas.DataFrame: Hill coefficients :math:`n_e` for epitopes."""
+        _, n, _, _ = self._a_n_t_beta_from_params(self._params)
+        assert n.shape == (len(self.epitopes),)
+        return pd.DataFrame({"epitope": self.epitopes, "hill_coefficient": n})
+
+    @property
+    def non_neutralized_frac_df(self):
+        r"""pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes."""
+        _, _, t, _ = self._a_n_t_beta_from_params(self._params)
+        assert t.shape == (len(self.epitopes),)
+        return pd.DataFrame({"epitope": self.epitopes, "non_neutralized_frac": t})
 
     @property
     def mut_escape_df(self):
         r"""pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation."""
-        _, beta = self._a_beta_from_params(self._params)
+        _, _, _, beta = self._a_n_t_beta_from_params(self._params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         df = pd.concat(
             [
@@ -1424,7 +1517,7 @@ class Polyclonal:
 
     def _check_close_activities(self):
         """Check no epitopes have near-identical activities and escape."""
-        a, beta = self._a_beta_from_params(self._params)
+        a, _, _, beta = self._a_n_t_beta_from_params(self._params)
         assert a.shape == (len(self.epitopes),)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         for i1 in range(len(self.epitopes)):
@@ -1481,6 +1574,8 @@ class Polyclonal:
         return Polyclonal(
             activity_wt_df=self.activity_wt_df,
             mut_escape_df=site_escape_df,
+            hill_coefficient_df=self.hill_coefficient_df,
+            non_neutralized_frac_df=self.non_neutralized_frac_df,
             spatial_distances=self.spatial_distances,
             data_to_fit=site_data_to_fit,
             alphabet=("w", "m"),
@@ -1557,11 +1652,13 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for escape regularization not >= 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         h, dh = self._scaled_pseudo_huber(delta, beta, True)
         reg = h.sum() * weight
         assert dh.shape == beta.shape
-        dreg = weight * numpy.concatenate([numpy.zeros(len(self.epitopes)), dh.ravel()])
+        dreg = weight * numpy.concatenate(
+            [numpy.zeros(3 * len(self.epitopes)), dh.ravel()]
+        )
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         assert reg >= 0
@@ -1573,7 +1670,7 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for activity regularization not >= 0")
-        a, _ = self._a_beta_from_params(params)
+        a, _, _, _ = self._a_n_t_beta_from_params(params)
         h, dh = self._scaled_pseudo_huber(delta, a + log_c_gm, True)
         reg = h.sum() * weight
         assert dh.shape == a.shape == (len(self.epitopes),)
@@ -1589,7 +1686,7 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for spread regularization not >= 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         reg = 0
         dreg = numpy.zeros(beta.shape)
@@ -1605,7 +1702,7 @@ class Polyclonal:
             assert dreg_site.shape == (mi, len(self.epitopes))
             dreg[siteindex] += dreg_site
         assert reg >= 0
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
@@ -1633,7 +1730,7 @@ class Polyclonal:
         # calculate values
         if epsilon <= 0:
             raise ValueError(f"{epsilon=} must be > 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
         beta2 = beta**2
         site_beta2 = numpy.array(
@@ -1709,7 +1806,7 @@ class Polyclonal:
             assert dreg_epitope.shape == (len(self.mutations),)
             dreg[:, i_epitope] = dreg_epitope
 
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape == self._params.shape
 
         return reg, dreg
@@ -1740,7 +1837,7 @@ class Polyclonal:
                 if i_epitope_1 != i_epitope_2:
                     dreg[:, i_epitope_1] += ds[:, i_epitope_1] * s_mut[:, i_epitope_2]
 
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
         assert dreg.shape == params.shape == self._params.shape
 
         return weight * reg, weight * dreg
@@ -1751,7 +1848,7 @@ class Polyclonal:
             return (0, numpy.zeros(params.shape))
         elif weight < 0:
             raise ValueError(f"{weight=} for uniqueness2 regularization not >= 0")
-        _, beta = self._a_beta_from_params(params)
+        _, _, _, beta = self._a_n_t_beta_from_params(params)
         assert beta.shape == (len(self.mutations), len(self.epitopes))
 
         site_norm = numpy.array(
@@ -1781,7 +1878,56 @@ class Polyclonal:
             )
         )
         assert reg >= 0
-        dreg = numpy.concatenate([numpy.zeros(len(self.epitopes)), dreg.ravel()])
+        dreg = numpy.concatenate([numpy.zeros(3 * len(self.epitopes)), dreg.ravel()])
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        return reg, dreg
+
+    def _reg_hill_coefficient(self, params, weight):
+        """Regularization on Hill coefficients and gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for Hill coefficient regularization not >= 0")
+        _, n, _, _ = self._a_n_t_beta_from_params(params)
+        assert n.shape == (len(self.epitopes),)
+        if (n <= 0).any():
+            raise ValueError(f"some Hill coefficients not >0:\n{n=}")
+        log_n = numpy.log(n)
+        reg = weight * (log_n**2).sum()
+        assert reg >= 0
+        dreg = 2 * weight * log_n / n
+        dreg = numpy.concatenate(
+            [
+                numpy.zeros(len(self.epitopes)),
+                dreg,
+                numpy.zeros(len(params) - 2 * len(self.epitopes)),
+            ]
+        )
+        assert dreg.shape == params.shape
+        assert numpy.isfinite(dreg).all()
+        return reg, dreg
+
+    def _reg_non_neutralized_frac(self, params, weight):
+        """Regularization on non-neutralized fraction and gradient."""
+        if weight == 0:
+            return (0, numpy.zeros(params.shape))
+        elif weight < 0:
+            raise ValueError(f"{weight=} for non-neutralized frac not >= 0")
+        _, _, t, _ = self._a_n_t_beta_from_params(params)
+        assert t.shape == (len(self.epitopes),)
+        if (0 > t).any() or (t > 1).any():
+            raise ValueError(f"some non-neutralized fracs not in [0, 1]:\n{t=}")
+        reg = weight * (t**2).sum()
+        assert reg >= 0
+        dreg = 2 * weight * t
+        dreg = numpy.concatenate(
+            [
+                numpy.zeros(2 * len(self.epitopes)),
+                dreg,
+                numpy.zeros(len(params) - 3 * len(self.epitopes)),
+            ]
+        )
         assert dreg.shape == params.shape
         assert numpy.isfinite(dreg).all()
         return reg, dreg
@@ -1802,7 +1948,7 @@ class Polyclonal:
         self,
         *,
         loss_delta=0.1,
-        reg_escape_weight=0.02,
+        reg_escape_weight=0.05,
         reg_escape_delta=0.1,
         reg_spread_weight=0.1,
         site_avg_abs_escape_epsilon=0.1,
@@ -1812,10 +1958,14 @@ class Polyclonal:
         reg_uniqueness2_weight=0.1,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
+        reg_hill_coefficient_weight=50.0,
+        reg_non_neutralized_frac_weight=1000.0,
         fit_site_level_first=True,
         scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
         log=None,
         logfreq=None,
+        fix_hill_coefficient=False,
+        fix_non_neutralized_frac=False,
     ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -1858,6 +2008,11 @@ class Polyclonal:
             Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.
         reg_activity_delta : float
             Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.
+        reg_hill_coefficient_weight : float
+            Weight of regularization on Hill coefficients :math:`n_e` that differ from 1.
+        reg_non_neutralized_frac_weight : float
+            Weight of regularization on non-neutralized fractions :math:`t_e` that
+            differ from 0.
         fit_site_level_first : bool
             First fit a site-level model, then use those activities /
             escapes to initialize fit of this model. Generally works better.
@@ -1867,6 +2022,12 @@ class Polyclonal:
             Where to log output. If ``None``, use ``sys.stdout``.
         logfreq : None or int
             How frequently to write updates on fitting to ``log``.
+        fix_hill_coefficient : bool
+            Do not optimize the hill coefficients :math:`n_e` and instead keep fixed
+            at current values.
+        fix_non_neutralized_frac : bool
+            Do not optimize the non-neutralized fractions :math:`t_e` and instead keep
+            fixed at current values.
 
         Return
         ------
@@ -1905,7 +2066,38 @@ class Polyclonal:
                         validate="one_to_many",
                     )
                 ),
+                hill_coefficient_df=site_model.hill_coefficient_df,
+                non_neutralized_frac_df=site_model.non_neutralized_frac_df,
             )
+
+        def transform_params_to_fixed(p):
+            # split params to unfixed and fixed params
+            assert p.shape == self._params.shape
+            ne = len(self.epitopes)
+            a = p[:ne]
+            n = p[ne : 2 * ne]
+            t = p[2 * ne : 3 * ne]
+            beta = p[3 * ne :]
+            if fix_hill_coefficient and fix_non_neutralized_frac:
+                return numpy.concatenate((a, beta)), n, t
+            elif fix_hill_coefficient:
+                return numpy.concatenate((a, t, beta)), n, None
+            elif fix_non_neutralized_frac:
+                return numpy.concatenate((a, n, beta)), None, t
+            else:
+                return p, None, None
+
+        def transform_params_to_unfixed(pfixed, n, t):
+            # unfixed params plus n and t to all params
+            ne = len(self.epitopes)
+            if n is not None:
+                p = numpy.concatenate((pfixed[:ne], n, pfixed[ne:]))
+            else:
+                p = pfixed
+            if t is not None:
+                p = numpy.concatenate((p[: 2 * ne], t, p[2 * ne :]))
+            assert p.shape == self._params.shape
+            return p
 
         class LossReg:
             # compute loss in class to remember last call
@@ -1913,7 +2105,8 @@ class Polyclonal:
                 self_.last_loss = None
                 self_.last_params = None
 
-            def loss_reg(self_, params, breakdown=False):
+            def loss_reg(self_, params_unfixed, n, t, breakdown=False):
+                params = transform_params_to_unfixed(params_unfixed, n, t)
                 if (self_.last_params is None) or (params != self_.last_params).any():
                     fitloss, dfitloss = self._loss_dloss(params, loss_delta)
                     regescape, dregescape = self._reg_escape(
@@ -1940,6 +2133,14 @@ class Polyclonal:
                         reg_activity_delta,
                         log_c_gm,
                     )
+                    (
+                        reghillcoefficient,
+                        dreghillcoefficient,
+                    ) = self._reg_hill_coefficient(params, reg_hill_coefficient_weight)
+                    regnonneutfrac, dregnonneutfrac = self._reg_non_neutralized_frac(
+                        params,
+                        reg_non_neutralized_frac_weight,
+                    )
                     loss = (
                         fitloss
                         + regescape
@@ -1948,8 +2149,10 @@ class Polyclonal:
                         + reguniqueness
                         + reguniqueness2
                         + regactivity
+                        + reghillcoefficient
+                        + regnonneutfrac
                     )
-                    dloss = (
+                    dloss, _, _ = transform_params_to_fixed(
                         dfitloss
                         + dregescape
                         + dregspread
@@ -1957,6 +2160,8 @@ class Polyclonal:
                         + dreguniqueness
                         + dreguniqueness2
                         + dregactivity
+                        + dreghillcoefficient
+                        + dregnonneutfrac
                     )
                     self_.last_params = params
                     self_.last_loss = (
@@ -1970,28 +2175,39 @@ class Polyclonal:
                             "reg_uniqueness": reguniqueness,
                             "reg_uniqueness2": reguniqueness2,
                             "reg_activity": regactivity,
+                            "reg_hill_coefficient": reghillcoefficient,
+                            "reg_non_neutralized_frac": regnonneutfrac,
                         },
                     )
                 return self_.last_loss if breakdown else self_.last_loss[:2]
 
         lossreg = LossReg()
 
+        startparams_fixed, fixed_n, fixed_t = transform_params_to_fixed(self._params)
+
         if logfreq:
             log.write(
-                f"# Starting optimization of {len(self._params)} "
+                f"# Starting optimization of {len(startparams_fixed)} "
                 f"parameters at {time.asctime()}.\n"
             )
 
             class Callback:
                 # to log minimization
-                def __init__(self_, interval, start):
+                def __init__(self_, interval, start, fixed_n, fixed_t):
                     self_.interval = interval
                     self_.i = 0
                     self_.start = start
+                    self.fixed_n = fixed_n
+                    self.fixed_t = fixed_t
 
-                def callback(self_, params, header=False, force_output=False):
+                def callback(self_, p, header=False, force_output=False):
                     if force_output or (self_.i % self_.interval == 0):
-                        loss, _, breakdown = lossreg.loss_reg(params, True)
+                        loss, _, breakdown = lossreg.loss_reg(
+                            p,
+                            self.fixed_n,
+                            self.fixed_t,
+                            True,
+                        )
                         cols = ["step", "time_sec", "loss", *breakdown.keys()]
                         col_widths = [max(12, len(col) + 1) for col in cols]
                         if header:
@@ -2017,27 +2233,93 @@ class Polyclonal:
                     self_.i += 1
 
             scipy_minimize_kwargs = dict(scipy_minimize_kwargs)
-            callback_logger = Callback(logfreq, time.time())
-            callback_logger.callback(self._params, header=True, force_output=True)
+            callback_logger = Callback(logfreq, time.time(), fixed_n, fixed_t)
+            callback_logger.callback(startparams_fixed, header=True, force_output=True)
             scipy_minimize_kwargs["callback"] = callback_logger.callback
+
+        # set bounds so non-neutralized frac must always be between 0 and 1 and
+        # the Hill coefficienty must always be >0
+        if "bounds" in scipy_minimize_kwargs:
+            raise ValueError("Cannot specify 'bounds' in `scipy_minimize_kwargs`")
+        bounds = [(None, None)] * len(startparams_fixed)
+        if not fix_hill_coefficient:
+            assert fixed_n is None
+            for i_n_bounds in range(len(self.epitopes), 2 * len(self.epitopes)):
+                bounds[i_n_bounds] = (1e-8, None)
+        if not fix_non_neutralized_frac:
+            assert fixed_t is None
+            if fix_hill_coefficient:
+                start_t_bounds = len(self.epitopes)
+            else:
+                start_t_bounds = len(self.epitopes) * 2
+            for i_t_bounds in range(
+                start_t_bounds, start_t_bounds + len(self.epitopes)
+            ):
+                bounds[i_t_bounds] = (0, 1)
 
         opt_res = scipy.optimize.minimize(
             fun=lossreg.loss_reg,
-            x0=self._params,
+            x0=startparams_fixed,
+            args=(fixed_n, fixed_t),
             jac=True,
+            bounds=bounds,
             **scipy_minimize_kwargs,
         )
-        self._params = opt_res.x
+        self._params = transform_params_to_unfixed(opt_res.x, fixed_n, fixed_t)
         if logfreq:
-            callback_logger.callback(self._params, force_output=True)
+            callback_logger.callback(opt_res.x, force_output=True)
             log.write(f"# Successfully finished at {time.asctime()}.\n")
         if not opt_res.success:
             log.write(f"# Optimization FAILED at {time.asctime()}.\n")
             raise PolyclonalFitError(f"Optimization failed:\n{opt_res}")
         return opt_res
 
+    @property
+    def curve_specs_df(self):
+        """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs."""
+        curve_specs_df = self.activity_wt_df.merge(self.hill_coefficient_df).merge(
+            self.non_neutralized_frac_df
+        )
+
+        assert len(curve_specs_df) == len(self.epitopes)
+        assert self.epitopes == tuple(curve_specs_df["epitope"])
+
+        return curve_specs_df
+
+    def curves_plot(self, **kwargs):
+        r"""Plot neutralization / binding curve for unmutated protein at each epitope.
+
+        This curve effectively illustrates the epitope activity, Hill curve coefficient,
+        and non-neutralizable fraction.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.curves_plot`.
+
+        Returns
+        -------
+        altair.Chart
+            Interactive plot
+
+        """
+        for col in "epitope", "curve_specs_df":
+            if col in kwargs:
+                raise ValueError(f"**kwargs cannot contain {col=}")
+
+        return polyclonal.plot.curves_plot(
+            self.curve_specs_df,
+            "epitope",
+            names_to_colors=self.epitope_colors,
+            **kwargs,
+        )
+
     def activity_wt_barplot(self, **kwargs):
         r"""Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.
+
+        Note
+        ----
+        Consider :meth:`Polyclonal.curves_plot` as better way to show similar data.
 
         Parameters
         ----------
@@ -2297,10 +2579,9 @@ class Polyclonal:
             raise ValueError(f"{x=} not >0 and <1")
         if col in variants_df.columns:
             raise ValueError(f"`variants_df` cannot have {col=}")
-
         reduced_df = variants_df[["aa_substitutions"]].drop_duplicates()
         bmap = self._get_binarymap(reduced_df)
-        a, beta = self._a_beta_from_params(self._params)
+        a, n, t, beta = self._a_n_t_beta_from_params(self._params)
         exp_phi_e_v = numpy.exp(-bmap.binary_variants.dot(beta) + a)
         assert exp_phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         variants = reduced_df["aa_substitutions"].tolist()
@@ -2311,7 +2592,7 @@ class Polyclonal:
             assert exp_phi_e.shape == (len(self.epitopes),)
 
             def _func(c, expterm):
-                pv = numpy.prod(1.0 / (1.0 + c * expterm))
+                pv = numpy.prod((1 - t) / (1.0 + (c * expterm) ** n) + t)
                 return 1 - x - pv
 
             if _func(min_c, exp_phi_e) > 0:
@@ -2403,8 +2684,8 @@ class Polyclonal:
             len(params) is nepitopes * (1 + binarylength).
 
         """
-        a, beta = self._a_beta_from_params(params)
-        assert a.shape == (len(self.epitopes),)
+        a, n, t, beta = self._a_n_t_beta_from_params(params)
+        assert a.shape == n.shape == t.shape == (len(self.epitopes),)
         assert beta.shape == (bmap.binarylength, len(self.epitopes))
         assert beta.shape[0] == bmap.binary_variants.shape[1]
         assert bmap.binary_variants.shape == (bmap.nvariants, bmap.binarylength)
@@ -2413,7 +2694,12 @@ class Polyclonal:
         phi_e_v = bmap.binary_variants.dot(beta) - a
         assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
         exp_minus_phi_e_v = numpy.exp(-phi_e_v)
-        U_v_e_c = 1.0 / (1.0 + numpy.multiply.outer(exp_minus_phi_e_v, cs))
+        # broadcasting of n and t as at: https://stackoverflow.com/a/55749006
+        nb = n[None, :, None]
+        tb = t[None, :, None]
+        U_v_e_c = (1 - tb) / (
+            1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs)) ** nb
+        ) + tb
         assert U_v_e_c.shape == (bmap.nvariants, len(self.epitopes), len(cs))
         n_vc = bmap.nvariants * len(cs)
         U_vc_e = numpy.moveaxis(U_v_e_c, 1, 2).reshape(
@@ -2422,38 +2708,65 @@ class Polyclonal:
         assert U_vc_e.shape == (n_vc, len(self.epitopes))
         p_vc = U_vc_e.prod(axis=1)
         assert p_vc.shape == (n_vc,)
-        if calc_grad:
-            dpvc_da = p_vc * (numpy.swapaxes(U_vc_e, 0, 1) - 1)
-            assert dpvc_da.shape == (len(self.epitopes), n_vc)
-            dpevc = -dpvc_da.ravel(order="C")
-            n_vce = n_vc * len(self.epitopes)
-            assert dpevc.shape == (n_vce,)
-            # Stack then transpose C X E binary_variants to multiply dpvce
-            # Stacking should be fast: https://stackoverflow.com/a/45990096
-            # Note after transpose this yields CSC matrix
-            stacked_binary_variants = scipy.sparse.vstack(
-                [bmap.binary_variants] * len(cs) * len(self.epitopes)
-            ).transpose()
-            assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
-            dpevc_dbeta = stacked_binary_variants.multiply(
-                numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce))
-            )
-            assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
-            # in params, betas sorted first by mutation, then by epitope;
-            # dpevc_dbeta sorted by concentration, then variant, then epitope
-            dpvc_dbetaparams = dpevc_dbeta.reshape(
-                bmap.binarylength * len(self.epitopes), n_vc
-            )
-            assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
-            # combine to make dpvc_dparams, noting activities before betas
-            # in params
-            dpvc_dparams = scipy.sparse.vstack(
-                [scipy.sparse.csr_matrix(dpvc_da), dpvc_dbetaparams.tocsr()]
-            )
-            assert type(dpvc_dparams) == scipy.sparse.csr_matrix
-            assert dpvc_dparams.shape == (len(params), n_vc)
-            return p_vc, dpvc_dparams
-        return p_vc
+
+        if not calc_grad:
+            return p_vc
+
+        # calculate gradient with respect to a
+        U_term_partial = (1 - U_vc_e) / U_vc_e / (1 - t)
+        U_term = (U_vc_e - t) * U_term_partial
+        dpvc_da = -p_vc * numpy.swapaxes(n * U_term, 0, 1)
+        assert dpvc_da.shape == (len(self.epitopes), n_vc)
+        # calculate gradient with respect to t
+        dpvc_dt = p_vc * numpy.swapaxes(U_term_partial, 0, 1)
+        assert dpvc_dt.shape == (len(self.epitopes), n_vc)
+        # calculate gradient with respect to n
+        phi_e_v_minus_logc = numpy.repeat(phi_e_v, len(cs)).reshape(
+            *phi_e_v.shape, len(cs)
+        ) - numpy.log(cs)
+        assert phi_e_v_minus_logc.shape == U_v_e_c.shape
+        dpvc_dn = dpvc_dt * numpy.swapaxes(
+            numpy.moveaxis(phi_e_v_minus_logc * (U_v_e_c - tb), 1, 2).reshape(
+                n_vc, len(self.epitopes), order="F"
+            ),
+            0,
+            1,
+        )
+        assert dpvc_dn.shape == (len(self.epitopes), n_vc)
+        # calculate gradient with respect to beta
+        dpevc = -dpvc_da.ravel(order="C")
+        n_vce = n_vc * len(self.epitopes)
+        assert dpevc.shape == (n_vce,)
+        # Stack then transpose C X E binary_variants to multiply dpvce
+        # Stacking should be fast: https://stackoverflow.com/a/45990096
+        # Note after transpose this yields CSC matrix
+        stacked_binary_variants = scipy.sparse.vstack(
+            [bmap.binary_variants] * len(cs) * len(self.epitopes)
+        ).transpose()
+        assert stacked_binary_variants.shape == (bmap.binarylength, n_vce)
+        dpevc_dbeta = stacked_binary_variants.multiply(
+            numpy.broadcast_to(dpevc, (bmap.binarylength, n_vce))
+        )
+        assert dpevc_dbeta.shape == (bmap.binarylength, n_vce)
+        # in params, betas sorted first by mutation, then by epitope;
+        # dpevc_dbeta sorted by concentration, then variant, then epitope
+        dpvc_dbetaparams = dpevc_dbeta.reshape(
+            bmap.binarylength * len(self.epitopes), n_vc
+        )
+        assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
+        # combine to make dpvc_dparams, noting activities before betas
+        # in params
+        dpvc_dparams = scipy.sparse.vstack(
+            [
+                scipy.sparse.csr_matrix(dpvc_da),
+                scipy.sparse.csr_matrix(dpvc_dn),
+                scipy.sparse.csr_matrix(dpvc_dt),
+                dpvc_dbetaparams.tocsr(),
+            ]
+        )
+        assert type(dpvc_dparams) == scipy.sparse.csr_matrix
+        assert dpvc_dparams.shape == (len(params), n_vc)
+        return p_vc, dpvc_dparams
 
     def _get_binarymap(
         self,
@@ -2614,6 +2927,20 @@ class Polyclonal:
             ),
             mut_escape_df=(
                 self.mut_escape_df.assign(epitope=lambda x: x["epitope"].map(map_dict))
+                .sort_values("epitope", key=lambda c: c.map(epitope_order))
+                .reset_index(drop=True)
+            ),
+            hill_coefficient_df=(
+                self.hill_coefficient_df.assign(
+                    epitope=lambda x: x["epitope"].map(map_dict),
+                )
+                .sort_values("epitope", key=lambda c: c.map(epitope_order))
+                .reset_index(drop=True)
+            ),
+            non_neutralized_frac_df=(
+                self.non_neutralized_frac_df.assign(
+                    epitope=lambda x: x["epitope"].map(map_dict),
+                )
                 .sort_values("epitope", key=lambda c: c.map(epitope_order))
                 .reset_index(drop=True)
             ),

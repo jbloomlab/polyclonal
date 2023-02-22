@@ -2,3 +2,5 @@ RBD_mutation_escape_fractions.csv
 RBD_variants_escape.csv
 RBD_variants_escape_noisy.csv
 RBD_variants_escape_exact.csv
+2epitope_escape.csv
+2epitope_model_curve_specs.csv
