@@ -31,8 +31,8 @@ TAB10_COLORS_NOGRAY = tuple(
 )
 """tuple: Tableau 10 color palette without gray."""
 
-DEFAULT_POSITIVE_COLORS = ("#0072B2", "#CC79A7", "#009E73", "#4C3549")
-"""tuple: Some colors in hex: french blue, wild orchid, green, dark byzantium."""
+DEFAULT_POSITIVE_COLORS = ("#0072B2", "#CC79A7", "#009E73", "#17BECF", "#BCDB22")
+"""tuple: Colors in hex: french blue, wild orchid, green, light blue, olive."""
 
 DEFAULT_NEGATIVE_COLOR = "#E69F00"
 """str: Orange from cbPalette color in hex."""
