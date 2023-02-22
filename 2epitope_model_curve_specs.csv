@@ -1,0 +1,3 @@
+epitope,activity,hill_coefficient,non_neutralized_frac
+class 2,3.2,1.2,0.01
+class 3,2.4,1.6,0.05

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal_collection &#8212; polyclonal 3.4 documentation</title>
+    <title>polyclonal.polyclonal_collection &#8212; polyclonal 4.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -316,7 +316,7 @@
 <span class="sd">        Names of descriptors in :attr:`PolyclonalCollection.descriptor_names` that are</span>
 <span class="sd">        not shared across all models.</span>
 <span class="sd">    epitopes : tuple</span>
-<span class="sd">        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,</span>
+<span class="sd">        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope`,</span>
 <span class="sd">        extracted from :attr:`PolyclonalCollection.models`.</span>
 <span class="sd">    epitope_colors : dict</span>
 <span class="sd">        Same meaning as for :attr:`~polyclonal.polyclonal.Polyclonal.epitope_colors`,</span>
@@ -397,6 +397,155 @@
             <span class="n">activity_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
             <span class="n">activity_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
         <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hill_coefficient_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients for all models.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hill_coefficient_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients summarized across models.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hill_coefficient_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+            <span class="n">hill_coefficient_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+            <span class="n">hill_coefficient_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
+            <span class="n">hill_coefficient_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">non_neutralized_frac_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fraction for all models.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">non_neutralized_frac_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fraction summarized across models.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_neutralized_frac_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+            <span class="n">non_neutralized_frac_mean</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+            <span class="n">non_neutralized_frac_median</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
+            <span class="n">non_neutralized_frac_std</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">curve_specs_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.</span>
+
+<span class="sd">        Per-replicate values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">curve_specs_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.</span>
+
+<span class="sd">        Values summarized across models.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">curve_specs_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+            <span class="o">**</span><span class="p">{</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">stat</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PolyclonalCollection.curves_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.curves_plot">[docs]</a>    <span class="k">def</span> <span class="nf">curves_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">per_model_lines</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot neutralization / binding curve for unmutated protein at each epitope.</span>
+
+<span class="sd">        This curve effectively illustrates the epitope activity, Hill curve coefficient,</span>
+<span class="sd">        and non-neutralizable fraction.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        avg_type : {&quot;mean&quot;, &quot;median&quot;, None}</span>
+<span class="sd">            Type of average to plot, `None` defaults to</span>
+<span class="sd">            :attr:`PolyclonalCollection.default_avg_to_plot`.</span>
+<span class="sd">        per_model_lines : int</span>
+<span class="sd">            Do we plot thin lines for each model, or just the average? If the number</span>
+<span class="sd">            of models in the collection is &lt;= than this number, then we plot per-model</span>
+<span class="sd">            lines, otherwise we just plot the average. A value of -1 means we always plot</span>
+<span class="sd">            per-model lines.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keywords args for :func:`polyclonal.plot.curves_plot`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive plot.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">avg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">avg_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">]</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">avg_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">params</span><span class="p">}</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">params</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">]],</span>
+            <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">per_model_lines</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="ow">or</span> <span class="n">per_model_lines</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">addtl_tooltip_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;model_name&quot;</span><span class="p">]</span>
+            <span class="n">replicate_col</span> <span class="o">=</span> <span class="s2">&quot;model_name&quot;</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">curve_specs_df_replicates</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                        <span class="n">model_name</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_descriptor_names</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                            <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="p">),</span>
+                    <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">avg_type</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)[[</span><span class="s2">&quot;model_name&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;model_name&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;duplicated model name:</span><span class="se">\n</span><span class="si">{</span><span class="n">df</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">addtl_tooltip_cols</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">_std&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+            <span class="n">replicate_col</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">curves_plot</span><span class="p">(</span>
+            <span class="n">df</span><span class="p">,</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">addtl_tooltip_cols</span><span class="o">=</span><span class="n">addtl_tooltip_cols</span><span class="p">,</span>
+            <span class="n">names_to_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="n">replicate_col</span><span class="o">=</span><span class="n">replicate_col</span><span class="p">,</span>
+            <span class="n">weighted_replicates</span><span class="o">=</span><span class="p">[</span><span class="n">avg_type</span><span class="p">],</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Bar plot of epitope activities mean across models.</span>
@@ -1175,13 +1324,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_2epitope.html">Fit more complex curves</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../regularization.html">Regularization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_serum.html">Real serum example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

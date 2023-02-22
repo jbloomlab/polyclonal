@@ -5,7 +5,7 @@
 
 It is written by `the Bloom lab <https://research.fhcrc.org/bloom/en.html>`_.
 
-See `Yu et al (2022) <https://www.biorxiv.org/content/10.1101/2022.09.17.508366v1>`_ for an explanation of the approach implemented in ``polyclonal``.
+See `Yu et al (2022) <https://doi.org/10.1093/ve/veac110>`_ for an explanation of the approach implemented in ``polyclonal``.
 
 See below for information and examples of how to use this package.
 
@@ -24,13 +24,12 @@ Contents
    visualize_RBD
    simulate_RBD
    fit_RBD
+   fit_2epitope
    regularization
-   RBD_bootstrap
    RBD_average
    real_LyCoV1404
    reference_site_numbering
    real_cocktail
-   real_serum
    specify_epitopes
    expt_design
    optimization

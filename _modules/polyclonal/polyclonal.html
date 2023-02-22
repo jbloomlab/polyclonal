@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 3.4 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 4.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -109,11 +109,13 @@
 <span class="sd">    .. math::</span>
 <span class="sd">       :label: U_e</span>
 
-<span class="sd">       U_e\left(v,c\right)=\frac{1}{1+c\exp\left(-\phi_e\left(v\right)\right)}</span>
+<span class="sd">       U_e\left(v,c\right)=</span>
+<span class="sd">         \frac{1-t_e}{1+\left[c\exp\left(-\phi_e\left(v\right)\right)\right]^{n_e}}+t_e</span>
 
 <span class="sd">    where smaller (more negative) values of :math:`\phi_e\left(v\right)`</span>
 <span class="sd">    correspond to higher overall binding activity against epitope :math:`e`</span>
-<span class="sd">    variant :math:`v`.</span>
+<span class="sd">    variant :math:`v`, :math:`n_e` is the Hill coefficient, and :math:`t_e`</span>
+<span class="sd">    is the non-neutralized fraction.</span>
 
 <span class="sd">    We define :math:`\phi_e\left(v\right)` in terms of the underlying</span>
 <span class="sd">    quantities of biological interest as</span>
@@ -158,6 +160,11 @@
 <span class="sd">       and ``n_epitopes`` holding the number of epitopes. Then call</span>
 <span class="sd">       :meth:`Polyclonal.fit`.</span>
 
+<span class="sd">    For the first and second approaches, you can optionally set initial values</span>
+<span class="sd">    for :math:`n_e` (the Hill coefficient) and :math:`t_e` (the non-neutralizable</span>
+<span class="sd">    fraction) via ``hill_coefficient_df`` and ``non_neutralized_frac_df``.</span>
+<span class="sd">    If these are not set, we initialize :math:`n_e = 1` and :math:`t_e = 0`.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    data_to_fit : pandas.DataFrame or None</span>
@@ -174,6 +181,12 @@
 <span class="sd">        Should have columns named &#39;mutation&#39;, &#39;epitope&#39;, and &#39;escape&#39; that</span>
 <span class="sd">        give the :math:`\beta_{m,e}` values (in the &#39;escape&#39; column), with</span>
 <span class="sd">        mutations written like &quot;G7M&quot;.</span>
+<span class="sd">    hill_coefficient_df : pandas.DataFrame or None</span>
+<span class="sd">        Should have columns named &#39;epitope&#39; and &#39;hill_coefficient&#39; that sets initial</span>
+<span class="sd">        :math:`n_e`, or set to `None` for :math:`n_e = 1`.</span>
+<span class="sd">    non_neutralized_frac_df : pandas.DataFrame or None</span>
+<span class="sd">        Should have columns named &#39;epitope&#39; and &#39;non_neutralized_frac&#39; that sets initial</span>
+<span class="sd">        :math:`t_e`, or set to `None` for :math:`t_e = 0`.</span>
 <span class="sd">    site_escape_df : pandas.DataFrame or None</span>
 <span class="sd">        Use if you want to initialize all mutations at a given site to have</span>
 <span class="sd">        the same :math:`\beta_{m,e}` values. In this case, columns should be</span>
@@ -284,10 +297,10 @@
 <span class="sd">    (1, 2, 4)</span>
 <span class="sd">    &gt;&gt;&gt; model.wts</span>
 <span class="sd">    {1: &#39;M&#39;, 2: &#39;G&#39;, 4: &#39;A&#39;}</span>
-<span class="sd">    &gt;&gt;&gt; model.activity_wt_df</span>
-<span class="sd">      epitope  activity</span>
-<span class="sd">    0      e1       2.0</span>
-<span class="sd">    1      e2       1.0</span>
+<span class="sd">    &gt;&gt;&gt; model.curve_specs_df</span>
+<span class="sd">      epitope  activity  hill_coefficient  non_neutralized_frac</span>
+<span class="sd">    0      e1       2.0               1.0                   0.0</span>
+<span class="sd">    1      e2       1.0               1.0                   0.0</span>
 <span class="sd">    &gt;&gt;&gt; model.mut_escape_df</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape</span>
 <span class="sd">    0      e1     1        M      C      M1C     2.0</span>
@@ -454,10 +467,10 @@
 <span class="sd">    The activities are evenly spaced from 1 to 0, while the mutation escapes</span>
 <span class="sd">    are all initialized to zero:</span>
 
-<span class="sd">    &gt;&gt;&gt; model_data.activity_wt_df</span>
-<span class="sd">      epitope  activity</span>
-<span class="sd">    0       1       1.0</span>
-<span class="sd">    1       2       0.0</span>
+<span class="sd">    &gt;&gt;&gt; model_data.curve_specs_df</span>
+<span class="sd">      epitope  activity  hill_coefficient  non_neutralized_frac</span>
+<span class="sd">    0       1       1.0               1.0                   0.0</span>
+<span class="sd">    1       2       0.0               1.0                   0.0</span>
 <span class="sd">    &gt;&gt;&gt; model_data.mut_escape_df</span>
 <span class="sd">      epitope  site wildtype mutant mutation  escape  times_seen</span>
 <span class="sd">    0       1     1        M      C      M1C     0.0           6</span>
@@ -478,10 +491,10 @@
 <span class="sd">    ...     init_missing=1,</span>
 <span class="sd">    ...     collapse_identical_variants=&quot;mean&quot;,</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; model_data2.activity_wt_df.round(3)</span>
-<span class="sd">      epitope  activity</span>
-<span class="sd">    0       1     0.417</span>
-<span class="sd">    1       2     0.720</span>
+<span class="sd">    &gt;&gt;&gt; model_data2.curve_specs_df.round(3)</span>
+<span class="sd">      epitope  activity  hill_coefficient  non_neutralized_frac</span>
+<span class="sd">    0       1     0.417               1.0                   0.0</span>
+<span class="sd">    1       2     0.720               1.0                   0.0</span>
 
 <span class="sd">    You can set some or all mutation escapes to initial values:</span>
 
@@ -559,9 +572,14 @@
 <span class="sd">    ...              ):</span>
 <span class="sd">    ...          raise ValueError(f&quot;wrong escapes\n{m.mut_escape_df}&quot;)</span>
 
-<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df().round(1)</span>
+<span class="sd">    The applymap on next line is to make doctest pass even with negative zeros</span>
+
+<span class="sd">    &gt;&gt;&gt; (</span>
+<span class="sd">    ...     model_data.mut_escape_site_summary_df()</span>
+<span class="sd">    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)</span>
+<span class="sd">    ... )</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
-<span class="sd">    0       1     1        M  -0.0             0.0 -0.0 -0.0            -0.0            1</span>
+<span class="sd">    0       1     1        M   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    1       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    2       1     4        A   2.0             4.0  2.5  1.5             0.0            2</span>
 <span class="sd">    3       2     1        M   2.0             2.0  2.0  2.0             0.0            1</span>
@@ -571,7 +589,10 @@
 <span class="sd">    You can also exclude mutations to specific characters (typically you would want to</span>
 <span class="sd">    do this for stop codons and/or gaps):</span>
 
-<span class="sd">    &gt;&gt;&gt; model_data.mut_escape_site_summary_df(exclude_chars={&quot;C&quot;, &quot;K&quot;}).round(1)</span>
+<span class="sd">    &gt;&gt;&gt; (</span>
+<span class="sd">    ...     model_data.mut_escape_site_summary_df(exclude_chars={&quot;C&quot;, &quot;K&quot;})</span>
+<span class="sd">    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)</span>
+<span class="sd">    ... )</span>
 <span class="sd">      epitope  site wildtype  mean  total positive  max  min  total negative  n mutations</span>
 <span class="sd">    0       1     2        G   0.0             0.0  0.0  0.0             0.0            1</span>
 <span class="sd">    1       1     4        A   1.5             1.5  1.5  1.5             0.0            1</span>
@@ -764,9 +785,11 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
+        <span class="n">data_to_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">activity_wt_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">mut_escape_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">data_to_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hill_coefficient_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">non_neutralized_frac_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">site_escape_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">n_epitopes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">spatial_distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -882,6 +905,44 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;not enough `epitope_colors`&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="n">epitope_colors</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">hill_coefficient_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">hill_req_cols</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">hill_req_cols</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">hill_coefficient_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`hill_coefficient_df` lacks columns </span><span class="si">{</span><span class="n">hill_req_cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">hill_coefficient_df</span> <span class="o">=</span> <span class="n">hill_coefficient_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">hill_coefficient_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">hill_coefficient_df</span>
+            <span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;`hill_coefficient_df` does not have unique required epitopes&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hill_coefficient_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">non_neutralized_frac_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t_req_cols</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">t_req_cols</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">non_neutralized_frac_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;`non_neutralized_frac_df` lacks columns </span><span class="si">{</span><span class="n">t_req_cols</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="n">non_neutralized_frac_df</span> <span class="o">=</span> <span class="n">non_neutralized_frac_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">non_neutralized_frac_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">non_neutralized_frac_df</span>
+            <span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;`non_neutralized_frac_df` does not have unique required epitopes&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">non_neutralized_frac_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+            <span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">_init_mut_escape_df</span><span class="p">(</span><span class="n">mutations</span><span class="p">):</span>
             <span class="c1"># initialize mutation escape values</span>
@@ -1045,7 +1106,12 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid set of mutations for </span><span class="si">{</span><span class="n">epitope</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># set internal params with activities and escapes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params_from_dfs</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">,</span> <span class="n">mut_escape_df</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params_from_dfs</span><span class="p">(</span>
+            <span class="n">activity_wt_df</span><span class="p">,</span>
+            <span class="n">mut_escape_df</span><span class="p">,</span>
+            <span class="n">hill_coefficient_df</span><span class="p">,</span>
+            <span class="n">non_neutralized_frac_df</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">data_to_fit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="p">(</span>
@@ -1211,21 +1277,37 @@
 
         <span class="k">return</span> <span class="p">(</span><span class="n">one_binarymap</span><span class="p">,</span> <span class="n">binarymaps</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">pvs</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">sorted_df</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_params_from_dfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">activity_wt_df</span><span class="p">,</span> <span class="n">mut_escape_df</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Params vector from data frames of activities and escapes.&quot;&quot;&quot;</span>
-        <span class="c1"># first E entries are activities</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="n">activity_wt_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
-        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">activity_wt_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">])</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
-                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span>
+    <span class="k">def</span> <span class="nf">_params_from_dfs</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">activity_wt_df</span><span class="p">,</span>
+        <span class="n">mut_escape_df</span><span class="p">,</span>
+        <span class="n">hill_coefficient_df</span><span class="p">,</span>
+        <span class="n">non_neutralized_frac_df</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Params vector from data frames activities, escapes, n, and t.&quot;&quot;&quot;</span>
+        <span class="c1"># first E entries are activities, next E are Hill coefficients, then</span>
+        <span class="c1"># non-neutralized fracs</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">df</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">activity_wt_df</span><span class="p">,</span> <span class="s2">&quot;activity&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">hill_coefficient_df</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">non_neutralized_frac_df</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">])</span>
+            <span class="k">assert</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">=}</span><span class="se">\n</span><span class="si">{</span><span class="n">df</span><span class="si">=}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                        <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span>
+                        <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span>
+                <span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
             <span class="p">)</span>
-            <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">)[</span><span class="s2">&quot;activity&quot;</span><span class="p">]</span>
-            <span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-        <span class="p">)</span>
 
         <span class="c1"># Remaining MxE entries are beta values</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mut_escape_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
@@ -1250,19 +1332,21 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;some parameters are NaN&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">params</span>
 
-    <span class="k">def</span> <span class="nf">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vector of activities and MxE matrix of betas from params vector.&quot;&quot;&quot;</span>
-        <span class="n">params_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vector of activities, n_e, t_e, and MxE matrix of betas from params vector.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+        <span class="n">params_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">params_len</span><span class="p">,):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">params</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)]</span>
-        <span class="n">beta</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)]</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="p">:</span> <span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)]</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_muts_from_data_to_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_to_fit</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get wildtypes, sites, and mutations from ``data_to_fit``.&quot;&quot;&quot;</span>
@@ -1312,19 +1396,28 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">activity_wt_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes.&quot;&quot;&quot;</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span>
-                <span class="s2">&quot;activity&quot;</span><span class="p">:</span> <span class="n">a</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;activity&quot;</span><span class="p">:</span> <span class="n">a</span><span class="p">})</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hill_coefficient_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients :math:`n_e` for epitopes.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">})</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">non_neutralized_frac_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">:</span> <span class="n">t</span><span class="p">})</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation.&quot;&quot;&quot;</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
@@ -1458,7 +1551,7 @@
 
     <span class="k">def</span> <span class="nf">_check_close_activities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check no epitopes have near-identical activities and escape.&quot;&quot;&quot;</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)):</span>
@@ -1515,6 +1608,8 @@
         <span class="k">return</span> <span class="n">Polyclonal</span><span class="p">(</span>
             <span class="n">activity_wt_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="p">,</span>
             <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">site_escape_df</span><span class="p">,</span>
+            <span class="n">hill_coefficient_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="p">,</span>
+            <span class="n">non_neutralized_frac_df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span><span class="p">,</span>
             <span class="n">spatial_distances</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spatial_distances</span><span class="p">,</span>
             <span class="n">data_to_fit</span><span class="o">=</span><span class="n">site_data_to_fit</span><span class="p">,</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
@@ -1591,11 +1686,13 @@
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for escape regularization not &gt;= 0&quot;</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">dh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled_pseudo_huber</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">reg</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">weight</span>
         <span class="k">assert</span> <span class="n">dh</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span>
-        <span class="n">dreg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dh</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dh</span><span class="o">.</span><span class="n">ravel</span><span class="p">()]</span>
+        <span class="p">)</span>
         <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
         <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
@@ -1607,7 +1704,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for activity regularization not &gt;= 0&quot;</span><span class="p">)</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">dh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scaled_pseudo_huber</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">log_c_gm</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">reg</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">weight</span>
         <span class="k">assert</span> <span class="n">dh</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
@@ -1623,7 +1720,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for spread regularization not &gt;= 0&quot;</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">reg</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -1639,7 +1736,7 @@
             <span class="k">assert</span> <span class="n">dreg_site</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
             <span class="n">dreg</span><span class="p">[</span><span class="n">siteindex</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dreg_site</span>
         <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
-        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
         <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
@@ -1667,7 +1764,7 @@
         <span class="c1"># calculate values</span>
         <span class="k">if</span> <span class="n">epsilon</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">epsilon</span><span class="si">=}</span><span class="s2"> must be &gt; 0&quot;</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">beta2</span> <span class="o">=</span> <span class="n">beta</span><span class="o">**</span><span class="mi">2</span>
         <span class="n">site_beta2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
@@ -1743,7 +1840,7 @@
             <span class="k">assert</span> <span class="n">dreg_epitope</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),)</span>
             <span class="n">dreg</span><span class="p">[:,</span> <span class="n">i_epitope</span><span class="p">]</span> <span class="o">=</span> <span class="n">dreg_epitope</span>
 
-        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
         <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
@@ -1774,7 +1871,7 @@
                 <span class="k">if</span> <span class="n">i_epitope_1</span> <span class="o">!=</span> <span class="n">i_epitope_2</span><span class="p">:</span>
                     <span class="n">dreg</span><span class="p">[:,</span> <span class="n">i_epitope_1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">ds</span><span class="p">[:,</span> <span class="n">i_epitope_1</span><span class="p">]</span> <span class="o">*</span> <span class="n">s_mut</span><span class="p">[:,</span> <span class="n">i_epitope_2</span><span class="p">]</span>
 
-        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
         <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="k">return</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">reg</span><span class="p">,</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">dreg</span>
@@ -1785,7 +1882,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for uniqueness2 regularization not &gt;= 0&quot;</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
 
         <span class="n">site_norm</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
@@ -1815,7 +1912,56 @@
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
-        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span> <span class="n">dreg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+        <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
+
+    <span class="k">def</span> <span class="nf">_reg_hill_coefficient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on Hill coefficients and gradient.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for Hill coefficient regularization not &gt;= 0&quot;</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;some Hill coefficients not &gt;0:</span><span class="se">\n</span><span class="si">{</span><span class="n">n</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">log_n</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">log_n</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">log_n</span> <span class="o">/</span> <span class="n">n</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span>
+                <span class="n">dreg</span><span class="p">,</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
+
+    <span class="k">def</span> <span class="nf">_reg_non_neutralized_frac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on non-neutralized fraction and gradient.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">weight</span><span class="si">=}</span><span class="s2"> for non-neutralized frac not &gt;= 0&quot;</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">t</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;some non-neutralized fracs not in [0, 1]:</span><span class="se">\n</span><span class="si">{</span><span class="n">t</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">weight</span> <span class="o">*</span> <span class="p">(</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">t</span>
+        <span class="n">dreg</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span>
+                <span class="n">dreg</span><span class="p">,</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">assert</span> <span class="n">dreg</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">dreg</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
@@ -1836,7 +1982,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">loss_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-        <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">reg_escape_weight</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
         <span class="n">reg_escape_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">reg_spread_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">site_avg_abs_escape_epsilon</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
@@ -1846,10 +1992,14 @@
         <span class="n">reg_uniqueness2_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">reg_activity_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">reg_activity_delta</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">reg_hill_coefficient_weight</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="n">reg_non_neutralized_frac_weight</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span>
         <span class="n">fit_site_level_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">scipy_minimize_kwargs</span><span class="o">=</span><span class="n">DEFAULT_SCIPY_MINIMIZE_KWARGS</span><span class="p">,</span>
         <span class="n">log</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">logfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fix_hill_coefficient</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">fix_non_neutralized_frac</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Fit parameters (activities and mutation escapes) to the data.</span>
 
@@ -1892,6 +2042,11 @@
 <span class="sd">            Strength of Pseudo-Huber regularization on :math:`a_{\rm{wt},e}`.</span>
 <span class="sd">        reg_activity_delta : float</span>
 <span class="sd">            Pseudo-Huber :math:`\delta` for regularizing :math:`a_{\rm{wt},e}`.</span>
+<span class="sd">        reg_hill_coefficient_weight : float</span>
+<span class="sd">            Weight of regularization on Hill coefficients :math:`n_e` that differ from 1.</span>
+<span class="sd">        reg_non_neutralized_frac_weight : float</span>
+<span class="sd">            Weight of regularization on non-neutralized fractions :math:`t_e` that</span>
+<span class="sd">            differ from 0.</span>
 <span class="sd">        fit_site_level_first : bool</span>
 <span class="sd">            First fit a site-level model, then use those activities /</span>
 <span class="sd">            escapes to initialize fit of this model. Generally works better.</span>
@@ -1901,6 +2056,12 @@
 <span class="sd">            Where to log output. If ``None``, use ``sys.stdout``.</span>
 <span class="sd">        logfreq : None or int</span>
 <span class="sd">            How frequently to write updates on fitting to ``log``.</span>
+<span class="sd">        fix_hill_coefficient : bool</span>
+<span class="sd">            Do not optimize the hill coefficients :math:`n_e` and instead keep fixed</span>
+<span class="sd">            at current values.</span>
+<span class="sd">        fix_non_neutralized_frac : bool</span>
+<span class="sd">            Do not optimize the non-neutralized fractions :math:`t_e` and instead keep</span>
+<span class="sd">            fixed at current values.</span>
 
 <span class="sd">        Return</span>
 <span class="sd">        ------</span>
@@ -1939,7 +2100,38 @@
                         <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_many&quot;</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="p">),</span>
+                <span class="n">hill_coefficient_df</span><span class="o">=</span><span class="n">site_model</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="p">,</span>
+                <span class="n">non_neutralized_frac_df</span><span class="o">=</span><span class="n">site_model</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span><span class="p">,</span>
             <span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">transform_params_to_fixed</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+            <span class="c1"># split params to unfixed and fixed params</span>
+            <span class="k">assert</span> <span class="n">p</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">ne</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">p</span><span class="p">[:</span><span class="n">ne</span><span class="p">]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="n">ne</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ne</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ne</span> <span class="p">:</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">ne</span><span class="p">]</span>
+            <span class="n">beta</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span> <span class="o">*</span> <span class="n">ne</span> <span class="p">:]</span>
+            <span class="k">if</span> <span class="n">fix_hill_coefficient</span> <span class="ow">and</span> <span class="n">fix_non_neutralized_frac</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">beta</span><span class="p">)),</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span>
+            <span class="k">elif</span> <span class="n">fix_hill_coefficient</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span><span class="p">)),</span> <span class="n">n</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">fix_non_neutralized_frac</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">beta</span><span class="p">)),</span> <span class="kc">None</span><span class="p">,</span> <span class="n">t</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="k">def</span> <span class="nf">transform_params_to_unfixed</span><span class="p">(</span><span class="n">pfixed</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+            <span class="c1"># unfixed params plus n and t to all params</span>
+            <span class="n">ne</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pfixed</span><span class="p">[:</span><span class="n">ne</span><span class="p">],</span> <span class="n">n</span><span class="p">,</span> <span class="n">pfixed</span><span class="p">[</span><span class="n">ne</span><span class="p">:]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">pfixed</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">p</span><span class="p">[:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ne</span><span class="p">],</span> <span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ne</span> <span class="p">:]))</span>
+            <span class="k">assert</span> <span class="n">p</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">return</span> <span class="n">p</span>
 
         <span class="k">class</span> <span class="nc">LossReg</span><span class="p">:</span>
             <span class="c1"># compute loss in class to remember last call</span>
@@ -1947,7 +2139,8 @@
                 <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">self_</span><span class="o">.</span><span class="n">last_params</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="k">def</span> <span class="nf">loss_reg</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">breakdown</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">loss_reg</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">params_unfixed</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">breakdown</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">transform_params_to_unfixed</span><span class="p">(</span><span class="n">params_unfixed</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">self_</span><span class="o">.</span><span class="n">last_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">params</span> <span class="o">!=</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_params</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
                     <span class="n">fitloss</span><span class="p">,</span> <span class="n">dfitloss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_dloss</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">loss_delta</span><span class="p">)</span>
                     <span class="n">regescape</span><span class="p">,</span> <span class="n">dregescape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_escape</span><span class="p">(</span>
@@ -1974,6 +2167,14 @@
                         <span class="n">reg_activity_delta</span><span class="p">,</span>
                         <span class="n">log_c_gm</span><span class="p">,</span>
                     <span class="p">)</span>
+                    <span class="p">(</span>
+                        <span class="n">reghillcoefficient</span><span class="p">,</span>
+                        <span class="n">dreghillcoefficient</span><span class="p">,</span>
+                    <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_hill_coefficient</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">reg_hill_coefficient_weight</span><span class="p">)</span>
+                    <span class="n">regnonneutfrac</span><span class="p">,</span> <span class="n">dregnonneutfrac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reg_non_neutralized_frac</span><span class="p">(</span>
+                        <span class="n">params</span><span class="p">,</span>
+                        <span class="n">reg_non_neutralized_frac_weight</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="n">fitloss</span>
                         <span class="o">+</span> <span class="n">regescape</span>
@@ -1982,8 +2183,10 @@
                         <span class="o">+</span> <span class="n">reguniqueness</span>
                         <span class="o">+</span> <span class="n">reguniqueness2</span>
                         <span class="o">+</span> <span class="n">regactivity</span>
+                        <span class="o">+</span> <span class="n">reghillcoefficient</span>
+                        <span class="o">+</span> <span class="n">regnonneutfrac</span>
                     <span class="p">)</span>
-                    <span class="n">dloss</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">dloss</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">transform_params_to_fixed</span><span class="p">(</span>
                         <span class="n">dfitloss</span>
                         <span class="o">+</span> <span class="n">dregescape</span>
                         <span class="o">+</span> <span class="n">dregspread</span>
@@ -1991,6 +2194,8 @@
                         <span class="o">+</span> <span class="n">dreguniqueness</span>
                         <span class="o">+</span> <span class="n">dreguniqueness2</span>
                         <span class="o">+</span> <span class="n">dregactivity</span>
+                        <span class="o">+</span> <span class="n">dreghillcoefficient</span>
+                        <span class="o">+</span> <span class="n">dregnonneutfrac</span>
                     <span class="p">)</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">last_params</span> <span class="o">=</span> <span class="n">params</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="o">=</span> <span class="p">(</span>
@@ -2004,28 +2209,39 @@
                             <span class="s2">&quot;reg_uniqueness&quot;</span><span class="p">:</span> <span class="n">reguniqueness</span><span class="p">,</span>
                             <span class="s2">&quot;reg_uniqueness2&quot;</span><span class="p">:</span> <span class="n">reguniqueness2</span><span class="p">,</span>
                             <span class="s2">&quot;reg_activity&quot;</span><span class="p">:</span> <span class="n">regactivity</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_hill_coefficient&quot;</span><span class="p">:</span> <span class="n">reghillcoefficient</span><span class="p">,</span>
+                            <span class="s2">&quot;reg_non_neutralized_frac&quot;</span><span class="p">:</span> <span class="n">regnonneutfrac</span><span class="p">,</span>
                         <span class="p">},</span>
                     <span class="p">)</span>
                 <span class="k">return</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span> <span class="k">if</span> <span class="n">breakdown</span> <span class="k">else</span> <span class="n">self_</span><span class="o">.</span><span class="n">last_loss</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
 
         <span class="n">lossreg</span> <span class="o">=</span> <span class="n">LossReg</span><span class="p">()</span>
 
+        <span class="n">startparams_fixed</span><span class="p">,</span> <span class="n">fixed_n</span><span class="p">,</span> <span class="n">fixed_t</span> <span class="o">=</span> <span class="n">transform_params_to_fixed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">logfreq</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;# Starting optimization of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;# Starting optimization of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">startparams_fixed</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;parameters at </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
             <span class="k">class</span> <span class="nc">Callback</span><span class="p">:</span>
                 <span class="c1"># to log minimization</span>
-                <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+                <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">fixed_n</span><span class="p">,</span> <span class="n">fixed_t</span><span class="p">):</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="n">interval</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
                     <span class="n">self_</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">start</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fixed_n</span> <span class="o">=</span> <span class="n">fixed_n</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fixed_t</span> <span class="o">=</span> <span class="n">fixed_t</span>
 
-                <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">self_</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">force_output</span> <span class="ow">or</span> <span class="p">(</span><span class="n">self_</span><span class="o">.</span><span class="n">i</span> <span class="o">%</span> <span class="n">self_</span><span class="o">.</span><span class="n">interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                        <span class="n">loss</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">breakdown</span> <span class="o">=</span> <span class="n">lossreg</span><span class="o">.</span><span class="n">loss_reg</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                        <span class="n">loss</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">breakdown</span> <span class="o">=</span> <span class="n">lossreg</span><span class="o">.</span><span class="n">loss_reg</span><span class="p">(</span>
+                            <span class="n">p</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">fixed_n</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">fixed_t</span><span class="p">,</span>
+                            <span class="kc">True</span><span class="p">,</span>
+                        <span class="p">)</span>
                         <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="s2">&quot;time_sec&quot;</span><span class="p">,</span> <span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">breakdown</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
                         <span class="n">col_widths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
                         <span class="k">if</span> <span class="n">header</span><span class="p">:</span>
@@ -2051,27 +2267,93 @@
                     <span class="n">self_</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
             <span class="n">scipy_minimize_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">scipy_minimize_kwargs</span><span class="p">)</span>
-            <span class="n">callback_logger</span> <span class="o">=</span> <span class="n">Callback</span><span class="p">(</span><span class="n">logfreq</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
-            <span class="n">callback_logger</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">callback_logger</span> <span class="o">=</span> <span class="n">Callback</span><span class="p">(</span><span class="n">logfreq</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span> <span class="n">fixed_n</span><span class="p">,</span> <span class="n">fixed_t</span><span class="p">)</span>
+            <span class="n">callback_logger</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">startparams_fixed</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">scipy_minimize_kwargs</span><span class="p">[</span><span class="s2">&quot;callback&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback_logger</span><span class="o">.</span><span class="n">callback</span>
+
+        <span class="c1"># set bounds so non-neutralized frac must always be between 0 and 1 and</span>
+        <span class="c1"># the Hill coefficienty must always be &gt;0</span>
+        <span class="k">if</span> <span class="s2">&quot;bounds&quot;</span> <span class="ow">in</span> <span class="n">scipy_minimize_kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot specify &#39;bounds&#39; in `scipy_minimize_kwargs`&quot;</span><span class="p">)</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">startparams_fixed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fix_hill_coefficient</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">fixed_n</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">i_n_bounds</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)):</span>
+                <span class="n">bounds</span><span class="p">[</span><span class="n">i_n_bounds</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1e-8</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fix_non_neutralized_frac</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">fixed_t</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">fix_hill_coefficient</span><span class="p">:</span>
+                <span class="n">start_t_bounds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">start_t_bounds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+            <span class="k">for</span> <span class="n">i_t_bounds</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span>
+                <span class="n">start_t_bounds</span><span class="p">,</span> <span class="n">start_t_bounds</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">bounds</span><span class="p">[</span><span class="n">i_t_bounds</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="n">opt_res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
             <span class="n">fun</span><span class="o">=</span><span class="n">lossreg</span><span class="o">.</span><span class="n">loss_reg</span><span class="p">,</span>
-            <span class="n">x0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">,</span>
+            <span class="n">x0</span><span class="o">=</span><span class="n">startparams_fixed</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">fixed_n</span><span class="p">,</span> <span class="n">fixed_t</span><span class="p">),</span>
             <span class="n">jac</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
             <span class="o">**</span><span class="n">scipy_minimize_kwargs</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">opt_res</span><span class="o">.</span><span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">transform_params_to_unfixed</span><span class="p">(</span><span class="n">opt_res</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">fixed_n</span><span class="p">,</span> <span class="n">fixed_t</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logfreq</span><span class="p">:</span>
-            <span class="n">callback_logger</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">callback_logger</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span><span class="n">opt_res</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">force_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# Successfully finished at </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">opt_res</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# Optimization FAILED at </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">PolyclonalFitError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimization failed:</span><span class="se">\n</span><span class="si">{</span><span class="n">opt_res</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">opt_res</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">curve_specs_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.&quot;&quot;&quot;</span>
+        <span class="n">curve_specs_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span>
+        <span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">curve_specs_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">curve_specs_df</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">curve_specs_df</span>
+
+<div class="viewcode-block" id="Polyclonal.curves_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.curves_plot">[docs]</a>    <span class="k">def</span> <span class="nf">curves_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot neutralization / binding curve for unmutated protein at each epitope.</span>
+
+<span class="sd">        This curve effectively illustrates the epitope activity, Hill curve coefficient,</span>
+<span class="sd">        and non-neutralizable fraction.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.curves_plot`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive plot</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;curve_specs_df&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;**kwargs cannot contain </span><span class="si">{</span><span class="n">col</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">curves_plot</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curve_specs_df</span><span class="p">,</span>
+            <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
+            <span class="n">names_to_colors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
 <div class="viewcode-block" id="Polyclonal.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        Consider :meth:`Polyclonal.curves_plot` as better way to show similar data.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2331,10 +2613,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">=}</span><span class="s2"> not &gt;0 and &lt;1&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">variants_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`variants_df` cannot have </span><span class="si">{</span><span class="n">col</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-
         <span class="n">reduced_df</span> <span class="o">=</span> <span class="n">variants_df</span><span class="p">[[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
         <span class="n">bmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_binarymap</span><span class="p">(</span><span class="n">reduced_df</span><span class="p">)</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="n">exp_phi_e_v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">exp_phi_e_v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">nvariants</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">variants</span> <span class="o">=</span> <span class="n">reduced_df</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
@@ -2345,7 +2626,7 @@
             <span class="k">assert</span> <span class="n">exp_phi_e</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
 
             <span class="k">def</span> <span class="nf">_func</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">expterm</span><span class="p">):</span>
-                <span class="n">pv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">expterm</span><span class="p">))</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="n">expterm</span><span class="p">)</span> <span class="o">**</span> <span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="n">t</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">pv</span>
 
             <span class="k">if</span> <span class="n">_func</span><span class="p">(</span><span class="n">min_c</span><span class="p">,</span> <span class="n">exp_phi_e</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -2437,8 +2718,8 @@
 <span class="sd">            len(params) is nepitopes * (1 + binarylength).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">nvariants</span><span class="p">,</span> <span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">)</span>
@@ -2447,7 +2728,12 @@
         <span class="n">phi_e_v</span> <span class="o">=</span> <span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span> <span class="o">-</span> <span class="n">a</span>
         <span class="k">assert</span> <span class="n">phi_e_v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">nvariants</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">exp_minus_phi_e_v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">phi_e_v</span><span class="p">)</span>
-        <span class="n">U_v_e_c</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">multiply</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">exp_minus_phi_e_v</span><span class="p">,</span> <span class="n">cs</span><span class="p">))</span>
+        <span class="c1"># broadcasting of n and t as at: https://stackoverflow.com/a/55749006</span>
+        <span class="n">nb</span> <span class="o">=</span> <span class="n">n</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">tb</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">U_v_e_c</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tb</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">multiply</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">exp_minus_phi_e_v</span><span class="p">,</span> <span class="n">cs</span><span class="p">))</span> <span class="o">**</span> <span class="n">nb</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="n">tb</span>
         <span class="k">assert</span> <span class="n">U_v_e_c</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">nvariants</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
         <span class="n">n_vc</span> <span class="o">=</span> <span class="n">bmap</span><span class="o">.</span><span class="n">nvariants</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
         <span class="n">U_vc_e</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">U_v_e_c</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
@@ -2456,38 +2742,65 @@
         <span class="k">assert</span> <span class="n">U_vc_e</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_vc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">p_vc</span> <span class="o">=</span> <span class="n">U_vc_e</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">p_vc</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_vc</span><span class="p">,)</span>
-        <span class="k">if</span> <span class="n">calc_grad</span><span class="p">:</span>
-            <span class="n">dpvc_da</span> <span class="o">=</span> <span class="n">p_vc</span> <span class="o">*</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">U_vc_e</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">dpvc_da</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">n_vc</span><span class="p">)</span>
-            <span class="n">dpevc</span> <span class="o">=</span> <span class="o">-</span><span class="n">dpvc_da</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
-            <span class="n">n_vce</span> <span class="o">=</span> <span class="n">n_vc</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">dpevc</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_vce</span><span class="p">,)</span>
-            <span class="c1"># Stack then transpose C X E binary_variants to multiply dpvce</span>
-            <span class="c1"># Stacking should be fast: https://stackoverflow.com/a/45990096</span>
-            <span class="c1"># Note after transpose this yields CSC matrix</span>
-            <span class="n">stacked_binary_variants</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
-            <span class="k">assert</span> <span class="n">stacked_binary_variants</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="n">n_vce</span><span class="p">)</span>
-            <span class="n">dpevc_dbeta</span> <span class="o">=</span> <span class="n">stacked_binary_variants</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
-                <span class="n">numpy</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">dpevc</span><span class="p">,</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="n">n_vce</span><span class="p">))</span>
-            <span class="p">)</span>
-            <span class="k">assert</span> <span class="n">dpevc_dbeta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="n">n_vce</span><span class="p">)</span>
-            <span class="c1"># in params, betas sorted first by mutation, then by epitope;</span>
-            <span class="c1"># dpevc_dbeta sorted by concentration, then variant, then epitope</span>
-            <span class="n">dpvc_dbetaparams</span> <span class="o">=</span> <span class="n">dpevc_dbeta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-                <span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">n_vc</span>
-            <span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dpvc_dbetaparams</span><span class="p">)</span> <span class="o">==</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span>
-            <span class="c1"># combine to make dpvc_dparams, noting activities before betas</span>
-            <span class="c1"># in params</span>
-            <span class="n">dpvc_dparams</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">dpvc_da</span><span class="p">),</span> <span class="n">dpvc_dbetaparams</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()]</span>
-            <span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dpvc_dparams</span><span class="p">)</span> <span class="o">==</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span>
-            <span class="k">assert</span> <span class="n">dpvc_dparams</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">n_vc</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">p_vc</span><span class="p">,</span> <span class="n">dpvc_dparams</span>
-        <span class="k">return</span> <span class="n">p_vc</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">calc_grad</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">p_vc</span>
+
+        <span class="c1"># calculate gradient with respect to a</span>
+        <span class="n">U_term_partial</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">U_vc_e</span><span class="p">)</span> <span class="o">/</span> <span class="n">U_vc_e</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">U_term</span> <span class="o">=</span> <span class="p">(</span><span class="n">U_vc_e</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">U_term_partial</span>
+        <span class="n">dpvc_da</span> <span class="o">=</span> <span class="o">-</span><span class="n">p_vc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">U_term</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dpvc_da</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">n_vc</span><span class="p">)</span>
+        <span class="c1"># calculate gradient with respect to t</span>
+        <span class="n">dpvc_dt</span> <span class="o">=</span> <span class="n">p_vc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">U_term_partial</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dpvc_dt</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">n_vc</span><span class="p">)</span>
+        <span class="c1"># calculate gradient with respect to n</span>
+        <span class="n">phi_e_v_minus_logc</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">phi_e_v</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">phi_e_v</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">phi_e_v_minus_logc</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">U_v_e_c</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">dpvc_dn</span> <span class="o">=</span> <span class="n">dpvc_dt</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">phi_e_v_minus_logc</span> <span class="o">*</span> <span class="p">(</span><span class="n">U_v_e_c</span> <span class="o">-</span> <span class="n">tb</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">n_vc</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span>
+            <span class="p">),</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dpvc_dn</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">n_vc</span><span class="p">)</span>
+        <span class="c1"># calculate gradient with respect to beta</span>
+        <span class="n">dpevc</span> <span class="o">=</span> <span class="o">-</span><span class="n">dpvc_da</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+        <span class="n">n_vce</span> <span class="o">=</span> <span class="n">n_vc</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dpevc</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_vce</span><span class="p">,)</span>
+        <span class="c1"># Stack then transpose C X E binary_variants to multiply dpvce</span>
+        <span class="c1"># Stacking should be fast: https://stackoverflow.com/a/45990096</span>
+        <span class="c1"># Note after transpose this yields CSC matrix</span>
+        <span class="n">stacked_binary_variants</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">bmap</span><span class="o">.</span><span class="n">binary_variants</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">stacked_binary_variants</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="n">n_vce</span><span class="p">)</span>
+        <span class="n">dpevc_dbeta</span> <span class="o">=</span> <span class="n">stacked_binary_variants</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">dpevc</span><span class="p">,</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="n">n_vce</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">dpevc_dbeta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span><span class="p">,</span> <span class="n">n_vce</span><span class="p">)</span>
+        <span class="c1"># in params, betas sorted first by mutation, then by epitope;</span>
+        <span class="c1"># dpevc_dbeta sorted by concentration, then variant, then epitope</span>
+        <span class="n">dpvc_dbetaparams</span> <span class="o">=</span> <span class="n">dpevc_dbeta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">bmap</span><span class="o">.</span><span class="n">binarylength</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),</span> <span class="n">n_vc</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dpvc_dbetaparams</span><span class="p">)</span> <span class="o">==</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span>
+        <span class="c1"># combine to make dpvc_dparams, noting activities before betas</span>
+        <span class="c1"># in params</span>
+        <span class="n">dpvc_dparams</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">dpvc_da</span><span class="p">),</span>
+                <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">dpvc_dn</span><span class="p">),</span>
+                <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">dpvc_dt</span><span class="p">),</span>
+                <span class="n">dpvc_dbetaparams</span><span class="o">.</span><span class="n">tocsr</span><span class="p">(),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dpvc_dparams</span><span class="p">)</span> <span class="o">==</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span>
+        <span class="k">assert</span> <span class="n">dpvc_dparams</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">n_vc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">p_vc</span><span class="p">,</span> <span class="n">dpvc_dparams</span>
 
     <span class="k">def</span> <span class="nf">_get_binarymap</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -2651,6 +2964,20 @@
                 <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">epitope_order</span><span class="p">))</span>
                 <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="p">),</span>
+            <span class="n">hill_coefficient_df</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">map_dict</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">epitope_order</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">non_neutralized_frac_df</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">map_dict</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">epitope_order</span><span class="p">))</span>
+                <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
             <span class="n">data_to_fit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_to_fit</span><span class="p">,</span>
             <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># already collapsed if this done for self</span>
             <span class="n">alphabet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
@@ -2709,13 +3036,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_2epitope.html">Fit more complex curves</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../regularization.html">Regularization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_serum.html">Real serum example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

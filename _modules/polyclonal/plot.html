@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.plot &#8212; polyclonal 3.4 documentation</title>
+    <title>polyclonal.plot &#8212; polyclonal 4.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -43,6 +43,7 @@
 
 
 <span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">operator</span>
 
 <span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>
@@ -50,6 +51,10 @@
 <span class="kn">import</span> <span class="nn">matplotlib.colors</span>
 
 <span class="kn">import</span> <span class="nn">natsort</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
 <span class="n">alt</span><span class="o">.</span><span class="n">data_transformers</span><span class="o">.</span><span class="n">disable_max_rows</span><span class="p">()</span>
@@ -60,8 +65,8 @@
 <span class="p">)</span>
 <span class="sd">&quot;&quot;&quot;tuple: Tableau 10 color palette without gray.&quot;&quot;&quot;</span>
 
-<span class="n">DEFAULT_POSITIVE_COLORS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">,</span> <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span> <span class="s2">&quot;#4C3549&quot;</span><span class="p">)</span>
-<span class="sd">&quot;&quot;&quot;tuple: Some colors in hex: french blue, wild orchid, green, dark byzantium.&quot;&quot;&quot;</span>
+<span class="n">DEFAULT_POSITIVE_COLORS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span><span class="p">,</span> <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span> <span class="s2">&quot;#17BECF&quot;</span><span class="p">,</span> <span class="s2">&quot;#BCDB22&quot;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;tuple: Colors in hex: french blue, wild orchid, green, light blue, olive.&quot;&quot;&quot;</span>
 
 <span class="n">DEFAULT_NEGATIVE_COLOR</span> <span class="o">=</span> <span class="s2">&quot;#E69F00&quot;</span>
 <span class="sd">&quot;&quot;&quot;str: Orange from cbPalette color in hex.&quot;&quot;&quot;</span>
@@ -182,6 +187,185 @@
     <span class="k">return</span> <span class="n">barplot</span><span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
         <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">height_per_bar</span><span class="p">}</span>
     <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="curves_plot"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.curves_plot">[docs]</a><span class="k">def</span> <span class="nf">curves_plot</span><span class="p">(</span>
+    <span class="n">curve_specs_df</span><span class="p">,</span>
+    <span class="n">name_col</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">names_to_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">unbound_label</span><span class="o">=</span><span class="s2">&quot;fraction not neutralized&quot;</span><span class="p">,</span>
+    <span class="n">npoints</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">concentration_range</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">125</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">225</span><span class="p">,</span>
+    <span class="n">addtl_tooltip_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">replicate_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">weighted_replicates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot Hill curves.</span>
+
+<span class="sd">    The curves are defined by</span>
+<span class="sd">    :math:`U_e = \frac{1 - t_e}{1 + \left[c \exp \left(a_e\right)\right]^{n_e}} + t_e`</span>
+<span class="sd">    where :math:`U_e` is the unbound fraction (plotted on y-axis), :math:`c` is the</span>
+<span class="sd">    concentration (plotted on x-axis), :math:`a_e` is the activity, :math:`n_e` is</span>
+<span class="sd">    the Hill coefficient, and :math:`t_e` is the non-neutralizable fraction. A different</span>
+<span class="sd">    plot is made for each curve name (eg, epitope :math:`e`).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    curve_specs_df : pandas.DataFrame</span>
+<span class="sd">        Should have columns `name_col` (giving name, eg epitope), &#39;activity&#39;,</span>
+<span class="sd">        &#39;hill_coefficient&#39;, and &#39;non_neutralized_frac&#39; specifying each curves.</span>
+<span class="sd">        curve.</span>
+<span class="sd">    name_col : pandas.DataFrame</span>
+<span class="sd">        Name of column in `curve_specs_df` giving the curve name (eg, epitope)</span>
+<span class="sd">    names_to_color : dict or None</span>
+<span class="sd">        To specify colors for each entry in `name_col` (eg, epitope), provide</span>
+<span class="sd">        dict mapping names to colors.</span>
+<span class="sd">    unbound_label : str</span>
+<span class="sd">        Label for the y-axis, :math:`U_e`.</span>
+<span class="sd">    npoints : int</span>
+<span class="sd">        Number of points used to calculate the smoothed line that is plotted.</span>
+<span class="sd">    concentration_range : float or tuple</span>
+<span class="sd">        If a float, then plot concentrations from this many fold lower than minimum</span>
+<span class="sd">        :math:`\exp\left(-a_e\right)` to this many folder greater than maximum</span>
+<span class="sd">        :math:`\excp\left(-a_e\right)`. If a 2-tuple, then plot concentrations in the</span>
+<span class="sd">        specified fixed range.</span>
+<span class="sd">    height : float</span>
+<span class="sd">        Plot height.</span>
+<span class="sd">    width : float</span>
+<span class="sd">        Plot width.</span>
+<span class="sd">    addtl_tooltip_cols : None or list</span>
+<span class="sd">        Additional columns in `curve_specs_df` to show as tooltips.</span>
+<span class="sd">    replicate_col : None or str</span>
+<span class="sd">        If there are multiple replicates with `name_col`, specify column with their names</span>
+<span class="sd">        here and a line is plotted for each.</span>
+<span class="sd">    weighted_replicates : None or list</span>
+<span class="sd">        If you want to plot only some replicates (such as &#39;mean&#39;) with a heavily weighted</span>
+<span class="sd">        line and the rest with a thinner line, provide list of those to plot with</span>
+<span class="sd">        heavily weighted line. `None` means all are heavily weighted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    altair.Chart</span>
+<span class="sd">        Interactive plot.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">req_cols</span> <span class="o">=</span> <span class="p">{</span><span class="n">name_col</span><span class="p">,</span> <span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">replicate_col</span><span class="p">:</span>
+        <span class="n">req_cols</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">replicate_col</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">req_cols</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">curve_specs_df</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">columns</span><span class="si">}</span><span class="s2"> lacks columns in </span><span class="si">{</span><span class="n">req_cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">curve_specs_df</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span>
+        <span class="n">curve_specs_df</span><span class="p">[</span>
+            <span class="p">[</span><span class="n">name_col</span><span class="p">,</span> <span class="n">replicate_col</span><span class="p">]</span> <span class="k">if</span> <span class="n">replicate_col</span> <span class="k">else</span> <span class="p">[</span><span class="n">name_col</span><span class="p">]</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_col</span><span class="si">=}</span><span class="s2"> not unique in </span><span class="si">{</span><span class="n">curve_specs_df</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get concentrations to plot</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">concentration_range</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+        <span class="n">exp_neg_a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">curve_specs_df</span><span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="p">])</span>
+        <span class="n">min_c</span> <span class="o">=</span> <span class="n">exp_neg_a</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">/</span> <span class="n">concentration_range</span>
+        <span class="n">max_c</span> <span class="o">=</span> <span class="n">exp_neg_a</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="n">concentration_range</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">min_c</span><span class="p">,</span> <span class="n">max_c</span> <span class="o">=</span> <span class="n">concentration_range</span>
+    <span class="k">if</span> <span class="n">min_c</span> <span class="o">&gt;=</span> <span class="n">max_c</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid concentration range of </span><span class="si">{</span><span class="n">min_c</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">max_c</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">cs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">min_c</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">max_c</span><span class="p">),</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">{</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`curve_specs_df` cannot have columns &#39;u&#39; or &#39;c&#39;&quot;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">curve_specs_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">cs</span><span class="p">}),</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;cross&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="n">u</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">])</span>
+            <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="p">]))</span> <span class="o">**</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;hill_coefficient&quot;</span><span class="p">])</span>
+            <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">]</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">addtl_tooltips</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">addtl_tooltip_cols</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">addtl_tooltip_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">curve_specs_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;`addtl_tooltip_stats` column </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> not in `curve_specs_df`&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">curve_specs_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="n">addtl_tooltips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">addtl_tooltips</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="n">select_name</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="n">name_col</span><span class="p">],</span>
+        <span class="n">bind</span><span class="o">=</span><span class="s2">&quot;legend&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">names</span> <span class="o">=</span> <span class="n">curve_specs_df</span><span class="p">[</span><span class="n">name_col</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="c1"># properties of heavy and light lines</span>
+    <span class="n">is_weighted_col</span> <span class="o">=</span> <span class="s2">&quot;is_weighted_replicate&quot;</span>
+    <span class="k">assert</span> <span class="n">is_weighted_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+    <span class="k">if</span> <span class="n">replicate_col</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">weighted_replicates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">is_weighted_col</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">is_weighted_col</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">df</span><span class="p">[</span><span class="n">replicate_col</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">weighted_replicates</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">is_weighted_col</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">chart</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span>
+                <span class="s2">&quot;c&quot;</span><span class="p">,</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">nice</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">unbound_label</span><span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
+                <span class="n">name_col</span><span class="p">,</span>
+                <span class="n">sort</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">names</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">names_to_colors</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">names_to_colors</span>
+                    <span class="k">else</span> <span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">()</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">name_col</span><span class="p">,</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">),</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;hill_coefficient&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">),</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">),</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">),</span>
+                <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">unbound_label</span><span class="p">),</span>
+                <span class="n">is_weighted_col</span><span class="p">,</span>
+                <span class="o">*</span><span class="n">addtl_tooltips</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">strokeWidth</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">StrokeWidth</span><span class="p">(</span>
+                <span class="n">is_weighted_col</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">nice</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Opacity</span><span class="p">(</span>
+                <span class="n">is_weighted_col</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nice</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                <span class="n">legend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">detail</span><span class="o">=</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">Detail</span><span class="p">(</span><span class="n">replicate_col</span><span class="p">)</span> <span class="k">if</span> <span class="n">replicate_col</span> <span class="k">else</span> <span class="n">alt</span><span class="o">.</span><span class="n">Detail</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_line</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">configure_axis</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelOverlap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">configure_legend</span><span class="p">(</span><span class="n">symbolStrokeWidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_params</span><span class="p">(</span><span class="n">select_name</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">select_name</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">chart</span></div>
 
 
 <div class="viewcode-block" id="corr_heatmap"><a class="viewcode-back" href="../../polyclonal.plot.html#polyclonal.plot.corr_heatmap">[docs]</a><span class="k">def</span> <span class="nf">corr_heatmap</span><span class="p">(</span>
@@ -357,7 +541,7 @@
 <span class="sd">        Additional stats for which to have a slider, value is initial setting. Ignores</span>
 <span class="sd">        wildtype and drops it when all mutants have been dropped at site. Null values</span>
 <span class="sd">        are not filtered.</span>
-<span class="sd">    addtl_slider_stats_hide_not_filtered : None or list</span>
+<span class="sd">    addtl_slider_stats_hide_not_filter : None or list</span>
 <span class="sd">        By default, `addtl_slider_stats` are filtered entirely from data set. If you just</span>
 <span class="sd">        them excluded from lineplot calculation but marked as filtered on heat map,</span>
 <span class="sd">        add names of stats to this list.</span>
@@ -970,13 +1154,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fit_2epitope.html">Fit more complex curves</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../regularization.html">Regularization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../RBD_average.html">Averaging models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_LyCoV1404.html">Real antibody example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reference_site_numbering.html">Reference site numbering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../real_serum.html">Real serum example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../real_cocktail.html">Real antibody cocktail</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../optimization.html">Details on fitting</a></li>

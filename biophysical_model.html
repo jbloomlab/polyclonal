@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Biophysical model &#8212; polyclonal 3.4 documentation</title>
+    <title>Biophysical model &#8212; polyclonal 4.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -36,12 +36,269 @@
 
           <div class="body" role="main">
             
-  <section id="Biophysical-model">
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars and line breaks on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+    white-space: pre;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Biophysical-model">
 <h1>Biophysical model<a class="headerlink" href="#Biophysical-model" title="Permalink to this heading">¶</a></h1>
 <p>Here we describe the biophysical model of polyclonal antibodies that motivates the approach in this package.</p>
-<p>We recommend first reading <a class="reference external" href="https://www.biorxiv.org/content/10.1101/2022.09.17.508366v1">this paper</a> to understand the model conceptually before reading the rest of the documentation.</p>
-<section id="Model">
-<h2>Model<a class="headerlink" href="#Model" title="Permalink to this heading">¶</a></h2>
+<p>We recommend first reading <a class="reference external" href="https://doi.org/10.1093/ve/veac110">this paper</a> to understand the model conceptually before reading the rest of the documentation.</p>
+<section id="Hill-curve-model">
+<h2>Hill curve model<a class="headerlink" href="#Hill-curve-model" title="Permalink to this heading">¶</a></h2>
 <p>Consider a viral protein bound by polyclonal antibodies, such as might be found in sera. We want to determine the contribution of each mutation to escaping these polyclonal antibodies, being cognizant of the fact that different antibodies target different epitopes.</p>
 <p>The actual experimental measurable is as follows: at each concentration <span class="math notranslate nohighlight">\(c\)</span> of the antibody mixture, we measure <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, which is the fraction of all variants <span class="math notranslate nohighlight">\(v\)</span> of the viral protein that escape binding or neutralization (whichever is being experimentally measured) by all antibodies in the mix. For instance, <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span> might be fraction of variants <span class="math notranslate nohighlight">\(v\)</span> that are not neutralized in a virus neutralization deep mutational scanning experiment as in
 <a class="reference external" href="https://elifesciences.org/articles/49324">Lee et al (2019)</a>.</p>
@@ -54,15 +311,144 @@
 <span class="math notranslate nohighlight">\(v\)</span> that are not bound by an antibody targeting epitope <span class="math notranslate nohighlight">\(e\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span> is given by a Hill equation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{eqnarray}
-U_e\left(v, c\right) &amp;=&amp; \frac{1}{1 + \frac{c f_e}{K_{d,e}\left(v\right)}} \\
-&amp;=&amp; \frac{1}{1 + c f_e \exp \left(-\frac{\Delta G_e\left(v\right)}{RT}\right)} \\
-&amp;=&amp; \frac{1}{1 + c \exp \left(-\phi_e\left(v\right)\right)}, \\
+U_e\left(v, c\right) &amp;=&amp; \frac{1 - t_e}{1 + \left(\frac{c f_e}{K_{d,e}\left(v\right)}\right)^{n_e}} + t_e \\
+&amp;=&amp; \frac{1 - t_e}{1 + \left[c f_e \exp \left(-\frac{\Delta G_e\left(v\right)}{RT}\right)\right]^{n_e}} + t_e \\
+&amp;=&amp; \frac{1 - t_e}{1 + \left[c \exp \left(-\phi_e\left(v\right)\right)\right]^{n_e}} + t_e, \\
 \label{Ue} \tag{2}
 \end{eqnarray}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> represents the total binding activity of antibodies to epitope <span class="math notranslate nohighlight">\(e\)</span> against variant <span class="math notranslate nohighlight">\(v\)</span>, and is related to the free energy of binding <span class="math notranslate nohighlight">\(\Delta G_e\left(v\right)\)</span> and the fraction of antibodies <span class="math notranslate nohighlight">\(f_e\)</span> targeting epitope <span class="math notranslate nohighlight">\(e\)</span> by <span class="math notranslate nohighlight">\(\phi_e\left(v\right) = \frac{\Delta G_e\left(v\right)}{RT} - \ln f_e\)</span>; note that <span class="math notranslate nohighlight">\(RT\)</span> is the product of the molar gas constant and the temperature and
-<span class="math notranslate nohighlight">\(K_{d,e}= \exp\left(\frac{\Delta G_e\left(v\right)}{RT}\right)\)</span> is the dissociation constant. The value of <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> depends both on the affinity of antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span> (via <span class="math notranslate nohighlight">\(\Delta G_e\left(v\right)\)</span>) and on the abundance of antibodies with this specificity in the overall mix (via <span class="math notranslate nohighlight">\(f_e\)</span>), and so is a measure of the overall importance of antibodies with this specificity in the polyclonal mix. Smaller (more negative) values of
-<span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> correspond to a higher overall contribution of antibodies with specificity for epitope <span class="math notranslate nohighlight">\(e\)</span> to the activity against variant <span class="math notranslate nohighlight">\(v\)</span>.</p>
-<p>Finally, we want to frame <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> in terms of the actual quantities of biological interest. There are two quantities of biological interest:</p>
+<p>where <span class="math notranslate nohighlight">\(n_e\)</span> is the Hill coefficient for epitope <span class="math notranslate nohighlight">\(e\)</span>, <span class="math notranslate nohighlight">\(t_e\)</span> is the non-neutralizable fraction for epitope <span class="math notranslate nohighlight">\(e\)</span>, and <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> represents the total binding activity of antibodies to epitope <span class="math notranslate nohighlight">\(e\)</span> against variant <span class="math notranslate nohighlight">\(v\)</span>. Note that <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> is related to the free energy of binding <span class="math notranslate nohighlight">\(\Delta G_e\left(v\right)\)</span> and the fraction of antibodies <span class="math notranslate nohighlight">\(f_e\)</span> targeting epitope <span class="math notranslate nohighlight">\(e\)</span> by
+<span class="math notranslate nohighlight">\(\phi_e\left(v\right) = \frac{\Delta G_e\left(v\right)}{RT} - \ln f_e\)</span>; note that <span class="math notranslate nohighlight">\(RT\)</span> is the product of the molar gas constant and the temperature and <span class="math notranslate nohighlight">\(K_{d,e}= \exp\left(\frac{\Delta G_e\left(v\right)}{RT}\right)\)</span> is the dissociation constant. The value of <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> depends both on the affinity of antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span> (via <span class="math notranslate nohighlight">\(\Delta G_e\left(v\right)\)</span>) and on the abundance of antibodies with this specificity in the overall mix (via
+<span class="math notranslate nohighlight">\(f_e\)</span>), and so is a measure of the overall importance of antibodies with this specificity in the polyclonal mix. Smaller (more negative) values of <span class="math notranslate nohighlight">\(\phi_e\left(v\right)\)</span> correspond to a higher overall contribution of antibodies with specificity for epitope <span class="math notranslate nohighlight">\(e\)</span> to the activity against variant <span class="math notranslate nohighlight">\(v\)</span>. We call <span class="math notranslate nohighlight">\(-\phi_e\left(v\right)\)</span> the “activity” directed against epitope <span class="math notranslate nohighlight">\(e\)</span>.</p>
+<p>Note that in the simplest case we have a Hill coefficient of <span class="math notranslate nohighlight">\(n_e = 1\)</span> and there is no non-neutralized fraction, so <span class="math notranslate nohighlight">\(t_e = 0\)</span>. The <a class="reference external" href="https://doi.org/10.1093/ve/veac110">original reference</a> for <code class="docutils literal notranslate"><span class="pre">polyclonal</span></code> focuses on this simple case, and the addition of allowing the possibility of <span class="math notranslate nohighlight">\(n_e \ne 1\)</span> and <span class="math notranslate nohighlight">\(t_e &gt; 0\)</span> is an extension to that simplest case.</p>
+<p>Below is an interactive plot showing the effect of different values of the concentration and non-neutralizable fraction (<span class="math notranslate nohighlight">\(t\)</span>) as a function of an adjustable Hill coefficient (<span class="math notranslate nohighlight">\(n\)</span>):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+
+<span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;activity&quot;</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)})</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">,</span>
+            <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;concentration = </span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, non-neutralized fraction (t) = </span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">],</span>
+    <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}],</span>
+    <span class="n">bind</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">binding_range</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Hill coefficient (n)&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">to_show</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">selection_point</span><span class="p">(</span>
+    <span class="n">bind</span><span class="o">=</span><span class="s2">&quot;legend&quot;</span><span class="p">,</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
+    <span class="n">value</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]}],</span>
+<span class="p">)</span>
+
+<span class="p">(</span>
+    <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">transform_calculate</span><span class="p">(</span>
+        <span class="n">unbound</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">])</span>
+        <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">alt</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="p">]))</span> <span class="o">**</span> <span class="n">n</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">])</span>
+        <span class="o">+</span> <span class="n">alt</span><span class="o">.</span><span class="n">datum</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;antibody activity (-phi)&quot;</span><span class="p">),</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Y</span><span class="p">(</span><span class="s2">&quot;unbound:Q&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;fraction unbound (U)&quot;</span><span class="p">),</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Color</span><span class="p">(</span>
+            <span class="s2">&quot;label:N&quot;</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;click / shift-click to select&quot;</span><span class="p">,</span> <span class="n">labelLimit</span><span class="o">=</span><span class="mi">500</span><span class="p">),</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()),</span>
+        <span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;quantitative&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="p">,</span> <span class="s2">&quot;unbound&quot;</span><span class="p">]</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">mark_line</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">properties</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">275</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">175</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_params</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">to_show</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">transform_filter</span><span class="p">(</span><span class="n">to_show</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div id="altair-viz-25bef9918ebd4d25b4a24bae44edbf7e"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-25bef9918ebd4d25b4a24bae44edbf7e") {
+      outputDiv = document.getElementById("altair-viz-25bef9918ebd4d25b4a24bae44edbf7e");
+    }
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@5.2.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@6?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      require(["vega-embed"], displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "5.2.0"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-34b872d2415f2321fc90d8b38e5f1bb8"}, "mark": "line", "encoding": {"color": {"field": "label", "legend": {"labelLimit": 500, "title": "click / shift-click to select"}, "scale": {"domain": ["concentration = 1.0, non-neutralized fraction (t) = 0.0", "concentration = 1.0, non-neutralized fraction (t) = 0.1", "concentration = 4.0, non-neutralized fraction (t) = 0.0", "concentration = 4.0, non-neutralized fraction (t) = 0.1"]}, "type": "nominal"}, "tooltip": [{"field": "activity", "format": ".3g", "type": "quantitative"}, {"field": "unbound", "format": ".3g", "type": "quantitative"}], "x": {"field": "activity", "title": "antibody activity (-phi)", "type": "quantitative"}, "y": {"field": "unbound", "title": "fraction unbound (U)", "type": "quantitative"}}, "height": 175, "params": [{"name": "param_1", "select": {"type": "point", "fields": ["n"]}, "bind": {"input": "range", "max": 3, "min": 0.1, "name": "Hill coefficient (n)"}, "value": [{"n": 1}]}, {"name": "param_2", "select": {"type": "point", "fields": ["label"]}, "bind": "legend", "value": [{"label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}]}], "transform": [{"calculate": "(((1 - datum['t']) / (1 + pow((datum['c'] * exp(datum['activity'])),param_1['n']))) + datum['t'])", "as": "unbound"}, {"filter": {"param": "param_2"}}], "width": 275, "$schema": "https://vega.github.io/schema/vega-lite/v5.2.0.json", "datasets": {"data-34b872d2415f2321fc90d8b38e5f1bb8": [{"activity": -10.0, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.797979797979798, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.595959595959595, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.393939393939394, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.191919191919192, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.98989898989899, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.787878787878787, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.585858585858587, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.383838383838384, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.181818181818182, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.979797979797979, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.777777777777778, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.575757575757576, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.373737373737374, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.171717171717171, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.96969696969697, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.767676767676768, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.565656565656566, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.363636363636363, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.161616161616162, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.959595959595959, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.757575757575758, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.555555555555555, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.353535353535354, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.151515151515151, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.94949494949495, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.747474747474747, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.545454545454546, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.343434343434343, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.141414141414142, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.9393939393939394, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.737373737373738, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.5353535353535355, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.333333333333333, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.1313131313131315, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.929292929292929, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.7272727272727275, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.525252525252525, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.3232323232323235, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.121212121212121, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.9191919191919187, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.717171717171718, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.5151515151515156, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.3131313131313131, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.1111111111111107, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.9090909090909101, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.7070707070707076, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.5050505050505052, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.30303030303030276, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.10101010101010033, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.10101010101010033, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.30303030303030276, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.5050505050505052, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.7070707070707076, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.9090909090909083, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.1111111111111107, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.3131313131313131, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.5151515151515156, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.7171717171717162, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.9191919191919187, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.121212121212121, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.3232323232323235, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.525252525252524, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.7272727272727266, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.929292929292929, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.1313131313131315, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.333333333333334, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.5353535353535346, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.737373737373737, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.9393939393939394, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.141414141414142, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.3434343434343425, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.545454545454545, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.747474747474747, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.94949494949495, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.1515151515151505, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.353535353535353, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.555555555555555, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.757575757575758, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.9595959595959584, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.161616161616163, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.363636363636363, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.565656565656564, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.767676767676768, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.969696969696969, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.171717171717173, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.373737373737374, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.575757575757574, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.777777777777779, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.979797979797979, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.18181818181818, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.383838383838384, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.585858585858585, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.787878787878789, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.98989898989899, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.19191919191919, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.393939393939394, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.595959595959595, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.7979797979798, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": 10.0, "c": 1, "t": 0.0, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.0"}, {"activity": -10.0, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.797979797979798, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.595959595959595, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.393939393939394, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.191919191919192, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.98989898989899, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.787878787878787, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.585858585858587, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.383838383838384, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.181818181818182, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.979797979797979, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.777777777777778, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.575757575757576, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.373737373737374, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.171717171717171, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.96969696969697, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.767676767676768, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.565656565656566, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.363636363636363, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.161616161616162, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.959595959595959, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.757575757575758, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.555555555555555, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.353535353535354, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.151515151515151, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.94949494949495, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.747474747474747, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.545454545454546, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.343434343434343, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.141414141414142, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.9393939393939394, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.737373737373738, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.5353535353535355, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.333333333333333, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.1313131313131315, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.929292929292929, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.7272727272727275, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.525252525252525, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.3232323232323235, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.121212121212121, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.9191919191919187, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.717171717171718, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.5151515151515156, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.3131313131313131, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.1111111111111107, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.9090909090909101, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.7070707070707076, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.5050505050505052, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.30303030303030276, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.10101010101010033, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.10101010101010033, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.30303030303030276, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.5050505050505052, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.7070707070707076, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.9090909090909083, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.1111111111111107, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.3131313131313131, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.5151515151515156, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.7171717171717162, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.9191919191919187, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.121212121212121, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.3232323232323235, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.525252525252524, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.7272727272727266, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.929292929292929, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.1313131313131315, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.333333333333334, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.5353535353535346, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.737373737373737, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.9393939393939394, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.141414141414142, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.3434343434343425, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.545454545454545, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.747474747474747, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.94949494949495, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.1515151515151505, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.353535353535353, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.555555555555555, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.757575757575758, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.9595959595959584, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.161616161616163, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.363636363636363, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.565656565656564, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.767676767676768, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.969696969696969, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.171717171717173, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.373737373737374, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.575757575757574, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.777777777777779, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.979797979797979, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.18181818181818, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.383838383838384, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.585858585858585, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.787878787878789, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.98989898989899, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.19191919191919, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.393939393939394, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.595959595959595, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.7979797979798, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": 10.0, "c": 1, "t": 0.1, "label": "concentration = 1.0, non-neutralized fraction (t) = 0.1"}, {"activity": -10.0, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.797979797979798, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.595959595959595, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.393939393939394, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -9.191919191919192, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.98989898989899, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.787878787878787, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.585858585858587, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.383838383838384, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -8.181818181818182, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.979797979797979, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.777777777777778, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.575757575757576, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.373737373737374, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -7.171717171717171, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.96969696969697, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.767676767676768, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.565656565656566, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.363636363636363, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -6.161616161616162, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.959595959595959, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.757575757575758, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.555555555555555, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.353535353535354, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -5.151515151515151, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.94949494949495, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.747474747474747, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.545454545454546, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.343434343434343, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -4.141414141414142, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.9393939393939394, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.737373737373738, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.5353535353535355, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.333333333333333, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -3.1313131313131315, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.929292929292929, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.7272727272727275, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.525252525252525, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.3232323232323235, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -2.121212121212121, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.9191919191919187, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.717171717171718, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.5151515151515156, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.3131313131313131, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -1.1111111111111107, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.9090909090909101, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.7070707070707076, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.5050505050505052, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.30303030303030276, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -0.10101010101010033, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.10101010101010033, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.30303030303030276, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.5050505050505052, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.7070707070707076, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 0.9090909090909083, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.1111111111111107, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.3131313131313131, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.5151515151515156, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.7171717171717162, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 1.9191919191919187, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.121212121212121, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.3232323232323235, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.525252525252524, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.7272727272727266, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 2.929292929292929, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.1313131313131315, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.333333333333334, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.5353535353535346, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.737373737373737, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 3.9393939393939394, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.141414141414142, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.3434343434343425, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.545454545454545, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.747474747474747, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 4.94949494949495, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.1515151515151505, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.353535353535353, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.555555555555555, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.757575757575758, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 5.9595959595959584, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.161616161616163, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.363636363636363, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.565656565656564, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.767676767676768, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 6.969696969696969, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.171717171717173, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.373737373737374, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.575757575757574, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.777777777777779, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 7.979797979797979, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.18181818181818, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.383838383838384, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.585858585858585, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.787878787878789, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 8.98989898989899, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.19191919191919, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.393939393939394, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.595959595959595, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 9.7979797979798, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": 10.0, "c": 4, "t": 0.0, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.0"}, {"activity": -10.0, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.797979797979798, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.595959595959595, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.393939393939394, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -9.191919191919192, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.98989898989899, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.787878787878787, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.585858585858587, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.383838383838384, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -8.181818181818182, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.979797979797979, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.777777777777778, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.575757575757576, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.373737373737374, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -7.171717171717171, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.96969696969697, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.767676767676768, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.565656565656566, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.363636363636363, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -6.161616161616162, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.959595959595959, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.757575757575758, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.555555555555555, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.353535353535354, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -5.151515151515151, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.94949494949495, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.747474747474747, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.545454545454546, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.343434343434343, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -4.141414141414142, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.9393939393939394, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.737373737373738, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.5353535353535355, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.333333333333333, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -3.1313131313131315, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.929292929292929, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.7272727272727275, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.525252525252525, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.3232323232323235, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -2.121212121212121, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.9191919191919187, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.717171717171718, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.5151515151515156, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.3131313131313131, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -1.1111111111111107, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.9090909090909101, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.7070707070707076, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.5050505050505052, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.30303030303030276, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": -0.10101010101010033, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.10101010101010033, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.30303030303030276, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.5050505050505052, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.7070707070707076, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 0.9090909090909083, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.1111111111111107, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.3131313131313131, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.5151515151515156, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.7171717171717162, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 1.9191919191919187, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.121212121212121, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.3232323232323235, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.525252525252524, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.7272727272727266, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 2.929292929292929, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.1313131313131315, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.333333333333334, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.5353535353535346, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.737373737373737, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 3.9393939393939394, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.141414141414142, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.3434343434343425, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.545454545454545, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.747474747474747, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 4.94949494949495, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.1515151515151505, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.353535353535353, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.555555555555555, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.757575757575758, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 5.9595959595959584, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.161616161616163, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.363636363636363, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.565656565656564, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.767676767676768, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 6.969696969696969, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.171717171717173, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.373737373737374, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.575757575757574, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.777777777777779, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 7.979797979797979, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.18181818181818, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.383838383838384, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.585858585858585, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.787878787878789, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 8.98989898989899, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.19191919191919, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.393939393939394, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.595959595959595, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 9.7979797979798, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}, {"activity": 10.0, "c": 4, "t": 0.1, "label": "concentration = 4.0, non-neutralized fraction (t) = 0.1"}]}}, {"mode": "vega-lite"});
+</script></div>
+</div>
+</section>
+<section id="De-composing-epitope-activity-into-“wildtype”-activity-and-escape-of-mutations">
+<h2>De-composing epitope activity into “wildtype” activity and escape of mutations<a class="headerlink" href="#De-composing-epitope-activity-into-“wildtype”-activity-and-escape-of-mutations" title="Permalink to this heading">¶</a></h2>
+<p>Finally, we want to frame the epitope activity <span class="math notranslate nohighlight">\(-\phi_e\left(v\right)\)</span> in terms of the actual quantities of biological interest. There are two quantities of biological interest:</p>
 <ol class="arabic simple">
 <li><p>The activity of antibodies binding epitope <span class="math notranslate nohighlight">\(e\)</span> in the unmutated (“wildtype”) protein background, which will be denoted as <span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span>.</p></li>
 <li><p>The extent of escape mediated by each amino-acid mutation <span class="math notranslate nohighlight">\(m\)</span> on binding of antibodies targeting epitope <span class="math notranslate nohighlight">\(e\)</span>, which will be denoted as <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>.</p></li>
@@ -124,13 +510,12 @@ the extent to which mutation <span class="math notranslate nohighlight">\(m\)</s
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulate_RBD.html">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fit_2epitope.html">Fit more complex curves</a></li>
 <li class="toctree-l1"><a class="reference internal" href="regularization.html">Regularization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_cocktail.html">Real antibody cocktail example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_serum.html">Real serum example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_cocktail.html">Real antibody cocktail</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>

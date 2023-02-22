@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Simulate experiment &#8212; polyclonal 3.4 documentation</title>
+    <title>Simulate experiment &#8212; polyclonal 4.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -296,9 +296,11 @@ div.rendered_html tbody tr:hover {
 <section id="Simulate-experiment">
 <h1>Simulate experiment<a class="headerlink" href="#Simulate-experiment" title="Permalink to this heading">¶</a></h1>
 <p>We will simulate data from a deep mutational scanning experiment using the RBD antibody mix in order to provide hypothetical data on which to fit a <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> model.</p>
+<section id="Simulate-three-epitopes">
+<h2>Simulate three epitopes<a class="headerlink" href="#Simulate-three-epitopes" title="Permalink to this heading">¶</a></h2>
 <p>We first define a <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> object that represents the antibody mix we want to simulate. This mix is again based on the three RBD antibodies targeting class 1, 2, and 3 epitopes.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -310,13 +312,13 @@ div.rendered_html tbody tr:hover {
 <span class="n">mut_escape_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;RBD_mut_escape_df.csv&quot;</span><span class="p">)</span>
 
 <span class="c1"># create `Polyclonal` object with actual antibody mix</span>
-<span class="n">poly_abs</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span>
+<span class="n">model_3ep</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span>
     <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="p">,</span> <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">mut_escape_df</span>
 <span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epitopes: </span><span class="si">{</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">epitopes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of mutations: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of sites: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epitopes: </span><span class="si">{</span><span class="n">model_3ep</span><span class="o">.</span><span class="n">epitopes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of mutations: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model_3ep</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of sites: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model_3ep</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -332,7 +334,7 @@ Number of sites: 173
 </div>
 <p>Now we simulate libraries of variants with an average of 1, 2, 3, or 4 mutations per gene. These libraries only contain mutations for which we defined mutation escape above. We a <a class="reference external" href="https://jbloomlab.github.io/dms_variants/">dms_variants</a> <code class="docutils literal notranslate"><span class="pre">CodonVariantTable</span></code> for the RBD with these mutations. Note that because the <code class="docutils literal notranslate"><span class="pre">CodonVariantTable</span></code> requires sequential 1, 2, … numbering, we have to do some shifting of sites back and forth with an offset of 331 since that is where the RBD starts.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Bio.SeqIO</span>
@@ -345,7 +347,7 @@ Number of sites: 173
 <span class="c1"># noting that RBD starts at residue 331</span>
 <span class="n">geneseq</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Bio</span><span class="o">.</span><span class="n">SeqIO</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;RBD_seq.fasta&quot;</span><span class="p">,</span> <span class="s2">&quot;fasta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
 
-<span class="n">allowed_aa_muts</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">allowed_aa_muts</span> <span class="o">=</span> <span class="n">model_3ep</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">allowed_aa_muts</span><span class="p">)</span><span class="si">}</span><span class="s2"> allowed amino-acid mutations.&quot;</span><span class="p">)</span>
 
 <span class="n">variants</span> <span class="o">=</span> <span class="n">dms_variants</span><span class="o">.</span><span class="n">simulate</span><span class="o">.</span><span class="n">simulate_CodonVariantTable</span><span class="p">(</span>
@@ -368,8 +370,8 @@ There are 1932 allowed amino-acid mutations.
 </pre></div></div>
 </div>
 <p>Now look at the distribution of the number of amino-acid mutations per-variant in the library. The mutation rate is relatively high as we pre-screened for tolerated mutations and need multiple mutants to decompose the sera mix:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
@@ -381,24 +383,9 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="_images/simulate_RBD_5_1.png" src="_images/simulate_RBD_5_1.png" />
-</div>
-</div>
 <p>We also look at the mutation rate across the gene. Note that this is sequential numbering of the sequence. Also, the per-site mutation frequency is uneven because we only include tolerated mutations, and there are different number of tolerated mutations per site:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
@@ -410,24 +397,9 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="_images/simulate_RBD_7_1.png" src="_images/simulate_RBD_7_1.png" />
-</div>
-</div>
 <p>Now we get the data frame with the amino-acid substitutions for each variant, re-adding site offset to get back to RBD numbering:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_df</span> <span class="o">=</span> <span class="n">variants</span><span class="o">.</span><span class="n">barcode_variant_df</span><span class="p">[</span>
@@ -443,7 +415,7 @@ There are 1932 allowed amino-acid mutations.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -556,10 +528,10 @@ There are 1932 allowed amino-acid mutations.
 </div>
 <p>Now we use our <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> object to compute the predicted probability of escape (<span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>) at multiple serum concentrations given the mutation escape values <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> and activities <span class="math notranslate nohighlight">\(a_{\rm{wt},e}\)</span> stored in the <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> object. Since we will use these as the “true” values in our our simulation, we then rename the column with the predicted probabilities of escape to just be the probabilities of escape:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">model_3ep</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
     <span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="p">,</span> <span class="n">concentrations</span><span class="o">=</span><span class="p">[</span><span class="mf">0.125</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 <span class="p">)</span>
 
@@ -572,7 +544,7 @@ There are 1932 allowed amino-acid mutations.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -708,8 +680,8 @@ There are 1932 allowed amino-acid mutations.
 </div></div>
 </div>
 <p>Plot some features of the variants, namely the distribution of probability of escape for each number of mutations. As expected, variants with many mutations are more likely to escape the serum:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
@@ -736,24 +708,9 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/fh/fast/bloom_j/software/miniconda3/envs/BloomLab/lib/python3.8/site-packages/plotnine/utils.py:371: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="_images/simulate_RBD_13_1.png" src="_images/simulate_RBD_13_1.png" />
-</div>
-</div>
 <p>Also, just compute the overall average probability of escape for each library:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span>
@@ -765,7 +722,7 @@ There are 1932 allowed amino-acid mutations.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -908,7 +865,7 @@ There are 1932 allowed amino-acid mutations.
 </ol>
 <p>We therefore will make a “noisy” version of <code class="docutils literal notranslate"><span class="pre">variants_df</span></code> where we have incorporated both of these sources of noise by adding Gaussian measurement error to the escape probabilities (but then truncating them to be between 0 and 1), and by adding or subtracting a mutation to occassional variants to represent sequencing errors.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_escape</span>
@@ -916,7 +873,7 @@ There are 1932 allowed amino-acid mutations.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1052,7 +1009,7 @@ There are 1932 allowed amino-acid mutations.
 </div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
@@ -1066,9 +1023,9 @@ There are 1932 allowed amino-acid mutations.
     <span class="n">sub_sites</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">sub</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subs</span><span class="p">]</span>
     <span class="n">rand</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">rand</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>  <span class="c1"># add mutation with 1% probability</span>
-        <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
+        <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">model_3ep</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
         <span class="k">while</span> <span class="nb">int</span><span class="p">(</span><span class="n">mut</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">in</span> <span class="n">sub_sites</span><span class="p">:</span>
-            <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">poly_abs</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
+            <span class="n">mut</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">model_3ep</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
         <span class="n">subs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mut</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">rand</span> <span class="o">&gt;</span> <span class="mf">0.99</span> <span class="ow">and</span> <span class="n">subs</span><span class="p">:</span>  <span class="c1"># subtract mutation with 1% probability</span>
         <span class="n">subs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subs</span><span class="p">)))</span>
@@ -1102,7 +1059,7 @@ There are 1932 allowed amino-acid mutations.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1227,19 +1184,19 @@ There are 1932 allowed amino-acid mutations.
 </div>
 <p>For both the exact and noisy data frames, we will also compute the IC90 for each variant based on the simulated antibody mix:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_escape</span> <span class="o">=</span> <span class="n">model_3ep</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
 
-<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="n">poly_abs</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">noisy_variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
+<span class="n">noisy_variants_escape</span> <span class="o">=</span> <span class="n">model_3ep</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">noisy_variants_escape</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">)</span>
 
 <span class="n">noisy_variants_escape</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1381,7 +1338,7 @@ There are 1932 allowed amino-acid mutations.
 </ul>
 <p>The goal is to infer the properties of the escape mutations and the serum, <span class="math notranslate nohighlight">\(a_{\rm{wt},e}\)</span> and <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>, from these data, which are what would be measured in a deep mutational scanning experiment.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_escape</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
@@ -1394,6 +1351,176 @@ There are 1932 allowed amino-acid mutations.
 </pre></div>
 </div>
 </div>
+</section>
+<section id="Simulate-library-with-2-epitopes-and-non-one-Hill-coefficient-and-non-zero-non-neutralizable-fraction">
+<h2>Simulate library with 2 epitopes and non-one Hill coefficient and non-zero non-neutralizable fraction<a class="headerlink" href="#Simulate-library-with-2-epitopes-and-non-one-Hill-coefficient-and-non-zero-non-neutralizable-fraction" title="Permalink to this heading">¶</a></h2>
+<p>Create a two-epitope model with the Hill coefficent not equal to one, and the non-neutralizable fraction greater than zero. To do this, we just keep two epitopes from the above model and rename them:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_2ep</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="p">(</span>
+    <span class="n">activity_wt_df</span><span class="o">=</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;epitope != &#39;class 1&#39;&quot;</span><span class="p">),</span>
+    <span class="n">mut_escape_df</span><span class="o">=</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;epitope != &#39;class 1&#39;&quot;</span><span class="p">),</span>
+    <span class="n">hill_coefficient_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;class 2&quot;</span><span class="p">,</span> <span class="s2">&quot;class 3&quot;</span><span class="p">],</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">]}</span>
+    <span class="p">),</span>
+    <span class="n">non_neutralized_frac_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;class 2&quot;</span><span class="p">,</span> <span class="s2">&quot;class 3&quot;</span><span class="p">],</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]},</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">model_2ep</span><span class="o">.</span><span class="n">curve_specs_df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>epitope</th>
+      <th>activity</th>
+      <th>hill_coefficient</th>
+      <th>non_neutralized_frac</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>class 2</td>
+      <td>3.2</td>
+      <td>1.2</td>
+      <td>0.01</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>class 3</td>
+      <td>2.4</td>
+      <td>1.6</td>
+      <td>0.05</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Now compute probability of escape for 2-mutation variants, adding some noise. Also compute the true IC90 from the model. This is the simulated library:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">variants_2ep</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">model_2ep</span><span class="o">.</span><span class="n">prob_escape</span><span class="p">(</span>
+        <span class="n">variants_df</span><span class="o">=</span><span class="n">variants_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;library == &#39;avg2muts&#39;&quot;</span><span class="p">),</span>
+        <span class="n">concentrations</span><span class="o">=</span><span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;predicted_prob_escape&quot;</span><span class="p">:</span> <span class="s2">&quot;prob_escape&quot;</span><span class="p">})</span>
+    <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;n_aa_substitutions&quot;</span><span class="p">,</span> <span class="s2">&quot;library&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="c1"># add Gaussian noise with standard deviation of 0.03</span>
+        <span class="n">prob_escape</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">x</span><span class="p">[</span><span class="s2">&quot;prob_escape&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="c1"># add rare sequencing errors</span>
+        <span class="n">aa_substitutions</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_subtract_mutation</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">variants_2ep</span> <span class="o">=</span> <span class="n">model_2ep</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span><span class="n">variants_2ep</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;true IC90&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average escape at each concentration:&quot;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">variants_2ep</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;concentration&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">({</span><span class="s2">&quot;prob_escape&quot;</span><span class="p">:</span> <span class="s2">&quot;mean&quot;</span><span class="p">}))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Average escape at each concentration:
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>prob_escape</th>
+    </tr>
+    <tr>
+      <th>concentration</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0.25</th>
+      <td>0.070979</td>
+    </tr>
+    <tr>
+      <th>1.00</th>
+      <td>0.033363</td>
+    </tr>
+    <tr>
+      <th>4.00</th>
+      <td>0.026064</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>We write details on the 2-epitope model to files:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="2epitope_model_curve_specs.csv">2epitope_model_curve_specs.csv</a> the neutralization curve parameters</p></li>
+<li><p><a class="reference external" href="2epitope_escape.csv">2epitope_escape.csv</a> the variants and their measured probability of escape</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_2ep</span><span class="o">.</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;2epitope_model_curve_specs.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">variants_2ep</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;2epitope_escape.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.4g</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
 </section>
 
 
@@ -1438,13 +1565,12 @@ There are 1932 allowed amino-acid mutations.
 <li class="toctree-l1"><a class="reference internal" href="visualize_RBD.html">Visualize antibody mix</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Simulate experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fit_RBD.html">Fit model to data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fit_2epitope.html">Fit more complex curves</a></li>
 <li class="toctree-l1"><a class="reference internal" href="regularization.html">Regularization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="RBD_bootstrap.html">Bootstrapping model fits</a></li>
 <li class="toctree-l1"><a class="reference internal" href="RBD_average.html">Averaging models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody data example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_LyCoV1404.html">Real antibody example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference_site_numbering.html">Reference site numbering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_cocktail.html">Real antibody cocktail example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real_serum.html">Real serum example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="real_cocktail.html">Real antibody cocktail</a></li>
 <li class="toctree-l1"><a class="reference internal" href="specify_epitopes.html">Specifying epitopes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="expt_design.html">Experimental design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Details on fitting</a></li>
