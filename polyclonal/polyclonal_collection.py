@@ -475,13 +475,11 @@ class PolyclonalCollection:
             avg_type = self.default_avg_to_plot
         params = ["activity", "hill_coefficient", "non_neutralized_frac"]
 
-        df = (
-            self.curve_specs_df
-            .rename(columns={f"{c}_{avg_type}": c for c in params})
-            .drop(
-                columns=[f"{c}_{s}" for c in params for s in ["mean", "median"]],
-                errors="ignore",
-            )
+        df = self.curve_specs_df.rename(
+            columns={f"{c}_{avg_type}": c for c in params}
+        ).drop(
+            columns=[f"{c}_{s}" for c in params for s in ["mean", "median"]],
+            errors="ignore",
         )
 
         if per_model_lines >= len(self.models) or per_model_lines == -1:

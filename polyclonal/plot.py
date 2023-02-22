@@ -223,12 +223,10 @@ def curves_plot(
         req_cols.add(replicate_col)
     if not req_cols.issubset(curve_specs_df):
         raise ValueError(f"{curve_specs_df.columns} lacks columns in {req_cols}")
-    if (
-        len(curve_specs_df)
-        != len(
-            curve_specs_df[[name_col, replicate_col] if replicate_col else [name_col]]
-            .drop_duplicates()
-        )
+    if len(curve_specs_df) != len(
+        curve_specs_df[
+            [name_col, replicate_col] if replicate_col else [name_col]
+        ].drop_duplicates()
     ):
         raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
 
@@ -245,16 +243,12 @@ def curves_plot(
 
     if {"u", "c"}.intersection(curve_specs_df.columns):
         raise ValueError("`curve_specs_df` cannot have columns 'u' or 'c'")
-    df = (
-        curve_specs_df
-        .merge(pd.DataFrame({"c": cs}), how="cross")
-        .assign(
-            u=lambda x: (
-                (1 - x["non_neutralized_frac"])
-                / (1 + (x["c"] * numpy.exp(x["activity"]))**x["hill_coefficient"])
-                + x["non_neutralized_frac"]
-            ),
-        )
+    df = curve_specs_df.merge(pd.DataFrame({"c": cs}), how="cross").assign(
+        u=lambda x: (
+            (1 - x["non_neutralized_frac"])
+            / (1 + (x["c"] * numpy.exp(x["activity"])) ** x["hill_coefficient"])
+            + x["non_neutralized_frac"]
+        ),
     )
 
     addtl_tooltips = []
@@ -283,7 +277,9 @@ def curves_plot(
         if weighted_replicates is None:
             df[is_weighted_col] = 1
         else:
-            df[is_weighted_col] = df[replicate_col].isin(weighted_replicates).astype(int)
+            df[is_weighted_col] = (
+                df[replicate_col].isin(weighted_replicates).astype(int)
+            )
     else:
         df[is_weighted_col] = 1
 

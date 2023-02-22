@@ -2133,11 +2133,13 @@ class Polyclonal:
                         reg_activity_delta,
                         log_c_gm,
                     )
-                    reghillcoefficient, dreghillcoefficient = self._reg_hill_coefficient(
-                        params, reg_hill_coefficient_weight
-                    )
+                    (
+                        reghillcoefficient,
+                        dreghillcoefficient,
+                    ) = self._reg_hill_coefficient(params, reg_hill_coefficient_weight)
                     regnonneutfrac, dregnonneutfrac = self._reg_non_neutralized_frac(
-                        params, reg_non_neutralized_frac_weight,
+                        params,
+                        reg_non_neutralized_frac_weight,
                     )
                     loss = (
                         fitloss
@@ -2250,7 +2252,9 @@ class Polyclonal:
                 start_t_bounds = len(self.epitopes)
             else:
                 start_t_bounds = len(self.epitopes) * 2
-            for i_t_bounds in range(start_t_bounds, start_t_bounds + len(self.epitopes)):
+            for i_t_bounds in range(
+                start_t_bounds, start_t_bounds + len(self.epitopes)
+            ):
                 bounds[i_t_bounds] = (0, 1)
 
         opt_res = scipy.optimize.minimize(
@@ -2273,10 +2277,8 @@ class Polyclonal:
     @property
     def curve_specs_df(self):
         """pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs."""
-        curve_specs_df = (
-            self.activity_wt_df
-            .merge(self.hill_coefficient_df)
-            .merge(self.non_neutralized_frac_df)
+        curve_specs_df = self.activity_wt_df.merge(self.hill_coefficient_df).merge(
+            self.non_neutralized_frac_df
         )
 
         assert len(curve_specs_df) == len(self.epitopes)
