@@ -24,3 +24,6 @@ Specifically:
  - **Hill coefficient regularization** (``reg_Hill_coefficient``): this weight penalizes Hill coefficients :math:`n_e` that differ from one. To be precise, it symmetrically penalizes :math:`1 / n_e` for :math:`n_e < 1` and :math:`n_e` for :math:`n_e > 1`. This regularization should generally be large to ensure the Hill coefficient does not get wildly different from one.
  
  - **non-neutralized fraction regularization** (``reg_non_neutralized_frac``): this weight penalizes non-neutralizable fractions :math:`t_e` that differ from zero. Note that the optimization also uses bounds that constrain :math:`t_e \ge 0`. This regularization should be large to ensure the non-neutralizable fraction does not get dramatically larger than zero.
+
+In addition to regularization, the ``fix_hill_coefficient`` and ``fix_non_neutralized_frac`` options to `Polyclonal.fit <https://jbloomlab.github.io/polyclonal/polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit>`_ allow you to fix the Hill coefficient and non-neutralized fractions to their initial values, which by default are one and zero.
+Normally fitting rather than fixing these parameters should give a better fit to the data, but sometimes the fitting causes problems in optimization or yields unrealistic values, in which case fixing one or both of these parameters could be helpful.
