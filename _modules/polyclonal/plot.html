@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.plot &#8212; polyclonal 4.0 documentation</title>
+    <title>polyclonal.plot &#8212; polyclonal 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -342,7 +342,6 @@
                 <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">),</span>
                 <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">),</span>
                 <span class="n">alt</span><span class="o">.</span><span class="n">Tooltip</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;.3g&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">unbound_label</span><span class="p">),</span>
-                <span class="n">is_weighted_col</span><span class="p">,</span>
                 <span class="o">*</span><span class="n">addtl_tooltips</span><span class="p">,</span>
             <span class="p">],</span>
             <span class="n">strokeWidth</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">StrokeWidth</span><span class="p">(</span>
@@ -516,6 +515,7 @@
     <span class="n">show_heatmap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">scale_stat_col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="n">rename_stat_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sites_to_show</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Lineplots and heatmaps of per-site and per-mutation values.</span>
 
@@ -533,7 +533,7 @@
 <span class="sd">    alphabet : array-like or None</span>
 <span class="sd">        Alphabet letters in order. If `None`, use natsorted &quot;mutant&quot; col of `data_df`.</span>
 <span class="sd">    sites : array-like or None</span>
-<span class="sd">        Sites in order. If `None`, use natsorted &quot;site&quot; col of `data_df`.</span>
+<span class="sd">        Sites in order to show. If `None`, use natsorted &quot;site&quot; col of `data_df`.</span>
 <span class="sd">    addtl_tooltip_stats : None or array-like</span>
 <span class="sd">        Additional mutation-level stats to show in the heatmap tooltips. Values in</span>
 <span class="sd">        `addtl_slider_stats` automatically included.</span>
@@ -604,6 +604,10 @@
 <span class="sd">        Multiply numbers in `stat_col` by this number before plotting.</span>
 <span class="sd">    rename_stat_col : None or str</span>
 <span class="sd">        If a str, rename `stat_col` to this. Also changes y-axis labels.</span>
+<span class="sd">    sites_to_show : None or dict</span>
+<span class="sd">        If `None`, all sites are shown. If a dict, can be keyed by &quot;include_range&quot;</span>
+<span class="sd">        (value a 2-tuple giving first and last site to include, inclusive),</span>
+<span class="sd">        &quot;include&quot; (list of sites to include), or &quot;exclude&quot; (list of sites to exclude).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -676,14 +680,28 @@
 
     <span class="k">if</span> <span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">sites</span> <span class="o">=</span> <span class="n">natsort</span><span class="o">.</span><span class="n">natsorted</span><span class="p">(</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span> <span class="n">alg</span><span class="o">=</span><span class="n">natsort</span><span class="o">.</span><span class="n">ns</span><span class="o">.</span><span class="n">SIGNED</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;site in @sites&quot;</span><span class="p">)</span>
-        <span class="n">sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">site</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span> <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">])]</span>
+    <span class="k">if</span> <span class="n">sites_to_show</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sites_are_int</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">int</span>
+        <span class="k">if</span> <span class="s2">&quot;include_range&quot;</span> <span class="ow">in</span> <span class="n">sites_to_show</span><span class="p">:</span>
+            <span class="n">start_range</span><span class="p">,</span> <span class="n">end_range</span> <span class="o">=</span> <span class="n">sites_to_show</span><span class="p">[</span><span class="s2">&quot;include_range&quot;</span><span class="p">]</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">r</span> <span class="k">if</span> <span class="n">sites_are_int</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_range</span><span class="p">,</span> <span class="n">end_range</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;include&quot;</span> <span class="ow">in</span> <span class="n">sites_to_show</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">if</span> <span class="n">sites_are_int</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sites_to_show</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="s2">&quot;exclude&quot;</span> <span class="ow">in</span> <span class="n">sites_to_show</span><span class="p">:</span>
+            <span class="n">to_exclude</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">r</span> <span class="k">if</span> <span class="n">sites_are_int</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sites_to_show</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sites</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_exclude</span><span class="p">]</span>
+    <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;site in @sites&quot;</span><span class="p">)</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">site</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span> <span class="k">if</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">])]</span>
+
     <span class="c1"># order sites:</span>
     <span class="c1"># https://github.com/dms-vep/dms-vep-pipeline/issues/53#issuecomment-1227817963</span>
-    <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;_stat_site_order&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-        <span class="p">{</span><span class="n">site</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sites</span><span class="p">)}</span>
-    <span class="p">)</span>
+    <span class="n">site_to_i</span> <span class="o">=</span> <span class="p">{</span><span class="n">site</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sites</span><span class="p">)}</span>
+    <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">_stat_site_order</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">site_to_i</span><span class="p">))</span>
 
     <span class="c1"># get tooltips for heatmap</span>
     <span class="n">float_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">req_cols</span> <span class="k">if</span> <span class="n">data_df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span><span class="p">]</span>
