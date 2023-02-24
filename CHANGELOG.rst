@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 4.1
 ----
 - Added ``sites_to_show`` option to ``polyclonal.plot.lineplot_and_heatmap``.
+- Remove `is_weighted_replicate` from ``curves_plot`` tooltip (it was an error this was ever shown).
 
 4.0
 ---
