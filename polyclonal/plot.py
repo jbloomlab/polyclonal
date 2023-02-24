@@ -482,6 +482,7 @@ def lineplot_and_heatmap(
     show_heatmap=True,
     scale_stat_col=1,
     rename_stat_col=None,
+    sites_to_show=None,
 ):
     """Lineplots and heatmaps of per-site and per-mutation values.
 
@@ -499,7 +500,7 @@ def lineplot_and_heatmap(
     alphabet : array-like or None
         Alphabet letters in order. If `None`, use natsorted "mutant" col of `data_df`.
     sites : array-like or None
-        Sites in order. If `None`, use natsorted "site" col of `data_df`.
+        Sites in order to show. If `None`, use natsorted "site" col of `data_df`.
     addtl_tooltip_stats : None or array-like
         Additional mutation-level stats to show in the heatmap tooltips. Values in
         `addtl_slider_stats` automatically included.
@@ -570,6 +571,10 @@ def lineplot_and_heatmap(
         Multiply numbers in `stat_col` by this number before plotting.
     rename_stat_col : None or str
         If a str, rename `stat_col` to this. Also changes y-axis labels.
+    sites_to_show : None or dict
+        If `None`, all sites are shown. If a dict, can be keyed by "include_range"
+        (value a 2-tuple giving first and last site to include, inclusive),
+        "include" (list of sites to include), or "exclude" (list of sites to exclude).
 
     Returns
     -------
@@ -642,14 +647,28 @@ def lineplot_and_heatmap(
 
     if sites is None:
         sites = natsort.natsorted(data_df["site"].unique(), alg=natsort.ns.SIGNED)
-    else:
-        data_df = data_df.query("site in @sites")
-        sites = [site for site in sites if site in set(data_df["site"])]
+    if sites_to_show is not None:
+        sites_are_int = data_df["site"].dtype == int
+        if "include_range" in sites_to_show:
+            start_range, end_range = sites_to_show["include_range"]
+            sites = [
+                r if sites_are_int else str(r)
+                for r in range(start_range, end_range + 1)
+            ]
+        if "include" in sites_to_show:
+            sites = [r if sites_are_int else str(r) for r in sites_to_show["include"]]
+        if "exclude" in sites_to_show:
+            to_exclude = [
+                r if sites_are_int else str(r) for r in sites_to_show["exclude"]
+            ]
+            sites = [r for r in sites if r not in to_exclude]
+    data_df = data_df.query("site in @sites")
+    sites = [site for site in sites if site in set(data_df["site"])]
+
     # order sites:
     # https://github.com/dms-vep/dms-vep-pipeline/issues/53#issuecomment-1227817963
-    data_df["_stat_site_order"] = data_df["site"].map(
-        {site: i for i, site in enumerate(sites)}
-    )
+    site_to_i = {site: i for i, site in enumerate(sites)}
+    data_df = data_df.assign(_stat_site_order=lambda x: x["site"].map(site_to_i))
 
     # get tooltips for heatmap
     float_cols = [c for c in req_cols if data_df[c].dtype == float]

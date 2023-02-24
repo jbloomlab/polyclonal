@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+4.1
+----
+- Added ``sites_to_show`` option to ``polyclonal.plot.lineplot_and_heatmap``.
+
 4.0
 ---
 - Enable (and activate by default) fitting of a Hill coefficient and non-neutralized fraction in the curves. Previously, the Hill coefficient had been constrained to one and the non-neutralized fraction to zero. This is a **major change** that will alter the results of fitting models. To get the old behavior, call ``Polyclonal.fit`` with ``fix_hill_coefficient=True`` and ``fix_non_neutralized_frac=True``. Specific changes associated with this update include:
