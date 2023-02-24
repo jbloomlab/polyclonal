@@ -308,7 +308,6 @@ def curves_plot(
                 alt.Tooltip("non_neutralized_frac", format=".3g"),
                 alt.Tooltip("c", format=".3g", title="concentration"),
                 alt.Tooltip("u", format=".3g", title=unbound_label),
-                is_weighted_col,
                 *addtl_tooltips,
             ],
             strokeWidth=alt.StrokeWidth(
