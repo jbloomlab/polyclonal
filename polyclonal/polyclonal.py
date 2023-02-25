@@ -1893,10 +1893,9 @@ class Polyclonal:
         assert n.shape == (len(self.epitopes),)
         if (n <= 0).any():
             raise ValueError(f"some Hill coefficients not >0:\n{n=}")
-        log_n = numpy.log(n)
-        reg = weight * (log_n**2).sum()
+        reg = weight * numpy.where(n >= 1, (n - 1) ** 2, (1 - 1 / n) ** 2).sum()
         assert reg >= 0
-        dreg = 2 * weight * log_n / n
+        dreg = weight * numpy.where(n >= 1, 2 * (n - 1), 2 / n**2 - 2 / n**3)
         dreg = numpy.concatenate(
             [
                 numpy.zeros(len(self.epitopes)),
@@ -1958,7 +1957,7 @@ class Polyclonal:
         reg_uniqueness2_weight=0.1,
         reg_activity_weight=1.0,
         reg_activity_delta=0.1,
-        reg_hill_coefficient_weight=50.0,
+        reg_hill_coefficient_weight=25.0,
         reg_non_neutralized_frac_weight=1000.0,
         fit_site_level_first=True,
         scipy_minimize_kwargs=DEFAULT_SCIPY_MINIMIZE_KWARGS,
@@ -1968,7 +1967,7 @@ class Polyclonal:
         fix_non_neutralized_frac=False,
         activity_bounds=(None, None),
         hill_coefficient_bounds=(1e-8, None),
-        non_neutralized_frac_bounds=(0, 1),
+        non_neutralized_frac_bounds=(0, 0.5),
         beta_bounds=(None, None),
     ):
         r"""Fit parameters (activities and mutation escapes) to the data.
