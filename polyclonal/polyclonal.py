@@ -1969,7 +1969,8 @@ class Polyclonal:
         hill_coefficient_bounds=(1e-8, None),
         non_neutralized_frac_bounds=(0, 0.5),
         beta_bounds=(None, None),
-        fit_fixed_hill_non_neutralized_first=True,
+        fit_fixed_first=True,
+        fit_fixed_first_reg_activity_weight=10.0,
         log_desc="",
     ):
         r"""Fit parameters (activities and mutation escapes) to the data.
@@ -2042,13 +2043,18 @@ class Polyclonal:
             When optimizing non-neutralized fraction, keep in these bounds.
         beta_bounds : 2-tuple
             When optimizing escape values (:math:`\beta_m`), keep in these bounds.
-        fit_fixed_hill_non_neutralized_first : bool
+        fit_fixed_first : bool
             In fitting, if either the Hill coefficient or non-neutralized fraction are
             free (either `fix_non_neutralized_frac` or `fix_hill_coefficient` is `False`)
             then first fit a model with both of these fixed. After fitting that model,
             use its values to then fit with these free. The site model (if being fit,
             see `fit_site_level_first`) is then only fit in the initial fitting
             with the Hill coefficient and non-neutralized fraction fixed.
+        fit_fixed_first_reg_activity_weight : float
+            The activity regularization if first fitting a fixed model via
+            `fit_fixed_first`. It can be helpful to have this > `reg_activity_weight`
+            as it avoids epitopes getting activities so negative that they are lost
+            in later fitting.
         log_desc : str
             A description included on the logging string header.
 
@@ -2074,13 +2080,11 @@ class Polyclonal:
         keys, _, _, values = inspect.getargvalues(myframe)
         fit_kwargs = {key: values[key] for key in keys if key != "self"}
 
-        if (
-            fit_fixed_hill_non_neutralized_first
-            and not (fix_hill_coefficient and fix_non_neutralized_frac)
-        ):
+        if fit_fixed_first and not (fix_hill_coefficient and fix_non_neutralized_frac):
             # first fit a model with Hill and non-neutralized frac fixed
             fit_kwargs["fix_hill_coefficient"] = True
             fit_kwargs["fix_non_neutralized_frac"] = True
+            fit_kwargs["reg_activity_weight"] = fit_fixed_first_reg_activity_weight
             fit_kwargs["log_desc"] = (
                 "fixed Hill coefficient and non-neutralized frac"
                 + (f" {log_desc}" if log_desc else "")
