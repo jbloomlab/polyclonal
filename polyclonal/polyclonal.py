@@ -45,6 +45,10 @@ class PolyclonalFitError(Exception):
     pass
 
 
+class PolyclonalConcentrationError(Exception):
+    """Error in concentrations passed to :class:`Polyclonal` in ``data_to_fit``."""
+
+
 class PolyclonalHarmonizeError(Exception):
     """Error harmonizing epitopes in :meth:`Polyclonal.epitope_harmonized_model`."""
 
@@ -198,6 +202,12 @@ class Polyclonal:
         values from any not specified in ``mut_escape_df`` as indicated by
         ``init_missing``. If 'prune_to_data', remove any extra mutations
         from ``mut_escape_df`` that are not in ``data_to_fit``.
+    check_concentration_scale : float or None
+        The optimization may have problems if concentrations in ``data_to_fit`` are
+        provided in units where the numbers are very large or very small. If
+        ``check_concentration_scale`` is not `None`, check concentrations are
+        not so large or small that the magnitude of the log10 of any
+        concentration exceeds this value.
 
     Attributes
     ----------
@@ -765,6 +775,7 @@ class Polyclonal:
         epitope_colors=polyclonal.plot.DEFAULT_POSITIVE_COLORS,
         init_missing="zero",
         data_mut_escape_overlap="exact_match",
+        check_concentration_scale=4,
     ):
         """See main class docstring."""
         if isinstance(init_missing, int):
@@ -923,6 +934,17 @@ class Polyclonal:
                     "escape": init,
                 }
             )
+
+        if data_to_fit is not None and check_concentration_scale is not None:
+            for limit, op in [("minimum", min), ("maximum", max)]:
+                val = abs(op(data_to_fit["concentration"]))
+                if val > check_concentration_scale:
+                    raise PolyclonalConcentrationError(
+                        "Concentrations in `data_to_fit` are too large or small. Use "
+                        f"a scale that has values closer to one. Currently, the {limit} "
+                        "of the log10 concentrations has magnitude exceeding "
+                        f"{check_concentration_scale=}"
+                    )
 
         # get wildtype, sites, and mutations
         if data_to_fit is not None:
@@ -2085,9 +2107,10 @@ class Polyclonal:
             fit_kwargs["fix_hill_coefficient"] = True
             fit_kwargs["fix_non_neutralized_frac"] = True
             fit_kwargs["reg_activity_weight"] = fit_fixed_first_reg_activity_weight
-            fit_kwargs["log_desc"] = (
-                "fixed Hill coefficient and non-neutralized frac"
-                + (f" {log_desc}" if log_desc else "")
+            fit_kwargs[
+                "log_desc"
+            ] = "fixed Hill coefficient and non-neutralized frac" + (
+                f" {log_desc}" if log_desc else ""
             )
             self.fit(**fit_kwargs)
         elif fit_site_level_first:

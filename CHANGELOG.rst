@@ -14,6 +14,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
   - Adjust regularization weight for Hill coefficient (decreasing to 25)
   - Put upper bound on non-neutralizable fraction of 0.5.
   - Add (and activate by default) ``fit_fixed_first`` to fit a model with a fixed Hill coefficient and non-neutralized fraction first, and the ``fit_fixed_first_reg_activity_weight`` option to fit it with a higher weight.
+- Add ``check_concentration_scale`` to ``Polyclonal`` to keep concentrations in data to fit in reasonable range.
 
 4.1
 ----
