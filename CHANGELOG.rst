@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+5.0
+---
+
 4.1
 ----
 - Added ``sites_to_show`` option to ``polyclonal.plot.lineplot_and_heatmap``.
