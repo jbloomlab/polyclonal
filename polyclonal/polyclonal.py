@@ -1966,6 +1966,10 @@ class Polyclonal:
         logfreq=None,
         fix_hill_coefficient=False,
         fix_non_neutralized_frac=False,
+        activity_bounds=(None, None),
+        hill_coefficient_bounds=(1e-8, None),
+        non_neutralized_frac_bounds=(0, 1),
+        beta_bounds=(None, None),
     ):
         r"""Fit parameters (activities and mutation escapes) to the data.
 
@@ -2028,6 +2032,15 @@ class Polyclonal:
         fix_non_neutralized_frac : bool
             Do not optimize the non-neutralized fractions :math:`t_e` and instead keep
             fixed at current values.
+        activity_bounds : 2-tuple
+            When optimizing activities, keep in these bounds. Set to `(None, None)`
+            for no bounds.
+        hill_coefficient_bounds : 2-tuple
+            When optimizing Hill coefficient, keep in these bounds.
+        non_neutralized_frac_bounds : 2-tuple
+            When optimizing non-neutralized fraction, keep in these bounds.
+        beta_bounds : 2-tuple
+            When optimizing escape values (:math:`\beta_m`), keep in these bounds.
 
         Return
         ------
@@ -2237,25 +2250,17 @@ class Polyclonal:
             callback_logger.callback(startparams_fixed, header=True, force_output=True)
             scipy_minimize_kwargs["callback"] = callback_logger.callback
 
-        # set bounds so non-neutralized frac must always be between 0 and 1 and
-        # the Hill coefficienty must always be >0
+        # set optimization bounds
         if "bounds" in scipy_minimize_kwargs:
             raise ValueError("Cannot specify 'bounds' in `scipy_minimize_kwargs`")
-        bounds = [(None, None)] * len(startparams_fixed)
+        bounds = [activity_bounds] * len(self.epitopes)
         if not fix_hill_coefficient:
             assert fixed_n is None
-            for i_n_bounds in range(len(self.epitopes), 2 * len(self.epitopes)):
-                bounds[i_n_bounds] = (1e-8, None)
+            bounds += [hill_coefficient_bounds] * len(self.epitopes)
         if not fix_non_neutralized_frac:
             assert fixed_t is None
-            if fix_hill_coefficient:
-                start_t_bounds = len(self.epitopes)
-            else:
-                start_t_bounds = len(self.epitopes) * 2
-            for i_t_bounds in range(
-                start_t_bounds, start_t_bounds + len(self.epitopes)
-            ):
-                bounds[i_t_bounds] = (0, 1)
+            bounds += [non_neutralized_frac_bounds] * len(self.epitopes)
+        bounds += [beta_bounds] * (len(startparams_fixed) - len(bounds))
 
         opt_res = scipy.optimize.minimize(
             fun=lossreg.loss_reg,
@@ -2691,12 +2696,12 @@ class Polyclonal:
         assert bmap.binary_variants.shape == (bmap.nvariants, bmap.binarylength)
         assert (cs > 0).all()
         assert cs.ndim == 1
-        phi_e_v = bmap.binary_variants.dot(beta) - a
-        assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
-        exp_minus_phi_e_v = numpy.exp(-phi_e_v)
         # broadcasting of n and t as at: https://stackoverflow.com/a/55749006
         nb = n[None, :, None]
         tb = t[None, :, None]
+        phi_e_v = bmap.binary_variants.dot(beta) - a
+        assert phi_e_v.shape == (bmap.nvariants, len(self.epitopes))
+        exp_minus_phi_e_v = numpy.exp(-phi_e_v)
         U_v_e_c = (1 - tb) / (
             1.0 + (numpy.multiply.outer(exp_minus_phi_e_v, cs)) ** nb
         ) + tb
