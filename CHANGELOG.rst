@@ -8,8 +8,11 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 5.0
 ---
-- The optimization bounds to ``Polyclonal.fit`` can now be set as parameters (``activity_bounds``, etc) rather than hard-coded.
-- Change regularization on Hill coefficient to a more quadratic form.
+- Improvements to fitting of models:
+  - The optimization bounds to ``Polyclonal.fit`` can now be set as parameters (``activity_bounds``, etc) rather than hard-coded.
+  - Change regularization on Hill coefficient to a more quadratic form.
+  - Adjust regularization weight for Hill coefficient (decreasing to 25)
+  - Put upper bound on non-neutralizable fraction of 0.5.
 
 4.1
 ----
