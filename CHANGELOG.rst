@@ -8,6 +8,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 5.0
 ---
+- The optimization bounds to ``Polyclonal.fit`` can now be set as parameters (``activity_bounds``, etc) rather than hard-coded.
+- Change regularization on Hill coefficient to a more quadratic form.
 
 4.1
 ----

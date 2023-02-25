@@ -1893,10 +1893,9 @@ class Polyclonal:
         assert n.shape == (len(self.epitopes),)
         if (n <= 0).any():
             raise ValueError(f"some Hill coefficients not >0:\n{n=}")
-        log_n = numpy.log(n)
-        reg = weight * (log_n**2).sum()
+        reg = weight * numpy.where(n >= 1, (n - 1)**2, (1 - 1/n)**2).sum()
         assert reg >= 0
-        dreg = 2 * weight * log_n / n
+        dreg = weight * numpy.where(n >= 1, 2 * (n - 1), 2 / n**2 - 2 / n**3)
         dreg = numpy.concatenate(
             [
                 numpy.zeros(len(self.epitopes)),
