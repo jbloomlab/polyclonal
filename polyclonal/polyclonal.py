@@ -529,6 +529,8 @@ class Polyclonal:
     ...         reg_spread_weight=0.001,
     ...         reg_activity_weight=0.0001,
     ...         reg_uniqueness2_weight=0,
+    ...         fix_hill_coefficient=True,
+    ...         fix_non_neutralized_frac=True,
     ...     )
     ...     pred_df = m.prob_escape(variants_df=data_to_fit)
     ...     if not numpy.allclose(pred_df['prob_escape'],
@@ -937,12 +939,12 @@ class Polyclonal:
 
         if data_to_fit is not None and check_concentration_scale is not None:
             for limit, op in [("minimum", min), ("maximum", max)]:
-                val = abs(op(data_to_fit["concentration"]))
+                val = abs(op(numpy.log10(data_to_fit["concentration"])))
                 if val > check_concentration_scale:
                     raise PolyclonalConcentrationError(
                         "Concentrations in `data_to_fit` are too large or small. Use "
                         f"a scale that has values closer to one. Currently, the {limit} "
-                        "of the log10 concentrations has magnitude exceeding "
+                        "of the log10 concentrations has magnitude {val}, which exceeds "
                         f"{check_concentration_scale=}"
                     )
 
