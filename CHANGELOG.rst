@@ -8,6 +8,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 5.0
 ---
+- Increase default ``reg_activity_weight`` from 1.0 to 2.0, note that this will change results relative to models fit with earlier versions with the old default weight.
 - Improvements to fitting of models:
   - The optimization bounds to ``Polyclonal.fit`` can now be set as parameters (``activity_bounds``, etc) rather than hard-coded.
   - Change regularization on Hill coefficient to a more quadratic form.
