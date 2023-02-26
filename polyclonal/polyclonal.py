@@ -1979,7 +1979,7 @@ class Polyclonal:
         reg_spatial2_weight=0.0001,
         reg_uniqueness_weight=0,
         reg_uniqueness2_weight=0.1,
-        reg_activity_weight=1.0,
+        reg_activity_weight=2.0,
         reg_activity_delta=0.1,
         reg_hill_coefficient_weight=25.0,
         reg_non_neutralized_frac_weight=1000.0,
