@@ -44,8 +44,7 @@ setup(
     long_description=readme,
     license="GPLv3",
     install_requires=[
-        # https://stackoverflow.com/a/54793503
-        "altair @ git+https://github.com/altair-viz/altair@f8912bad75d4247ab726b639968b13315161660a",  # noqa: E501
+        "altair>=5.0.0rc1",
         "binarymap>=0.6",
         "biopython>=1.79",
         "frozendict>=2.0.7",
