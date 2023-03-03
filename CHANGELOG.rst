@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+5.1
+---
+- Update to using ``altair`` version 5.0.0rc1, which can be installed by `pip`. This also means for the first time ``polyclonal`` itself can be on PyPI, which changes installation instructions.
+
 5.0
 ---
 - Increase default ``reg_activity_weight`` from 1.0 to 2.0, note that this will change results relative to models fit with earlier versions with the old default weight.
