@@ -825,21 +825,6 @@ def lineplot_and_heatmap(
         _stat=alt.expr.max(alt.datum[stat_col], floor_at_zero["floor"]),
     )
 
-    # Filter data using slider stat
-    assert list(sliders)[-1] == "_stat_site_max"  # last for right operation order
-    for slider_stat, slider in sliders.items():
-        if slider_stat == "_stat_site_max":
-            base_chart = base_chart.transform_joinaggregate(
-                _stat_site_max="max(_stat)",
-                groupby=["site"],
-            )
-        if slider_stat not in addtl_slider_stats_hide_not_filter:
-            base_chart = base_chart.transform_filter(
-                (alt.datum[slider_stat] >= (slider["cutoff"] - 1e-6))  # rounding tol
-                | ~alt.expr.isFinite(
-                    alt.datum[slider_stat]
-                )  # do not filter null values
-            )
     # get stats to hide, not filter
     if addtl_slider_stats_hide_not_filter:
         # https://stackoverflow.com/a/61502057/4191652
@@ -853,6 +838,27 @@ def lineplot_and_heatmap(
         )
     else:
         base_chart = base_chart.transform_calculate(_stat_hide="false")
+    # Filter data using slider stat
+    assert list(sliders)[-1] == "_stat_site_max"  # last for right operation order
+    for slider_stat, slider in sliders.items():
+        if slider_stat == "_stat_site_max":
+            base_chart = base_chart.transform_calculate(
+                _stat_not_hidden=alt.expr.if_(
+                    alt.datum["_stat_hide"],
+                    data_df[stat_col].min(),
+                    alt.datum["_stat"],
+                ),
+            ).transform_joinaggregate(
+                _stat_site_max="max(_stat_not_hidden)",
+                groupby=["site"],
+            )
+        if slider_stat not in addtl_slider_stats_hide_not_filter:
+            base_chart = base_chart.transform_filter(
+                (alt.datum[slider_stat] >= (slider["cutoff"] - 1e-6))  # rounding tol
+                | ~alt.expr.isFinite(
+                    alt.datum[slider_stat]
+                )  # do not filter null values
+            )
     # Remove any sites that are only wildtype and filter with site zoom brush
     base_chart = (
         base_chart.transform_calculate(
