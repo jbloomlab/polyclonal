@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 5.2
 ---
 - In ``polyclonal.plot.lineplot_and_heatmap``, apply any hiding filter sliders before doing the max of the stat at the site slider. This avoids showing sites with all hidden values when trying to look at max.
+- Pass ``nbval`` tests with ``pandas`` 2.0.
 
 5.1
 ---
