@@ -21,6 +21,8 @@ import multiprocessing
 from functools import partial
 from itertools import repeat
 
+import numpy
+
 import pandas as pd
 
 import polyclonal
@@ -557,6 +559,10 @@ class PolyclonalCollection:
         aggs = {
             "escape_mean": pd.NamedAgg("escape", "mean"),
             "escape_median": pd.NamedAgg("escape", "median"),
+            "escape_min_magnitude": pd.NamedAgg(
+                "escape",
+                lambda s: s.tolist()[numpy.argmin(s.abs())],
+            ),
             "escape_std": pd.NamedAgg("escape", "std"),
             "n_models": pd.NamedAgg("escape", "count"),
         }
@@ -730,7 +736,7 @@ class PolyclonalCollection:
         biochem_order_aas : bool
             Biochemically order amino-acid alphabet :attr:`PolyclonalCollection.alphabet`
             by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
-        avg_type : {"mean", "median", None}
+        avg_type : {"mean", "median", "min_magnitude", None}
             Type of average to plot, None defaults to
             :attr:`PolyclonalCollection.default_avg_to_plot`.
         init_n_models : None or int

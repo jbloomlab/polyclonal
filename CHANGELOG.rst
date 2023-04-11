@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+5.3
+---
+- Add *min_escape_magnitude* as an option for ``PolyclonalAverage`` escape averages and plots. This gives the value across models with the lowest magnitude (smallest absolute value).
+
 5.2
 ---
 - In ``polyclonal.plot.lineplot_and_heatmap``, apply any hiding filter sliders before doing the max of the stat at the site slider. This avoids showing sites with all hidden values when trying to look at max.
