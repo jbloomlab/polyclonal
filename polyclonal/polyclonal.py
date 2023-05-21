@@ -2492,7 +2492,7 @@ class Polyclonal:
         logbase=2,
         check_wt_icXX=(0.01, 100),
     ):
-        r"""Data frame of ICXX and log fold change induced by each mutation.
+        r"""Get data frame of ICXX and log fold change induced by each mutation.
 
         Parameters
         ----------
@@ -2538,35 +2538,32 @@ class Polyclonal:
                 raise ValueError(f"{wt_icXX=} out of range {check_wt_icXX=}")
 
         # get fold-change ICXX for all mutants
-        log_fold_change_icXX = (
-            self.icXX(
-                pd.DataFrame({"aa_substitutions": self.mutations}),
-                x=x,
-                col="ICXX",
-                min_c=min_c,
-                max_c=max_c,
-            )
-            .assign(
-                site=lambda x: x["aa_substitutions"].map(
-                    lambda m: self._mutparser.parse_mut(m)[1]
-                ),
-                mutant=lambda x: x["aa_substitutions"].map(
-                    lambda m: self._mutparser.parse_mut(m)[2]
-                ),
-                wildtype=lambda x: x["site"].map(self.wts),
-                log_fold_change_ICXX=lambda x: (
-                    numpy.log(x["ICXX"] / wt_icXX) / numpy.log(logbase)
-                ),
-            )
-            [["site", "wildtype", "mutant", "ICXX", "log_fold_change_ICXX"]]
-        )
+        log_fold_change_icXX = self.icXX(
+            pd.DataFrame({"aa_substitutions": self.mutations}),
+            x=x,
+            col="ICXX",
+            min_c=min_c,
+            max_c=max_c,
+        ).assign(
+            site=lambda x: x["aa_substitutions"].map(
+                lambda m: self._mutparser.parse_mut(m)[1]
+            ),
+            mutant=lambda x: x["aa_substitutions"].map(
+                lambda m: self._mutparser.parse_mut(m)[2]
+            ),
+            wildtype=lambda x: x["site"].map(self.wts),
+            log_fold_change_ICXX=lambda x: (
+                numpy.log(x["ICXX"] / wt_icXX) / numpy.log(logbase)
+            ),
+        )[
+            ["site", "wildtype", "mutant", "ICXX", "log_fold_change_ICXX"]
+        ]
         # add in the wildtypes all having a log fold change of zero
         log_fold_change_icXX = pd.concat(
             [
                 log_fold_change_icXX,
                 (
-                    log_fold_change_icXX
-                    [["site", "wildtype"]]
+                    log_fold_change_icXX[["site", "wildtype"]]
                     .drop_duplicates()
                     .assign(
                         mutant=lambda x: x["wildtype"],
@@ -2576,21 +2573,25 @@ class Polyclonal:
                 ),
             ],
         )
-        assert (
-            len(log_fold_change_icXX)
-            == len(log_fold_change_icXX.groupby(["site", "mutant"]))
+        assert len(log_fold_change_icXX) == len(
+            log_fold_change_icXX.groupby(["site", "mutant"])
         )
         assert all(numpy.isfinite(log_fold_change_icXX["log_fold_change_ICXX"]))
 
         if self.mutations_times_seen is not None:
-            df["times_seen"] = df["mutation"].map(self.mutations_times_seen)
-            assert (df["times_seen"].notnull() | (df["mutant"] == df["wildtype"])).all()
+            log_fold_change_icXX["times_seen"] = log_fold_change_icXX["mutation"].map(
+                self.mutations_times_seen
+            )
+            assert (
+                log_fold_change_icXX["times_seen"].notnull()
+                | (log_fold_change_icXX["mutant"] == log_fold_change_icXX["wildtype"])
+            ).all()
 
         return (
-            log_fold_change_icXX
-            .rename(
+            log_fold_change_icXX.rename(
                 columns={
-                    "ICXX": icXX_col, "log_fold_change_ICXX": log_fold_change_icXX_col,
+                    "ICXX": icXX_col,
+                    "log_fold_change_ICXX": log_fold_change_icXX_col,
                 },
             )
             .sort_values(["site", "mutant"])
