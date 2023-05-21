@@ -415,6 +415,21 @@ class Polyclonal:
     10      CT      M1C G2A A4K  18.717
     11      TG      M1C G2A A4L   9.532
 
+    Or the fold change IC90s of all mutations:
+    >>> model.mut_icXX_df(
+    ...     x=0.9,
+    ...     icXX_col="IC90",
+    ...     log_fold_change_icXX_col="log2_fold_change_IC90",
+    ... ).round(2)
+       site wildtype mutant  IC90  log2_fold_change_IC90
+    0     1        M      C  1.26                   1.44
+    1     1        M      M  0.46                   0.00
+    2     2        G      A  1.83                   1.98
+    3     2        G      G  0.46                   0.00
+    4     4        A      A  0.46                   0.00
+    5     4        A      K  0.98                   1.07
+    6     4        A      L  0.78                   0.76
+
     Example
     -------
     Initialize with ``escape_probs`` created above as data to fit. In order
@@ -2526,23 +2541,23 @@ class Polyclonal:
         # get fold-change ICXX for all mutants
         log_fold_change_icXX = (
             self.icXX(
-                pd.DataFrame({"aa_substitutions": self.mutations),
+                pd.DataFrame({"aa_substitutions": self.mutations}),
                 x=x,
                 col="ICXX",
                 min_c=min_c,
                 max_c=max_c,
             )
-            ).assign(
-                site=lambda x: x["mutation"].map(
+            .assign(
+                site=lambda x: x["aa_substitutions"].map(
                     lambda m: self._mutparser.parse_mut(m)[1]
                 ),
-                mutant=lambda x: x["mutation"].map(
+                mutant=lambda x: x["aa_substitutions"].map(
                     lambda m: self._mutparser.parse_mut(m)[2]
                 ),
                 wildtype=lambda x: x["site"].map(self.wts),
                 log_fold_change_ICXX=lambda x: (
                     numpy.log(x["ICXX"] / wt_icXX) / numpy.log(logbase)
-                )
+                ),
             )
             [["site", "wildtype", "mutant", "ICXX", "log_fold_change_ICXX"]]
         )
@@ -2566,13 +2581,13 @@ class Polyclonal:
             len(log_fold_change_icXX)
             == len(log_fold_change_icXX.groupby(["site", "mutant"]))
         )
-        assert all(numpy.isfinite(log_fold_change_icXX["log_fold_change_icXX"]))
+        assert all(numpy.isfinite(log_fold_change_icXX["log_fold_change_ICXX"]))
 
         return (
             log_fold_change_icXX
             .rename(
                 columns={
-                    "ICXX": icXX_col, "log_fold_change_icXX": log_fold_change_icXX_col,
+                    "ICXX": icXX_col, "log_fold_change_ICXX": log_fold_change_icXX_col,
                 },
             )
             .sort_values(["site", "mutant"])
