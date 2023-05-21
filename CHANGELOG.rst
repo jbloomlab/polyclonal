@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.0
 ---
 - Upgrade minimum ``altair`` to 5.0.0
+- Use ``ruff`` as linter rather than ``flake8``
 
 5.3
 ---

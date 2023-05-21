@@ -46,7 +46,7 @@ def create_bootstrap_sample(
     """Bootstrap sample of data frame.
 
     Parameters
-    -----------
+    ----------
     df : pandas.DataFrame
         Dataframe to be bootstrapped
     seed : int
@@ -156,7 +156,7 @@ def _create_bootstrap_polyclonal(
     `root_polyclonal`.
 
     Parameters
-    -----------
+    ----------
     root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
         Initialized :class:`~polyclonal.polyclonal.Polyclonal` object with full dataset.
     seed : int
@@ -260,7 +260,7 @@ class PolyclonalCollection:
     r"""Handle a collection of :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
     Parameters
-    -----------
+    ----------
     models_df : pandas.DataFrame
         Data frame of models. Should have one column named "model" that has
         :class:`~polyclonal.polyclonal.Polyclonal` models, and other columns
@@ -270,7 +270,7 @@ class PolyclonalCollection:
         By default when plotting, plot either "mean" or "median".
 
     Attributes
-    -----------
+    ----------
     models : list
         List of the models in `models_df`. All models must have same epitopes.
     model_descriptors : dict
@@ -1140,7 +1140,7 @@ class PolyclonalBootstrap(PolyclonalCollection):
     """Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.
 
     Parameters
-    -----------
+    ----------
     root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
         The polyclonal object created with the full dataset to draw bootstrapped
         samples from. The bootstrapped samples are also initialized to mutation effects
@@ -1159,7 +1159,7 @@ class PolyclonalBootstrap(PolyclonalCollection):
         What type of average do the plotting methods plot by default?
 
     Attributes
-    -----------
+    ----------
     root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`
         The root polyclonal object passed as a parameter.
     n_threads: int

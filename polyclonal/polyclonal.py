@@ -1619,8 +1619,11 @@ class Polyclonal:
         Parameters
         ----------
         delta : float
+            Pseudo-Huber delta.
         r : numpy.ndarray
+            Residuals.
         calc_grad : bool
+            Calculate gradient.
 
         Returns
         -------
@@ -2727,9 +2730,13 @@ class Polyclonal:
         Parameters
         ----------
         params : numpy.ndarray
+            Current parameters.
         bmap : binarymap.BinaryMap
+            The binary map.
         cs : numpy.ndarray
+            The concentrations.
         calc_grad : bool
+            Calculate the gradient.
 
         Returns
         -------
@@ -2854,12 +2861,12 @@ class Polyclonal:
         Mutations present in only one model are ignored.
 
         Parameters
-        ------------
+        ----------
         ref_poly : :class:`Polyclonal`
             Other (reference) polyclonal model with which we calculate correlations.
 
         Returns
-        ---------
+        -------
         corr_df : pandas.DataFrame
             Pairwise epitope correlations for escape.
         """
@@ -2910,12 +2917,12 @@ class Polyclonal:
         the best correlated mutation-escape values.
 
         Parameters
-        -----------
+        ----------
         ref_poly : :class:`Polyclonal`
             The reference polyclonal object to harmonize epitope labels with.
 
         Returns
-        --------
+        -------
         harmonized_model, harmonize_df : tuple
             `harmonized_model` is a :class:`Polyclonal` object that is a copy of
             the current model but with epitopes harmonized, and
