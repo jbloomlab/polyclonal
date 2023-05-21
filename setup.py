@@ -44,7 +44,7 @@ setup(
     long_description=readme,
     license="GPLv3",
     install_requires=[
-        "altair>=5.0.0rc1",
+        "altair>=5.0.0",
         "binarymap>=0.6",
         "biopython>=1.79",
         "frozendict>=2.0.7",

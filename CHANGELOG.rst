@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.0
+---
+- Upgrade minimum ``altair`` to 5.0.0
+
 5.3
 ---
 - Add *min_escape_magnitude* as an option for ``PolyclonalAverage`` escape averages and plots. This gives the value across models with the lowest magnitude (smallest absolute value).
