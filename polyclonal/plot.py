@@ -42,7 +42,7 @@ def color_gradient_hex(start, end, n):
     """Get a list of colors linearly spanning a range.
 
     Parameters
-    -----------
+    ----------
     start : str
         Starting color.
     end : str
@@ -179,14 +179,14 @@ def curves_plot(
     plot is made for each curve name (eg, epitope :math:`e`).
 
     Parameters
-    -----------
+    ----------
     curve_specs_df : pandas.DataFrame
         Should have columns `name_col` (giving name, eg epitope), 'activity',
         'hill_coefficient', and 'non_neutralized_frac' specifying each curves.
         curve.
     name_col : pandas.DataFrame
         Name of column in `curve_specs_df` giving the curve name (eg, epitope)
-    names_to_color : dict or None
+    names_to_colors : dict or None
         To specify colors for each entry in `name_col` (eg, epitope), provide
         dict mapping names to colors.
     unbound_label : str
@@ -213,7 +213,7 @@ def curves_plot(
         heavily weighted line. `None` means all are heavily weighted.
 
     Returns
-    --------
+    -------
     altair.Chart
         Interactive plot.
 
@@ -231,7 +231,7 @@ def curves_plot(
         raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
 
     # get concentrations to plot
-    if isinstance(concentration_range, (float, int)):
+    if isinstance(concentration_range, (float | int)):
         exp_neg_a = numpy.exp(-curve_specs_df["activity"])
         min_c = exp_neg_a.min() / concentration_range
         max_c = exp_neg_a.max() * concentration_range

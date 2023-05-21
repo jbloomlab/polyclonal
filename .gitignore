@@ -5,7 +5,6 @@ _*
 
 !.gitignore
 !.travis.yml
-!.flake8
 !.nojekyll
 
 *.pyc
