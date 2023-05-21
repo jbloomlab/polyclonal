@@ -231,7 +231,7 @@ def curves_plot(
         raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
 
     # get concentrations to plot
-    if isinstance(concentration_range, (float | int)):
+    if isinstance(concentration_range, float | int):
         exp_neg_a = numpy.exp(-curve_specs_df["activity"])
         min_c = exp_neg_a.min() / concentration_range
         max_c = exp_neg_a.max() * concentration_range
