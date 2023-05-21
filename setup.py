@@ -44,7 +44,7 @@ setup(
     long_description=readme,
     license="GPLv3",
     install_requires=[
-        "altair>=5.0.0rc1",
+        "altair>=5.0.0",
         "binarymap>=0.6",
         "biopython>=1.79",
         "frozendict>=2.0.7",
@@ -54,6 +54,7 @@ setup(
         "pandas>=1.5",
         "requests",
         "scipy>=1.7.1",
+        "urllib3==1.26.15",  # https://github.com/googleapis/python-bigquery/issues/1565
     ],
     platforms="Linux and Mac OS X.",
     packages=["polyclonal"],
