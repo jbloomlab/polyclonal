@@ -231,12 +231,12 @@ def curves_plot(
         raise ValueError(f"{name_col=} not unique in {curve_specs_df=}")
 
     # get concentrations to plot
-    if isinstance(concentration_range, float | int):
+    if hasattr(concentration_range, "__len__"):
+        min_c, max_c = concentration_range
+    else:
         exp_neg_a = numpy.exp(-curve_specs_df["activity"])
         min_c = exp_neg_a.min() / concentration_range
         max_c = exp_neg_a.max() * concentration_range
-    else:
-        min_c, max_c = concentration_range
     if min_c >= max_c:
         raise ValueError(f"invalid concentration range of {min_c} to {max_c=}")
     cs = numpy.logspace(math.log10(min_c), math.log10(max_c), npoints, base=10)
