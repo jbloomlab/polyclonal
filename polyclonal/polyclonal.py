@@ -2491,7 +2491,6 @@ class Polyclonal:
         max_c=1e5,
         logbase=2,
         check_wt_icXX=(0.01, 100),
-        **kwargs,
     ):
         r"""Data frame of ICXX and log fold change induced by each mutation.
 
@@ -2520,9 +2519,9 @@ class Polyclonal:
         Returns
         -------
         pandas.DataFrame
-            Has columns "site", "wildtype", "mutant", `icXX_col`, and
-            "fold_change" + `icXX_col`. Note that the dataframe
-            **does** include entry for the wildtype (wildtype same as mutant)
+            Has columns "site", "wildtype", "mutant", `icXX_col`,
+            `log_fold_change_icXX_col`, and "times_seen" (if available). Note that the
+            dataframe **does** include entry for the wildtype (wildtype same as mutant)
             at each site with a non-wildtype mutation.
 
         """
@@ -2582,6 +2581,10 @@ class Polyclonal:
             == len(log_fold_change_icXX.groupby(["site", "mutant"]))
         )
         assert all(numpy.isfinite(log_fold_change_icXX["log_fold_change_ICXX"]))
+
+        if self.mutations_times_seen is not None:
+            df["times_seen"] = df["mutation"].map(self.mutations_times_seen)
+            assert (df["times_seen"].notnull() | (df["mutant"] == df["wildtype"])).all()
 
         return (
             log_fold_change_icXX
@@ -2645,7 +2648,54 @@ class Polyclonal:
             Interactive line plot and heatmap.
 
         """
-        raise NotImplemented
+        kwargs["data_df"] = self.mut_icXX_df(
+            x=x,
+            icXX_col=icXX_col,
+            log_fold_change_icXX_col=log_fold_change_icXX_col,
+            min_c=min_c,
+            max_c=max_c,
+            logbase=logbase,
+            check_wt_icXX=check_wt_icXX,
+        ).assign(epitope="all")
+
+        if df_to_merge is not None:
+            if isinstance(df_to_merge, pd.DataFrame):
+                df_to_merge = [df_to_merge]
+            elif not isinstance(df_to_merge, list):
+                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
+            for df in df_to_merge:
+                if not self.sequential_integer_sites and "site" in df.columns:
+                    df = df.assign(site=lambda x: x["site"].astype(str))
+                kwargs["data_df"] = kwargs["data_df"].merge(
+                    df,
+                    how="left",
+                    validate="many_to_one",
+                )
+
+        if "category_colors" not in kwargs:
+            kwargs["category_colors"] = self.epitope_colors
+
+        kwargs["stat_col"] = log_fold_change_icXX_col
+        kwargs["category_col"] = "epitope"
+
+        if self.mutations_times_seen:
+            if "addtl_slider_stats" in kwargs:
+                if "times_seen" not in kwargs["addtl_slider_stats"]:
+                    kwargs["addtl_slider_stats"]["times_seen"] = 1
+            else:
+                kwargs["addtl_slider_stats"] = {"times_seen": 1}
+
+        if "sites" not in kwargs:
+            kwargs["sites"] = self.sites
+
+        if "alphabet" not in kwargs:
+            kwargs["alphabet"] = self.alphabet
+        if biochem_order_aas:
+            kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
+                kwargs["alphabet"]
+            )
+
+        return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 
     def mut_escape_plot(
         self,

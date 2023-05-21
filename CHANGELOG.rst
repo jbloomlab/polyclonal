@@ -11,6 +11,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Upgrade minimum ``altair`` to 5.0.0
 - Use ``ruff`` as linter rather than ``flake8``
 - Add ``Polyclonal.mut_icXX_df`` method
+- Add ``Polyclonal.mut_icXX_plot`` method
 
 5.3
 ---
