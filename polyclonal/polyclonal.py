@@ -415,6 +415,21 @@ class Polyclonal:
     10      CT      M1C G2A A4K  18.717
     11      TG      M1C G2A A4L   9.532
 
+    Or the fold change IC90s of all mutations:
+    >>> model.mut_icXX_df(
+    ...     x=0.9,
+    ...     icXX_col="IC90",
+    ...     log_fold_change_icXX_col="log2_fold_change_IC90",
+    ... ).round(2)
+       site wildtype mutant  IC90  log2_fold_change_IC90
+    0     1        M      C  1.26                   1.44
+    1     1        M      M  0.46                   0.00
+    2     2        G      A  1.83                   1.98
+    3     2        G      G  0.46                   0.00
+    4     4        A      A  0.46                   0.00
+    5     4        A      K  0.98                   1.07
+    6     4        A      L  0.78                   0.76
+
     Example
     -------
     Initialize with ``escape_probs`` created above as data to fit. In order
@@ -2465,6 +2480,249 @@ class Polyclonal:
                 missing_metric=missing_metric,
             )
         return pd.DataFrame(result_files, columns=["epitope", "PDB file"])
+
+    def mut_icXX_df(
+        self,
+        *,
+        x,
+        icXX_col,
+        log_fold_change_icXX_col,
+        min_c=1e-5,
+        max_c=1e5,
+        logbase=2,
+        check_wt_icXX=(0.01, 100),
+    ):
+        r"""Get data frame of ICXX and log fold change induced by each mutation.
+
+        Parameters
+        ----------
+        x : float
+            Compute this ICXX, so 0.5 means IC50 aand 0.9 means IC90.
+        icXX_col : str
+            Name of column with ICXX values.
+        log_fold_change_icXX_col : str
+            Name of column with log fold change ICXX values.
+        min_c : float
+            Minimum allowed icXX, truncate values < this at this.
+        max_c : float
+            Maximum allowed icXX, truncate values > this at this.
+        logbase : float
+            Compute log fold-change in ICXX to this base.
+        check_wt_icXX : None or 2-tuple
+            If a 2-tuple, raise an error if the ICXX for the unmutated wildtype is
+            outside the range `(min_icXX, max_icXX)`. You may want to do this as
+            the clipping imposed by `min_c` and `max_c` will become a problem if
+            the wildtype ICXX is very different than one. In general, concentration
+            units should be used when fitting so that ICXX for wildtype is within an
+            order of magnitude (or at most two) from 1.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Has columns "site", "wildtype", "mutant", `icXX_col`,
+            `log_fold_change_icXX_col`, and "times_seen" (if available). Note that the
+            dataframe **does** include entry for the wildtype (wildtype same as mutant)
+            at each site with a non-wildtype mutation.
+
+        """
+        # get ICXX for unmutated wildtype
+        wt_icXX = self.icXX(
+            pd.DataFrame({"aa_substitutions": [""]}),
+            x=x,
+            col="ICXX",
+            min_c=min_c,
+            max_c=max_c,
+        )["ICXX"].tolist()[0]
+        if check_wt_icXX:
+            if not (check_wt_icXX[0] <= wt_icXX <= check_wt_icXX[1]):
+                raise ValueError(f"{wt_icXX=} out of range {check_wt_icXX=}")
+
+        # get fold-change ICXX for all mutants
+        log_fold_change_icXX = self.icXX(
+            pd.DataFrame({"aa_substitutions": self.mutations}),
+            x=x,
+            col="ICXX",
+            min_c=min_c,
+            max_c=max_c,
+        ).assign(
+            site=lambda x: x["aa_substitutions"].map(
+                lambda m: self._mutparser.parse_mut(m)[1]
+            ),
+            mutant=lambda x: x["aa_substitutions"].map(
+                lambda m: self._mutparser.parse_mut(m)[2]
+            ),
+            wildtype=lambda x: x["site"].map(self.wts),
+            log_fold_change_ICXX=lambda x: (
+                numpy.log(x["ICXX"] / wt_icXX) / numpy.log(logbase)
+            ),
+        )[
+            [
+                "site",
+                "wildtype",
+                "mutant",
+                "ICXX",
+                "log_fold_change_ICXX",
+                "aa_substitutions",
+            ]
+        ]
+        # add in the wildtypes all having a log fold change of zero
+        log_fold_change_icXX = pd.concat(
+            [
+                log_fold_change_icXX,
+                (
+                    log_fold_change_icXX[["site", "wildtype"]]
+                    .drop_duplicates()
+                    .assign(
+                        mutant=lambda x: x["wildtype"],
+                        ICXX=wt_icXX,
+                        log_fold_change_ICXX=0,
+                    )
+                ),
+            ],
+        )
+        assert len(log_fold_change_icXX) == len(
+            log_fold_change_icXX.groupby(["site", "mutant"])
+        )
+        assert all(numpy.isfinite(log_fold_change_icXX["log_fold_change_ICXX"]))
+
+        if self.mutations_times_seen is not None:
+            log_fold_change_icXX["times_seen"] = log_fold_change_icXX[
+                "aa_substitutions"
+            ].map(self.mutations_times_seen)
+            assert (
+                log_fold_change_icXX["times_seen"].notnull()
+                | (log_fold_change_icXX["mutant"] == log_fold_change_icXX["wildtype"])
+            ).all()
+
+        return (
+            log_fold_change_icXX.rename(
+                columns={
+                    "ICXX": icXX_col,
+                    "log_fold_change_ICXX": log_fold_change_icXX_col,
+                },
+            )
+            .drop(columns="aa_substitutions")
+            .sort_values(["site", "mutant"])
+            .reset_index(drop=True)
+        )
+
+    def mut_icXX_plot(
+        self,
+        *,
+        x=0.9,
+        icXX_col="IC90",
+        log_fold_change_icXX_col="log2 fold change IC90",
+        min_c=1e-5,
+        max_c=1e5,
+        logbase=2,
+        check_wt_icXX=(0.01, 100),
+        biochem_order_aas=True,
+        df_to_merge=None,
+        positive_color=polyclonal.plot.DEFAULT_POSITIVE_COLORS[0],
+        negative_color=polyclonal.plot.DEFAULT_NEGATIVE_COLOR,
+        **kwargs,
+    ):
+        r"""Make plot of log fold-change in ICXX induced by each mutation.
+
+        Parameters
+        ----------
+        x : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        icXX_col : str
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        log_fold_change_icXX_col : str
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        min_c : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        max_c : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        logbase : floata
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        check_wt_icXX : None or 2-tuple
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        biochem_order_aas : bool
+            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`
+            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
+        df_to_merge : None or pandas.DataFrame or list
+            To include additional properties, specify data frame or list of them which
+            are merged with :attr:`Polyclonal.mut_escape_df` before being passed
+            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will
+            only be included in plot if relevant columns are passed to
+            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
+            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.
+        positive_color : str
+            Color for positive log fold change in heatmap.
+        negative_color : str
+            Color for negative log fold change in heatmap.
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`.
+
+        Returns
+        -------
+        altair.Chart
+            Interactive line plot and heatmap.
+
+        """
+        kwargs["data_df"] = self.mut_icXX_df(
+            x=x,
+            icXX_col=icXX_col,
+            log_fold_change_icXX_col=log_fold_change_icXX_col,
+            min_c=min_c,
+            max_c=max_c,
+            logbase=logbase,
+            check_wt_icXX=check_wt_icXX,
+        ).assign(epitope="all")
+
+        if df_to_merge is not None:
+            if isinstance(df_to_merge, pd.DataFrame):
+                df_to_merge = [df_to_merge]
+            elif not isinstance(df_to_merge, list):
+                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
+            for df in df_to_merge:
+                if not self.sequential_integer_sites and "site" in df.columns:
+                    df = df.assign(site=lambda x: x["site"].astype(str))
+                kwargs["data_df"] = kwargs["data_df"].merge(
+                    df,
+                    how="left",
+                    validate="many_to_one",
+                )
+
+        kwargs["category_colors"] = {"all": positive_color}
+        kwargs["heatmap_negative_color"] = negative_color
+
+        kwargs["stat_col"] = log_fold_change_icXX_col
+        kwargs["category_col"] = "epitope"
+
+        if self.mutations_times_seen:
+            if "addtl_slider_stats" in kwargs:
+                if "times_seen" not in kwargs["addtl_slider_stats"]:
+                    kwargs["addtl_slider_stats"]["times_seen"] = 1
+            else:
+                kwargs["addtl_slider_stats"] = {"times_seen": 1}
+
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = []
+        kwargs["addtl_tooltip_stats"].append(icXX_col)
+
+        if "init_floor_at_zero" not in kwargs:
+            kwargs["init_floor_at_zero"] = False
+
+        if "heatmap_min_at_least" not in kwargs:
+            kwargs["heatmap_min_at_least"] = -2
+        if "heatmap_max_at_least" not in kwargs:
+            kwargs["heatmap_min_at_least"] = 2
+
+        if "sites" not in kwargs:
+            kwargs["sites"] = self.sites
+
+        if "alphabet" not in kwargs:
+            kwargs["alphabet"] = self.alphabet
+        if biochem_order_aas:
+            kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
+                kwargs["alphabet"]
+            )
+
+        return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 
     def mut_escape_plot(
         self,
