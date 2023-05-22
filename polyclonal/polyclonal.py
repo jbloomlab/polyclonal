@@ -2603,13 +2603,15 @@ class Polyclonal:
         *,
         x=0.9,
         icXX_col="IC90",
-        log_fold_change_icXX_col="log2_fold_change_IC90",
+        log_fold_change_icXX_col="log2 fold change IC90",
         min_c=1e-5,
         max_c=1e5,
         logbase=2,
         check_wt_icXX=(0.01, 100),
         biochem_order_aas=True,
         df_to_merge=None,
+        positive_color=polyclonal.plot.DEFAULT_POSITIVE_COLORS[0],
+        negative_color=polyclonal.plot.DEFAULT_NEGATIVE_COLOR,
         **kwargs,
     ):
         r"""Make plot of log fold-change in ICXX induced by each mutation.
@@ -2640,6 +2642,10 @@ class Polyclonal:
             only be included in plot if relevant columns are passed to
             :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
             `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.
+        positive_color : str
+            Color for positive log fold change in heatmap.
+        negative_color : str
+            Color for negative log fold change in heatmap.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`.
 
@@ -2673,8 +2679,8 @@ class Polyclonal:
                     validate="many_to_one",
                 )
 
-        if "category_colors" not in kwargs:
-            kwargs["category_colors"] = self.epitope_colors
+        kwargs["category_colors"] = {"all": positive_color}
+        kwargs["heatmap_negative_color"] = negative_color
 
         kwargs["stat_col"] = log_fold_change_icXX_col
         kwargs["category_col"] = "epitope"
@@ -2685,6 +2691,18 @@ class Polyclonal:
                     kwargs["addtl_slider_stats"]["times_seen"] = 1
             else:
                 kwargs["addtl_slider_stats"] = {"times_seen": 1}
+
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = []
+        kwargs["addtl_tooltip_stats"].append(icXX_col)
+
+        if "init_floor_at_zero" not in kwargs:
+            kwargs["init_floor_at_zero"] = False
+
+        if "heatmap_min_at_least" not in kwargs:
+            kwargs["heatmap_min_at_least"] = -2
+        if "heatmap_max_at_least" not in kwargs:
+            kwargs["heatmap_min_at_least"] = 2
 
         if "sites" not in kwargs:
             kwargs["sites"] = self.sites
