@@ -256,7 +256,7 @@ def curves_plot(
         for c in addtl_tooltip_cols:
             if c not in curve_specs_df.columns:
                 raise ValueError(
-                    f"`addtl_tooltip_stats` column {c} not in `curve_specs_df`"
+                    f"`addtl_tooltip_cols` column {c} not in `curve_specs_df`"
                 )
             if curve_specs_df[c].dtype == float:
                 addtl_tooltips.append(alt.Tooltip(c, format=".3g"))
