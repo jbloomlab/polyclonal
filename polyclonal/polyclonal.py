@@ -2556,7 +2556,14 @@ class Polyclonal:
                 numpy.log(x["ICXX"] / wt_icXX) / numpy.log(logbase)
             ),
         )[
-            ["site", "wildtype", "mutant", "ICXX", "log_fold_change_ICXX"]
+            [
+                "site",
+                "wildtype",
+                "mutant",
+                "ICXX",
+                "log_fold_change_ICXX",
+                "aa_substitutions",
+            ]
         ]
         # add in the wildtypes all having a log fold change of zero
         log_fold_change_icXX = pd.concat(
@@ -2579,9 +2586,9 @@ class Polyclonal:
         assert all(numpy.isfinite(log_fold_change_icXX["log_fold_change_ICXX"]))
 
         if self.mutations_times_seen is not None:
-            log_fold_change_icXX["times_seen"] = log_fold_change_icXX["mutation"].map(
-                self.mutations_times_seen
-            )
+            log_fold_change_icXX["times_seen"] = log_fold_change_icXX[
+                "aa_substitutions"
+            ].map(self.mutations_times_seen)
             assert (
                 log_fold_change_icXX["times_seen"].notnull()
                 | (log_fold_change_icXX["mutant"] == log_fold_change_icXX["wildtype"])
@@ -2594,6 +2601,7 @@ class Polyclonal:
                     "log_fold_change_ICXX": log_fold_change_icXX_col,
                 },
             )
+            .drop(columns="aa_substitutions")
             .sort_values(["site", "mutant"])
             .reset_index(drop=True)
         )
