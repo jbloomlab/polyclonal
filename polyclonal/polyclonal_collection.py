@@ -569,7 +569,7 @@ class PolyclonalCollection:
         """
         return pd.concat(
             [
-                m.mut_icXX_df(**kwargs).assign(desc)
+                m.mut_icXX_df(**kwargs).assign(**desc)
                 for m, desc in zip(self.models, self.model_descriptors)
             ],
             ignore_index=True,
