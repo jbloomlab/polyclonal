@@ -1129,7 +1129,7 @@ class PolyclonalCollection:
         if "heatmap_min_at_least" not in kwargs:
             kwargs["heatmap_min_at_least"] = -2
         if "heatmap_max_at_least" not in kwargs:
-            kwargs["heatmap_min_at_least"] = 2
+            kwargs["heatmap_max_at_least"] = 2
 
         if ("sites" not in kwargs) and not self.sequential_integer_sites:
             kwargs["sites"] = self.sites
