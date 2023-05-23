@@ -882,7 +882,7 @@ class PolyclonalCollection:
         Returns
         -------
         altair.Chart
-            Interactive heat maps.
+            Interactive heat maps and line plots.
 
         """
         if avg_type is None:
@@ -977,6 +977,169 @@ class PolyclonalCollection:
             kwargs["addtl_slider_stats"]["n_models"] = init_n_models
         else:
             kwargs["addtl_slider_stats"] = {"n_models": init_n_models}
+
+        return polyclonal.plot.lineplot_and_heatmap(**kwargs)
+
+    def mut_icXX_plot(
+        self,
+        *,
+        x=0.9,
+        icXX_col="IC90",
+        log_fold_change_icXX_col="log2 fold change IC90",
+        min_c=1e-5,
+        max_c=1e5,
+        logbase=2,
+        check_wt_icXX=(0.01, 100),
+        biochem_order_aas=True,
+        df_to_merge=None,
+        positive_color=polyclonal.plot.DEFAULT_POSITIVE_COLORS[0],
+        negative_color=polyclonal.plot.DEFAULT_NEGATIVE_COLOR,
+        avg_type=None,
+        init_n_models=None,
+        per_model_tooltip=None,
+        **kwargs,
+    ):
+        """
+        Parameters
+        ----------
+        x : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        icXX_col : str
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        log_fold_change_icXX_col : str
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        min_c : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        max_c : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        logbase : float
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        check_wt_icXX : None or 2-tuple
+            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
+        biochem_order_aas : bool
+            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`
+            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.
+        df_to_merge : None or pandas.DataFrame or list
+            To include additional properties, specify data frame or list of them which
+            are merged with :attr:`Polyclonal.mut_escape_df` before being passed
+            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will
+            only be included in plot if relevant columns are passed to
+            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,
+            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.
+        positive_color : str
+            Color for positive log fold change in heatmap.
+        negative_color : str
+            Color for negative log fold change in heatmap.
+        avg_type : {"mean", "median", "min_magnitude", None}
+            Type of average to plot, None defaults to
+            :attr:`PolyclonalCollection.default_avg_to_plot`.
+        init_n_models : None or int
+            Initially only show mutations found in at least this number of models
+            in the collection. A value of `None` corresponds to choosing a
+            value that is >= half the number of total replicates.
+        per_model_tooltip : None or bool
+            In the heatmap, do the tooltips report per-model escape values or the
+            standard deviation across models. If `None` then report per-model
+            when <= 5 models and standard deviation if > 5 models. If `True`,
+            always report per-model values. If `False`, always report standard
+            deviation.
+        **kwargs
+            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
+
+        Returns
+        -------
+        altair.Chart
+            Interactive heat map and line plot.
+
+        """
+        if avg_type is None:
+            avg_type = self.default_avg_to_plot
+
+        if per_model_tooltip is None:
+            per_model_tooltip = len(self.models) <= 5
+
+        if "addtl_tooltip_stats" not in kwargs:
+            kwargs["addtl_tooltip_stats"] = []
+
+        if per_model_tooltip:
+            df = self.mut_icXX_df_w_model_values(
+                x=x,
+                icXX_col=icXX_col,
+                log_fold_change_icXX_col=log_fold_change_icXX_col,
+                min_c=min_c,
+                max_c=max_c,
+                logbase=logbase,
+                check_wt_icXX=check_wt_icXX,
+            )
+            model_names = df.columns[-len(self.models) :]
+            for name in model_names:
+                if name not in kwargs["addtl_tooltip_stats"]:
+                    kwargs["addtl_tooltip_stats"].append(name)
+        else:
+            df = self.mut_icXX_df(
+                x=x,
+                icXX_col=icXX_col,
+                log_fold_change_icXX_col=log_fold_change_icXX_col,
+                min_c=min_c,
+                max_c=max_c,
+                logbase=logbase,
+                check_wt_icXX=check_wt_icXX,
+            )
+            if "escape_std" not in kwargs["addtl_tooltip_stats"]:
+                kwargs["addtl_tooltip_stats"].append("escape_std")
+
+        kwargs["data_df"] = df.assign(epitope="all").rename(
+            columns={f"{log_fold_change_icXX_col} {avg_type}": log_fold_change_icXX_col}
+        )
+
+        if init_n_models is None:
+            init_n_models = int(math.ceil(len(self.models) / 2))
+        if "addtl_slider_stats" in kwargs:
+            kwargs["addtl_slider_stats"]["n_models"] = init_n_models
+        else:
+            kwargs["addtl_slider_stats"] = {"n_models": init_n_models}
+
+        if df_to_merge is not None:
+            if isinstance(df_to_merge, pd.DataFrame):
+                df_to_merge = [df_to_merge]
+            elif not isinstance(df_to_merge, list):
+                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
+            for df in df_to_merge:
+                if not self.sequential_integer_sites and "site" in df.columns:
+                    df = df.assign(site=lambda x: x["site"].astype(str))
+                kwargs["data_df"] = kwargs["data_df"].merge(
+                    df,
+                    how="left",
+                    validate="many_to_one",
+                )
+
+        kwargs["category_colors"] = {"all": positive_color}
+        kwargs["heatmap_negative_color"] = negative_color
+
+        kwargs["stat_col"] = log_fold_change_icXX_col
+        kwargs["category_col"] = "epitope"
+
+        if "times_seen" in kwargs["data_df"].columns:
+            if "times_seen" not in kwargs["addtl_slider_stats"]:
+                kwargs["addtl_slider_stats"]["times_seen"] = 1
+
+        if "init_floor_at_zero" not in kwargs:
+            kwargs["init_floor_at_zero"] = False
+
+        if "heatmap_min_at_least" not in kwargs:
+            kwargs["heatmap_min_at_least"] = -2
+        if "heatmap_max_at_least" not in kwargs:
+            kwargs["heatmap_min_at_least"] = 2
+
+        if ("sites" not in kwargs) and not self.sequential_integer_sites:
+            kwargs["sites"] = self.sites
+
+        if "alphabet" not in kwargs:
+            kwargs["alphabet"] = self.alphabet
+        if biochem_order_aas:
+            kwargs["alphabet"] = polyclonal.alphabets.biochem_order_aas(
+                kwargs["alphabet"]
+            )
 
         return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 

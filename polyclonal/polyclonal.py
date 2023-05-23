@@ -2636,7 +2636,7 @@ class Polyclonal:
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
         max_c : float
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
-        logbase : floata
+        logbase : float
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
         check_wt_icXX : None or 2-tuple
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
