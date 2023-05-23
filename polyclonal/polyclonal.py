@@ -2636,7 +2636,7 @@ class Polyclonal:
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
         max_c : float
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
-        logbase : floata
+        logbase : float
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
         check_wt_icXX : None or 2-tuple
             Same meaning as for :meth:`Polyclonal.mut_icXX_df`.
@@ -2710,7 +2710,7 @@ class Polyclonal:
         if "heatmap_min_at_least" not in kwargs:
             kwargs["heatmap_min_at_least"] = -2
         if "heatmap_max_at_least" not in kwargs:
-            kwargs["heatmap_min_at_least"] = 2
+            kwargs["heatmap_max_at_least"] = 2
 
         if "sites" not in kwargs:
             kwargs["sites"] = self.sites
