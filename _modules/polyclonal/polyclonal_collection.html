@@ -5,13 +5,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal_collection &#8212; polyclonal 5.3 documentation</title>
+    <title>polyclonal.polyclonal_collection &#8212; polyclonal 6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -66,7 +67,7 @@
 
 
 <div class="viewcode-block" id="PolyclonalCollectionFitError"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollectionFitError">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalCollectionFitError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error fitting models.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Error fitting models.&quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
 
@@ -77,10 +78,10 @@
     <span class="n">group_by_col</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span>
     <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bootstrap sample of data frame.</span>
+    <span class="sd">&quot;&quot;&quot;Bootstrap sample of data frame.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    df : pandas.DataFrame</span>
 <span class="sd">        Dataframe to be bootstrapped</span>
 <span class="sd">    seed : int</span>
@@ -185,12 +186,12 @@
     <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
     <span class="n">group_by_col</span><span class="o">=</span><span class="s2">&quot;concentration&quot;</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped</span>
+    <span class="sd">&quot;&quot;&quot;Create :class:`~polyclonal.polyclonal.Polyclonal` object from bootstrapped</span>
 <span class="sd">    dataset and fits model. The model is initialized to the parameters in</span>
 <span class="sd">    `root_polyclonal`.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
 <span class="sd">        Initialized :class:`~polyclonal.polyclonal.Polyclonal` object with full dataset.</span>
 <span class="sd">    seed : int</span>
@@ -232,7 +233,7 @@
 
 
 <span class="k">def</span> <span class="nf">_fit_func</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit model as utility function for `fit_models`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Fit model as utility function for `fit_models`.&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">model</span>
@@ -241,7 +242,7 @@
 
 
 <div class="viewcode-block" id="fit_models"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.fit_models">[docs]</a><span class="k">def</span> <span class="nf">fit_models</span><span class="p">(</span><span class="n">models</span><span class="p">,</span> <span class="n">n_threads</span><span class="p">,</span> <span class="n">failures</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit collection of :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
+    <span class="sd">&quot;&quot;&quot;Fit collection of :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
 
 <span class="sd">    Enables fitting of multiple models simultaneously using multiple threads.</span>
 
@@ -291,10 +292,10 @@
 
 
 <div class="viewcode-block" id="PolyclonalCollection"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalCollection</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Handle a collection of :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Handle a collection of :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    models_df : pandas.DataFrame</span>
 <span class="sd">        Data frame of models. Should have one column named &quot;model&quot; that has</span>
 <span class="sd">        :class:`~polyclonal.polyclonal.Polyclonal` models, and other columns</span>
@@ -304,7 +305,7 @@
 <span class="sd">        By default when plotting, plot either &quot;mean&quot; or &quot;median&quot;.</span>
 
 <span class="sd">    Attributes</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    models : list</span>
 <span class="sd">        List of the models in `models_df`. All models must have same epitopes.</span>
 <span class="sd">    model_descriptors : dict</span>
@@ -335,7 +336,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">models_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">default_avg_to_plot</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">default_avg_to_plot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">}:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid </span><span class="si">{</span><span class="n">default_avg_to_plot</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span> <span class="o">=</span> <span class="n">default_avg_to_plot</span>
@@ -378,7 +379,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">activity_wt_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities for all models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities for all models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">m</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
@@ -389,7 +390,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">activity_wt_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities summarized across models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Epitope activities summarized across models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
             <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
             <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -402,7 +403,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hill_coefficient_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients for all models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients for all models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">m</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
@@ -413,7 +414,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hill_coefficient_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients summarized across models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients summarized across models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hill_coefficient_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
             <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
             <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -426,7 +427,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">non_neutralized_frac_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fraction for all models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fraction for all models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">m</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
@@ -437,7 +438,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">non_neutralized_frac_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fraction summarized across models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fraction summarized across models.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_neutralized_frac_df_replicates</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
             <span class="s2">&quot;epitope&quot;</span><span class="p">,</span>
             <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -450,7 +451,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">curve_specs_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.</span>
 
 <span class="sd">        Per-replicate values.</span>
 
@@ -465,7 +466,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">curve_specs_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.</span>
 
 <span class="sd">        Values summarized across models.</span>
 
@@ -483,7 +484,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="PolyclonalCollection.curves_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.curves_plot">[docs]</a>    <span class="k">def</span> <span class="nf">curves_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">per_model_lines</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot neutralization / binding curve for unmutated protein at each epitope.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot neutralization / binding curve for unmutated protein at each epitope.</span>
 
 <span class="sd">        This curve effectively illustrates the epitope activity, Hill curve coefficient,</span>
 <span class="sd">        and non-neutralizable fraction.</span>
@@ -550,7 +551,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bar plot of epitope activities mean across models.</span>
+        <span class="sd">&quot;&quot;&quot;Bar plot of epitope activities mean across models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -578,7 +579,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape by model.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape by model.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">m</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
@@ -587,9 +588,31 @@
             <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
+<div class="viewcode-block" id="PolyclonalCollection.mut_icXX_df_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_df_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">mut_icXX_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get data frame of ICXX and log fold change for each mutation by model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments to :meth:`~polyclonal.polyclonal.Polyclonal.mut_icXX_df`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Data from of ICXX and log fold change for each model.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">mut_icXX_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="n">desc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_descriptors</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape summarized across models.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Mutation escape summarized across models.&quot;&quot;&quot;</span>
         <span class="n">aggs</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;escape_mean&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
             <span class="s2">&quot;escape_median&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
@@ -609,7 +632,7 @@
             <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">**</span><span class="n">aggs</span><span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
                 <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
-                <span class="c1"># make categorical to sort, then return to originalt type</span>
+                <span class="c1"># make categorical to sort, then return to original type</span>
                 <span class="n">epitope</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
                     <span class="n">x</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span>
@@ -635,9 +658,62 @@
             <span class="p">)</span>
         <span class="p">)</span>
 
+<div class="viewcode-block" id="PolyclonalCollection.mut_icXX_df"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_df">[docs]</a>    <span class="k">def</span> <span class="nf">mut_icXX_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get data frame of log fold change ICXX induced by each mutation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments to :meth:`~polyclonal.polyclonal.Polyclonal.mut_icXX_df`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Log fold change ICXX for each mutation.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df_replicates</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">log_fc_icXX_col</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;log_fold_change_icXX_col&quot;</span><span class="p">]</span>
+        <span class="n">aggs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_fc_icXX_col</span><span class="si">}</span><span class="s2"> mean&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">log_fc_icXX_col</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_fc_icXX_col</span><span class="si">}</span><span class="s2"> median&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">log_fc_icXX_col</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_fc_icXX_col</span><span class="si">}</span><span class="s2"> min_magnitude&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span>
+                <span class="n">log_fc_icXX_col</span><span class="p">,</span>
+                <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="n">numpy</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">abs</span><span class="p">())],</span>
+            <span class="p">),</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_fc_icXX_col</span><span class="si">}</span><span class="s2"> std&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">log_fc_icXX_col</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n_models&quot;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="n">log_fc_icXX_col</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">aggs</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;times_seen&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">**</span><span class="n">aggs</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">frac_models</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">),</span>
+                <span class="c1"># make categorical to sort, then return to original type</span>
+                <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">],</span>
+                    <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="k">else</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">,</span>
+                    <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df_w_model_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Summarized mutation escape plus per model values.</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Summarized mutation escape plus per model values.</span>
 
 <span class="sd">        Like :attr:`PolyclonalCollection.mut_escape_df` but then having additional</span>
 <span class="sd">        columns giving per-model escape.</span>
@@ -663,8 +739,50 @@
             <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
+<div class="viewcode-block" id="PolyclonalCollection.mut_icXX_df_w_model_values"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_df_w_model_values">[docs]</a>    <span class="k">def</span> <span class="nf">mut_icXX_df_w_model_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Log fold change ICXX induced by each mutation, plus per-model values.</span>
+
+<span class="sd">        Like :attr:`PolyclonalCollection.mut_icXX_df` but then having additional</span>
+<span class="sd">        columns giving per-model ICXXs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword arguments to :meth:`~polyclonal.polyclonal.Polyclonal.mut_icXX_df`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Log fold change ICXX for each mutation, plus per model values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">merge_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df_replicates</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                    <span class="n">model_name</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_descriptor_names</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+                            <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">,</span>
+                            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+                    <span class="n">index</span><span class="o">=</span><span class="n">merge_cols</span><span class="p">,</span>
+                    <span class="n">values</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;log_fold_change_icXX_col&quot;</span><span class="p">],</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;model_name&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+            <span class="p">),</span>
+            <span class="n">on</span><span class="o">=</span><span class="n">merge_cols</span><span class="p">,</span>
+            <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Correlation of mutation escape values across models for each epitope.</span>
+        <span class="sd">&quot;&quot;&quot;Correlation of mutation escape values across models for each epitope.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -714,7 +832,7 @@
         <span class="k">return</span> <span class="n">corr</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">,</span> <span class="n">plot_corr2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Heatmap of mutation-escape correlation among models at each epitope.</span>
+        <span class="sd">&quot;&quot;&quot;Heatmap of mutation-escape correlation among models at each epitope.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -763,7 +881,7 @@
         <span class="n">per_model_tooltip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make plot of mutation escape values.</span>
+        <span class="sd">&quot;&quot;&quot;Make plot of mutation escape values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -799,7 +917,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        altair.Chart</span>
-<span class="sd">            Interactive heat maps.</span>
+<span class="sd">            Interactive heat maps and line plots.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">avg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -897,14 +1015,177 @@
 
         <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">lineplot_and_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="PolyclonalCollection.mut_icXX_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_plot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_icXX_plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+        <span class="n">icXX_col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">,</span>
+        <span class="n">log_fold_change_icXX_col</span><span class="o">=</span><span class="s2">&quot;log2 fold change IC90&quot;</span><span class="p">,</span>
+        <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+        <span class="n">logbase</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">check_wt_icXX</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+        <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">df_to_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">positive_color</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">DEFAULT_POSITIVE_COLORS</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">negative_color</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">DEFAULT_NEGATIVE_COLOR</span><span class="p">,</span>
+        <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">init_n_models</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">per_model_tooltip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        icXX_col : str</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        log_fold_change_icXX_col : str</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        min_c : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        max_c : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        logbase : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        check_wt_icXX : None or 2-tuple</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        biochem_order_aas : bool</span>
+<span class="sd">            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`</span>
+<span class="sd">            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.</span>
+<span class="sd">        df_to_merge : None or pandas.DataFrame or list</span>
+<span class="sd">            To include additional properties, specify data frame or list of them which</span>
+<span class="sd">            are merged with :attr:`Polyclonal.mut_escape_df` before being passed</span>
+<span class="sd">            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will</span>
+<span class="sd">            only be included in plot if relevant columns are passed to</span>
+<span class="sd">            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,</span>
+<span class="sd">            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.</span>
+<span class="sd">        positive_color : str</span>
+<span class="sd">            Color for positive log fold change in heatmap.</span>
+<span class="sd">        negative_color : str</span>
+<span class="sd">            Color for negative log fold change in heatmap.</span>
+<span class="sd">        avg_type : {&quot;mean&quot;, &quot;median&quot;, &quot;min_magnitude&quot;, None}</span>
+<span class="sd">            Type of average to plot, None defaults to</span>
+<span class="sd">            :attr:`PolyclonalCollection.default_avg_to_plot`.</span>
+<span class="sd">        init_n_models : None or int</span>
+<span class="sd">            Initially only show mutations found in at least this number of models</span>
+<span class="sd">            in the collection. A value of `None` corresponds to choosing a</span>
+<span class="sd">            value that is &gt;= half the number of total replicates.</span>
+<span class="sd">        per_model_tooltip : None or bool</span>
+<span class="sd">            In the heatmap, do the tooltips report per-model escape values or the</span>
+<span class="sd">            standard deviation across models. If `None` then report per-model</span>
+<span class="sd">            when &lt;= 5 models and standard deviation if &gt; 5 models. If `True`,</span>
+<span class="sd">            always report per-model values. If `False`, always report standard</span>
+<span class="sd">            deviation.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive heat map and line plot.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">avg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">avg_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_avg_to_plot</span>
+
+        <span class="k">if</span> <span class="n">per_model_tooltip</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">per_model_tooltip</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">5</span>
+
+        <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">per_model_tooltip</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df_w_model_values</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                <span class="n">icXX_col</span><span class="o">=</span><span class="n">icXX_col</span><span class="p">,</span>
+                <span class="n">log_fold_change_icXX_col</span><span class="o">=</span><span class="n">log_fold_change_icXX_col</span><span class="p">,</span>
+                <span class="n">min_c</span><span class="o">=</span><span class="n">min_c</span><span class="p">,</span>
+                <span class="n">max_c</span><span class="o">=</span><span class="n">max_c</span><span class="p">,</span>
+                <span class="n">logbase</span><span class="o">=</span><span class="n">logbase</span><span class="p">,</span>
+                <span class="n">check_wt_icXX</span><span class="o">=</span><span class="n">check_wt_icXX</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">model_names</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="p">:]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">model_names</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                <span class="n">icXX_col</span><span class="o">=</span><span class="n">icXX_col</span><span class="p">,</span>
+                <span class="n">log_fold_change_icXX_col</span><span class="o">=</span><span class="n">log_fold_change_icXX_col</span><span class="p">,</span>
+                <span class="n">min_c</span><span class="o">=</span><span class="n">min_c</span><span class="p">,</span>
+                <span class="n">max_c</span><span class="o">=</span><span class="n">max_c</span><span class="p">,</span>
+                <span class="n">logbase</span><span class="o">=</span><span class="n">logbase</span><span class="p">,</span>
+                <span class="n">check_wt_icXX</span><span class="o">=</span><span class="n">check_wt_icXX</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;escape_std&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;escape_std&quot;</span><span class="p">)</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_fold_change_icXX_col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">avg_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">log_fold_change_icXX_col</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">init_n_models</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_n_models</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s2">&quot;addtl_slider_stats&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">][</span><span class="s2">&quot;n_models&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_n_models</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n_models&quot;</span><span class="p">:</span> <span class="n">init_n_models</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">df_to_merge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_to_merge</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`df_to_merge` must be pandas.DataFrame or list&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                    <span class="n">df</span><span class="p">,</span>
+                    <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="n">positive_color</span><span class="p">}</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_negative_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">negative_color</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stat_col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_fold_change_icXX_col</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;epitope&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">][</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="s2">&quot;init_floor_at_zero&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;init_floor_at_zero&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="s2">&quot;heatmap_min_at_least&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_min_at_least&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+        <span class="k">if</span> <span class="s2">&quot;heatmap_max_at_least&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_max_at_least&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
+
+        <span class="k">if</span> <span class="s2">&quot;alphabet&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
+        <span class="k">if</span> <span class="n">biochem_order_aas</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">alphabets</span><span class="o">.</span><span class="n">biochem_order_aas</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">lineplot_and_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_site_summary_df_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape for models.</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape for models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword arguments to</span>
-<span class="sd">            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
+<span class="sd">            :meth:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -920,7 +1201,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.mut_escape_site_summary_df"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_site_summary_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape across models.</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape across models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -985,7 +1266,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.icXX_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">icXX_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Concentration which given fraction is neutralized (eg IC50) for all models.</span>
+        <span class="sd">&quot;&quot;&quot;Concentration which given fraction is neutralized (eg IC50) for all models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1015,7 +1296,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.icXX"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX">[docs]</a>    <span class="k">def</span> <span class="nf">icXX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predicted concentration at which a variant is neutralized across all models.</span>
+        <span class="sd">&quot;&quot;&quot;Predicted concentration at which a variant is neutralized across all models.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1058,7 +1339,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.prob_escape_replicates"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape_replicates">[docs]</a>    <span class="k">def</span> <span class="nf">prob_escape_replicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute predicted probability of escape :math:`p_v\left(c\right)`.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute predicted probability of escape :math:`p_v\left(c\right)`.</span>
 
 <span class="sd">        Uses all models to make predictions on ``variants_df``.</span>
 
@@ -1094,7 +1375,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="PolyclonalCollection.prob_escape"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape">[docs]</a>    <span class="k">def</span> <span class="nf">prob_escape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Summary of predicted probability of escape across all models.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Summary of predicted probability of escape across all models.</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
@@ -1135,7 +1416,7 @@
 
 
 <div class="viewcode-block" id="PolyclonalAverage"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalAverage">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalAverage</span><span class="p">(</span><span class="n">PolyclonalCollection</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average several :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+    <span class="sd">&quot;&quot;&quot;Average several :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -1157,7 +1438,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">models_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">harmonize_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_avg_to_plot</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">models_df</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no models in `model_df`&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">harmonize_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1171,10 +1452,10 @@
 
 
 <div class="viewcode-block" id="PolyclonalBootstrap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalBootstrap</span><span class="p">(</span><span class="n">PolyclonalCollection</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
+    <span class="sd">&quot;&quot;&quot;Bootstrap :class:`~polyclonal.polyclonal.Polyclonal` objects.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
 <span class="sd">        The polyclonal object created with the full dataset to draw bootstrapped</span>
 <span class="sd">        samples from. The bootstrapped samples are also initialized to mutation effects</span>
@@ -1193,7 +1474,7 @@
 <span class="sd">        What type of average do the plotting methods plot by default?</span>
 
 <span class="sd">    Attributes</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    root_polyclonal : :class:`~polyclonal.polyclonal.Polyclonal`</span>
 <span class="sd">        The root polyclonal object passed as a parameter.</span>
 <span class="sd">    n_threads: int</span>
@@ -1213,7 +1494,7 @@
         <span class="n">sample_by</span><span class="o">=</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span>
         <span class="n">default_avg_to_plot</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring for details.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">root_polyclonal</span><span class="o">.</span><span class="n">data_to_fit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;polyclonal object does not have data to fit.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root_polyclonal</span> <span class="o">=</span> <span class="n">root_polyclonal</span>
@@ -1243,7 +1524,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="PolyclonalBootstrap.fit_models"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap.fit_models">[docs]</a>    <span class="k">def</span> <span class="nf">fit_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">failures</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
+        <span class="sd">&quot;&quot;&quot;Fits bootstrapped :class:`~polyclonal.polyclonal.Polyclonal` models.</span>
 
 <span class="sd">        The fit models will then be in :attr:`PolyclonalCollection.models`,</span>
 <span class="sd">        with any models that fail fitting set to `None`. Their epitopes will</span>
@@ -1363,7 +1644,7 @@
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -1380,8 +1661,8 @@
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 

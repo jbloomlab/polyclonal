@@ -5,13 +5,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 5.0 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -74,23 +75,23 @@
 
 
 <div class="viewcode-block" id="PolyclonalFitError"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalFitError">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalFitError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error fitting in :meth:`Polyclonal.fit`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Error fitting in :meth:`Polyclonal.fit`.&quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="PolyclonalConcentrationError"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalConcentrationError">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalConcentrationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error in concentrations passed to :class:`Polyclonal` in ``data_to_fit``.&quot;&quot;&quot;</span></div>
+    <span class="sd">&quot;&quot;&quot;Error in concentrations passed to :class:`Polyclonal` in ``data_to_fit``.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="PolyclonalHarmonizeError"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalHarmonizeError">[docs]</a><span class="k">class</span> <span class="nc">PolyclonalHarmonizeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error harmonizing epitopes in :meth:`Polyclonal.epitope_harmonized_model`.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Error harmonizing epitopes in :meth:`Polyclonal.epitope_harmonized_model`.&quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="Polyclonal"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal">[docs]</a><span class="k">class</span> <span class="nc">Polyclonal</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Represent polyclonal antibody mixtures targeting multiple epitopes.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Represent polyclonal antibody mixtures targeting multiple epitopes.</span>
 
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
@@ -448,6 +449,21 @@
 <span class="sd">    9       TC          G2A A4L   4.532</span>
 <span class="sd">    10      CT      M1C G2A A4K  18.717</span>
 <span class="sd">    11      TG      M1C G2A A4L   9.532</span>
+
+<span class="sd">    Or the fold change IC90s of all mutations:</span>
+<span class="sd">    &gt;&gt;&gt; model.mut_icXX_df(</span>
+<span class="sd">    ...     x=0.9,</span>
+<span class="sd">    ...     icXX_col=&quot;IC90&quot;,</span>
+<span class="sd">    ...     log_fold_change_icXX_col=&quot;log2_fold_change_IC90&quot;,</span>
+<span class="sd">    ... ).round(2)</span>
+<span class="sd">       site wildtype mutant  IC90  log2_fold_change_IC90</span>
+<span class="sd">    0     1        M      C  1.26                   1.44</span>
+<span class="sd">    1     1        M      M  0.46                   0.00</span>
+<span class="sd">    2     2        G      A  1.83                   1.98</span>
+<span class="sd">    3     2        G      G  0.46                   0.00</span>
+<span class="sd">    4     4        A      A  0.46                   0.00</span>
+<span class="sd">    5     4        A      K  0.98                   1.07</span>
+<span class="sd">    6     4        A      L  0.78                   0.76</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
@@ -813,7 +829,7 @@
         <span class="n">data_mut_escape_overlap</span><span class="o">=</span><span class="s2">&quot;exact_match&quot;</span><span class="p">,</span>
         <span class="n">check_concentration_scale</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;See main class docstring.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_missing</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">init_missing</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">init_missing</span> <span class="o">!=</span> <span class="s2">&quot;zero&quot;</span><span class="p">:</span>
@@ -887,7 +903,7 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;`n_epitopes` must be int &gt; 1 if no &quot;</span> <span class="s2">&quot;`activity_wt_df`&quot;</span>
                 <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epitopes</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epitopes</span><span class="p">))</span>
 
             <span class="c1"># initialize activities</span>
             <span class="n">activity_wt_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
@@ -1232,7 +1248,7 @@
         <span class="n">get_pv</span><span class="p">,</span>
         <span class="n">collapse_identical_variants</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get variants and and other information from data frame.</span>
+        <span class="sd">&quot;&quot;&quot;Get variants and and other information from data frame.</span>
 
 <span class="sd">        Get `(one_binarymap, binarymaps, cs, pvs, weights, sorted_df)`. If</span>
 <span class="sd">        `get_pv=False` then `pvs` is `None`. If `collapse_identical_variants`</span>
@@ -1308,7 +1324,7 @@
         <span class="n">hill_coefficient_df</span><span class="p">,</span>
         <span class="n">non_neutralized_frac_df</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Params vector from data frames activities, escapes, n, and t.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Params vector from data frames activities, escapes, n, and t.&quot;&quot;&quot;</span>
         <span class="c1"># first E entries are activities, next E are Hill coefficients, then</span>
         <span class="c1"># non-neutralized fracs</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1357,7 +1373,7 @@
         <span class="k">return</span> <span class="n">params</span>
 
     <span class="k">def</span> <span class="nf">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Vector of activities, n_e, t_e, and MxE matrix of betas from params vector.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Vector of activities, n_e, t_e, and MxE matrix of betas from params vector.&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
         <span class="n">params_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">params_len</span><span class="p">,):</span>
@@ -1373,7 +1389,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_muts_from_data_to_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_to_fit</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get wildtypes, sites, and mutations from ``data_to_fit``.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Get wildtypes, sites, and mutations from ``data_to_fit``.&quot;&quot;&quot;</span>
         <span class="n">wts</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">mutations</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">variant</span> <span class="ow">in</span> <span class="n">data_to_fit</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]:</span>
@@ -1396,7 +1412,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">wts</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">mutations</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_muts_from_mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mut_escape_df</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get wildtypes, sites, and mutations from ``mut_escape_df``.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Get wildtypes, sites, and mutations from ``mut_escape_df``.&quot;&quot;&quot;</span>
         <span class="n">wts</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">mutations</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">mutation</span> <span class="ow">in</span> <span class="n">mut_escape_df</span><span class="p">[</span><span class="s2">&quot;mutation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
@@ -1419,28 +1435,28 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">activity_wt_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Activities :math:`a_{\rm{wt,e}}` for epitopes.&quot;&quot;&quot;</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;activity&quot;</span><span class="p">:</span> <span class="n">a</span><span class="p">})</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hill_coefficient_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients :math:`n_e` for epitopes.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Hill coefficients :math:`n_e` for epitopes.&quot;&quot;&quot;</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">n</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;hill_coefficient&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">})</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">non_neutralized_frac_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: non-neutralizable fractions :math:`t_e` for epitopes.&quot;&quot;&quot;</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;epitope&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">,</span> <span class="s2">&quot;non_neutralized_frac&quot;</span><span class="p">:</span> <span class="n">t</span><span class="p">})</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mut_escape_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: Escape :math:`\beta_{m,e}` for each mutation.&quot;&quot;&quot;</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
@@ -1477,7 +1493,7 @@
         <span class="n">mutation_whitelist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">exclude_chars</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;*&quot;</span><span class="p">]),</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape.</span>
+        <span class="sd">&quot;&quot;&quot;Site-level summaries of mutation escape.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1523,7 +1539,7 @@
         <span class="n">variants_df</span><span class="p">,</span>
         <span class="n">concentrations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute predicted probability of escape :math:`p_v\left(c\right)`.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute predicted probability of escape :math:`p_v\left(c\right)`.</span>
 
 <span class="sd">        Computed using current mutation-escape values :math:`\beta_{m,e}` and</span>
 <span class="sd">        epitope activities :math:`a_{\rm{wt},e}` stored in this</span>
@@ -1574,7 +1590,7 @@
         <span class="k">return</span> <span class="n">variants_df</span></div>
 
     <span class="k">def</span> <span class="nf">_check_close_activities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check no epitopes have near-identical activities and escape.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Check no epitopes have near-identical activities and escape.&quot;&quot;&quot;</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_n_t_beta_from_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">),)</span>
         <span class="k">assert</span> <span class="n">beta</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">))</span>
@@ -1596,7 +1612,7 @@
         <span class="n">aggregate_mut_escapes</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
         <span class="n">collapse_identical_variants</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Model with mutations collapsed at site level.</span>
+        <span class="sd">&quot;&quot;&quot;Model with mutations collapsed at site level.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1644,7 +1660,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_scaled_pseudo_huber</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">calc_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute scaled Pseudo-Huber loss (and potentially its gradient).</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute scaled Pseudo-Huber loss (and potentially its gradient).</span>
 
 <span class="sd">        :math:`h = \delta \left(\sqrt{1+\left(r/\delta\right)^2} - 1\right)`;</span>
 <span class="sd">        this is actually :math:`1/\delta` times ``scipy.special.pseudo_huber``,</span>
@@ -1653,8 +1669,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        delta : float</span>
+<span class="sd">            Pseudo-Huber delta.</span>
 <span class="sd">        r : numpy.ndarray</span>
+<span class="sd">            Residuals.</span>
 <span class="sd">        calc_grad : bool</span>
+<span class="sd">            Calculate gradient.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1683,7 +1702,7 @@
         <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">dh</span>
 
     <span class="k">def</span> <span class="nf">_loss_dloss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Loss on :math:`p_v\left(c\right)` and derivative wrt params.&quot;&quot;&quot;</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Loss on :math:`p_v\left(c\right)` and derivative wrt params.&quot;&quot;&quot;</span>
         <span class="n">pred_pvs</span><span class="p">,</span> <span class="n">dpred_pvs_dparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_1d_pvs</span><span class="p">(</span>
             <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_one_binarymap</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binarymaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cs</span><span class="p">,</span> <span class="n">calc_grad</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
@@ -1705,7 +1724,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="n">dloss_dparams</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_reg_escape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on escape and its gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on escape and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1723,7 +1742,7 @@
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_reg_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">log_c_gm</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on activity and its gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on activity and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1739,7 +1758,7 @@
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_reg_spread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on spread of escape at each site and its gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on spread of escape at each site and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1766,7 +1785,7 @@
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_site_avg_abs_diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Differentiable average absolute value of escape at each site and epitope.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Differentiable average absolute value of escape at each site and epitope.</span>
 
 <span class="sd">        Caches the result if arguments are the same as last call.</span>
 
@@ -1821,7 +1840,7 @@
         <span class="k">return</span> <span class="n">return_tup</span>
 
     <span class="k">def</span> <span class="nf">_reg_spatial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">reg_spatial_weight</span><span class="p">,</span> <span class="n">reg_spatial2_weight</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on spatial spread of epitopes and its gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on spatial spread of epitopes and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
             <span class="n">reg_spatial_weight</span> <span class="o">==</span> <span class="n">reg_spatial2_weight</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="p">):</span>
@@ -1870,7 +1889,7 @@
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_reg_uniqueness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on epitope uniqueness and its gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on epitope uniqueness and its gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1901,7 +1920,7 @@
         <span class="k">return</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">reg</span><span class="p">,</span> <span class="n">weight</span> <span class="o">*</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_reg_uniqueness2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on squared uniqueness of escape across epitopes and gradient&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on squared uniqueness of escape across epitopes and gradient&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1942,7 +1961,7 @@
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_reg_hill_coefficient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on Hill coefficients and gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on Hill coefficients and gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1966,7 +1985,7 @@
         <span class="k">return</span> <span class="n">reg</span><span class="p">,</span> <span class="n">dreg</span>
 
     <span class="k">def</span> <span class="nf">_reg_non_neutralized_frac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Regularization on non-neutralized fraction and gradient.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Regularization on non-neutralized fraction and gradient.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1999,7 +2018,7 @@
             <span class="p">},</span>
         <span class="p">}</span>
     <span class="p">)</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;frozendict.frozendict: default ``scipy_minimize_kwargs`` to ``fit``.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Polyclonal.fit"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -2031,7 +2050,7 @@
         <span class="n">fit_fixed_first_reg_activity_weight</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
         <span class="n">log_desc</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Fit parameters (activities and mutation escapes) to the data.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Fit parameters (activities and mutation escapes) to the data.</span>
 
 <span class="sd">        Requires :attr:`Polyclonal.data_to_fit` be set at initialization of</span>
 <span class="sd">        this :class:`Polyclonal` object. After calling this method, the</span>
@@ -2286,7 +2305,7 @@
 
         <span class="k">if</span> <span class="n">logfreq</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;#</span><span class="se">\n</span><span class="s2"># Fitting </span><span class="si">{</span><span class="n">log_desc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">log_desc</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">log_desc</span><span class="si">}</span><span class="s2">model.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;#</span><span class="se">\n</span><span class="s2"># Fitting </span><span class="si">{</span><span class="n">log_desc</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="k">if</span> <span class="n">log_desc</span> <span class="k">else</span> <span class="n">log_desc</span><span class="si">}</span><span class="s2">model.</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;# Starting optimization of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">startparams_fixed</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;parameters at </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="p">)</span>
@@ -2368,7 +2387,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">curve_specs_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: activities, Hill coefficients, and non-neutralized fracs.&quot;&quot;&quot;</span>
         <span class="n">curve_specs_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_wt_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hill_coefficient_df</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">non_neutralized_frac_df</span>
         <span class="p">)</span>
@@ -2379,7 +2398,7 @@
         <span class="k">return</span> <span class="n">curve_specs_df</span>
 
 <div class="viewcode-block" id="Polyclonal.curves_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.curves_plot">[docs]</a>    <span class="k">def</span> <span class="nf">curves_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot neutralization / binding curve for unmutated protein at each epitope.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Plot neutralization / binding curve for unmutated protein at each epitope.</span>
 
 <span class="sd">        This curve effectively illustrates the epitope activity, Hill curve coefficient,</span>
 <span class="sd">        and non-neutralizable fraction.</span>
@@ -2407,7 +2426,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Polyclonal.activity_wt_barplot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.activity_wt_barplot">[docs]</a>    <span class="k">def</span> <span class="nf">activity_wt_barplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Bar plot of activity against each epitope, :math:`a_{\rm{wt},e}`.</span>
 
 <span class="sd">        Note</span>
 <span class="sd">        ----</span>
@@ -2440,7 +2459,7 @@
         <span class="n">missing_metric</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create PDB files with B factors from a site&#39;s mutation escape.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create PDB files with B factors from a site&#39;s mutation escape.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2497,6 +2516,249 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result_files</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epitope&quot;</span><span class="p">,</span> <span class="s2">&quot;PDB file&quot;</span><span class="p">])</span></div>
 
+<div class="viewcode-block" id="Polyclonal.mut_icXX_df"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_icXX_df">[docs]</a>    <span class="k">def</span> <span class="nf">mut_icXX_df</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">,</span>
+        <span class="n">icXX_col</span><span class="p">,</span>
+        <span class="n">log_fold_change_icXX_col</span><span class="p">,</span>
+        <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+        <span class="n">logbase</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">check_wt_icXX</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get data frame of ICXX and log fold change induced by each mutation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : float</span>
+<span class="sd">            Compute this ICXX, so 0.5 means IC50 aand 0.9 means IC90.</span>
+<span class="sd">        icXX_col : str</span>
+<span class="sd">            Name of column with ICXX values.</span>
+<span class="sd">        log_fold_change_icXX_col : str</span>
+<span class="sd">            Name of column with log fold change ICXX values.</span>
+<span class="sd">        min_c : float</span>
+<span class="sd">            Minimum allowed icXX, truncate values &lt; this at this.</span>
+<span class="sd">        max_c : float</span>
+<span class="sd">            Maximum allowed icXX, truncate values &gt; this at this.</span>
+<span class="sd">        logbase : float</span>
+<span class="sd">            Compute log fold-change in ICXX to this base.</span>
+<span class="sd">        check_wt_icXX : None or 2-tuple</span>
+<span class="sd">            If a 2-tuple, raise an error if the ICXX for the unmutated wildtype is</span>
+<span class="sd">            outside the range `(min_icXX, max_icXX)`. You may want to do this as</span>
+<span class="sd">            the clipping imposed by `min_c` and `max_c` will become a problem if</span>
+<span class="sd">            the wildtype ICXX is very different than one. In general, concentration</span>
+<span class="sd">            units should be used when fitting so that ICXX for wildtype is within an</span>
+<span class="sd">            order of magnitude (or at most two) from 1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            Has columns &quot;site&quot;, &quot;wildtype&quot;, &quot;mutant&quot;, `icXX_col`,</span>
+<span class="sd">            `log_fold_change_icXX_col`, and &quot;times_seen&quot; (if available). Note that the</span>
+<span class="sd">            dataframe **does** include entry for the wildtype (wildtype same as mutant)</span>
+<span class="sd">            at each site with a non-wildtype mutation.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get ICXX for unmutated wildtype</span>
+        <span class="n">wt_icXX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]}),</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">col</span><span class="o">=</span><span class="s2">&quot;ICXX&quot;</span><span class="p">,</span>
+            <span class="n">min_c</span><span class="o">=</span><span class="n">min_c</span><span class="p">,</span>
+            <span class="n">max_c</span><span class="o">=</span><span class="n">max_c</span><span class="p">,</span>
+        <span class="p">)[</span><span class="s2">&quot;ICXX&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">check_wt_icXX</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">check_wt_icXX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">wt_icXX</span> <span class="o">&lt;=</span> <span class="n">check_wt_icXX</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wt_icXX</span><span class="si">=}</span><span class="s2"> out of range </span><span class="si">{</span><span class="n">check_wt_icXX</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get fold-change ICXX for all mutants</span>
+        <span class="n">log_fold_change_icXX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">icXX</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations</span><span class="p">}),</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">col</span><span class="o">=</span><span class="s2">&quot;ICXX&quot;</span><span class="p">,</span>
+            <span class="n">min_c</span><span class="o">=</span><span class="n">min_c</span><span class="p">,</span>
+            <span class="n">max_c</span><span class="o">=</span><span class="n">max_c</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+            <span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="n">m</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mutparser</span><span class="o">.</span><span class="n">parse_mut</span><span class="p">(</span><span class="n">m</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">wildtype</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">),</span>
+            <span class="n">log_fold_change_ICXX</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;ICXX&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">wt_icXX</span><span class="p">)</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">logbase</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)[</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;site&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;mutant&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ICXX&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;log_fold_change_ICXX&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">]</span>
+        <span class="c1"># add in the wildtypes all having a log fold change of zero</span>
+        <span class="n">log_fold_change_icXX</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">log_fold_change_icXX</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="n">log_fold_change_icXX</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">]]</span>
+                    <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+                    <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+                        <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">],</span>
+                        <span class="n">ICXX</span><span class="o">=</span><span class="n">wt_icXX</span><span class="p">,</span>
+                        <span class="n">log_fold_change_ICXX</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_fold_change_icXX</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">log_fold_change_icXX</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">log_fold_change_icXX</span><span class="p">[</span><span class="s2">&quot;log_fold_change_ICXX&quot;</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log_fold_change_icXX</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_fold_change_icXX</span><span class="p">[</span>
+                <span class="s2">&quot;aa_substitutions&quot;</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">log_fold_change_icXX</span><span class="p">[</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()</span>
+                <span class="o">|</span> <span class="p">(</span><span class="n">log_fold_change_icXX</span><span class="p">[</span><span class="s2">&quot;mutant&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">log_fold_change_icXX</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">])</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">log_fold_change_icXX</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;ICXX&quot;</span><span class="p">:</span> <span class="n">icXX_col</span><span class="p">,</span>
+                    <span class="s2">&quot;log_fold_change_ICXX&quot;</span><span class="p">:</span> <span class="n">log_fold_change_icXX_col</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Polyclonal.mut_icXX_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_icXX_plot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_icXX_plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+        <span class="n">icXX_col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">,</span>
+        <span class="n">log_fold_change_icXX_col</span><span class="o">=</span><span class="s2">&quot;log2 fold change IC90&quot;</span><span class="p">,</span>
+        <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+        <span class="n">logbase</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">check_wt_icXX</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+        <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">df_to_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">positive_color</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">DEFAULT_POSITIVE_COLORS</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">negative_color</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">DEFAULT_NEGATIVE_COLOR</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Make plot of log fold-change in ICXX induced by each mutation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        icXX_col : str</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        log_fold_change_icXX_col : str</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        min_c : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        max_c : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        logbase : float</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        check_wt_icXX : None or 2-tuple</span>
+<span class="sd">            Same meaning as for :meth:`Polyclonal.mut_icXX_df`.</span>
+<span class="sd">        biochem_order_aas : bool</span>
+<span class="sd">            Biochemically order the amino-acid alphabet in :attr:`Polyclonal.alphabet`</span>
+<span class="sd">            by passing it through :func:`polyclonal.alphabets.biochem_order_aas`.</span>
+<span class="sd">        df_to_merge : None or pandas.DataFrame or list</span>
+<span class="sd">            To include additional properties, specify data frame or list of them which</span>
+<span class="sd">            are merged with :attr:`Polyclonal.mut_escape_df` before being passed</span>
+<span class="sd">            to :func:`polyclonal.plot.lineplot_and_heatmap`. Properties will</span>
+<span class="sd">            only be included in plot if relevant columns are passed to</span>
+<span class="sd">            :func:`polyclonal.plot.lineplot_and_heatmap` via `addtl_slider_stats`,</span>
+<span class="sd">            `addtl_tooltip_stats`, or `site_zoom_bar_color_col`.</span>
+<span class="sd">        positive_color : str</span>
+<span class="sd">            Color for positive log fold change in heatmap.</span>
+<span class="sd">        negative_color : str</span>
+<span class="sd">            Color for negative log fold change in heatmap.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        altair.Chart</span>
+<span class="sd">            Interactive line plot and heatmap.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">icXX_col</span><span class="o">=</span><span class="n">icXX_col</span><span class="p">,</span>
+            <span class="n">log_fold_change_icXX_col</span><span class="o">=</span><span class="n">log_fold_change_icXX_col</span><span class="p">,</span>
+            <span class="n">min_c</span><span class="o">=</span><span class="n">min_c</span><span class="p">,</span>
+            <span class="n">max_c</span><span class="o">=</span><span class="n">max_c</span><span class="p">,</span>
+            <span class="n">logbase</span><span class="o">=</span><span class="n">logbase</span><span class="p">,</span>
+            <span class="n">check_wt_icXX</span><span class="o">=</span><span class="n">check_wt_icXX</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">df_to_merge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_to_merge</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`df_to_merge` must be pandas.DataFrame or list&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                    <span class="n">df</span><span class="p">,</span>
+                    <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="n">positive_color</span><span class="p">}</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_negative_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">negative_color</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stat_col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_fold_change_icXX_col</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;epitope&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutations_times_seen</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;addtl_slider_stats&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">][</span><span class="s2">&quot;times_seen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;times_seen&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;addtl_tooltip_stats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">icXX_col</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;init_floor_at_zero&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;init_floor_at_zero&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="s2">&quot;heatmap_min_at_least&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_min_at_least&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+        <span class="k">if</span> <span class="s2">&quot;heatmap_max_at_least&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_max_at_least&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sites&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span>
+
+        <span class="k">if</span> <span class="s2">&quot;alphabet&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span>
+        <span class="k">if</span> <span class="n">biochem_order_aas</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">alphabets</span><span class="o">.</span><span class="n">biochem_order_aas</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;alphabet&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">lineplot_and_heatmap</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Polyclonal.mut_escape_plot"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_plot">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_plot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -2505,7 +2767,7 @@
         <span class="n">df_to_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Make plot of the mutation escape values, :math:`\beta_{m,e}`.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Make plot of the mutation escape values, :math:`\beta_{m,e}`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2597,7 +2859,7 @@
         <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">subs_col</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove variants that contain mutations not seen during model fitting.</span>
+        <span class="sd">&quot;&quot;&quot;Remove variants that contain mutations not seen during model fitting.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2643,7 +2905,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Polyclonal.icXX"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.icXX">[docs]</a>    <span class="k">def</span> <span class="nf">icXX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variants_df</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s2">&quot;IC50&quot;</span><span class="p">,</span> <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Concentration at which a given fraction is neutralized (eg, IC50).</span>
+        <span class="sd">&quot;&quot;&quot;Concentration at which a given fraction is neutralized (eg, IC50).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2713,7 +2975,7 @@
         <span class="k">return</span> <span class="n">return_df</span></div>
 
     <span class="k">def</span> <span class="nf">_compute_1d_pvs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">one_binarymap</span><span class="p">,</span> <span class="n">binarymaps</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">calc_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get 1D raveled array of :math:`p_v\left(c\right)` values.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get 1D raveled array of :math:`p_v\left(c\right)` values.</span>
 
 <span class="sd">        Differs from :meth:`Polyclonal._compute_pv` in that it works if just</span>
 <span class="sd">        one or multiple BinaryMap objects.</span>
@@ -2756,14 +3018,18 @@
                 <span class="k">return</span> <span class="n">p_vc</span>
 
     <span class="k">def</span> <span class="nf">_compute_pv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">bmap</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">calc_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute :math:`p_v\left(c\right)` and its derivative.</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute :math:`p_v\left(c\right)` and its derivative.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        params : numpy.ndarray</span>
+<span class="sd">            Current parameters.</span>
 <span class="sd">        bmap : binarymap.BinaryMap</span>
+<span class="sd">            The binary map.</span>
 <span class="sd">        cs : numpy.ndarray</span>
+<span class="sd">            The concentrations.</span>
 <span class="sd">        calc_grad : bool</span>
+<span class="sd">            Calculate the gradient.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2864,7 +3130,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">variants_df</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get ``BinaryMap`` appropriate for use.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Get ``BinaryMap`` appropriate for use.&quot;&quot;&quot;</span>
         <span class="n">bmap</span> <span class="o">=</span> <span class="n">binarymap</span><span class="o">.</span><span class="n">BinaryMap</span><span class="p">(</span>
             <span class="n">variants_df</span><span class="p">,</span>
             <span class="n">substitutions_col</span><span class="o">=</span><span class="s2">&quot;aa_substitutions&quot;</span><span class="p">,</span>
@@ -2880,7 +3146,7 @@
         <span class="k">return</span> <span class="n">bmap</span>
 
 <div class="viewcode-block" id="Polyclonal.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Correlation of mutation-escape values with another model.</span>
+        <span class="sd">&quot;&quot;&quot;Correlation of mutation-escape values with another model.</span>
 
 <span class="sd">        For each epitope, how well is this model&#39;s mutation-escape values</span>
 <span class="sd">        correlation with another model?</span>
@@ -2888,12 +3154,12 @@
 <span class="sd">        Mutations present in only one model are ignored.</span>
 
 <span class="sd">        Parameters</span>
-<span class="sd">        ------------</span>
+<span class="sd">        ----------</span>
 <span class="sd">        ref_poly : :class:`Polyclonal`</span>
 <span class="sd">            Other (reference) polyclonal model with which we calculate correlations.</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        ---------</span>
+<span class="sd">        -------</span>
 <span class="sd">        corr_df : pandas.DataFrame</span>
 <span class="sd">            Pairwise epitope correlations for escape.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2934,7 +3200,7 @@
         <span class="k">return</span> <span class="n">corr</span></div>
 
 <div class="viewcode-block" id="Polyclonal.epitope_harmonized_model"><a class="viewcode-back" href="../../polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.epitope_harmonized_model">[docs]</a>    <span class="k">def</span> <span class="nf">epitope_harmonized_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_poly</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a copy of model with epitopes &quot;harmonized&quot; with a reference model.</span>
+        <span class="sd">&quot;&quot;&quot;Get a copy of model with epitopes &quot;harmonized&quot; with a reference model.</span>
 
 <span class="sd">        Epitopes are unidentifiable, meaning there is no guarantee that we will assign</span>
 <span class="sd">        the same epitope labels across multiple models fit to similar data. This</span>
@@ -2944,12 +3210,12 @@
 <span class="sd">        the best correlated mutation-escape values.</span>
 
 <span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
+<span class="sd">        ----------</span>
 <span class="sd">        ref_poly : :class:`Polyclonal`</span>
 <span class="sd">            The reference polyclonal object to harmonize epitope labels with.</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        --------</span>
+<span class="sd">        -------</span>
 <span class="sd">        harmonized_model, harmonize_df : tuple</span>
 <span class="sd">            `harmonized_model` is a :class:`Polyclonal` object that is a copy of</span>
 <span class="sd">            the current model but with epitopes harmonized, and</span>
@@ -3127,7 +3393,7 @@
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -3144,8 +3410,8 @@
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 
