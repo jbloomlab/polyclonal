@@ -12,6 +12,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 - Use ``ruff`` as linter rather than ``flake8``
 - Add ``Polyclonal.mut_icXX_df`` method
 - Add ``Polyclonal.mut_icXX_plot`` method
+- Add ``PolyclonalCollection.mut_icXX_df_replicates``, ``PolyclonalCollection.mut_icXX_df``, and ``PolyclonalCollection.mut_icXX_df_w_model_values`` methods.
 
 5.3
 ---

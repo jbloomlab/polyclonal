@@ -553,6 +553,28 @@ class PolyclonalCollection:
             ignore_index=True,
         )
 
+    def mut_icXX_df_replicates(self, **kwargs):
+        """Get data frame of ICXX and log fold change for each mutation by model.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to :meth:`~polyclonal.polyclonal.Polyclonal.mut_icXX_df`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Data from of ICXX and log fold change for each model.
+
+        """
+        return pd.concat(
+            [
+                m.mut_icXX_df(**kwargs).assign(desc)
+                for m, desc in zip(self.models, self.model_descriptors)
+            ],
+            ignore_index=True,
+        )
+
     @property
     def mut_escape_df(self):
         """pandas.DataFrame: Mutation escape summarized across models."""
@@ -575,7 +597,7 @@ class PolyclonalCollection:
             .aggregate(**aggs)
             .assign(
                 frac_models=lambda x: x["n_models"] / len(self.models),
-                # make categorical to sort, then return to originalt type
+                # make categorical to sort, then return to original type
                 epitope=lambda x: pd.Categorical(
                     x["epitope"],
                     self.epitopes,
@@ -596,6 +618,59 @@ class PolyclonalCollection:
             .reset_index(drop=True)
             .assign(
                 epitope=lambda x: x["epitope"].tolist(),
+                site=lambda x: x["site"].tolist(),
+                mutant=lambda x: x["mutant"].tolist(),
+            )
+        )
+
+    def mut_icXX_df(self, **kwargs):
+        """Get data frame of log fold change ICXX induced by each mutation.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to :meth:`~polyclonal.polyclonal.Polyclonal.mut_icXX_df`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Log fold change ICXX for each mutation.
+
+        """
+        df = self.mut_icXX_df_replicates(**kwargs)
+        log_fc_icXX_col = kwargs["log_fold_change_icXX_col"]
+        aggs = {
+            f"{log_fc_icXX_col} mean": pd.NamedAgg(log_fc_icXX_col, "mean"),
+            f"{log_fc_icXX_col} median": pd.NamedAgg(log_fc_icXX_col, "median"),
+            f"{log_fc_icXX_col} min_magnitude": pd.NamedAgg(
+                log_fc_icXX_col,
+                lambda s: s.tolist()[numpy.argmin(s.abs())],
+            ),
+            f"{log_fc_icXX_col} std": pd.NamedAgg(log_fc_icXX_col, "std"),
+            "n_models": pd.NamedAgg(log_fc_icXX_col, "count"),
+        }
+        if "times_seen" in df.columns:
+            aggs["times_seen"] = pd.NamedAgg("times_seen", "mean")
+        return (
+            df.groupby(["site", "wildtype", "mutant"], as_index=False)
+            .aggregate(**aggs)
+            .assign(
+                frac_models=lambda x: x["n_models"] / len(self.models),
+                # make categorical to sort, then return to original type
+                site=lambda x: pd.Categorical(
+                    x["site"],
+                    None if self.sequential_integer_sites else self.sites,
+                    ordered=None if self.sequential_integer_sites else True,
+                ),
+                mutant=lambda x: pd.Categorical(
+                    x["mutant"],
+                    self.alphabet,
+                    ordered=True,
+                ),
+            )
+            .sort_values(["site", "mutant"])
+            .reset_index(drop=True)
+            .assign(
                 site=lambda x: x["site"].tolist(),
                 mutant=lambda x: x["mutant"].tolist(),
             )
@@ -623,6 +698,48 @@ class PolyclonalCollection:
                     ),
                 )
                 .pivot_table(index=merge_cols, values="escape", columns="model_name")
+                .reset_index()
+            ),
+            on=merge_cols,
+            validate="one_to_one",
+        )
+
+    def mut_icXX_df_w_model_values(self, **kwargs):
+        """Log fold change ICXX induced by each mutation, plus per-model values.
+
+        Like :attr:`PolyclonalCollection.mut_icXX_df` but then having additional
+        columns giving per-model ICXXs.
+
+        Parameters
+        ----------
+        **kwargs
+            Keyword arguments to :meth:`~polyclonal.polyclonal.Polyclonal.mut_icXX_df`
+
+        Returns
+        -------
+        pandas.DataFrame
+            Log fold change ICXX for each mutation, plus per model values.
+
+        """
+        merge_cols = ["site", "wildtype", "mutant"]
+        return self.mut_icXX_df(**kwargs).merge(
+            (
+                self.mut_icXX_df_replicates(**kwargs)
+                .assign(
+                    model_name=lambda x: (
+                        x[self.unique_descriptor_names]
+                        .astype(str)
+                        .agg(
+                            " ".join,
+                            axis=1,
+                        )
+                    ),
+                )
+                .pivot_table(
+                    index=merge_cols,
+                    values=kwargs["log_fold_change_icXX_col"],
+                    columns="model_name",
+                )
                 .reset_index()
             ),
             on=merge_cols,
@@ -870,7 +987,7 @@ class PolyclonalCollection:
         ----------
         **kwargs
             Keyword arguments to
-            :math:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
+            :meth:`~polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df`.
 
         Returns
         -------
