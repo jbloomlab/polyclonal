@@ -4,16 +4,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>polyclonal package &#8212; polyclonal 6.0 documentation</title>
+    <title>polyclonal package &#8212; polyclonal 6.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -36,9 +35,9 @@
           <div class="body" role="main">
             
   <section id="module-polyclonal">
-<span id="polyclonal-package"></span><h1>polyclonal package<a class="headerlink" href="#module-polyclonal" title="Permalink to this headline">¶</a></h1>
+<span id="polyclonal-package"></span><h1>polyclonal package<a class="headerlink" href="#module-polyclonal" title="Permalink to this heading">¶</a></h1>
 <section id="polyclonal">
-<h2>polyclonal<a class="headerlink" href="#polyclonal" title="Permalink to this headline">¶</a></h2>
+<h2>polyclonal<a class="headerlink" href="#polyclonal" title="Permalink to this heading">¶</a></h2>
 <p>Package for modeling mutational escape from polyclonal antibodies using
 deep mutational scanning experiments.</p>
 <p>Importing this package imports the following objects
@@ -62,15 +61,123 @@ into the package namespace:</p>
 </div></blockquote>
 </section>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.alphabets.html">alphabets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.alphabets.html#polyclonal.alphabets.AAS"><code class="docutils literal notranslate"><span class="pre">AAS</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.alphabets.html#polyclonal.alphabets.AAS_WITHGAP"><code class="docutils literal notranslate"><span class="pre">AAS_WITHGAP</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.alphabets.html#polyclonal.alphabets.AAS_WITHSTOP"><code class="docutils literal notranslate"><span class="pre">AAS_WITHSTOP</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.alphabets.html#polyclonal.alphabets.AAS_WITHSTOP_WITHGAP"><code class="docutils literal notranslate"><span class="pre">AAS_WITHSTOP_WITHGAP</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.alphabets.html#polyclonal.alphabets.biochem_order_aas"><code class="docutils literal notranslate"><span class="pre">biochem_order_aas()</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.pdb_utils.html">pdb_utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.pdb_utils.html#polyclonal.pdb_utils.extract_atom_locations"><code class="docutils literal notranslate"><span class="pre">extract_atom_locations()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.pdb_utils.html#polyclonal.pdb_utils.inter_residue_distances"><code class="docutils literal notranslate"><span class="pre">inter_residue_distances()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.pdb_utils.html#polyclonal.pdb_utils.reassign_b_factor"><code class="docutils literal notranslate"><span class="pre">reassign_b_factor()</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.DEFAULT_NEGATIVE_COLOR"><code class="docutils literal notranslate"><span class="pre">DEFAULT_NEGATIVE_COLOR</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.DEFAULT_POSITIVE_COLORS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_POSITIVE_COLORS</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.TAB10_COLORS_NOGRAY"><code class="docutils literal notranslate"><span class="pre">TAB10_COLORS_NOGRAY</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.activity_wt_barplot"><code class="docutils literal notranslate"><span class="pre">activity_wt_barplot()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.color_gradient_hex"><code class="docutils literal notranslate"><span class="pre">color_gradient_hex()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.corr_heatmap"><code class="docutils literal notranslate"><span class="pre">corr_heatmap()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.curves_plot"><code class="docutils literal notranslate"><span class="pre">curves_plot()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.plot.html#polyclonal.plot.lineplot_and_heatmap"><code class="docutils literal notranslate"><span class="pre">lineplot_and_heatmap()</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal.html">polyclonal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal"><code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.epitopes"><code class="docutils literal notranslate"><span class="pre">Polyclonal.epitopes</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mutations"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mutations</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.alphabet"><code class="docutils literal notranslate"><span class="pre">Polyclonal.alphabet</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.sites"><code class="docutils literal notranslate"><span class="pre">Polyclonal.sites</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.sequential_integer_sites"><code class="docutils literal notranslate"><span class="pre">Polyclonal.sequential_integer_sites</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.wts"><code class="docutils literal notranslate"><span class="pre">Polyclonal.wts</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.epitope_colors"><code class="docutils literal notranslate"><span class="pre">Polyclonal.epitope_colors</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.data_to_fit"><code class="docutils literal notranslate"><span class="pre">Polyclonal.data_to_fit</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.spatial_distances"><code class="docutils literal notranslate"><span class="pre">Polyclonal.spatial_distances</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mutations_times_seen"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mutations_times_seen</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.distance_matrix"><code class="docutils literal notranslate"><span class="pre">Polyclonal.distance_matrix</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.DEFAULT_SCIPY_MINIMIZE_KWARGS"><code class="docutils literal notranslate"><span class="pre">Polyclonal.DEFAULT_SCIPY_MINIMIZE_KWARGS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.activity_wt_barplot"><code class="docutils literal notranslate"><span class="pre">Polyclonal.activity_wt_barplot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.activity_wt_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.activity_wt_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.curve_specs_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.curve_specs_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.curves_plot"><code class="docutils literal notranslate"><span class="pre">Polyclonal.curves_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.epitope_harmonized_model"><code class="docutils literal notranslate"><span class="pre">Polyclonal.epitope_harmonized_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.filter_variants_by_seen_muts"><code class="docutils literal notranslate"><span class="pre">Polyclonal.filter_variants_by_seen_muts()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.fit"><code class="docutils literal notranslate"><span class="pre">Polyclonal.fit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.hill_coefficient_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.hill_coefficient_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.icXX"><code class="docutils literal notranslate"><span class="pre">Polyclonal.icXX()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_corr"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_corr()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_pdb_b_factor"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_pdb_b_factor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_plot"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_escape_site_summary_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_escape_site_summary_df()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_icXX_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_icXX_df()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.mut_icXX_plot"><code class="docutils literal notranslate"><span class="pre">Polyclonal.mut_icXX_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.non_neutralized_frac_df"><code class="docutils literal notranslate"><span class="pre">Polyclonal.non_neutralized_frac_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.prob_escape"><code class="docutils literal notranslate"><span class="pre">Polyclonal.prob_escape()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.Polyclonal.site_level_model"><code class="docutils literal notranslate"><span class="pre">Polyclonal.site_level_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalConcentrationError"><code class="docutils literal notranslate"><span class="pre">PolyclonalConcentrationError</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalFitError"><code class="docutils literal notranslate"><span class="pre">PolyclonalFitError</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal.html#polyclonal.polyclonal.PolyclonalHarmonizeError"><code class="docutils literal notranslate"><span class="pre">PolyclonalHarmonizeError</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html">polyclonal_collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalAverage"><code class="docutils literal notranslate"><span class="pre">PolyclonalAverage</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap"><code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap.root_polyclonal"><code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap.root_polyclonal</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap.n_threads"><code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap.n_threads</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalBootstrap.fit_models"><code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap.fit_models()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.models"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.model_descriptors"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.model_descriptors</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.descriptor_names"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.descriptor_names</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.unique_descriptor_names"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.unique_descriptor_names</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.epitopes"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.epitopes</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.epitope_colors"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.epitope_colors</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.alphabet"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.alphabet</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.sequential_integer_sites"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.sequential_integer_sites</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.default_avg_to_plot"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.default_avg_to_plot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_barplot"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.activity_wt_barplot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.activity_wt_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.activity_wt_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.activity_wt_df_replicates</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.curve_specs_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.curve_specs_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.curve_specs_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.curve_specs_df_replicates</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.curves_plot"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.curves_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.hill_coefficient_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.hill_coefficient_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.hill_coefficient_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.hill_coefficient_df_replicates</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.icXX()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.icXX_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.icXX_replicates()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_corr()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr_heatmap"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_corr_heatmap()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_df_replicates</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_df_w_model_values"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_df_w_model_values</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_plot"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_site_summary_df()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_site_summary_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_escape_site_summary_df_replicates()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_icXX_df()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_icXX_df_replicates()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_df_w_model_values"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_icXX_df_w_model_values()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_icXX_plot"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.mut_icXX_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.non_neutralized_frac_df"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.non_neutralized_frac_df</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.non_neutralized_frac_df_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.non_neutralized_frac_df_replicates</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.prob_escape()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.prob_escape_replicates"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollection.prob_escape_replicates()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollectionFitError"><code class="docutils literal notranslate"><span class="pre">PolyclonalCollectionFitError</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.create_bootstrap_sample"><code class="docutils literal notranslate"><span class="pre">create_bootstrap_sample()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.fit_models"><code class="docutils literal notranslate"><span class="pre">fit_models()</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyclonal.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.utils.html#polyclonal.utils.MutationParser"><code class="docutils literal notranslate"><span class="pre">MutationParser</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="polyclonal.utils.html#polyclonal.utils.MutationParser.parse_mut"><code class="docutils literal notranslate"><span class="pre">MutationParser.parse_mut()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.utils.html#polyclonal.utils.shift_mut_site"><code class="docutils literal notranslate"><span class="pre">shift_mut_site()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.utils.html#polyclonal.utils.site_level_variants"><code class="docutils literal notranslate"><span class="pre">site_level_variants()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyclonal.utils.html#polyclonal.utils.tidy_to_corr"><code class="docutils literal notranslate"><span class="pre">tidy_to_corr()</span></code></a></li>
 </ul>
 </div>
 </section>
@@ -151,7 +258,7 @@ into the package namespace:</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -168,8 +275,8 @@ into the package namespace:</p>
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/polyclonal.rst.txt"

@@ -4,19 +4,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Real antibody example &#8212; polyclonal 6.0 documentation</title>
+    <title>Real antibody example &#8212; polyclonal 6.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Reference site numbering" href="reference_site_numbering.html" />
@@ -147,10 +146,11 @@ div.nboutput.container div.prompt > div {
     }
 }
 
-/* disable scrollbars on prompts */
+/* disable scrollbars and line breaks on prompts */
 div.nbinput.container div.prompt pre,
 div.nboutput.container div.prompt pre {
     overflow: hidden;
+    white-space: pre;
 }
 
 /* input/output area */
@@ -247,11 +247,12 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
+.prompt .copybtn {
     display: none;
 }
 
 /* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
 div.rendered_html table {
   border: none;
   border-collapse: collapse;
@@ -260,10 +261,14 @@ div.rendered_html table {
   font-size: 12px;
   table-layout: fixed;
 }
+.jp-RenderedHTMLCommon thead,
 div.rendered_html thead {
   border-bottom: 1px solid black;
   vertical-align: bottom;
 }
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
 div.rendered_html tr,
 div.rendered_html th,
 div.rendered_html td {
@@ -275,26 +280,28 @@ div.rendered_html td {
   max-width: none;
   border: none;
 }
+.jp-RenderedHTMLCommon th,
 div.rendered_html th {
   font-weight: bold;
 }
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
 div.rendered_html tbody tr:nth-child(odd) {
   background: #f5f5f5;
 }
+.jp-RenderedHTMLCommon tbody tr:hover,
 div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
 </style>
 <section id="Real-antibody-example">
-<h1>Real antibody example<a class="headerlink" href="#Real-antibody-example" title="Permalink to this headline">¶</a></h1>
+<h1>Real antibody example<a class="headerlink" href="#Real-antibody-example" title="Permalink to this heading">¶</a></h1>
 <p>In this notebook we fit real data from a monoclonal antibody deep mutational scanning experiment. The monoclonal antibody in question is LyCoV1404, and the deep mutational scanning is against the SARS-CoV-2 Omicron BA.1 spike, using a library designed to contain only mutations that are thought to be well tolerated.</p>
 <p>First, import the Python modules:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">time</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>
 
@@ -305,14 +312,13 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <section id="Get-the-data-to-fit">
-<h2>Get the data to fit<a class="headerlink" href="#Get-the-data-to-fit" title="Permalink to this headline">¶</a></h2>
+<h2>Get the data to fit<a class="headerlink" href="#Get-the-data-to-fit" title="Permalink to this heading">¶</a></h2>
 <p>Now we read the deep mutational scanning measurements, which quantify the “probability of escape” (fraction not neutralized) for each variant. Then let’s look at some key columns:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># read data w `na_filter=None` so empty aa_substitutions read as such rather than NA</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># read data w `na_filter=None` so empty aa_substitutions read as such rather than NA</span>
 <span class="n">data_to_fit</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
     <span class="s2">&quot;Lib-2_2022-06-22_thaw-1_LyCoV-1404_1_prob_escape.csv&quot;</span><span class="p">,</span>
     <span class="n">na_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -432,8 +438,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">display</span><span class="p">(</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">display</span><span class="p">(</span>
     <span class="n">data_to_fit</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;antibody_concentration&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
         <span class="n">n_variants</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">NamedAgg</span><span class="p">(</span><span class="s2">&quot;barcode&quot;</span><span class="p">,</span> <span class="s2">&quot;nunique&quot;</span><span class="p">),</span>
@@ -518,8 +523,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">max_aa_subs</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># group if &gt;= this many substitutions</span>
 
@@ -528,7 +532,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
         <span class="n">n_subs</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span>
             <span class="n">x</span><span class="p">[</span><span class="s2">&quot;n_aa_substitutions&quot;</span><span class="p">]</span>
             <span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">upper</span><span class="o">=</span><span class="n">max_aa_subs</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">max_aa_subs</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="n">max_aa_subs</span> <span class="o">-</span> <span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">max_aa_subs</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="n">max_aa_subs</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;antibody_concentration&quot;</span><span class="p">,</span> <span class="s2">&quot;n_subs&quot;</span><span class="p">],</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -643,7 +647,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 </div>
 </section>
 <section id="Fit-polyclonal-model">
-<h2>Fit <code class="docutils literal notranslate"><span class="pre">polyclonal</span></code> model<a class="headerlink" href="#Fit-polyclonal-model" title="Permalink to this headline">¶</a></h2>
+<h2>Fit <code class="docutils literal notranslate"><span class="pre">polyclonal</span></code> model<a class="headerlink" href="#Fit-polyclonal-model" title="Permalink to this heading">¶</a></h2>
 <p>We will now fit a <code class="docutils literal notranslate"><span class="pre">polyclonal</span></code> model to the data.</p>
 <p>In general, an important consideration when fitting these models is how many epitopes to include. However, here it’s just a <strong>monoclonal</strong> antibody (not polyclonal serum), so we know we should just have one epitope.</p>
 <p>We use an alphabet that includes stop (<code class="docutils literal notranslate"><span class="pre">*</span></code>) and gap (<code class="docutils literal notranslate"><span class="pre">-</span></code>) characters in addition to the 20 amino acids, in case some variants have such characters.</p>
@@ -652,8 +656,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">reg_escape_weight</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># somewhat stronger regularization on mutation escape</span>
 
@@ -703,15 +706,14 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 </div>
 </section>
 <section id="Visualize-how-mutations-affect-escape">
-<h2>Visualize how mutations affect escape<a class="headerlink" href="#Visualize-how-mutations-affect-escape" title="Permalink to this headline">¶</a></h2>
+<h2>Visualize how mutations affect escape<a class="headerlink" href="#Visualize-how-mutations-affect-escape" title="Permalink to this heading">¶</a></h2>
 <p>Now we look at the results of the fitting.</p>
 <p>First, we just look at the activity of the epitope. For a monoclonal antibody with just one epitope, this isn’t very complicated to interpret: the one epitope should have significantly positive activity. If it doesn’t, something is wrong. Here, the activity of the epitope is positive as expected:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">model</span><span class="o">.</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">curve_specs_df</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -762,8 +764,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">min_times_seen</span> <span class="o">=</span> <span class="mi">3</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">min_times_seen</span> <span class="o">=</span> <span class="mi">3</span>
 </pre></div>
 </div>
 </div>
@@ -772,8 +773,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">muteffects</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;Omicron_BA.1_muteffects_observed.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">muteffects</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;Omicron_BA.1_muteffects_observed.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
     <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;sequential_site&quot;</span><span class="p">:</span> <span class="s2">&quot;site&quot;</span><span class="p">,</span>
         <span class="s2">&quot;effect&quot;</span><span class="p">:</span> <span class="s2">&quot;functional effect&quot;</span><span class="p">,</span>
@@ -858,8 +858,7 @@ concentration - the uncensored probabilities of escape are <em>on average</em> v
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_plot</span><span class="p">(</span>
     <span class="n">df_to_merge</span><span class="o">=</span><span class="n">muteffects</span><span class="p">,</span>
@@ -949,8 +948,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">model</span><span class="o">.</span><span class="n">mut_icXX_plot</span><span class="p">(</span>
     <span class="n">df_to_merge</span><span class="o">=</span><span class="n">muteffects</span><span class="p">,</span>
@@ -1038,8 +1036,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_plot</span><span class="p">(</span>
     <span class="n">df_to_merge</span><span class="o">=</span><span class="n">muteffects</span><span class="p">,</span>
@@ -1128,8 +1125,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_plot</span><span class="p">(</span>
     <span class="n">df_to_merge</span><span class="o">=</span><span class="n">muteffects</span><span class="p">,</span>
@@ -1218,8 +1214,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NBVAL_IGNORE_OUTPUT</span>
 
 <span class="n">top_sites</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">model</span><span class="o">.</span><span class="n">mut_escape_df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;times_seen &gt;= @min_times_seen&quot;</span><span class="p">)</span>
@@ -1296,8 +1291,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">top_sites</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">447</span><span class="p">,</span> <span class="mi">444</span><span class="p">,</span> <span class="mi">441</span><span class="p">,</span> <span class="mi">442</span><span class="p">,</span> <span class="mi">443</span><span class="p">,</span> <span class="mi">445</span><span class="p">,</span> <span class="mi">496</span><span class="p">})</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">top_sites</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">issubset</span><span class="p">({</span><span class="mi">447</span><span class="p">,</span> <span class="mi">444</span><span class="p">,</span> <span class="mi">441</span><span class="p">,</span> <span class="mi">442</span><span class="p">,</span> <span class="mi">443</span><span class="p">,</span> <span class="mi">445</span><span class="p">,</span> <span class="mi">496</span><span class="p">})</span>
 </pre></div>
 </div>
 </div>
@@ -1305,8 +1299,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 </div>
@@ -1388,7 +1381,7 @@ lots of escape (specifically, this slider only shows sites with mutations that h
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -1405,8 +1398,8 @@ lots of escape (specifically, this slider only shows sites with mutations that h
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/real_LyCoV1404.nblink.txt"
