@@ -2487,10 +2487,10 @@ class Polyclonal:
         x,
         icXX_col,
         log_fold_change_icXX_col,
-        min_c=1e-5,
-        max_c=1e5,
+        min_c=1e-7,
+        max_c=1e7,
         logbase=2,
-        check_wt_icXX=(0.01, 100),
+        check_wt_icXX=(1e-4, 1e4),
     ):
         r"""Get data frame of ICXX and log fold change induced by each mutation.
 
@@ -2869,7 +2869,7 @@ class Polyclonal:
             .reset_index(drop=True)
         )
 
-    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-5, max_c=1e5):
+    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-7, max_c=1e7):
         """Concentration at which a given fraction is neutralized (eg, IC50).
 
         Parameters
