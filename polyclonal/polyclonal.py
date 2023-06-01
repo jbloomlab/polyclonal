@@ -2613,7 +2613,7 @@ class Polyclonal:
         icXX_col="IC90",
         log_fold_change_icXX_col="log2 fold change IC90",
         min_c=1e-7,
-        max_c=1e8,
+        max_c=1e7,
         logbase=2,
         check_wt_icXX=(1e-4, 1e4),
         biochem_order_aas=True,
