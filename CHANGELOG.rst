@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.1
+---
+- Increase range of concentrations accepted by ``icXX`` methods.
+
 6.0
 ---
 - Upgrade minimum ``altair`` to 5.0.0

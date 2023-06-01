@@ -2487,10 +2487,10 @@ class Polyclonal:
         x,
         icXX_col,
         log_fold_change_icXX_col,
-        min_c=1e-5,
-        max_c=1e5,
+        min_c=1e-7,
+        max_c=1e7,
         logbase=2,
-        check_wt_icXX=(0.01, 100),
+        check_wt_icXX=(1e-4, 1e4),
     ):
         r"""Get data frame of ICXX and log fold change induced by each mutation.
 
@@ -2510,11 +2510,11 @@ class Polyclonal:
             Compute log fold-change in ICXX to this base.
         check_wt_icXX : None or 2-tuple
             If a 2-tuple, raise an error if the ICXX for the unmutated wildtype is
-            outside the range `(min_icXX, max_icXX)`. You may want to do this as
+            outside the range `(min_icXX, max_icXX)`. This check is because
             the clipping imposed by `min_c` and `max_c` will become a problem if
             the wildtype ICXX is very different than one. In general, concentration
-            units should be used when fitting so that ICXX for wildtype is within an
-            order of magnitude (or at most two) from 1.
+            units should be used when fitting so that ICXX for wildtype is within a
+            orders of magnitude of 1.
 
         Returns
         -------
@@ -2869,7 +2869,7 @@ class Polyclonal:
             .reset_index(drop=True)
         )
 
-    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-5, max_c=1e5):
+    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-7, max_c=1e7):
         """Concentration at which a given fraction is neutralized (eg, IC50).
 
         Parameters
