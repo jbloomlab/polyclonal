@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.2
+---
+- Correctly implement change in ``icXX`` intended in version 6.1.
+
 6.1
 ---
 - Increase range of concentrations accepted by ``icXX`` methods.
