@@ -24,7 +24,7 @@ jobs:
           python-version: "3.11"
 
       - name: install package and dependencies
-        run: pip install -e . && pip install -r test_requirements
+        run: pip install -e . && pip install -r test_requirements.txt
 
       - name: lint code with ruff
         run: ruff check .
