@@ -3,6 +3,7 @@
 *.out
 _*
 
+!.github
 !.gitignore
 !.travis.yml
 !.nojekyll

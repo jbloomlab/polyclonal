@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.3
 ---
 - Ensure ``PolyclonalCollection.sites`` attribute is always defined.
+- Move testing from Travis to GitHub actions.
 
 6.2
 ---
