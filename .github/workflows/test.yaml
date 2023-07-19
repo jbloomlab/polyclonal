@@ -9,28 +9,28 @@ on:
     branches:
       - main
 
-  jobs:
-    test:
-      name: Run tests
-      runs-on: ubuntu-latest
-      timeout-minutes: 60
-      steps:
-        - name: checkout
-          uses: actions/checkout@v3
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
 
-        - name: install python
-          uses: actions/setup-python@v4
-          with:
-            python-version: "3.11"
+      - name: install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-        - name: install package and dependencies
-          run: pip install -e . && pip install -r test_requirements
+      - name: install package and dependencies
+        run: pip install -e . && pip install -r test_requirements
 
-        - name: lint code with ruff
-          run: ruff check .
+      - name: lint code with ruff
+        run: ruff check .
 
-        - name: check code format with black
-          run: black --check .
+      - name: check code format with black
+        run: black --check .
 
-        - name: test code with `pytest`
-          run: pytest
+      - name: test code with `pytest`
+        run: pytest
