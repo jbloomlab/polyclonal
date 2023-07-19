@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - test-gh-actions
-  pul_request:
+  pull_request:
     branches:
       - main
 
