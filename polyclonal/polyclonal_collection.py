@@ -295,8 +295,34 @@ class PolyclonalCollection:
     sequential_integer_sites : bool
         Same as for :attr:`~polyclonal.polyclonal.Polyclonal.sequential_integer_sites`,
         extracted from :attr:`PolyclonalCollection.models`.
+    sites : tuple
+        All sites for which the model is defined.
     default_avg_to_plot : {"mean", "median"}
         By default when plotting, plot either "mean" or "median".
+
+    Example
+    -------
+    Create a toy example collection of two identical models.
+
+    >>> data_to_fit = pd.DataFrame.from_records(
+    ...     [("M3A", 1, 0), ("K5G", 1, 1)],
+    ...     columns=["aa_substitutions", "concentration", "prob_escape"],
+    ... )
+
+    >>> models_df = pd.DataFrame(
+    ...     {
+    ...         "model": [
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit, n_epitopes=1),
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit, n_epitopes=1),
+    ...         ],
+    ...         "description": ["model_1", "model_2"],
+    ...     }
+    ... )
+    >>> model_collection = polyclonal.PolyclonalCollection(
+    ...     models_df, default_avg_to_plot="mean",
+    ... )
+    >>> model_collection.sites
+    (3, 5)
 
     """
 
@@ -328,14 +354,8 @@ class PolyclonalCollection:
             "epitope_colors",
             "alphabet",
             "sequential_integer_sites",
+            "sites",
         ]:
-            for model in self.models:
-                if not hasattr(self, attr):
-                    setattr(self, attr, copy.copy(getattr(model, attr)))
-                elif getattr(self, attr) != getattr(model, attr):
-                    raise ValueError(f"{attr} not the same for all models")
-        if not self.models[0].sequential_integer_sites:
-            attr = "sites"
             for model in self.models:
                 if not hasattr(self, attr):
                     setattr(self, attr, copy.copy(getattr(model, attr)))

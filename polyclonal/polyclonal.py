@@ -438,9 +438,9 @@ class Polyclonal:
     these are the real values:
 
     >>> data_to_fit = (
-    ...         escape_probs
-    ...         .rename(columns={'predicted_prob_escape': 'prob_escape'})
-    ...         )
+    ...     escape_probs
+    ...     .rename(columns={'predicted_prob_escape': 'prob_escape'})
+    ... )
 
     >>> model_data = Polyclonal(
     ...     data_to_fit=data_to_fit,
@@ -452,8 +452,8 @@ class Polyclonal:
 
     >>> model_data.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
-    >>> dict(model_data.mutations_times_seen)
-    {'G2A': 6, 'M1C': 6, 'A4K': 4, 'A4L': 3}
+    >>> dict(sorted(model_data.mutations_times_seen.items()))
+    {'A4K': 4, 'A4L': 3, 'G2A': 6, 'M1C': 6}
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
     are all initialized to zero:
@@ -866,7 +866,7 @@ class Polyclonal:
         elif (activity_wt_df is None) and (mut_escape_df is None):
             if not (isinstance(n_epitopes, int) and n_epitopes > 0):
                 raise ValueError(
-                    "`n_epitopes` must be int > 1 if no " "`activity_wt_df`"
+                    "`n_epitopes` must be int >= 1 if no " "`activity_wt_df`"
                 )
             self.epitopes = tuple(f"{i + 1}" for i in range(n_epitopes))
 
