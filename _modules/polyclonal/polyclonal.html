@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal &#8212; polyclonal 6.1 documentation</title>
+    <title>polyclonal.polyclonal &#8212; polyclonal 6.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -472,9 +471,9 @@
 <span class="sd">    these are the real values:</span>
 
 <span class="sd">    &gt;&gt;&gt; data_to_fit = (</span>
-<span class="sd">    ...         escape_probs</span>
-<span class="sd">    ...         .rename(columns={&#39;predicted_prob_escape&#39;: &#39;prob_escape&#39;})</span>
-<span class="sd">    ...         )</span>
+<span class="sd">    ...     escape_probs</span>
+<span class="sd">    ...     .rename(columns={&#39;predicted_prob_escape&#39;: &#39;prob_escape&#39;})</span>
+<span class="sd">    ... )</span>
 
 <span class="sd">    &gt;&gt;&gt; model_data = Polyclonal(</span>
 <span class="sd">    ...     data_to_fit=data_to_fit,</span>
@@ -486,8 +485,8 @@
 
 <span class="sd">    &gt;&gt;&gt; model_data.mutations</span>
 <span class="sd">    (&#39;M1C&#39;, &#39;G2A&#39;, &#39;A4K&#39;, &#39;A4L&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; dict(model_data.mutations_times_seen)</span>
-<span class="sd">    {&#39;G2A&#39;: 6, &#39;M1C&#39;: 6, &#39;A4K&#39;: 4, &#39;A4L&#39;: 3}</span>
+<span class="sd">    &gt;&gt;&gt; dict(sorted(model_data.mutations_times_seen.items()))</span>
+<span class="sd">    {&#39;A4K&#39;: 4, &#39;A4L&#39;: 3, &#39;G2A&#39;: 6, &#39;M1C&#39;: 6}</span>
 
 <span class="sd">    The activities are evenly spaced from 1 to 0, while the mutation escapes</span>
 <span class="sd">    are all initialized to zero:</span>
@@ -900,7 +899,7 @@
         <span class="k">elif</span> <span class="p">(</span><span class="n">activity_wt_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">mut_escape_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">n_epitopes</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n_epitopes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;`n_epitopes` must be int &gt; 1 if no &quot;</span> <span class="s2">&quot;`activity_wt_df`&quot;</span>
+                    <span class="s2">&quot;`n_epitopes` must be int &gt;= 1 if no &quot;</span> <span class="s2">&quot;`activity_wt_df`&quot;</span>
                 <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_epitopes</span><span class="p">))</span>
 
@@ -2646,10 +2645,10 @@
         <span class="n">x</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
         <span class="n">icXX_col</span><span class="o">=</span><span class="s2">&quot;IC90&quot;</span><span class="p">,</span>
         <span class="n">log_fold_change_icXX_col</span><span class="o">=</span><span class="s2">&quot;log2 fold change IC90&quot;</span><span class="p">,</span>
-        <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
-        <span class="n">max_c</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+        <span class="n">min_c</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span>
+        <span class="n">max_c</span><span class="o">=</span><span class="mf">1e7</span><span class="p">,</span>
         <span class="n">logbase</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="n">check_wt_icXX</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+        <span class="n">check_wt_icXX</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">1e4</span><span class="p">),</span>
         <span class="n">biochem_order_aas</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">df_to_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">positive_color</span><span class="o">=</span><span class="n">polyclonal</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">DEFAULT_POSITIVE_COLORS</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
@@ -3409,7 +3408,7 @@
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
