@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.4
+---
+- Fixed bug introduced in version 6.3 in ``PolyclonalCollection.sites`` when ``sites`` are integer.
+
 6.3
 ---
 - Ensure ``PolyclonalCollection.sites`` attribute is always defined.

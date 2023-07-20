@@ -308,12 +308,16 @@ class PolyclonalCollection:
     ...     [("M3A", 1, 0), ("K5G", 1, 1)],
     ...     columns=["aa_substitutions", "concentration", "prob_escape"],
     ... )
+    >>> data_to_fit2 = pd.DataFrame.from_records(
+    ...     [("M3A", 1, 0), ("K5G", 1, 1), ("L6T", 1, 0.5)],
+    ...     columns=["aa_substitutions", "concentration", "prob_escape"],
+    ... )
 
     >>> models_df = pd.DataFrame(
     ...     {
     ...         "model": [
     ...             polyclonal.Polyclonal(data_to_fit=data_to_fit, n_epitopes=1),
-    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit, n_epitopes=1),
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit2, n_epitopes=1),
     ...         ],
     ...         "description": ["model_1", "model_2"],
     ...     }
@@ -322,7 +326,7 @@ class PolyclonalCollection:
     ...     models_df, default_avg_to_plot="mean",
     ... )
     >>> model_collection.sites
-    (3, 5)
+    (3, 5, 6)
 
     """
 
@@ -349,18 +353,24 @@ class PolyclonalCollection:
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
 
-        for attr in [
+        shared_attrs = [
             "epitopes",
             "epitope_colors",
             "alphabet",
             "sequential_integer_sites",
-            "sites",
-        ]:
+        ]
+        if all(not model.sequential_integer_sites for model in self.models):
+            shared_attrs.append("sites")
+        for attr in shared_attrs:
             for model in self.models:
                 if not hasattr(self, attr):
                     setattr(self, attr, copy.copy(getattr(model, attr)))
                 elif getattr(self, attr) != getattr(model, attr):
                     raise ValueError(f"{attr} not the same for all models")
+        if "sites" not in shared_attrs:
+            sites = sorted(set().union(*[model.sites for model in self.models]))
+            assert all(type(r) == int for r in sites), sites
+            self.sites = tuple(sites)
 
     @property
     def activity_wt_df_replicates(self):
