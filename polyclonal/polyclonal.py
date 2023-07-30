@@ -2487,10 +2487,10 @@ class Polyclonal:
         x,
         icXX_col,
         log_fold_change_icXX_col,
-        min_c=1e-7,
-        max_c=1e7,
+        min_c=1e-8,
+        max_c=1e8,
         logbase=2,
-        check_wt_icXX=(1e-4, 1e4),
+        check_wt_icXX=(1e-5, 1e5),
     ):
         r"""Get data frame of ICXX and log fold change induced by each mutation.
 
@@ -2612,10 +2612,10 @@ class Polyclonal:
         x=0.9,
         icXX_col="IC90",
         log_fold_change_icXX_col="log2 fold change IC90",
-        min_c=1e-7,
-        max_c=1e7,
+        min_c=1e-8,
+        max_c=1e8,
         logbase=2,
-        check_wt_icXX=(1e-4, 1e4),
+        check_wt_icXX=(1e-5, 1e5),
         biochem_order_aas=True,
         df_to_merge=None,
         positive_color=polyclonal.plot.DEFAULT_POSITIVE_COLORS[0],
@@ -2869,7 +2869,7 @@ class Polyclonal:
             .reset_index(drop=True)
         )
 
-    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-7, max_c=1e7):
+    def icXX(self, variants_df, *, x=0.5, col="IC50", min_c=1e-8, max_c=1e8):
         """Concentration at which a given fraction is neutralized (eg, IC50).
 
         Parameters
@@ -2927,8 +2927,8 @@ class Polyclonal:
                     method="brenth",
                 )
                 ic = sol.root
-            if not sol.converged:
-                raise ValueError(f"root finding failed:\n{sol}")
+                if not sol.converged:
+                    raise ValueError(f"root finding failed:\n{sol}")
             records.append((variant, ic))
 
         ic_df = pd.DataFrame.from_records(records, columns=["aa_substitutions", col])

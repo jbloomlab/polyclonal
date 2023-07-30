@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.5
+---
+- Fix bug in ``Polyclonal.icXX`` when the ICXX is at the bounds.
+- Increase the range of ``min_c``, ``max_c``, and ``check_wt_icXX`` in ``mut_icXX``-related methods.
+
 6.4
 ---
 - Fixed bug introduced in version 6.3 in ``PolyclonalCollection.sites`` when ``sites`` are integer.
