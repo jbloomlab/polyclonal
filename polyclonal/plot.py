@@ -759,13 +759,15 @@ def lineplot_and_heatmap(
             .drop_duplicates()
             .assign(
                 _n=lambda x: (
-                    x.groupby("site")["site_zoom_bar_color_col"].transform("nunique")
+                    x.groupby("site")[site_zoom_bar_color_col].transform("nunique")
                 ),
-                _drop=lambda x: x[site_zoom_bar_color_col]
-                .isnull()
-                .where(
-                    x["_n"] > 1,
-                    False,
+                _drop=lambda x: (
+                    x[site_zoom_bar_color_col]
+                    .isnull()
+                    .where(
+                        x["_n"] > 1,
+                        False,
+                    )
                 ),
             )
             .query("not _drop")
