@@ -631,13 +631,23 @@ def lineplot_and_heatmap(
     if not heatmap_negative_color:
         heatmap_negative_color = DEFAULT_NEGATIVE_COLOR
 
-    no_na_cols = basic_req_cols + (
-        [site_zoom_bar_color_col] if site_zoom_bar_color_col else []
-    )
-    if data_df[no_na_cols].isnull().any().any():
-        raise ValueError(
-            f"`data_df` has NA values in key cols:\n{data_df[no_na_cols].isnull().any()}"
+    # drop rows not defined for site, mutant, and category (eg, epitope)
+    data_df = data_df[
+        functools.reduce(
+            operator.and_,
+            [data_df[c].notnull() for c in ["site", "mutant", category_col]],
         )
+    ]
+    # not defined for one of the stats or one of the hiding columns
+    data_df = data_df[
+        functools.reduce(
+            operator.or_,
+            [
+                data_df[c].notnull()
+                for c in [stat_col, *addtl_slider_stats_hide_not_filter]
+            ],
+        )
+    ]
 
     if alphabet is None:
         alphabet = natsort.natsorted(data_df["mutant"].unique())
