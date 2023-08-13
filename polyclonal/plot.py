@@ -753,7 +753,7 @@ def lineplot_and_heatmap(
         mark=alt.BrushConfig(stroke="black", strokeWidth=2),
     )
     if site_zoom_bar_color_col:
-        site_zoom_bar_df = data_df[
+        site_zoom_bar_df = data_df[data_df[site_zoom_bar_color_col].notnull()][
             ["site", "_stat_site_order", site_zoom_bar_color_col]
         ].drop_duplicates()
         if any(site_zoom_bar_df.groupby("site").size() > 1):
