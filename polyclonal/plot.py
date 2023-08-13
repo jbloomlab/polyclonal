@@ -631,13 +631,23 @@ def lineplot_and_heatmap(
     if not heatmap_negative_color:
         heatmap_negative_color = DEFAULT_NEGATIVE_COLOR
 
-    no_na_cols = basic_req_cols + (
-        [site_zoom_bar_color_col] if site_zoom_bar_color_col else []
-    )
-    if data_df[no_na_cols].isnull().any().any():
-        raise ValueError(
-            f"`data_df` has NA values in key cols:\n{data_df[no_na_cols].isnull().any()}"
+    # drop rows not defined for site, mutant, and category (eg, epitope)
+    data_df = data_df[
+        functools.reduce(
+            operator.and_,
+            [data_df[c].notnull() for c in ["site", "mutant", category_col]],
         )
+    ]
+    # not defined for one of the stats or one of the hiding columns
+    data_df = data_df[
+        functools.reduce(
+            operator.or_,
+            [
+                data_df[c].notnull()
+                for c in [stat_col, *addtl_slider_stats_hide_not_filter]
+            ],
+        )
+    ]
 
     if alphabet is None:
         alphabet = natsort.natsorted(data_df["mutant"].unique())
@@ -743,11 +753,42 @@ def lineplot_and_heatmap(
         mark=alt.BrushConfig(stroke="black", strokeWidth=2),
     )
     if site_zoom_bar_color_col:
-        site_zoom_bar_df = data_df[
-            ["site", "_stat_site_order", site_zoom_bar_color_col]
-        ].drop_duplicates()
+        assert site_zoom_bar_color_col not in {"_n", "_drop"}, site_zoom_bar_color_col
+        site_zoom_bar_df = (
+            data_df[["site", "_stat_site_order", site_zoom_bar_color_col]]
+            .drop_duplicates()
+            .assign(
+                _n=lambda x: (
+                    x.groupby("site")[site_zoom_bar_color_col].transform("size")
+                ),
+                _drop=lambda x: (
+                    x[site_zoom_bar_color_col]
+                    .isnull()
+                    .where(
+                        x["_n"] > 1,
+                        False,
+                    )
+                ),
+            )
+            .query("not _drop")
+            .drop(columns=["_n", "_drop"])
+        )
+        site_zoom_bar_df[site_zoom_bar_color_col] = site_zoom_bar_df[
+            site_zoom_bar_color_col
+        ].fillna("null")
         if any(site_zoom_bar_df.groupby("site").size() > 1):
-            raise ValueError(f"multiple {site_zoom_bar_color_col=} values for sites")
+            raise ValueError(
+                f"multiple {site_zoom_bar_color_col=} values for sites:"
+                + str(
+                    site_zoom_bar_df.assign(
+                        n=lambda x: (
+                            x.groupby("site")[site_zoom_bar_color_col].transform("size")
+                        ),
+                    )
+                    .sort_values("n", ascending=False)
+                    .reset_index(drop=True)
+                )
+            )
     else:
         site_zoom_bar_df = data_df[["site", "_stat_site_order"]].drop_duplicates()
     site_zoom_bar = (

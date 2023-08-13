@@ -970,19 +970,12 @@ class PolyclonalCollection:
         for col in stat_cols:
             kwargs["data_df"][col] = scale_stat_col * kwargs["data_df"][col]
 
-        if df_to_merge is not None:
-            if isinstance(df_to_merge, pd.DataFrame):
-                df_to_merge = [df_to_merge]
-            elif not isinstance(df_to_merge, list):
-                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
-            for df in df_to_merge:
-                if not self.sequential_integer_sites and "site" in df.columns:
-                    df = df.assign(site=lambda x: x["site"].astype(str))
-                kwargs["data_df"] = kwargs["data_df"].merge(
-                    df,
-                    how="left",
-                    validate="many_to_one",
-                )
+        kwargs["data_df"] = polyclonal.Polyclonal._merge_df_to_merge(
+            kwargs["data_df"],
+            df_to_merge,
+            ["site", "wildtype", "mutant", "epitope"],
+            self.sequential_integer_sites,
+        )
 
         if "category_colors" not in kwargs:
             kwargs["category_colors"] = self.epitope_colors
@@ -1152,19 +1145,12 @@ class PolyclonalCollection:
         else:
             kwargs["addtl_slider_stats"] = {"n_models": init_n_models}
 
-        if df_to_merge is not None:
-            if isinstance(df_to_merge, pd.DataFrame):
-                df_to_merge = [df_to_merge]
-            elif not isinstance(df_to_merge, list):
-                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
-            for df in df_to_merge:
-                if not self.sequential_integer_sites and "site" in df.columns:
-                    df = df.assign(site=lambda x: x["site"].astype(str))
-                kwargs["data_df"] = kwargs["data_df"].merge(
-                    df,
-                    how="left",
-                    validate="many_to_one",
-                )
+        kwargs["data_df"] = polyclonal.Polyclonal._merge_df_to_merge(
+            kwargs["data_df"],
+            df_to_merge,
+            ["site", "wildtype", "mutant", "epitope"],
+            self.sequential_integer_sites,
+        )
 
         kwargs["category_colors"] = {"all": positive_color}
         kwargs["heatmap_negative_color"] = negative_color
