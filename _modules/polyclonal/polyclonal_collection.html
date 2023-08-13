@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>polyclonal.polyclonal_collection &#8212; polyclonal 6.5 documentation</title>
+    <title>polyclonal.polyclonal_collection &#8212; polyclonal 6.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
@@ -402,7 +402,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2"> not the same for all models&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="s2">&quot;sites&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared_attrs</span><span class="p">:</span>
             <span class="n">sites</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">sites</span> <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">]))</span>
-            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">),</span> <span class="n">sites</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">),</span> <span class="n">sites</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -809,13 +809,15 @@
             <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">,</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Correlation of mutation escape values across models for each epitope.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        method : str</span>
 <span class="sd">            A correlation method passable to `pandas.DataFrame.corr`.</span>
+<span class="sd">        min_times_seen : int</span>
+<span class="sd">            Only include mutations with a *times_seen* &gt;= this value.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -836,13 +838,17 @@
         <span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span>
 
+        <span class="n">df_to_corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">ids</span><span class="p">,</span>
+            <span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">,</span>
+            <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;times_seen&quot;</span> <span class="ow">in</span> <span class="n">df_to_corr</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df_to_corr</span> <span class="o">=</span> <span class="n">df_to_corr</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;times_seen &gt;= @min_times_seen&quot;</span><span class="p">)</span>
+
         <span class="n">corr</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">polyclonal</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">tidy_to_corr</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df_replicates</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-                    <span class="n">ids</span><span class="p">,</span>
-                    <span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor_names</span><span class="p">,</span>
-                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
-                <span class="p">),</span>
+                <span class="n">df_to_corr</span><span class="p">,</span>
                 <span class="n">sample_col</span><span class="o">=</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span>
                 <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;mutation&quot;</span><span class="p">,</span>
                 <span class="n">value_col</span><span class="o">=</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
@@ -859,13 +865,21 @@
 
         <span class="k">return</span> <span class="n">corr</span></div>
 
-<div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">,</span> <span class="n">plot_corr2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyclonalCollection.mut_escape_corr_heatmap"><a class="viewcode-back" href="../../polyclonal.polyclonal_collection.html#polyclonal.polyclonal_collection.PolyclonalCollection.mut_escape_corr_heatmap">[docs]</a>    <span class="k">def</span> <span class="nf">mut_escape_corr_heatmap</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pearson&quot;</span><span class="p">,</span>
+        <span class="n">min_times_seen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">plot_corr2</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Heatmap of mutation-escape correlation among models at each epitope.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        method : str</span>
 <span class="sd">            A correlation method passable to `pandas.DataFrame.corr`.</span>
+<span class="sd">        min_times_seen : int</span>
+<span class="sd">            Only include mutations with a *times_seen* &gt;= this value.</span>
 <span class="sd">        plot_corr2 : bool</span>
 <span class="sd">            Plot squared correlation (eg, :math:`R^2` rather :math:`R`).</span>
 <span class="sd">        **kwargs</span>
@@ -874,7 +888,7 @@
         <span class="n">corr_label</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pearson&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;kendall&quot;</span><span class="p">:</span> <span class="s2">&quot;tau&quot;</span><span class="p">,</span> <span class="s2">&quot;spearman&quot;</span><span class="p">:</span> <span class="s2">&quot;rho&quot;</span><span class="p">}[</span><span class="n">method</span><span class="p">]</span>
         <span class="n">corr2_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">corr_label</span><span class="si">}</span><span class="s2">2&quot;</span>
         <span class="n">corr_df</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_corr</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">min_times_seen</span><span class="p">)</span>
             <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">correlation2</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;correlation&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
             <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="n">corr_label</span><span class="p">,</span> <span class="s2">&quot;correlation2&quot;</span><span class="p">:</span> <span class="n">corr2_label</span><span class="p">})</span>
         <span class="p">)</span>
@@ -907,6 +921,7 @@
         <span class="n">prefix_epitope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">df_to_merge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">per_model_tooltip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">scale_stat_col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make plot of mutation escape values.</span>
@@ -939,6 +954,8 @@
 <span class="sd">            when &lt;= 5 models and standard deviation if &gt; 5 models. If `True`,</span>
 <span class="sd">            always report per-model values. If `False`, always report standard</span>
 <span class="sd">            deviation.</span>
+<span class="sd">        scale_stat_col : float</span>
+<span class="sd">            Scale the escape values by this factor before plotting.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`</span>
 
@@ -963,10 +980,12 @@
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">model_names</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]:</span>
                     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">stat_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">model_names</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_escape_df</span>
             <span class="k">if</span> <span class="s2">&quot;escape_std&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;escape_std&quot;</span><span class="p">)</span>
+            <span class="n">stat_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;escape&quot;</span><span class="p">]</span>
 
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
             <span class="p">[</span>
@@ -975,38 +994,28 @@
                     <span class="n">df</span><span class="p">[[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">]]</span>
                     <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
                     <span class="o">.</span><span class="n">assign</span><span class="p">(</span>
-                        <span class="n">escape</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                         <span class="n">mutant</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;wildtype&quot;</span><span class="p">],</span>
-                        <span class="o">**</span><span class="p">(</span>
-                            <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">model_names</span><span class="p">}</span>
-                            <span class="k">if</span> <span class="n">per_model_tooltip</span>
-                            <span class="k">else</span> <span class="p">{}</span>
-                        <span class="p">),</span>
+                        <span class="o">**</span><span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">stat_cols</span><span class="p">},</span>
                     <span class="p">)</span>
                 <span class="p">),</span>
             <span class="p">],</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">stat_cols</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale_stat_col</span> <span class="o">*</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">df_to_merge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_to_merge</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`df_to_merge` must be pandas.DataFrame or list&quot;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-                    <span class="n">df</span><span class="p">,</span>
-                    <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
-                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
-                <span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="o">.</span><span class="n">_merge_df_to_merge</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">],</span>
+            <span class="n">df_to_merge</span><span class="p">,</span>
+            <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;category_colors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitope_colors</span>
 
         <span class="k">if</span> <span class="n">prefix_epitope</span> <span class="ow">or</span> <span class="p">(</span>
             <span class="n">prefix_epitope</span> <span class="ow">is</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="n">prefixed</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;epitope </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">epitopes</span><span class="p">}</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="s2">&quot;epitope&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">prefixed</span><span class="p">)</span>
@@ -1060,6 +1069,7 @@
         <span class="n">avg_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">init_n_models</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">per_model_tooltip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">scale_stat_col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1106,6 +1116,8 @@
 <span class="sd">            when &lt;= 5 models and standard deviation if &gt; 5 models. If `True`,</span>
 <span class="sd">            always report per-model values. If `False`, always report standard</span>
 <span class="sd">            deviation.</span>
+<span class="sd">        scale_stat_col : float</span>
+<span class="sd">            Scale the escape values by this factor before plotting.</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`</span>
 
@@ -1138,6 +1150,7 @@
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">model_names</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]:</span>
                     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">stat_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">log_fold_change_icXX_col</span><span class="p">]</span> <span class="o">+</span> <span class="n">model_names</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mut_icXX_df</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
@@ -1150,10 +1163,13 @@
             <span class="p">)</span>
             <span class="k">if</span> <span class="s2">&quot;escape_std&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_tooltip_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;escape_std&quot;</span><span class="p">)</span>
+            <span class="n">stat_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">log_fold_change_icXX_col</span><span class="p">]</span>
 
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">epitope</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
             <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_fold_change_icXX_col</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">avg_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">log_fold_change_icXX_col</span><span class="p">}</span>
         <span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">stat_cols</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale_stat_col</span> <span class="o">*</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">init_n_models</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">init_n_models</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
@@ -1162,19 +1178,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;addtl_slider_stats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n_models&quot;</span><span class="p">:</span> <span class="n">init_n_models</span><span class="p">}</span>
 
-        <span class="k">if</span> <span class="n">df_to_merge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
-                <span class="n">df_to_merge</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_to_merge</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_to_merge</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`df_to_merge` must be pandas.DataFrame or list&quot;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">df_to_merge</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span> <span class="ow">and</span> <span class="s2">&quot;site&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-                    <span class="n">df</span><span class="p">,</span>
-                    <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
-                    <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
-                <span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">polyclonal</span><span class="o">.</span><span class="n">Polyclonal</span><span class="o">.</span><span class="n">_merge_df_to_merge</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;data_df&quot;</span><span class="p">],</span>
+            <span class="n">df_to_merge</span><span class="p">,</span>
+            <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;wildtype&quot;</span><span class="p">,</span> <span class="s2">&quot;mutant&quot;</span><span class="p">,</span> <span class="s2">&quot;epitope&quot;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequential_integer_sites</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;category_colors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;all&quot;</span><span class="p">:</span> <span class="n">positive_color</span><span class="p">}</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;heatmap_negative_color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">negative_color</span>
