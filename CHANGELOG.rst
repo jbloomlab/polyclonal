@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.6
 ---
 - Fix bug where ``scale_stat_col`` to per-model values in tooltips when using ``PolyclonalCollection.mut_escape_plot`` and ``PolyclonalCollections.mut_escape_icXX``.
+- Add ``min_times_seen`` filter to ``PolyclonalCollection.mut_escape_corr`` and ``PolyclonalCollection.mut_escape_corr_heatmap``.
 
 6.5
 ---
