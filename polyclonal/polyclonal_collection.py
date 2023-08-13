@@ -805,15 +805,17 @@ class PolyclonalCollection:
         )
         assert len(ids) == len(self.models)
 
+        df_to_corr = self.mut_escape_df_replicates.merge(
+            ids,
+            on=self.descriptor_names,
+            validate="many_to_one",
+        )
+        if "times_seen" in df_to_corr.columns:
+            df_to_corr = df_to_corr.query("times_seen >= @min_times_seen")
+
         corr = (
             polyclonal.utils.tidy_to_corr(
-                self.mut_escape_df_replicates.query(
-                    "times_seen >= @min_times_seen"
-                ).merge(
-                    ids,
-                    on=self.descriptor_names,
-                    validate="many_to_one",
-                ),
+                df_to_corr,
                 sample_col="_id",
                 label_col="mutation",
                 value_col="escape",
