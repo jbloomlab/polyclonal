@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.6
+---
+- Fix bug where ``scale_stat_col`` to per-model values in tooltips when using ``PolyclonalCollection.mut_escape_plot`` and ``PolyclonalCollections.mut_escape_icXX``.
+
 6.5
 ---
 - Fix bug in ``Polyclonal.icXX`` when the ICXX is at the bounds.

@@ -874,6 +874,7 @@ class PolyclonalCollection:
         prefix_epitope=None,
         df_to_merge=None,
         per_model_tooltip=None,
+        scale_stat_col=1,
         **kwargs,
     ):
         """Make plot of mutation escape values.
@@ -906,6 +907,8 @@ class PolyclonalCollection:
             when <= 5 models and standard deviation if > 5 models. If `True`,
             always report per-model values. If `False`, always report standard
             deviation.
+        scale_stat_col : float
+            Scale the escape values by this factor before plotting.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
 
@@ -930,10 +933,12 @@ class PolyclonalCollection:
             for name in model_names:
                 if name not in kwargs["addtl_tooltip_stats"]:
                     kwargs["addtl_tooltip_stats"].append(name)
+            stat_cols = ["escape"] + model_names
         else:
             df = self.mut_escape_df
             if "escape_std" not in kwargs["addtl_tooltip_stats"]:
                 kwargs["addtl_tooltip_stats"].append("escape_std")
+            stat_cols = ["escape"]
 
         kwargs["data_df"] = pd.concat(
             [
@@ -942,17 +947,14 @@ class PolyclonalCollection:
                     df[["site", "wildtype", "epitope"]]
                     .drop_duplicates()
                     .assign(
-                        escape=0,
                         mutant=lambda x: x["wildtype"],
-                        **(
-                            {name: 0 for name in model_names}
-                            if per_model_tooltip
-                            else {}
-                        ),
+                        **{col: 0 for col in stat_cols},
                     )
                 ),
             ],
         )
+        for col in stat_cols:
+            kwargs["data_df"][col] = scale_stat_col * kwargs["data_df"][col]
 
         if df_to_merge is not None:
             if isinstance(df_to_merge, pd.DataFrame):
@@ -1027,6 +1029,7 @@ class PolyclonalCollection:
         avg_type=None,
         init_n_models=None,
         per_model_tooltip=None,
+        scale_stat_col=1,
         **kwargs,
     ):
         """
@@ -1073,6 +1076,8 @@ class PolyclonalCollection:
             when <= 5 models and standard deviation if > 5 models. If `True`,
             always report per-model values. If `False`, always report standard
             deviation.
+        scale_stat_col : float
+            Scale the escape values by this factor before plotting.
         **kwargs
             Keyword args for :func:`polyclonal.plot.lineplot_and_heatmap`
 
@@ -1105,6 +1110,7 @@ class PolyclonalCollection:
             for name in model_names:
                 if name not in kwargs["addtl_tooltip_stats"]:
                     kwargs["addtl_tooltip_stats"].append(name)
+            stat_cols = [log_fold_change_icXX_col] + model_names
         else:
             df = self.mut_icXX_df(
                 x=x,
@@ -1117,10 +1123,13 @@ class PolyclonalCollection:
             )
             if "escape_std" not in kwargs["addtl_tooltip_stats"]:
                 kwargs["addtl_tooltip_stats"].append("escape_std")
+            stat_cols = [log_fold_change_icXX_col]
 
         kwargs["data_df"] = df.assign(epitope="all").rename(
             columns={f"{log_fold_change_icXX_col} {avg_type}": log_fold_change_icXX_col}
         )
+        for col in stat_cols:
+            kwargs["data_df"][col] = scale_stat_col * kwargs["data_df"][col]
 
         if init_n_models is None:
             init_n_models = int(math.ceil(len(self.models) / 2))
