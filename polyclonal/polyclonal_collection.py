@@ -776,13 +776,15 @@ class PolyclonalCollection:
             validate="one_to_one",
         )
 
-    def mut_escape_corr(self, method="pearson"):
+    def mut_escape_corr(self, method="pearson", min_times_seen=1):
         """Correlation of mutation escape values across models for each epitope.
 
         Parameters
         ----------
         method : str
             A correlation method passable to `pandas.DataFrame.corr`.
+        min_times_seen : int
+            Only include mutations with a *times_seen* >= this value.
 
         Returns
         -------
@@ -803,13 +805,17 @@ class PolyclonalCollection:
         )
         assert len(ids) == len(self.models)
 
+        df_to_corr = self.mut_escape_df_replicates.merge(
+            ids,
+            on=self.descriptor_names,
+            validate="many_to_one",
+        )
+        if "times_seen" in df_to_corr.columns:
+            df_to_corr = df_to_corr.query("times_seen >= @min_times_seen")
+
         corr = (
             polyclonal.utils.tidy_to_corr(
-                self.mut_escape_df_replicates.merge(
-                    ids,
-                    on=self.descriptor_names,
-                    validate="many_to_one",
-                ),
+                df_to_corr,
                 sample_col="_id",
                 label_col="mutation",
                 value_col="escape",
@@ -826,13 +832,21 @@ class PolyclonalCollection:
 
         return corr
 
-    def mut_escape_corr_heatmap(self, method="pearson", plot_corr2=True, **kwargs):
+    def mut_escape_corr_heatmap(
+        self,
+        method="pearson",
+        min_times_seen=1,
+        plot_corr2=True,
+        **kwargs,
+    ):
         """Heatmap of mutation-escape correlation among models at each epitope.
 
         Parameters
         ----------
         method : str
             A correlation method passable to `pandas.DataFrame.corr`.
+        min_times_seen : int
+            Only include mutations with a *times_seen* >= this value.
         plot_corr2 : bool
             Plot squared correlation (eg, :math:`R^2` rather :math:`R`).
         **kwargs
@@ -841,7 +855,7 @@ class PolyclonalCollection:
         corr_label = {"pearson": "r", "kendall": "tau", "spearman": "rho"}[method]
         corr2_label = f"{corr_label}2"
         corr_df = (
-            self.mut_escape_corr(method)
+            self.mut_escape_corr(method, min_times_seen)
             .assign(correlation2=lambda x: x["correlation"] ** 2)
             .rename(columns={"correlation": corr_label, "correlation2": corr2_label})
         )
