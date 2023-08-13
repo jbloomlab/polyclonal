@@ -773,6 +773,9 @@ def lineplot_and_heatmap(
             .query("not _drop")
             .drop(columns=["_n", "_drop"])
         )
+        site_zoom_bar_df[site_zoom_bar_color_col] = site_zoom_bar_df[
+            site_zoom_bar_color_col
+        ].fillna("null")
         if any(site_zoom_bar_df.groupby("site").size() > 1):
             raise ValueError(
                 f"multiple {site_zoom_bar_color_col=} values for sites:"
