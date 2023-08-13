@@ -753,9 +753,24 @@ def lineplot_and_heatmap(
         mark=alt.BrushConfig(stroke="black", strokeWidth=2),
     )
     if site_zoom_bar_color_col:
-        site_zoom_bar_df = data_df[data_df[site_zoom_bar_color_col].notnull()][
-            ["site", "_stat_site_order", site_zoom_bar_color_col]
-        ].drop_duplicates()
+        assert site_zoom_bar_color_col not in {"_n", "_drop"}, site_zoom_bar_color_col
+        site_zoom_bar_df = (
+            data_df[["site", "_stat_site_order", site_zoom_bar_color_col]]
+            .drop_duplicates()
+            .assign(
+                _n=lambda x: (
+                    x.groupby("site")["site_zoom_bar_color_col"].transform("nunique")
+                ),
+                _drop=lambda x: x[site_zoom_bar_color_col]
+                .isnull()
+                .where(
+                    x["_n"] > 1,
+                    False,
+                ),
+            )
+            .query("not _drop")
+            .drop(columns=["_n", "_drop"])
+        )
         if any(site_zoom_bar_df.groupby("site").size() > 1):
             raise ValueError(f"multiple {site_zoom_bar_color_col=} values for sites")
     else:
