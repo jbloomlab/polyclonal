@@ -369,7 +369,7 @@ class PolyclonalCollection:
                     raise ValueError(f"{attr} not the same for all models")
         if "sites" not in shared_attrs:
             sites = sorted(set().union(*[model.sites for model in self.models]))
-            assert all(type(r) == int for r in sites), sites
+            assert all(isinstance(r, int) for r in sites), sites
             self.sites = tuple(sites)
 
     @property
@@ -975,7 +975,7 @@ class PolyclonalCollection:
 
         if prefix_epitope or (
             prefix_epitope is None
-            and all(type(e) == int or e.isnumeric() for e in self.epitopes)
+            and all(isinstance(e, int) or e.isnumeric() for e in self.epitopes)
         ):
             prefixed = {e: f"epitope {e}" for e in self.epitopes}
             kwargs["data_df"]["epitope"] = kwargs["data_df"]["epitope"].map(prefixed)

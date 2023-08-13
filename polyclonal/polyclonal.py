@@ -804,7 +804,7 @@ class Polyclonal:
             sites = tuple(sites)
             if sites != tuple(natsort.natsorted(sites, alg=natsort.ns.SIGNED)):
                 raise ValueError("`sites` not natsorted")
-            if any(type(r) != int for r in sites) or sites != tuple(
+            if any(not isinstance(r, int) for r in sites) or sites != tuple(
                 range(sites[0], sites[-1] + 1)
             ):
                 self.sequential_integer_sites = False
@@ -2788,7 +2788,7 @@ class Polyclonal:
 
         if prefix_epitope or (
             prefix_epitope is None
-            and all(type(e) == int or e.isnumeric() for e in self.epitopes)
+            and all(isinstance(e, int) or e.isnumeric() for e in self.epitopes)
         ):
             prefixed = {e: f"epitope {e}" for e in self.epitopes}
             kwargs["data_df"]["epitope"] = kwargs["data_df"]["epitope"].map(prefixed)
