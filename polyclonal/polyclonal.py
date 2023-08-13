@@ -2673,19 +2673,12 @@ class Polyclonal:
             check_wt_icXX=check_wt_icXX,
         ).assign(epitope="all")
 
-        if df_to_merge is not None:
-            if isinstance(df_to_merge, pd.DataFrame):
-                df_to_merge = [df_to_merge]
-            elif not isinstance(df_to_merge, list):
-                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
-            for df in df_to_merge:
-                if not self.sequential_integer_sites and "site" in df.columns:
-                    df = df.assign(site=lambda x: x["site"].astype(str))
-                kwargs["data_df"] = kwargs["data_df"].merge(
-                    df,
-                    how="left",
-                    validate="many_to_one",
-                )
+        kwargs["data_df"] = self._merge_df_to_merge(
+            kwargs["data_df"],
+            df_to_merge,
+            ["site", "wildtype", "mutant", "epitope"],
+            self.sequential_integer_sites,
+        )
 
         kwargs["category_colors"] = {"all": positive_color}
         kwargs["heatmap_negative_color"] = negative_color
@@ -2723,6 +2716,39 @@ class Polyclonal:
             )
 
         return polyclonal.plot.lineplot_and_heatmap(**kwargs)
+
+    @staticmethod
+    def _merge_df_to_merge(
+        data_df,
+        df_to_merge,
+        mergeable_cols,
+        sequential_integer_sites,
+    ):
+        """Merge ``df_to_merge`` into the data DataFrame for escape plotting."""
+        if df_to_merge is None:
+            return data_df
+        else:
+            if isinstance(df_to_merge, pd.DataFrame):
+                df_to_merge = [df_to_merge]
+            elif not isinstance(df_to_merge, list):
+                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
+            assert set(mergeable_cols).issubset(data_df.columns)
+            for i_df, df in enumerate(df_to_merge):
+                if not sequential_integer_sites and "site" in df.columns:
+                    df = df.assign(site=lambda x: x["site"].astype(str))
+                if "epitope" not in df.columns:
+                    df = pd.concat(
+                        [df.assign(epitope=e) for e in data_df["epitope"].unique()]
+                    )
+                shared_cols = set(data_df.columns).intersection(df.columns)
+                if not shared_cols.issubset(mergeable_cols):
+                    raise ValueError(
+                        f"Entry {i_df} in `df_to_merge` has the following columns "
+                        "shared with the `data_df`:\n{shared_cols}\n\nRemove shared "
+                        "columns other than:\n{mergeable_cols}"
+                    )
+                data_df = data_df.merge(df, how="outer", validate="many_to_one")
+            return data_df
 
     def mut_escape_plot(
         self,
@@ -2769,19 +2795,12 @@ class Polyclonal:
             ],
         )
 
-        if df_to_merge is not None:
-            if isinstance(df_to_merge, pd.DataFrame):
-                df_to_merge = [df_to_merge]
-            elif not isinstance(df_to_merge, list):
-                raise ValueError("`df_to_merge` must be pandas.DataFrame or list")
-            for df in df_to_merge:
-                if not self.sequential_integer_sites and "site" in df.columns:
-                    df = df.assign(site=lambda x: x["site"].astype(str))
-                kwargs["data_df"] = kwargs["data_df"].merge(
-                    df,
-                    how="left",
-                    validate="many_to_one",
-                )
+        kwargs["data_df"] = self._merge_df_to_merge(
+            kwargs["data_df"],
+            df_to_merge,
+            ["site", "wildtype", "mutant", "epitope"],
+            self.sequential_integer_sites,
+        )
 
         if "category_colors" not in kwargs:
             kwargs["category_colors"] = self.epitope_colors

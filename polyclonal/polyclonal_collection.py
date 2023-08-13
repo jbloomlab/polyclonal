@@ -980,7 +980,7 @@ class PolyclonalCollection:
                     df = df.assign(site=lambda x: x["site"].astype(str))
                 kwargs["data_df"] = kwargs["data_df"].merge(
                     df,
-                    how="left",
+                    how="outer",
                     validate="many_to_one",
                 )
 
@@ -1162,7 +1162,7 @@ class PolyclonalCollection:
                     df = df.assign(site=lambda x: x["site"].astype(str))
                 kwargs["data_df"] = kwargs["data_df"].merge(
                     df,
-                    how="left",
+                    how="outer",
                     validate="many_to_one",
                 )
 
