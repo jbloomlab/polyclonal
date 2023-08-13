@@ -759,7 +759,7 @@ def lineplot_and_heatmap(
             .drop_duplicates()
             .assign(
                 _n=lambda x: (
-                    x.groupby("site")[site_zoom_bar_color_col].transform("nunique")
+                    x.groupby("site")[site_zoom_bar_color_col].transform("size")
                 ),
                 _drop=lambda x: (
                     x[site_zoom_bar_color_col]
@@ -779,9 +779,7 @@ def lineplot_and_heatmap(
                 + str(
                     site_zoom_bar_df.assign(
                         n=lambda x: (
-                            x.groupby("site")[site_zoom_bar_color_col].transform(
-                                "count"
-                            )
+                            x.groupby("site")[site_zoom_bar_color_col].transform("size")
                         ),
                     )
                     .sort_values("n", ascending=False)
