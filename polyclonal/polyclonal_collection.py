@@ -933,7 +933,7 @@ class PolyclonalCollection:
             for name in model_names:
                 if name not in kwargs["addtl_tooltip_stats"]:
                     kwargs["addtl_tooltip_stats"].append(name)
-            stat_cols = ["escape"] + model_names
+            stat_cols = ["escape"] + model_names.tolist()
         else:
             df = self.mut_escape_df
             if "escape_std" not in kwargs["addtl_tooltip_stats"]:
@@ -1110,7 +1110,7 @@ class PolyclonalCollection:
             for name in model_names:
                 if name not in kwargs["addtl_tooltip_stats"]:
                     kwargs["addtl_tooltip_stats"].append(name)
-            stat_cols = [log_fold_change_icXX_col] + model_names
+            stat_cols = [log_fold_change_icXX_col] + model_names.tolist()
         else:
             df = self.mut_icXX_df(
                 x=x,
