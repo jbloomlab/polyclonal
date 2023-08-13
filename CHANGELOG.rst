@@ -8,6 +8,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 6.6
 ---
+- Change ``lineplot_and_heatmap`` parameter ``addtl_slider_stats_hide_not_filter`` (which is used to make the escape heatmaps) so that mutations that have null escape but a non-null but hidden value are shown as grayed out (hidden) rather than missing. The use case is so that deleterious mutations that don't have escape measured but fail the functional effects filter are shown grayed out to indicate that they were measured and are deleterious, rather than leaving them out which implies they were not measured.
 - Fix bug where ``scale_stat_col`` to per-model values in tooltips when using ``PolyclonalCollection.mut_escape_plot`` and ``PolyclonalCollections.mut_escape_icXX``.
 - Add ``min_times_seen`` filter to ``PolyclonalCollection.mut_escape_corr`` and ``PolyclonalCollection.mut_escape_corr_heatmap``.
 
