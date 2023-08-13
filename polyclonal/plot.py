@@ -774,7 +774,20 @@ def lineplot_and_heatmap(
             .drop(columns=["_n", "_drop"])
         )
         if any(site_zoom_bar_df.groupby("site").size() > 1):
-            raise ValueError(f"multiple {site_zoom_bar_color_col=} values for sites")
+            raise ValueError(
+                f"multiple {site_zoom_bar_color_col=} values for sites:"
+                + str(
+                    site_zoom_bar_df.assign(
+                        n=lambda x: (
+                            x.groupby("site")[site_zoom_bar_color_col].transform(
+                                "count"
+                            )
+                        ),
+                    )
+                    .sort_values("n", ascending=False)
+                    .reset_index(drop=True)
+                )
+            )
     else:
         site_zoom_bar_df = data_df[["site", "_stat_site_order"]].drop_duplicates()
     site_zoom_bar = (
