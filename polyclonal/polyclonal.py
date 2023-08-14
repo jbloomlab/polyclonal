@@ -2744,8 +2744,8 @@ class Polyclonal:
                 if not shared_cols.issubset(mergeable_cols):
                     raise ValueError(
                         f"Entry {i_df} in `df_to_merge` has the following columns "
-                        "shared with the `data_df`:\n{shared_cols}\n\nRemove shared "
-                        "columns other than:\n{mergeable_cols}"
+                        f"shared with the `data_df`:\n{shared_cols}\n\nRemove shared "
+                        f"columns other than:\n{mergeable_cols}"
                     )
                 data_df = data_df.merge(df, how="outer", validate="many_to_one")
             return data_df
