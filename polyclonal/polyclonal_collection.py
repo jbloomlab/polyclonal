@@ -1162,9 +1162,6 @@ class PolyclonalCollection:
             if "times_seen" not in kwargs["addtl_slider_stats"]:
                 kwargs["addtl_slider_stats"]["times_seen"] = 1
 
-        if "init_floor_at_zero" not in kwargs:
-            kwargs["init_floor_at_zero"] = False
-
         if "heatmap_min_at_least" not in kwargs:
             kwargs["heatmap_min_at_least"] = -2
         if "heatmap_max_at_least" not in kwargs:

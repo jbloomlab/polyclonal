@@ -8,7 +8,8 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
 6.7
 ---
-- Add ``heatmap_lims_from_slider_init`` option to ``lineplot_and_heatmap`` so that by default heatmap range is set by data shown with initial slider stats.
+- Add ``heatmap_lims_from_slider_init`` option to ``lineplot_and_heatmap`` so that by default heatmap range is set by data shown with initial slider stats. Set this option to ``False`` if you want old behavior for plot limits
+- Set default ``init_floor_at_zero`` for ``mut_icXX_plot`` to be ``True`` like for other plots.
 
 6.6
 ---
