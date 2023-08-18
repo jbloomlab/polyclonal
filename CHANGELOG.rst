@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.7
+---
+- Add ``heatmap_lims_from_slider_init`` option to ``lineplot_and_heatmap`` so that by default heatmap range is set by data shown with initial slider stats. Set this option to ``False`` if you want old behavior for plot limits
+- Set default ``init_floor_at_zero`` for ``mut_icXX_plot`` to be ``True`` like for other plots.
+
 6.6
 ---
 - Change ``lineplot_and_heatmap`` parameter ``addtl_slider_stats_hide_not_filter`` (which is used to make the escape heatmaps) so that mutations that have null escape but a non-null but hidden value are shown as grayed out (hidden) rather than missing. The use case is so that deleterious mutations that don't have escape measured but fail the functional effects filter are shown grayed out to indicate that they were measured and are deleterious, rather than leaving them out which implies they were not measured.
