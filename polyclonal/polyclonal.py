@@ -2725,6 +2725,7 @@ class Polyclonal:
         if df_to_merge is None:
             return data_df
         else:
+            site_to_wt = data_df.set_index("site")["wildtype"].to_dict()
             if isinstance(df_to_merge, pd.DataFrame):
                 df_to_merge = [df_to_merge]
             elif not isinstance(df_to_merge, list):
@@ -2737,6 +2738,18 @@ class Polyclonal:
                     df = pd.concat(
                         [df.assign(epitope=e) for e in data_df["epitope"].unique()]
                     )
+                if "wildtype" not in df.columns:
+                    df = df.assign(wildtype=lambda x: x["site"].map(site_to_wt))
+                else:
+                    mapped_wt = df["site"].map(site_to_wt)
+                    wt_mismatches = (mapped_wt != df["wildtype"]) & mapped_wt.notnull()
+                    if any(wt_mismatches):
+                        raise ValueError(
+                            "wildtype mismatches\n"
+                            + str(df[wt_mismatches])
+                            + "\n"
+                            + str(data_df[wt_mismatches])
+                        )
                 shared_cols = set(data_df.columns).intersection(df.columns)
                 if not shared_cols.issubset(mergeable_cols):
                     raise ValueError(
