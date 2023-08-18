@@ -698,7 +698,7 @@ def lineplot_and_heatmap(
         min_stat = df_for_lims[stat_col].min()
         max_stat = df_for_lims[stat_col].max()
     else:
-        min_stat = data_df[stat_col].min()  # used as min in heatmap when not flooring at 0
+        min_stat = data_df[stat_col].min()
         max_stat = data_df[stat_col].max()  # used as max in heatmap
     if heatmap_min_at_least is not None:
         min_stat = min(min_stat, heatmap_min_at_least)
