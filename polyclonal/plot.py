@@ -469,6 +469,7 @@ def lineplot_and_heatmap(
     heatmap_negative_color=None,
     heatmap_color_scheme=None,
     heatmap_color_scheme_mid_0=True,
+    heatmap_lims_from_slider_init=True,
     heatmap_max_at_least=None,
     heatmap_min_at_least=None,
     heatmap_max_fixed=None,
@@ -540,6 +541,11 @@ def lineplot_and_heatmap(
         rather than `category_colors` and `heatmap_negative_color`.
     heatmap_color_scheme_mid_0 : bool
         Set the heatmap color scheme so the domain mid is zero.
+    heatmap_lims_from_slider_init : bool
+        Do we set the heatmap limits to span just the range of values that are
+        shown given the initial values for any sliders in `addtl_slider_stats`, or
+        do we include all values including ones that might be filtered or hidden
+        by the initial slider values.
     heatmap_max_at_least : None or float
         Make heatmap color max at least this large.
     heatmap_min_at_least : None or float
@@ -613,12 +619,6 @@ def lineplot_and_heatmap(
     # filter `data_df` by any minimums in `slider_binding_range_kwargs`
     if slider_binding_range_kwargs is None:
         slider_binding_range_kwargs = {}
-    for col, col_kwargs in slider_binding_range_kwargs.items():
-        if "min" in col_kwargs:
-            data_df = data_df[
-                (data_df[col] >= col_kwargs["min"])
-                | (data_df["wildtype"] == data_df["mutant"])
-            ]
 
     categories = data_df[category_col].unique().tolist()
     show_category_label = show_single_category_label or (len(categories) > 1)
@@ -638,7 +638,7 @@ def lineplot_and_heatmap(
             [data_df[c].notnull() for c in ["site", "mutant", category_col]],
         )
     ]
-    # not defined for one of the stats or one of the hiding columns
+    # not defined for at least one of the stats or one of the hiding columns
     data_df = data_df[
         functools.reduce(
             operator.or_,
@@ -690,12 +690,20 @@ def lineplot_and_heatmap(
     ]
 
     # make floor at zero selection, setting floor to either 0 or min in data (no floor)
-    min_stat = data_df[stat_col].min()  # used as min in heatmap when not flooring at 0
+    if heatmap_lims_from_slider_init:
+        df_for_lims = data_df.copy()
+        for slider_stat, init_stat in addtl_slider_stats.items():
+            if init_stat is not None:
+                df_for_lims = df_for_lims[df_for_lims[slider_stat] >= init_stat]
+        min_stat = df_for_lims[stat_col].min()
+        max_stat = df_for_lims[stat_col].max()
+    else:
+        min_stat = data_df[stat_col].min()  # used as min in heatmap when not flooring at 0
+        max_stat = data_df[stat_col].max()  # used as max in heatmap
     if heatmap_min_at_least is not None:
         min_stat = min(min_stat, heatmap_min_at_least)
     if heatmap_min_fixed is not None:
         min_stat = heatmap_min_fixed
-    max_stat = data_df[stat_col].max()  # used as max in heatmap
     if heatmap_max_at_least is not None:
         max_stat = max(max_stat, heatmap_max_at_least)
     if heatmap_max_fixed is not None:
