@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.8
+---
+- Add ``addtl_slider_stats_as_max`` to ``lineplot_and_heatmap``.
+
 6.7
 ---
 - Add ``heatmap_lims_from_slider_init`` option to ``lineplot_and_heatmap`` so that by default heatmap range is set by data shown with initial slider stats. Set this option to ``False`` if you want old behavior for plot limits
