@@ -9,7 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.8
 ---
 - Add ``addtl_slider_stats_as_max`` to ``lineplot_and_heatmap``.
-- Show *escape_std* in ``PolyclonalCollection.mut_escape_plot``.
+- Show *escape_std* in ``PolyclonalCollection.mut_escape_plot`` and ``PolyclonalCollectios.mut_icXX_plot``
 
 6.7
 ---
