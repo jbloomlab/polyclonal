@@ -455,6 +455,7 @@ def lineplot_and_heatmap(
     sites=None,
     addtl_tooltip_stats=None,
     addtl_slider_stats=None,
+    addtl_slider_stats_as_max=None,
     addtl_slider_stats_hide_not_filter=None,
     init_floor_at_zero=True,
     init_site_statistic="sum",
@@ -508,6 +509,9 @@ def lineplot_and_heatmap(
         Additional stats for which to have a slider, value is initial setting. Ignores
         wildtype and drops it when all mutants have been dropped at site. Null values
         are not filtered.
+    addtl_slider_stats_as_max : None or list
+        For slider stats listed here, filter for values <= rather than >= the value
+        indicated in the slider.
     addtl_slider_stats_hide_not_filter : None or list
         By default, `addtl_slider_stats` are filtered entirely from data set. If you just
         them excluded from lineplot calculation but marked as filtered on heat map,
@@ -597,6 +601,12 @@ def lineplot_and_heatmap(
         addtl_tooltip_stats = []
     if addtl_slider_stats is None:
         addtl_slider_stats = {}
+    if addtl_slider_stats_as_max is None:
+        addtl_slider_stats_as_max = []
+    if not set(addtl_slider_stats_as_max).issubset(addtl_slider_stats):
+        raise ValueError(
+            f"{addtl_slider_stats_as_max=} has entries not in {addtl_slider_stats=}"
+        )
     if addtl_slider_stats_hide_not_filter is None:
         addtl_slider_stats_hide_not_filter = []
     addtl_slider_stats_hide_not_filter = set(addtl_slider_stats).intersection(
@@ -694,7 +704,10 @@ def lineplot_and_heatmap(
         df_for_lims = data_df.copy()
         for slider_stat, init_stat in addtl_slider_stats.items():
             if init_stat is not None:
-                df_for_lims = df_for_lims[df_for_lims[slider_stat] >= init_stat]
+                if slider_stat in addtl_slider_stats_as_max:
+                    df_for_lims = df_for_lims[df_for_lims[slider_stat] <= init_stat]
+                else:
+                    df_for_lims = df_for_lims[df_for_lims[slider_stat] >= init_stat]
         min_stat = df_for_lims[stat_col].min()
         max_stat = df_for_lims[stat_col].max()
     else:
@@ -725,18 +738,20 @@ def lineplot_and_heatmap(
         binding_range_kwargs = {
             "min": data_df[slider_stat].min(),
             "max": data_df[slider_stat].max(),
-            "name": f"minimum {slider_stat}",
+            "name": (
+                f"maximum {slider_stat}"
+                if slider_stat in addtl_slider_stats_as_max
+                else f"minimum {slider_stat}"
+            ),
         }
         if slider_stat in slider_binding_range_kwargs:
             binding_range_kwargs.update(slider_binding_range_kwargs[slider_stat])
-        sliders[slider_stat] = alt.selection_point(
-            fields=["cutoff"],
-            value=[{"cutoff": init_slider_stat}],
+        sliders[slider_stat] = alt.param(
+            value=init_slider_stat,
             bind=alt.binding_range(**binding_range_kwargs),
         )
-    sliders["_stat_site_max"] = alt.selection_point(
-        fields=["cutoff"],
-        value=[{"cutoff": min_stat}],
+    sliders["_stat_site_max"] = alt.param(
+        value=min_stat,
         bind=alt.binding_range(
             name=f"minimum max of {stat_col} at site",
             min=min_stat,
@@ -876,12 +891,14 @@ def lineplot_and_heatmap(
 
     # get stats to hide, not filter
     if addtl_slider_stats_hide_not_filter:
+        sel = []
+        for slider_stat in addtl_slider_stats_hide_not_filter:
+            # the 1e-6 is for rounding tolerance
+            if slider_stat in addtl_slider_stats_as_max:
+                sel.append(alt.datum[slider_stat] >= (sliders[slider_stat] + 1e-6))
+            else:
+                sel.append(alt.datum[slider_stat] <= (sliders[slider_stat] - 1e-6))
         # https://stackoverflow.com/a/61502057/4191652
-        sel = [
-            alt.datum[slider_stat]
-            <= (sliders[slider_stat]["cutoff"] - 1e-6)  # roundtol
-            for slider_stat in addtl_slider_stats_hide_not_filter
-        ]
         base_chart = base_chart.transform_calculate(
             _stat_hide=functools.reduce(operator.or_, sel)
         )
@@ -902,12 +919,16 @@ def lineplot_and_heatmap(
                 groupby=["site"],
             )
         if slider_stat not in addtl_slider_stats_hide_not_filter:
-            base_chart = base_chart.transform_filter(
-                (alt.datum[slider_stat] >= (slider["cutoff"] - 1e-6))  # rounding tol
-                | ~alt.expr.isFinite(
-                    alt.datum[slider_stat]
-                )  # do not filter null values
-            )
+            if slider_stat in addtl_slider_stats_as_max:
+                base_chart = base_chart.transform_filter(
+                    (alt.datum[slider_stat] <= (slider + 1e-6))  # round tol
+                    | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
+                )
+            else:
+                base_chart = base_chart.transform_filter(
+                    (alt.datum[slider_stat] >= (slider - 1e-6))  # round tol
+                    | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
+                )
     # Remove any sites that are only wildtype and filter with site zoom brush
     base_chart = (
         base_chart.transform_calculate(

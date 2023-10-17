@@ -993,12 +993,12 @@ class PolyclonalCollection:
         kwargs["stat_col"] = "escape"
         kwargs["category_col"] = "epitope"
 
+        if "addtl_slider_stats" not in kwargs:
+            kwargs["addtl_slider_stats"] = {}
+
         if "times_seen" in self.mut_escape_df.columns:
-            if "addtl_slider_stats" in kwargs:
-                if "times_seen" not in kwargs["addtl_slider_stats"]:
-                    kwargs["addtl_slider_stats"]["times_seen"] = 1
-            else:
-                kwargs["addtl_slider_stats"] = {"times_seen": 1}
+            if "times_seen" not in kwargs["addtl_slider_stats"]:
+                kwargs["addtl_slider_stats"]["times_seen"] = 1
 
         if ("sites" not in kwargs) and not self.sequential_integer_sites:
             kwargs["sites"] = self.sites
@@ -1012,10 +1012,15 @@ class PolyclonalCollection:
 
         if init_n_models is None:
             init_n_models = int(math.ceil(len(self.models) / 2))
-        if "addtl_slider_stats" in kwargs:
+        if "n_models" not in kwargs["addtl_slider_stats"]:
             kwargs["addtl_slider_stats"]["n_models"] = init_n_models
-        else:
-            kwargs["addtl_slider_stats"] = {"n_models": init_n_models}
+
+        if "addtl_slider_stats_as_max" not in kwargs:
+            kwargs["addtl_slider_stats_as_max"] = []
+        if "escape_std" not in kwargs["addtl_slider_stats"]:
+            max_escape_std = kwargs["data_df"]["escape_std"].max()
+            kwargs["addtl_slider_stats"]["escape_std"] = max_escape_std
+            kwargs["addtl_slider_stats_as_max"].append("escape_std")
 
         return polyclonal.plot.lineplot_and_heatmap(**kwargs)
 
@@ -1103,6 +1108,7 @@ class PolyclonalCollection:
         if "addtl_tooltip_stats" not in kwargs:
             kwargs["addtl_tooltip_stats"] = []
 
+        std_col = f"{log_fold_change_icXX_col} std"
         if per_model_tooltip:
             df = self.mut_icXX_df_w_model_values(
                 x=x,
@@ -1128,8 +1134,8 @@ class PolyclonalCollection:
                 logbase=logbase,
                 check_wt_icXX=check_wt_icXX,
             )
-            if "escape_std" not in kwargs["addtl_tooltip_stats"]:
-                kwargs["addtl_tooltip_stats"].append("escape_std")
+            if std_col not in kwargs["addtl_tooltip_stats"]:
+                kwargs["addtl_tooltip_stats"].append(std_col)
             stat_cols = [log_fold_change_icXX_col]
 
         kwargs["data_df"] = df.assign(epitope="all").rename(
@@ -1138,12 +1144,14 @@ class PolyclonalCollection:
         for col in stat_cols:
             kwargs["data_df"][col] = scale_stat_col * kwargs["data_df"][col]
 
+        if "addtl_slider_stats" not in kwargs:
+            kwargs["addtl_slider_stats"] = {}
+        if "addtl_slider_stats_as_max" not in kwargs:
+            kwargs["addtl_slider_stats_as_max"] = []
+
         if init_n_models is None:
             init_n_models = int(math.ceil(len(self.models) / 2))
-        if "addtl_slider_stats" in kwargs:
-            kwargs["addtl_slider_stats"]["n_models"] = init_n_models
-        else:
-            kwargs["addtl_slider_stats"] = {"n_models": init_n_models}
+        kwargs["addtl_slider_stats"]["n_models"] = init_n_models
 
         kwargs["data_df"] = polyclonal.Polyclonal._merge_df_to_merge(
             kwargs["data_df"],
@@ -1161,6 +1169,11 @@ class PolyclonalCollection:
         if "times_seen" in kwargs["data_df"].columns:
             if "times_seen" not in kwargs["addtl_slider_stats"]:
                 kwargs["addtl_slider_stats"]["times_seen"] = 1
+
+        if std_col not in kwargs["addtl_slider_stats"]:
+            max_escape_std = kwargs["data_df"][std_col].max()
+            kwargs["addtl_slider_stats"][std_col] = max_escape_std
+            kwargs["addtl_slider_stats_as_max"].append(std_col)
 
         if "heatmap_min_at_least" not in kwargs:
             kwargs["heatmap_min_at_least"] = -2
