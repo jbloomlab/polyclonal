@@ -565,11 +565,11 @@ class Polyclonal:
     ...              ):
     ...          raise ValueError(f"wrong escapes\n{m.mut_escape_df}")
 
-    The applymap on next line is to make doctest pass even with negative zeros
+    The ymap on next line is to make doctest pass even with negative zeros
 
     >>> (
     ...     model_data.mut_escape_site_summary_df()
-    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)
+    ...     .round(1).ymap(lambda x: 0.0 if x == 0 else x)
     ... )
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     1        M   0.0             0.0  0.0  0.0             0.0            1
@@ -584,7 +584,7 @@ class Polyclonal:
 
     >>> (
     ...     model_data.mut_escape_site_summary_df(exclude_chars={"C", "K"})
-    ...     .round(1).applymap(lambda x: 0.0 if x == 0 else x)
+    ...     .round(1).map(lambda x: 0.0 if x == 0 else x)
     ... )
       epitope  site wildtype  mean  total positive  max  min  total negative  n mutations
     0       1     2        G   0.0             0.0  0.0  0.0             0.0            1
