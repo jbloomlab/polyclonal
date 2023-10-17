@@ -1146,6 +1146,8 @@ class PolyclonalCollection:
 
         if "addtl_slider_stats" not in kwargs:
             kwargs["addtl_slider_stats"] = {}
+        if "addtl_slider_stats_as_max" not in kwargs:
+            kwargs["addtl_slider_stats_as_max"] = []
 
         if init_n_models is None:
             init_n_models = int(math.ceil(len(self.models) / 2))
