@@ -746,14 +746,12 @@ def lineplot_and_heatmap(
         }
         if slider_stat in slider_binding_range_kwargs:
             binding_range_kwargs.update(slider_binding_range_kwargs[slider_stat])
-        sliders[slider_stat] = alt.selection_point(
-            fields=["cutoff"],
-            value=[{"cutoff": init_slider_stat}],
+        sliders[slider_stat] = alt.param(
+            value=init_slider_stat,
             bind=alt.binding_range(**binding_range_kwargs),
         )
-    sliders["_stat_site_max"] = alt.selection_point(
-        fields=["cutoff"],
-        value=[{"cutoff": min_stat}],
+    sliders["_stat_site_max"] = alt.param(
+        value=min_stat,
         bind=alt.binding_range(
             name=f"minimum max of {stat_col} at site",
             min=min_stat,
@@ -897,13 +895,9 @@ def lineplot_and_heatmap(
         for slider_stat in addtl_slider_stats_hide_not_filter:
             # the 1e-6 is for rounding tolerance
             if slider_stat in addtl_slider_stats_as_max:
-                sel.append(
-                    alt.datum[slider_stat] >= (sliders[slider_stat]["cutoff"] + 1e-6)
-                )
+                sel.append(alt.datum[slider_stat] >= (sliders[slider_stat] + 1e-6))
             else:
-                sel.append(
-                    alt.datum[slider_stat] <= (sliders[slider_stat]["cutoff"] - 1e-6)
-                )
+                sel.append(alt.datum[slider_stat] <= (sliders[slider_stat] - 1e-6))
         # https://stackoverflow.com/a/61502057/4191652
         base_chart = base_chart.transform_calculate(
             _stat_hide=functools.reduce(operator.or_, sel)
@@ -927,12 +921,12 @@ def lineplot_and_heatmap(
         if slider_stat not in addtl_slider_stats_hide_not_filter:
             if slider_stat in addtl_slider_stats_as_max:
                 base_chart = base_chart.transform_filter(
-                    (alt.datum[slider_stat] <= (slider["cutoff"] + 1e-6))  # round tol
+                    (alt.datum[slider_stat] <= (slider + 1e-6))  # round tol
                     | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
                 )
             else:
                 base_chart = base_chart.transform_filter(
-                    (alt.datum[slider_stat] >= (slider["cutoff"] - 1e-6))  # round tol
+                    (alt.datum[slider_stat] >= (slider - 1e-6))  # round tol
                     | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
                 )
     # Remove any sites that are only wildtype and filter with site zoom brush
