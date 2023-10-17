@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Details on fitting &#8212; polyclonal 6.7 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <title>Details on fitting &#8212; polyclonal 6.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=fed019e6" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+    <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <script src="_static/documentation_options.js?v=5f6cf160"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -37,11 +37,11 @@
           <div class="body" role="main">
             
   <section id="Details-on-fitting">
-<h1>Details on fitting<a class="headerlink" href="#Details-on-fitting" title="Permalink to this heading">¶</a></h1>
+<h1>Details on fitting<a class="headerlink" href="#Details-on-fitting" title="Link to this heading">¶</a></h1>
 <p>Here we describe how the <code class="docutils literal notranslate"><span class="pre">polyclonal</span></code> package actually fits the models.</p>
 <p>The basic idea is to minimize the difference between the predicted and measured variant-level escape probabilities, <span class="math notranslate nohighlight">\(p_v\left(c\right)\)</span>, using a loss function that is not overly sensitive to outliers. In addition, there is regularization to encourage parameters to behave under biologically motivated constraints.</p>
 <section id="Implementation">
-<h2>Implementation<a class="headerlink" href="#Implementation" title="Permalink to this heading">¶</a></h2>
+<h2>Implementation<a class="headerlink" href="#Implementation" title="Link to this heading">¶</a></h2>
 <p>The fitting is implemented in the <code class="docutils literal notranslate"><span class="pre">Polyclonal.fit</span></code> function, which allows adjustment of the weights for the regularization. By default the optimization uses the gradient-based L-BFGS-B method implemented in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">scipy.optimize.minimize</a> and simply continues optimization until the minimization converges.</p>
 <p>Some key details about the fitting are as follows:</p>
 <ol class="arabic simple">
@@ -54,7 +54,7 @@ changing the fitting results. However, do <strong>not</strong> collaps if you ar
 <p>The <code class="docutils literal notranslate"><span class="pre">Polyclonal.fit</span></code> also allows you to adjust the weights on the regularizations. The default should be sensible, but you may want to try adjusting them about. You can also adjust the <span class="math notranslate nohighlight">\(\delta\)</span> values for the <a class="reference external" href="https://en.wikipedia.org/wiki/Huber_loss#Pseudo-Huber_loss_function">Pseudo-Huber</a> loss / regularization terms (see below), although the defaults are probably pretty good for these as they are chosen to be L1-like on most the range that values are expected to span.</p>
 </section>
 <section id="Loss-function">
-<h2>Loss function<a class="headerlink" href="#Loss-function" title="Permalink to this heading">¶</a></h2>
+<h2>Loss function<a class="headerlink" href="#Loss-function" title="Link to this heading">¶</a></h2>
 <p>We use a scaled <a class="reference external" href="https://en.wikipedia.org/wiki/Huber_loss#Pseudo-Huber_loss_function">Pseudo-Huber</a> loss function on the difference between the predicted and measure escape probabilities. Note that the Pseudo-Huber function is defined as <span class="math notranslate nohighlight">\(\hat{h}_{\delta}\left(x\right) = \delta^2 \left(\sqrt{1 + \left(x/\delta\right)^2} - 1\right)\)</span> where <span class="math notranslate nohighlight">\(\delta\)</span> is a parameter that indicates when the loss transitions from being quadratic (L2-like) to linear (L1-like) in <span class="math notranslate nohighlight">\(a\)</span>. Note that we
 will actually use a scaled Pseudo-Huber function of <span class="math notranslate nohighlight">\(h_{\delta}\left(x\right) = \hat{h}_{\delta}\left(x\right)/\delta\)</span> so the slope of the loss is one in the linear range. The rationale for a Pseudo-Huber loss is to be robust to outliers (L1-like for large residuals).</p>
 <p>Specifically, let <span class="math notranslate nohighlight">\(r_v\left(c\right) = p_v\left(c\right) - y_{v,c}\)</span> be the residual for the predicted of the escape probability of variant <span class="math notranslate nohighlight">\(v\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span>, where we are using <span class="math notranslate nohighlight">\(y_{v,c}\)</span> to denote the measured value. Then the loss for variant <span class="math notranslate nohighlight">\(v\)</span> at concentration <span class="math notranslate nohighlight">\(c\)</span> is <span class="math notranslate nohighlight">\(L_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right) = h_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right)\)</span>, and the overall loss is:</p>
@@ -62,7 +62,7 @@ will actually use a scaled Pseudo-Huber function of <span class="math notranslat
 \[L = \sum_{v,c} h_{\delta_{\rm{loss}}}\left(r_v\left(c\right)\right).\]</div>
 </section>
 <section id="Regularization">
-<h2>Regularization<a class="headerlink" href="#Regularization" title="Permalink to this heading">¶</a></h2>
+<h2>Regularization<a class="headerlink" href="#Regularization" title="Link to this heading">¶</a></h2>
 <p>We also regularize the mutation escape values (<span class="math notranslate nohighlight">\(\beta_{m,e}\)</span>) and the epitope activities (<span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span>) based on the notions:</p>
 <ol class="arabic simple">
 <li><p>Most mutations should not mediate escape,</p></li>
@@ -72,21 +72,21 @@ will actually use a scaled Pseudo-Huber function of <span class="math notranslat
 <li><p>Epitope activities should be small (or negative) except when clear evidence to the contrary.</p></li>
 </ol>
 <section id="Regularization-of-escape-values">
-<h3>Regularization of escape values<a class="headerlink" href="#Regularization-of-escape-values" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of escape values<a class="headerlink" href="#Regularization-of-escape-values" title="Link to this heading">¶</a></h3>
 <p>We regularize the escape values <span class="math notranslate nohighlight">\(\beta_{m,e}\)</span> using a simple Pseudo-Huber function, so that</p>
 <div class="math notranslate nohighlight">
 \[R_{\rm{escape}} = \lambda_{\rm{escape}} \sum_{m,e} h_{\delta_{\rm{escape}}}\left(\beta_{m,e}\right)\]</div>
 <p>where <span class="math notranslate nohighlight">\(\lambda_{\rm{escape}}\)</span> is the strength of the regularization and <span class="math notranslate nohighlight">\(\delta_{\rm{escape}}\)</span> is the Psdeuo-Huber delta parameter.</p>
 </section>
 <section id="Regularization-of-spread-of-escape-values-at-each-site-and-epitope">
-<h3>Regularization of spread of escape values at each site and epitope<a class="headerlink" href="#Regularization-of-spread-of-escape-values-at-each-site-and-epitope" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of spread of escape values at each site and epitope<a class="headerlink" href="#Regularization-of-spread-of-escape-values-at-each-site-and-epitope" title="Link to this heading">¶</a></h3>
 <p>We regularize the variance of the escape values at each site, so that</p>
 <div class="math notranslate nohighlight">
 \[R_{\rm{spread}} = \lambda_{\rm{spread}} \sum_{e,i} \frac{1}{M_i}\sum_{m \in i}\left(\beta_{m,e} - \frac{1}{M_i} \sum_{m' \in i} \beta_{m',e}\right)^2\]</div>
 <p>where <span class="math notranslate nohighlight">\(i\)</span> ranges over all sites, <span class="math notranslate nohighlight">\(M_i\)</span> is the number of mutations at site <span class="math notranslate nohighlight">\(i\)</span>, and <span class="math notranslate nohighlight">\(m \in i\)</span> indicates all mutations at site <span class="math notranslate nohighlight">\(i\)</span>.</p>
 </section>
 <section id="Regularization-of-spatial-spread-of-epitopes">
-<h3>Regularization of spatial spread of epitopes<a class="headerlink" href="#Regularization-of-spatial-spread-of-epitopes" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of spatial spread of epitopes<a class="headerlink" href="#Regularization-of-spatial-spread-of-epitopes" title="Link to this heading">¶</a></h3>
 <p>To regularize the spatial spread of epitopes, we first define a differentiable measure of the average absolute value of escape at a site for an epitope <span class="math notranslate nohighlight">\(e\)</span> as</p>
 <div class="math notranslate nohighlight">
 \[s_{r,e} = \sqrt{\frac{1}{M_r} \sum_{m \in r} \beta_{m,e}^2 + \epsilon} - \sqrt{\epsilon}\]</div>
@@ -98,28 +98,28 @@ will actually use a scaled Pseudo-Huber function of <span class="math notranslat
 <p>Note how this term has weights enabling regularization on both the distances and squared distances. The factor of <span class="math notranslate nohighlight">\(\frac{1}{2}\)</span> is to avoid double counting pairs, noting that the diagonal elements are always zero since the self distances are zero.</p>
 </section>
 <section id="Regularization-of-epitope-uniqueness">
-<h3>Regularization of epitope uniqueness<a class="headerlink" href="#Regularization-of-epitope-uniqueness" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of epitope uniqueness<a class="headerlink" href="#Regularization-of-epitope-uniqueness" title="Link to this heading">¶</a></h3>
 <p>To regularize to ensure epitopes contain largely unique sites, we define the following term which uses the differentiable average absolute value of escape at a site for an epitope <span class="math notranslate nohighlight">\(s_{r,e}\)</span> defined above:</p>
 <div class="math notranslate nohighlight">
 \[R_{\rm{uniqueness}} = \frac{1}{2}\lambda_{\rm{uniqueness}} \sum_r \sum_e \sum_{e' \ne e} s_{r,e} s_{r,e'}\]</div>
 <p>where <span class="math notranslate nohighlight">\(e\)</span> and <span class="math notranslate nohighlight">\(e'\)</span> range over all pairs of epitopes, and <span class="math notranslate nohighlight">\(r\)</span> ranges over all sites.</p>
 </section>
 <section id="Regularization-of-epitope-uniqueness^2">
-<h3>Regularization of epitope uniqueness<span class="math notranslate nohighlight">\(^2\)</span><a class="headerlink" href="#Regularization-of-epitope-uniqueness^2" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of epitope uniqueness<span class="math notranslate nohighlight">\(^2\)</span><a class="headerlink" href="#Regularization-of-epitope-uniqueness^2" title="Link to this heading">¶</a></h3>
 <p>This is a second regularization to ensure epitopes contain largely unique sites, but this one operates on the <strong>squared</strong> product of escape at a site, and so will more strongly penalize very large escape at same site, but less penalize weak shared constraint:</p>
 <div class="math notranslate nohighlight">
 \[R_{\rm{uniqueness}^2} = \lambda_{\rm{uniqueness}^2} \sum_{i} \sum_{j &gt; i} \sum_{k} \left(\sum_{m' \in S_{k}} \beta_{m',i}^2\right)\left(\sum_{m' \in S_{k}} \beta_{m',j}^2\right)\]</div>
 <p>where <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(j\)</span> range over all epitopes <span class="math notranslate nohighlight">\(E\)</span>, <span class="math notranslate nohighlight">\(k\)</span> is the site index, and <span class="math notranslate nohighlight">\(m' \in S_{k}\)</span> represents all mutations at site <span class="math notranslate nohighlight">\(k\)</span>.</p>
 </section>
 <section id="Regularization-of-epitope-activities">
-<h3>Regularization of epitope activities<a class="headerlink" href="#Regularization-of-epitope-activities" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of epitope activities<a class="headerlink" href="#Regularization-of-epitope-activities" title="Link to this heading">¶</a></h3>
 <p>We regularize the epitope activities <span class="math notranslate nohighlight">\(a_{\rm{wt}, e}\)</span> to be close to zero using Pseudo-Huber function. Note that the activities are confounded with the concentration scale, so for this regularization we first compute the geometric mean concentration <span class="math notranslate nohighlight">\(c_{GM}\)</span> and incorporate that so the strength of the regularization is about the same regardless of the concentrations. Specifically, the regularization is:</p>
 <div class="math notranslate nohighlight">
 \[R_{\rm{activity}} = \lambda_{\rm{activity}} h_{\delta_{\rm{activity}}}\left(a_{\rm{wt}, e} + \log c_{GM} \right)\]</div>
 <p>where <span class="math notranslate nohighlight">\(\lambda_{\rm{activity}}\)</span> is the strength of the regularization and <span class="math notranslate nohighlight">\(\delta_{\rm{activity}}\)</span> is the Psdeuo-Huber delta parameter.</p>
 </section>
 <section id="Regularization-of-Hill-coefficients">
-<h3>Regularization of Hill coefficients<a class="headerlink" href="#Regularization-of-Hill-coefficients" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of Hill coefficients<a class="headerlink" href="#Regularization-of-Hill-coefficients" title="Link to this heading">¶</a></h3>
 <p>We regularize the Hill coefficients <span class="math notranslate nohighlight">\(n_e\)</span> to be close to one using the regularization, using a penalty that essentially operates on the log of <span class="math notranslate nohighlight">\(n_e\)</span> so the values are bounded by 0 and infinity:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}R_{\rm{Hill coefficient}}
@@ -131,7 +131,7 @@ will actually use a scaled Pseudo-Huber function of <span class="math notranslat
 <p>where <span class="math notranslate nohighlight">\(\lambda_{\rm{Hill coefficient}}\)</span> is the strength of the regularization. Note that it is important that the Hill coefficients be fairly strongly normalized. For instance, a value of <span class="math notranslate nohighlight">\(\lambda_{\rm{Hill coefficient}} = 50\)</span> creates a penalty of 200 when <span class="math notranslate nohighlight">\(n_e = 1/3\)</span> or <span class="math notranslate nohighlight">\(n_e = 3\)</span>, a penalty of 50 when <span class="math notranslate nohighlight">\(n_e = 1/2\)</span> or <span class="math notranslate nohighlight">\(n_e = 2\)</span>, and a penalty of 12.5 when <span class="math notranslate nohighlight">\(n_e = 1.5\)</span> or <span class="math notranslate nohighlight">\(n_e = 1 / 1.5\)</span>. Note also that the minimization bounds <span class="math notranslate nohighlight">\(0 &lt; n_e\)</span>.</p>
 </section>
 <section id="Regularization-of-non-neutralizable-fraction">
-<h3>Regularization of non-neutralizable fraction<a class="headerlink" href="#Regularization-of-non-neutralizable-fraction" title="Permalink to this heading">¶</a></h3>
+<h3>Regularization of non-neutralizable fraction<a class="headerlink" href="#Regularization-of-non-neutralizable-fraction" title="Link to this heading">¶</a></h3>
 <p>We regularize the non-neutralizable fraction <span class="math notranslate nohighlight">\(t_e\)</span> to be close to zero, and also during the minimization set a bound so it cannot go below zero or above one. The regularization is:</p>
 <div class="math notranslate nohighlight">
 \[R_{\rm{non-neutralized-frac}}
@@ -141,10 +141,10 @@ will actually use a scaled Pseudo-Huber function of <span class="math notranslat
 </section>
 </section>
 <section id="Gradients-used-for-optimization">
-<h2>Gradients used for optimization<a class="headerlink" href="#Gradients-used-for-optimization" title="Permalink to this heading">¶</a></h2>
+<h2>Gradients used for optimization<a class="headerlink" href="#Gradients-used-for-optimization" title="Link to this heading">¶</a></h2>
 <p>Here are the formulas used to calculate the gradients in the optimization.</p>
 <section id="Gradient-of-loss-function">
-<h3>Gradient of loss function<a class="headerlink" href="#Gradient-of-loss-function" title="Permalink to this heading">¶</a></h3>
+<h3>Gradient of loss function<a class="headerlink" href="#Gradient-of-loss-function" title="Link to this heading">¶</a></h3>
 <p>For the loss function, the gradients are as follows:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial L}{\partial \beta_{m,e}} =
@@ -170,7 +170,7 @@ p_v\left(c\right) \frac{\left(\phi_e\left(v\right) - \ln c\right)}{\left(1 - t_e
 \frac{1 - U_e\left(v, c\right)}{1 - t_e}\]</div>
 <p>See below for how the sub-components that lead to these were calculated.</p>
 <section id="Calculating-\frac{\partial-\left[h_{\delta}\left(r\right)\right]}{\partial-r}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial \left[h_{\delta}\left(r\right)\right]}{\partial r}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-\left[h_{\delta}\left(r\right)\right]}{\partial-r}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial \left[h_{\delta}\left(r\right)\right]}{\partial r}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-\left[h_{\delta}\left(r\right)\right]}{\partial-r}" title="Link to this heading">¶</a></h4>
 <p>We have</p>
 <div class="math notranslate nohighlight">
 \[ \frac{\partial \left[h_{\delta}\left(r\right)\right]}{\partial r}
@@ -179,7 +179,7 @@ p_v\left(c\right) \frac{\left(\phi_e\left(v\right) - \ln c\right)}{\left(1 - t_e
 = \frac{r}{h_{\delta}\left(r\right) + \delta}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-p_v\left(c\right)}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial p_v\left(c\right)}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-p_v\left(c\right)}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial p_v\left(c\right)}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-p_v\left(c\right)}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <p>First, note</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial p_v\left(c\right)}{\partial \beta_{m,e}} = \frac{\partial U_e\left(v, c\right)}{\partial \beta_{m,e}} \frac{p_v\left(c\right)}{U_e\left(v, c\right)}.\]</div>
@@ -200,7 +200,7 @@ p_v\left(c\right) \frac{\left(\phi_e\left(v\right) - \ln c\right)}{\left(1 - t_e
 p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\right]\left[1 - U_e\left(v, c\right)\right]}{U_e\left(v, c\right)} b\left(v\right)_m.\]</div>
 </section>
 <section id="Calculating-\frac{\partial-p_v\left(c\right)}{\partial-a_{\rm{wt},e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial p_v\left(c\right)}{\partial a_{\rm{wt},e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-p_v\left(c\right)}{\partial-a_{\rm{wt},e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial p_v\left(c\right)}{\partial a_{\rm{wt},e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-p_v\left(c\right)}{\partial-a_{\rm{wt},e}}" title="Link to this heading">¶</a></h4>
 <p>The only difference from above is the sign, so:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial p_v\left(c\right)}{\partial a_{\rm{wt},e}}
@@ -208,14 +208,14 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 -p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\right]\left[1 - U_e\left(v, c\right)\right]}{U_e\left(v, c\right)}.\]</div>
 </section>
 <section id="Calculating-\frac{\partial-U_e\left(v,-c\right)}{\partial-n_e}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial U_e\left(v, c\right)}{\partial n_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-U_e\left(v,-c\right)}{\partial-n_e}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial U_e\left(v, c\right)}{\partial n_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-U_e\left(v,-c\right)}{\partial-n_e}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial U_e\left(v, c\right)}{\partial n_e}
 =
 \frac{\left(\phi_e\left(v\right) - \ln c\right)}{\left(1 - t_e\right)} \left[1 - U_e\left(v, c\right)\right]\left[U_e\left(v, c\right) - t_e\right].\]</div>
 </section>
 <section id="Calculating-\frac{\partial-U_e\left(v,-c\right)}{\partial-t_e}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial U_e\left(v, c\right)}{\partial t_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-U_e\left(v,-c\right)}{\partial-t_e}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial U_e\left(v, c\right)}{\partial t_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-U_e\left(v,-c\right)}{\partial-t_e}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial U_e\left(v, c\right)}{\partial t_e}
 =
@@ -223,19 +223,19 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 </section>
 </section>
 <section id="Gradients-of-regularizations">
-<h3>Gradients of regularizations<a class="headerlink" href="#Gradients-of-regularizations" title="Permalink to this heading">¶</a></h3>
+<h3>Gradients of regularizations<a class="headerlink" href="#Gradients-of-regularizations" title="Link to this heading">¶</a></h3>
 <section id="Calculating-\frac{\partial-R_{\rm{escape}}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{escape}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{escape}}}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{escape}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{escape}}}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial R_{\rm{escape}}}{\partial \beta_{m,e}} = \frac{\lambda_{\rm{escape}}\beta_{m,e}}{h_{\delta_{\rm{escape}}}\left(\beta_{m,e}\right) + \delta_{\rm{escape}}}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{spread}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{spread}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{spread}}}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial R_{\rm{spread}}}{\partial \beta_{m,e}} = \frac{2\lambda_{\rm{spread}}}{M_i} \left(\beta_{m,e} - \frac{1}{M_i} \sum_{m' \in i} \beta_{m',e}\right)\]</div>
 </section>
 <section id="Calculating-\frac{\partial-s_{r,e}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial s_{r,e}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-s_{r,e}}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial s_{r,e}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-s_{r,e}}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\begin{split}\frac{\partial s_{r,e}}{\partial \beta_{m,e'}} =
 \begin{cases}
@@ -245,7 +245,7 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 \end{cases}\end{split}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{spatial}}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{spatial}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{spatial}}}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{spatial}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{spatial}}}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{R_{\rm{spatial}}}{\partial \beta_{m,e}}
 =
@@ -259,7 +259,7 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 <p>where <span class="math notranslate nohighlight">\(r_m\)</span> is the site of mutation <span class="math notranslate nohighlight">\(m\)</span>.</p>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{uniqueness}}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{uniqueness}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{uniqueness}}}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{uniqueness}}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{uniqueness}}}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial R_{\rm{uniqueness}}}{\partial \beta_{m,e}}
 =
@@ -272,18 +272,18 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 \frac{\partial s_{r_m,e}}{\partial \beta_{m,e}} s_{r_m,e'}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{uniqueness}^2}}{\partial-\beta_{m,e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{uniqueness}^2}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{uniqueness}^2}}{\partial-\beta_{m,e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{uniqueness}^2}}{\partial \beta_{m,e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{uniqueness}^2}}{\partial-\beta_{m,e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial{R_{\rm{uniqueness}^2}}}{\partial{\beta_{m,e}}} = 2\lambda_{\rm{uniqueness}^2} \beta_{m,e} \sum_{j \neq e} \sum_{m' \in S_k}\left(\beta_{m',j}^2\right)\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{activity}}}{\partial-a_{\rm{wt},-e}}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{activity}}}{\partial a_{\rm{wt}, e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{activity}}}{\partial-a_{\rm{wt},-e}}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{activity}}}{\partial a_{\rm{wt}, e}}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{activity}}}{\partial-a_{\rm{wt},-e}}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial R_{\rm{activity}}}{\partial a_{\rm{wt}, e}} =
 \frac{\lambda_{\rm{escape}}\left(a_{\rm{wt}, e} + \log c_{GM}\right)}{h_{\delta_{\rm{activity}}}\left(a_{\rm{wt}, e} + \log c_{GM}\right) + \delta_{\rm{activity}}}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{Hill-coefficient}}}{\partial-n_e}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{Hill coefficient}}}{\partial n_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{Hill-coefficient}}}{\partial-n_e}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{Hill coefficient}}}{\partial n_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{Hill-coefficient}}}{\partial-n_e}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\begin{split}\frac{\partial R_{\rm{Hill coefficient}}}{\partial n_e}
 =
@@ -293,7 +293,7 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 \end{cases}\end{split}\]</div>
 </section>
 <section id="Calculating-\frac{\partial-R_{\rm{non-neutralized-frac}}}{\partial-t_e}">
-<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{non-neutralized-frac}}}{\partial t_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{non-neutralized-frac}}}{\partial-t_e}" title="Permalink to this heading">¶</a></h4>
+<h4>Calculating <span class="math notranslate nohighlight">\(\frac{\partial R_{\rm{non-neutralized-frac}}}{\partial t_e}\)</span><a class="headerlink" href="#Calculating-\frac{\partial-R_{\rm{non-neutralized-frac}}}{\partial-t_e}" title="Link to this heading">¶</a></h4>
 <div class="math notranslate nohighlight">
 \[\frac{\partial R_{\rm{non-neutralized-frac}}}{\partial t_e}
 =
@@ -302,7 +302,7 @@ p_v\left(c\right) \frac{n_e}{1 - t_e} \frac{\left[U_e\left(v, c\right) - t_e\rig
 </section>
 </section>
 <section id="Bootstrapping">
-<h2>Bootstrapping<a class="headerlink" href="#Bootstrapping" title="Permalink to this heading">¶</a></h2>
+<h2>Bootstrapping<a class="headerlink" href="#Bootstrapping" title="Link to this heading">¶</a></h2>
 <p>For the bootstrapping implemented by <code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code>, we start with a single pre-fit model to all the data. We then draw bootstrap replicates of the data used to fit that model, by default sampling the same variants at each concentration (see <code class="docutils literal notranslate"><span class="pre">sample_by</span></code> option of <code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code>). We then fit each of these bootstrapped models starting from the initial values from the pre-fit model on all of the data. Finally, the fit parameters or predictions from the models are summarized.
 Note that mutations may not be present in some bootstrap replicates if they are only in a few variants, and this can be assessed by looking at the <code class="docutils literal notranslate"><span class="pre">frac_boostrap_replicates</span></code> column in the output from <code class="docutils literal notranslate"><span class="pre">PolyclonalBootstrap</span></code>.</p>
 <div class="nbinput nblast docutils container">
@@ -408,7 +408,7 @@ Note that mutations may not be present in some bootstrap replicates if they are 
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

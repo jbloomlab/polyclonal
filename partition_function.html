@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Distinct epitopes assumption &#8212; polyclonal 6.7 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <title>Distinct epitopes assumption &#8212; polyclonal 6.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=fed019e6" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css?v=7f9a90b1" />
+    <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <script src="_static/documentation_options.js?v=5f6cf160"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -37,11 +37,11 @@
           <div class="body" role="main">
             
   <section id="Distinct-epitopes-assumption">
-<h1>Distinct epitopes assumption<a class="headerlink" href="#Distinct-epitopes-assumption" title="Permalink to this heading">¶</a></h1>
+<h1>Distinct epitopes assumption<a class="headerlink" href="#Distinct-epitopes-assumption" title="Link to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> model assumes that a polyclonal antibody mix can be divided into independent classes of neutralizing antibodies that bind to distinct epitopes without competition. Here we interrogate the validity of this assumption, being cognizant of the observation that realistic epitopes are often overlapping and therefore not distinct. To do this, we draw from statistical mechanics principles to compare the antibody escape fractions predicted by <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> and an identically
 formulated model that instead assumes all epitopes are overlapping.</p>
 <section id="1.-Modeling-a-monoclonal-antibody-that-neutralizes-a-viral-protein">
-<h2>1. Modeling a monoclonal antibody that neutralizes a viral protein<a class="headerlink" href="#1.-Modeling-a-monoclonal-antibody-that-neutralizes-a-viral-protein" title="Permalink to this heading">¶</a></h2>
+<h2>1. Modeling a monoclonal antibody that neutralizes a viral protein<a class="headerlink" href="#1.-Modeling-a-monoclonal-antibody-that-neutralizes-a-viral-protein" title="Link to this heading">¶</a></h2>
 <p>Before we consider the polyclonal antibody case, lets first consider the case of a monoclonal antibody that neutralizes a viral protein. Here, the viral protein can exist in two microstates, bound or unbound by a neutralizing antibody. The Boltzmann weight is 1 for the unbound state and <span class="math notranslate nohighlight">\(\frac{c}{K_d}\)</span> for the bound state, where <span class="math notranslate nohighlight">\(c\)</span> is the antibody concentration and <span class="math notranslate nohighlight">\(K_d\)</span> is the dissociation constant of antibody-protein binding. These Boltzmann weights can derived using the
 steady-state approximation (see <a class="reference external" href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007830">Einav et al. 2020</a>).</p>
 <p>We can then define the partition function <span class="math notranslate nohighlight">\(\Xi\)</span> as:</p>
@@ -52,11 +52,11 @@ steady-state approximation (see <a class="reference external" href="https://jour
 \[p_{unbound} = \frac{Z_{unbound}}{\Xi} = \frac{1}{1 + \frac{c}{K_d}} \tag{Eq. 1}\]</div>
 </section>
 <section id="2.-Modeling-polyclonal-antibodies-that-neutralize-a-viral-protein">
-<h2>2. Modeling polyclonal antibodies that neutralize a viral protein<a class="headerlink" href="#2.-Modeling-polyclonal-antibodies-that-neutralize-a-viral-protein" title="Permalink to this heading">¶</a></h2>
+<h2>2. Modeling polyclonal antibodies that neutralize a viral protein<a class="headerlink" href="#2.-Modeling-polyclonal-antibodies-that-neutralize-a-viral-protein" title="Link to this heading">¶</a></h2>
 <p>To extend above to a polyclonal antibody mix, we first modify <span class="math notranslate nohighlight">\(c\)</span> to represent the concentration of the polyclonal antibody mix. We assume that the polyclonal antibody mix contains neutralizing antibodies that bind one of <span class="math notranslate nohighlight">\(E\)</span> epitopes. As follows, the Boltzmann weight of the state where epitope <span class="math notranslate nohighlight">\(e\)</span> is bound is modified to <span class="math notranslate nohighlight">\(\frac{c f_e}{K_{d,e}}\)</span>, where <span class="math notranslate nohighlight">\(f_e\)</span> represents the fraction of neutralizing antibodies in the polyclonal mix that target epitope <span class="math notranslate nohighlight">\(e\)</span>, and
 <span class="math notranslate nohighlight">\(K_{d,e}\)</span> is the dissociation constant of neutralizing antibodies binding to epitope <span class="math notranslate nohighlight">\(e\)</span>.</p>
 <section id="2.1-Two-distinct-epitopes">
-<h3>2.1 Two distinct epitopes<a class="headerlink" href="#2.1-Two-distinct-epitopes" title="Permalink to this heading">¶</a></h3>
+<h3>2.1 Two distinct epitopes<a class="headerlink" href="#2.1-Two-distinct-epitopes" title="Link to this heading">¶</a></h3>
 <p>In a polyclonal antibody mix, it now becomes possible for new microstates to exist where multiple epitopes are bound by antibodies. For example, we can consider a viral protein that contains two distinct epitopes (1 and 2) that are targeted by polyclonal antibodies. In addition to the microstates where a <em>single</em> epitope is bound, we now require an additional microstate where <em>both</em> epitopes are bound. The Boltzmann weight for this new microstate is:</p>
 <div class="math notranslate nohighlight">
 \[Z_{12,bound} = \left(\frac{c f_1}{K_{d,1}}\right) \left(\frac{c f_2}{K_{d,2}}\right)\]</div>
@@ -72,7 +72,7 @@ p_{unbound} = \frac{Z_{unbound}}{\Xi} &amp;=&amp; \frac{1}{1 + \frac{c f_1}{K_{d
 <p>Note that Eq. 2 exactly corresponds to the <code class="docutils literal notranslate"><span class="pre">Polyclonal</span></code> model.</p>
 </section>
 <section id="2.2-Two-overlapping-epitopes">
-<h3>2.2 Two overlapping epitopes<a class="headerlink" href="#2.2-Two-overlapping-epitopes" title="Permalink to this heading">¶</a></h3>
+<h3>2.2 Two overlapping epitopes<a class="headerlink" href="#2.2-Two-overlapping-epitopes" title="Link to this heading">¶</a></h3>
 <p>In the above case, the two epitopes were <em>distinct</em> and there was no competition amongst neutralizing antibodies. However, if the epitopes are overlapping and there is competition, then the microstate where <em>both</em> epitopes are bound (<span class="math notranslate nohighlight">\(Z_{12,bound}\)</span>) can no longer happen. In this case, the probability of a viral protein being unbound by antibodies is:</p>
 <div class="math notranslate nohighlight">
 \[p_{unbound} = \frac{Z_{unbound}}{\Xi} = \frac{1}{1 + \frac{c f_1}{K_{d,1}} + \frac{c f_2}{K_{d,2}}} \tag{Eq. 3}\]</div>
@@ -282,7 +282,7 @@ p_{unbound} = \frac{Z_{unbound}}{\Xi} &amp;=&amp; \frac{1}{1 + \frac{c f_1}{K_{d
 </div>
 </section>
 <section id="2.3-Extending-beyond-two-epitopes">
-<h3>2.3 Extending beyond two epitopes<a class="headerlink" href="#2.3-Extending-beyond-two-epitopes" title="Permalink to this heading">¶</a></h3>
+<h3>2.3 Extending beyond two epitopes<a class="headerlink" href="#2.3-Extending-beyond-two-epitopes" title="Link to this heading">¶</a></h3>
 <p>The same logic applies to viral proteins with more than two epitopes targeted by neutralizing antibodies. For example, we can write the case of 3 distinct epitopes as:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{eqnarray}
@@ -544,7 +544,7 @@ p_{unbound} = \frac{Z_{unbound}}{\Xi} &amp;=&amp; \frac{1}{1 + \frac{c f_1}{K_{d
       &copy;2019--2023.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
