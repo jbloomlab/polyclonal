@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.9
+---
+- Added ``rename_std`` option to ``lineplot_and_heatmaps``, which fixes a quasi-bug introduced in the ``rename_stat_col`` option by the changes in version 6.8.
+
 6.8
 ---
 - Add ``addtl_slider_stats_as_max`` to ``lineplot_and_heatmap``.
