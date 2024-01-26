@@ -386,16 +386,16 @@ class Polyclonal:
        barcode aa_substitutions   IC50
     0       AA                   0.085
     1       AC              M1C  0.230
-    2       GA              M1C  0.230
-    3       AG              G2A  0.296
-    4       AT              A4K  0.128
-    5       TA              A4L  0.117
-    6       CA          M1C G2A  0.355
-    7       CG          M1C A4K  0.722
-    8       CC          G2A A4K  1.414
-    9       TC          G2A A4L  0.858
-    10      CT      M1C G2A A4K  3.237
-    11      TG      M1C G2A A4L  1.430
+    2       AG              G2A  0.296
+    3       AT              A4K  0.128
+    4       TA              A4L  0.117
+    5       CA          M1C G2A  0.355
+    6       CG          M1C A4K  0.722
+    7       CC          G2A A4K  1.414
+    8       TC          G2A A4L  0.858
+    9       CT      M1C G2A A4K  3.237
+    10      TG      M1C G2A A4L  1.430
+    11      GA              M1C  0.230
 
     Or the IC90s:
 
@@ -403,16 +403,16 @@ class Polyclonal:
        barcode aa_substitutions    IC90
     0       AA                    0.464
     1       AC              M1C   1.260
-    2       GA              M1C   1.260
-    3       AG              G2A   1.831
-    4       AT              A4K   0.976
-    5       TA              A4L   0.782
-    6       CA          M1C G2A   2.853
-    7       CG          M1C A4K   4.176
-    8       CC          G2A A4K   7.473
-    9       TC          G2A A4L   4.532
-    10      CT      M1C G2A A4K  18.717
-    11      TG      M1C G2A A4L   9.532
+    2       AG              G2A   1.831
+    3       AT              A4K   0.976
+    4       TA              A4L   0.782
+    5       CA          M1C G2A   2.853
+    6       CG          M1C A4K   4.176
+    7       CC          G2A A4K   7.473
+    8       TC          G2A A4L   4.532
+    9       CT      M1C G2A A4K  18.717
+    10      TG      M1C G2A A4L   9.532
+    11      GA              M1C   1.260
 
     Or the fold change IC90s of all mutations:
     >>> model.mut_icXX_df(
