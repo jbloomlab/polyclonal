@@ -7,7 +7,6 @@ Plotting functions.
 
 """
 
-
 import functools
 import math
 import operator
@@ -724,9 +723,11 @@ def lineplot_and_heatmap(
     # get tooltips for heatmap
     float_cols = [c for c in req_cols if data_df[c].dtype == float]
     heatmap_tooltips = [
-        alt.Tooltip(c, type="quantitative", format=".3g")
-        if c in float_cols
-        else alt.Tooltip(c, type="nominal")
+        (
+            alt.Tooltip(c, type="quantitative", format=".3g")
+            if c in float_cols
+            else alt.Tooltip(c, type="nominal")
+        )
         for c in req_cols
         if c != category_col or show_category_label
     ]
@@ -1168,9 +1169,9 @@ def lineplot_and_heatmap(
         heatmaps.append(heatmap_bg + heatmap_hide + heatmap + heatmap_wildtype)
     heatmaps = alt.vconcat(*heatmaps, spacing=10).resolve_scale(
         x="shared",
-        color="shared"
-        if heatmap_color_scheme or len(categories) == 1
-        else "independent",
+        color=(
+            "shared" if heatmap_color_scheme or len(categories) == 1 else "independent"
+        ),
     )
 
     chartlist = []

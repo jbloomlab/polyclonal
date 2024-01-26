@@ -7,7 +7,6 @@ Defines :class:`Polyclonal` objects for handling antibody mixtures.
 
 """
 
-
 import collections
 import copy  # noqa: F401
 import inspect
@@ -2127,10 +2126,9 @@ class Polyclonal:
             fit_kwargs["fix_hill_coefficient"] = True
             fit_kwargs["fix_non_neutralized_frac"] = True
             fit_kwargs["reg_activity_weight"] = fit_fixed_first_reg_activity_weight
-            fit_kwargs[
-                "log_desc"
-            ] = "fixed Hill coefficient and non-neutralized frac" + (
-                f" {log_desc}" if log_desc else ""
+            fit_kwargs["log_desc"] = (
+                "fixed Hill coefficient and non-neutralized frac"
+                + (f" {log_desc}" if log_desc else "")
             )
             self.fit(**fit_kwargs)
         elif fit_site_level_first:

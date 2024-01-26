@@ -1,6 +1,5 @@
 """Setup script for ``polyclonal``."""
 
-
 import re
 import sys
 

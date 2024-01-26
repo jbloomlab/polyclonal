@@ -7,7 +7,6 @@ Miscellaneous utility functions.
 
 """
 
-
 import re
 
 import pandas as pd  # noqa: F401
