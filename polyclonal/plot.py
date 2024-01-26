@@ -7,7 +7,6 @@ Plotting functions.
 
 """
 
-
 import functools
 import math
 import operator
@@ -515,8 +514,10 @@ def lineplot_and_heatmap(
         indicated in the slider.
     addtl_slider_stats_hide_not_filter : None or list
         By default, `addtl_slider_stats` are filtered entirely from data set. If you just
-        them excluded from lineplot calculation but marked as filtered on heat map,
-        add names of stats to this list.
+        them excluded from lineplot but marked as hidden on heat map (eg, gray box),
+        add names of stats to this list. Mutations that fail one of these hiding filters
+        are always shown as hidden on the heat map rather than fully excluded, even if
+        they fail other filters in `addtl_slider_stats`.
     init_floor_at_zero : bool
         Initial value for option to put floor of zero on value is `stat_col`.
     init_site_statistic : {'sum', 'mean', 'max', 'min'}
@@ -657,7 +658,6 @@ def lineplot_and_heatmap(
         .assign(**{stat_col: lambda x: x[stat_col] * scale_stat_col})
     )
 
-    # filter `data_df` by any minimums in `slider_binding_range_kwargs`
     if slider_binding_range_kwargs is None:
         slider_binding_range_kwargs = {}
 
@@ -723,9 +723,11 @@ def lineplot_and_heatmap(
     # get tooltips for heatmap
     float_cols = [c for c in req_cols if data_df[c].dtype == float]
     heatmap_tooltips = [
-        alt.Tooltip(c, type="quantitative", format=".3g")
-        if c in float_cols
-        else alt.Tooltip(c, type="nominal")
+        (
+            alt.Tooltip(c, type="quantitative", format=".3g")
+            if c in float_cols
+            else alt.Tooltip(c, type="nominal")
+        )
         for c in req_cols
         if c != category_col or show_category_label
     ]
@@ -954,11 +956,13 @@ def lineplot_and_heatmap(
                 base_chart = base_chart.transform_filter(
                     (alt.datum[slider_stat] <= (slider + 1e-6))  # round tol
                     | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
+                    | alt.datum["_stat_hide"]  # do not filter hidden sites
                 )
             else:
                 base_chart = base_chart.transform_filter(
                     (alt.datum[slider_stat] >= (slider - 1e-6))  # round tol
                     | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
+                    | alt.datum["_stat_hide"]  # do not filter hidden sites
                 )
     # Remove any sites that are only wildtype and filter with site zoom brush
     base_chart = (
@@ -1165,9 +1169,9 @@ def lineplot_and_heatmap(
         heatmaps.append(heatmap_bg + heatmap_hide + heatmap + heatmap_wildtype)
     heatmaps = alt.vconcat(*heatmaps, spacing=10).resolve_scale(
         x="shared",
-        color="shared"
-        if heatmap_color_scheme or len(categories) == 1
-        else "independent",
+        color=(
+            "shared" if heatmap_color_scheme or len(categories) == 1 else "independent"
+        ),
     )
 
     chartlist = []

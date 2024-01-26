@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.10
+----
+- In ``lineplot_and_heatmap``, mutations that are hidden are by one slider filtered even if they fail other sliders. Addresses `this issue <https://github.com/dms-vep/dms-vep-pipeline-3/issues/96>`_
+
 6.9
 ---
 - Added ``rename_std`` option to ``lineplot_and_heatmaps``, which fixes a quasi-bug introduced in the ``rename_stat_col`` option by the changes in version 6.8.
