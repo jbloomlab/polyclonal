@@ -51,6 +51,7 @@ setup(
         "natsort>=8.0",
         "numpy>=1.17",
         "pandas>=1.5",
+        "pyarrow",
         "requests",
         "scipy>=1.7.1",
         "urllib3==1.26.15",  # https://github.com/googleapis/python-bigquery/issues/1565
