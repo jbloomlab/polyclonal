@@ -851,6 +851,7 @@ class PolyclonalCollection:
             Plot squared correlation (eg, :math:`R^2` rather :math:`R`).
         **kwargs
             Keyword args for :func:`polyclonal.plot.corr_heatmap`
+
         """
         corr_label = {"pearson": "r", "kendall": "tau", "spearman": "rho"}[method]
         corr2_label = f"{corr_label}2"

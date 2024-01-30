@@ -2867,6 +2867,7 @@ class Polyclonal:
         variants_df : pandas.DataFrame
             Copy of input dataframe, with rows of variants
             that have unseen mutations removed.
+
         """
         variants_df = variants_df.copy()
 
@@ -3154,6 +3155,7 @@ class Polyclonal:
         -------
         corr_df : pandas.DataFrame
             Pairwise epitope correlations for escape.
+
         """
         if self.mut_escape_df is None or ref_poly.mut_escape_df is None:
             raise ValueError("Both objects must have `mut_escape_df` initialized.")

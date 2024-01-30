@@ -520,7 +520,7 @@ def lineplot_and_heatmap(
         they fail other filters in `addtl_slider_stats`.
     init_floor_at_zero : bool
         Initial value for option to put floor of zero on value is `stat_col`.
-    init_site_statistic : {'sum', 'mean', 'max', 'min'}
+    init_site_statistic : {'sum', 'mean', 'max', 'min', 'mean_abs', 'sum_abs'}
         Initial value for site statistic in lineplot, calculated from `stat_col`.
     cell_size : float
         Size of cells in heatmap
@@ -594,6 +594,7 @@ def lineplot_and_heatmap(
     -------
     altair.Chart
         Interactive plot.
+
     """
     if addtl_tooltip_stats is None:
         addtl_tooltip_stats = []
@@ -978,7 +979,7 @@ def lineplot_and_heatmap(
     )
 
     # make the site chart
-    site_statistics = ["sum", "mean", "max", "min"]
+    site_statistics = ["sum", "mean", "max", "min", "sum_abs", "mean_abs"]
     if init_site_statistic not in site_statistics:
         raise ValueError(f"invalid {init_site_statistic=}")
     if set(site_statistics).intersection(req_cols):
@@ -998,8 +999,15 @@ def lineplot_and_heatmap(
         base_chart.transform_filter(
             (alt.datum.wildtype != alt.datum.mutant) & ~alt.datum["_stat_hide"]
         )
+        .transform_calculate(_stat_abs=alt.expr.abs(alt.datum["_stat"]))
         .transform_aggregate(
-            **{f"_stat_{stat}": f"{stat}(_stat)" for stat in site_statistics},
+            **{
+                f"_stat_{stat}": (
+                    stat.split("_")[0]
+                    + f"({'_stat_abs' if stat.endswith('_abs') else '_stat'})"
+                )
+                for stat in site_statistics
+            },
             groupby=[*site_prop_cols, category_col],
         )
         .transform_fold(
