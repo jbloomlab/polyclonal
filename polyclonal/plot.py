@@ -594,6 +594,7 @@ def lineplot_and_heatmap(
     -------
     altair.Chart
         Interactive plot.
+
     """
     if addtl_tooltip_stats is None:
         addtl_tooltip_stats = []
