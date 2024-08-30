@@ -451,7 +451,7 @@ class Polyclonal:
 
     >>> model_data.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
-    >>> dict(sorted(model_data.mutations_times_seen.items()))
+    >>> {key: int(val) for (key, val) in sorted(model_data.mutations_times_seen.items())}
     {'A4K': 4, 'A4L': 3, 'G2A': 6, 'M1C': 6}
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
@@ -1652,8 +1652,7 @@ class Polyclonal:
         ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, False)[0],
         ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, True)[1],
         ...       [2])
-        >>> err < 1e-7
-        True
+        >>> assert err < 1e-7
 
         """
         if delta <= 0:
