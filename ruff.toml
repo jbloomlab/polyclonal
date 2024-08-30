@@ -1,4 +1,4 @@
-select = [
+lint.select = [
   "E",   # pycodestyle
   "F",   # pyflakes
   "UP",  # pyupgrade
@@ -6,6 +6,7 @@ select = [
 ]
 line-length = 89
 extend-exclude = [
+    "tests",
     "build",
     "dist",
     "docs/_build",
@@ -14,7 +15,7 @@ extend-exclude = [
     "optimization_benchmarks",
     ".*",
 ]
-ignore = [
+lint.ignore = [
     "D203",
     "D205",
     "D212",

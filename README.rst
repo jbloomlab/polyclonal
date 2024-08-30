@@ -16,7 +16,7 @@ polyclonal
 
 Model mutational escape from polyclonal antibodies using deep mutational scanning data.
 
-``polyclonal`` is a Python package written by `the Bloom lab <https://research.fhcrc.org/bloom/en.html>`_.
+``polyclonal`` is a Python package written by `the Bloom lab <https://jbloomlab.org>`_.
 
 See `Yu et al (2022) <https://doi.org/10.1093/ve/veac110>`_ for an explanation of the approach implemented in ``polyclonal``.
 

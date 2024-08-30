@@ -451,7 +451,7 @@ class Polyclonal:
 
     >>> model_data.mutations
     ('M1C', 'G2A', 'A4K', 'A4L')
-    >>> dict(sorted(model_data.mutations_times_seen.items()))
+    >>> {key: int(val) for (key, val) in sorted(model_data.mutations_times_seen.items())}
     {'A4K': 4, 'A4L': 3, 'G2A': 6, 'M1C': 6}
 
     The activities are evenly spaced from 1 to 0, while the mutation escapes
@@ -1652,8 +1652,7 @@ class Polyclonal:
         ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, False)[0],
         ...       lambda r: Polyclonal._scaled_pseudo_huber(2, r, True)[1],
         ...       [2])
-        >>> err < 1e-7
-        True
+        >>> assert err < 1e-7
 
         """
         if delta <= 0:
@@ -1672,7 +1671,7 @@ class Polyclonal:
         )
         assert pred_pvs.shape == self._pvs.shape
         assert dpred_pvs_dparams.shape == (len(params), len(self._pvs))
-        assert type(dpred_pvs_dparams) == scipy.sparse.csr_matrix
+        assert type(dpred_pvs_dparams) is scipy.sparse.csr_matrix
         residuals = pred_pvs - self._pvs
         loss, dloss_dr = self._scaled_pseudo_huber(delta, residuals, True)
         assert loss.shape == dloss_dr.shape == self._pvs.shape
@@ -1684,7 +1683,7 @@ class Polyclonal:
             dloss_dr = dloss_dr * self._weights
         dloss_dparams = dpred_pvs_dparams.dot(dloss_dr)
         assert dloss_dparams.shape == params.shape
-        assert type(dloss_dparams) == numpy.ndarray
+        assert type(dloss_dparams) is numpy.ndarray
         return (loss, dloss_dparams)
 
     def _reg_escape(self, params, weight, delta):
@@ -3104,7 +3103,7 @@ class Polyclonal:
         dpvc_dbetaparams = dpevc_dbeta.reshape(
             bmap.binarylength * len(self.epitopes), n_vc
         )
-        assert type(dpvc_dbetaparams) == scipy.sparse.coo_matrix
+        assert type(dpvc_dbetaparams) is scipy.sparse.coo_matrix
         # combine to make dpvc_dparams, noting activities before betas
         # in params
         dpvc_dparams = scipy.sparse.vstack(
@@ -3115,7 +3114,7 @@ class Polyclonal:
                 dpvc_dbetaparams.tocsr(),
             ]
         )
-        assert type(dpvc_dparams) == scipy.sparse.csr_matrix
+        assert type(dpvc_dparams) is scipy.sparse.csr_matrix
         assert dpvc_dparams.shape == (len(params), n_vc)
         return p_vc, dpvc_dparams
 
