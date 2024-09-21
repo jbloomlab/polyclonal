@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.12
 ----
 - Switch to using ``scipy.sparse`` arrays rather than matrices to keep up with `this <https://github.com/jbloomlab/binarymap/issues/6>`_ `change <https://github.com/jbloomlab/binarymap/pull/7>`_ to ``binarymap`` (now require ``binarymap`` >= 0.7).
+- Remove pin on ``urllib3``
 
 6.11
 ----

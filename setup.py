@@ -54,7 +54,6 @@ setup(
         "pyarrow",
         "requests",
         "scipy>=1.7.1",
-        "urllib3==1.26.15",  # https://github.com/googleapis/python-bigquery/issues/1565
     ],
     platforms="Linux and Mac OS X.",
     packages=["polyclonal"],
