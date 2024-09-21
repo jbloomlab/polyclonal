@@ -1671,7 +1671,7 @@ class Polyclonal:
         )
         assert pred_pvs.shape == self._pvs.shape
         assert dpred_pvs_dparams.shape == (len(params), len(self._pvs))
-        assert type(dpred_pvs_dparams) is scipy.sparse.csr_matrix
+        assert type(dpred_pvs_dparams) is scipy.sparse.csr_array
         residuals = pred_pvs - self._pvs
         loss, dloss_dr = self._scaled_pseudo_huber(delta, residuals, True)
         assert loss.shape == dloss_dr.shape == self._pvs.shape
@@ -2972,7 +2972,7 @@ class Polyclonal:
         Differs from :meth:`Polyclonal._compute_pv` in that it works if just
         one or multiple BinaryMap objects.
 
-        If `calc_grad` is `True`, also returns `scipy.sparse.csr_matrix`
+        If `calc_grad` is `True`, also returns `scipy.sparse.csr_array`
         of gradient as described in :meth:`Polyclonal._compute_pv`.
 
         """
@@ -3029,7 +3029,7 @@ class Polyclonal:
             ``p_vc`` is 1D array ordered by concentration and then variant
             variant. So elements are `ivariant + iconcentration * nvariants`,
             and length is nconcentrations * nvariants. If ``calc_grad=True``,
-            then ``dpvc_dparams`` is `scipy.sparse.csr_matrix` of shape
+            then ``dpvc_dparams`` is `scipy.sparse.csr_array` of shape
             (len(params), nconcentrations * nvariants). Note that
             len(params) is nepitopes * (1 + binarylength).
 
@@ -3103,18 +3103,18 @@ class Polyclonal:
         dpvc_dbetaparams = dpevc_dbeta.reshape(
             bmap.binarylength * len(self.epitopes), n_vc
         )
-        assert type(dpvc_dbetaparams) is scipy.sparse.coo_matrix
+        assert type(dpvc_dbetaparams) is scipy.sparse.coo_array
         # combine to make dpvc_dparams, noting activities before betas
         # in params
         dpvc_dparams = scipy.sparse.vstack(
             [
-                scipy.sparse.csr_matrix(dpvc_da),
-                scipy.sparse.csr_matrix(dpvc_dn),
-                scipy.sparse.csr_matrix(dpvc_dt),
+                scipy.sparse.csr_array(dpvc_da),
+                scipy.sparse.csr_array(dpvc_dn),
+                scipy.sparse.csr_array(dpvc_dt),
                 dpvc_dbetaparams.tocsr(),
             ]
         )
-        assert type(dpvc_dparams) is scipy.sparse.csr_matrix
+        assert type(dpvc_dparams) is scipy.sparse.csr_array
         assert dpvc_dparams.shape == (len(params), n_vc)
         return p_vc, dpvc_dparams
 

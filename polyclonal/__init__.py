@@ -29,9 +29,9 @@ It also imports the following alphabets:
 
 """
 
-__author__ = "`the Bloom lab <https://research.fhcrc.org/bloom/en.html>`_"
+__author__ = "`the Bloom lab <https://jbloomlab.org>`_"
 __email__ = "jbloom@fredhutch.org"
-__version__ = "6.11"
+__version__ = "6.12"
 __url__ = "https://github.com/jbloomlab/polyclonal"
 
 from polyclonal.alphabets import AAS
