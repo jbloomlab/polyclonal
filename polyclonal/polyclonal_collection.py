@@ -583,6 +583,41 @@ class PolyclonalCollection:
             ignore_index=True,
         )
 
+    def mut_escape_df_replicates_by_region(self, desc_name, model_sites):
+        """Get mutation escape by model only keeping specific sites per model.
+
+        Parameters
+        ----------
+        desc_name : str
+            Descriptor in :attr:`PolyclonalCollection.model_descriptors` used to
+            identify models.
+        model_sites : dict
+            Keyed by the descriptor identifying each model, with values
+            being list or set of the sites to keep for that model. All sites
+            must be in :attr:`PolyclonalCollection.sites`.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Mutation escape by model, only keeping indicated sites for each model.
+
+        """
+        if desc_name not in self.model_descriptors:
+            raise ValueError(f"{desc_name=} not in {self.model_descriptors.keys()=}")
+        descs = self.model_descriptors[desc_name]
+        if set(model_sites) != set(descs):
+            raise ValueError(f"{model_sites.keys()=} differs from {descs=}")
+        dfs = []
+        for model, desc, descriptors in zip(self.models, descs, self.model_descriptors):
+            sites_to_keep = set(self.model_sites[desc])
+            invalid_sites = sorted(sites_to_keep - set(self.sites))
+            if invalid_sites:
+                raise ValueError(f"invalid sites in `model_sites`:\n{invalid_sites}")
+            dfs.append(
+                model.mut_escape_df.query("site in @sites_to_keep").assign(**descriptors)
+            )
+        return pd.concat(dfs, ignore_index=True)
+
     def mut_icXX_df_replicates(self, **kwargs):
         """Get data frame of ICXX and log fold change for each mutation by model.
 
