@@ -945,7 +945,7 @@ def lineplot_and_heatmap(
             base_chart = base_chart.transform_calculate(
                 _stat_not_hidden=alt.expr.if_(
                     alt.datum["_stat_hide"],
-                    data_df[stat_col].min(),
+                    float(data_df[stat_col].min()),
                     alt.datum["_stat"],
                 ),
             ).transform_joinaggregate(
