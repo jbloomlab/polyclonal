@@ -268,6 +268,12 @@ class PolyclonalCollection:
         for each row must be unique.
     default_avg_to_plot : {"mean", "median"}
         By default when plotting, plot either "mean" or "median".
+    region_col : None or str
+        Use this option if you want to only include sites in a specific region of the
+        protein for specific models (this is useful for instance if you split the
+        protein into halves in two different libraries). In this case, `region_col`
+        should be a columnn in `models_df` with the values being the list of sites
+        to use for that specific model.
 
     Attributes
     ----------
@@ -299,6 +305,16 @@ class PolyclonalCollection:
         All sites for which the model is defined.
     default_avg_to_plot : {"mean", "median"}
         By default when plotting, plot either "mean" or "median".
+    regions : list
+        List of same length as :attr:`PolyclonalCollection.models` with each entry being
+        the set of sites that are being used in returned results for that model. If
+        `region_col` is `None`, this is all sites (:attr:`PolyclonalCollection.sites`),
+        but if `region_col` is used to define regions for different models then
+        the different sets of sites may differ for models.
+    n_models_by_site : dict
+        Keyed by each site in :attr:`PolyclonalCollection.sites`, with the value being
+        the number of models for which that site is in region for that model (this will
+        just be the number of models when not using `region_col`).
 
     Example
     -------
@@ -327,10 +343,35 @@ class PolyclonalCollection:
     ... )
     >>> model_collection.sites
     (3, 5, 6)
+    >>> model_collection.regions == [{3, 5, 6}, {3, 5, 6}]
+    True
+    >>> model_collection.n_models_by_site
+    {3: 2, 5: 2, 6: 2}
+
+    Now create a toy example with different regions for each model:
+
+    >>> models_df = pd.DataFrame(
+    ...     {
+    ...         "model": [
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit, n_epitopes=1),
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit2, n_epitopes=1),
+    ...         ],
+    ...         "description": ["model_1", "model_2"],
+    ...         "region": [[3, 5], [3, 5, 6]],
+    ...     }
+    ... )
+    >>> model_region = polyclonal.PolyclonalCollection(
+    ...     models_df, default_avg_to_plot="mean", region_col="region",
+    ... )
+    >>> model_region.sites
+    (3, 5, 6)
+    >>> assert model_region.regions == [{3, 5}, {3, 5, 6}], model_region.regions
+    >>> model_region.n_models_by_site
+    {3: 2, 5: 2, 6: 1}
 
     """
 
-    def __init__(self, models_df, *, default_avg_to_plot):
+    def __init__(self, models_df, *, default_avg_to_plot, region_col=None):
         """See main class docstring for details."""
         if default_avg_to_plot not in {"mean", "median"}:
             raise ValueError(f"invalid {default_avg_to_plot=}")
@@ -341,6 +382,13 @@ class PolyclonalCollection:
             raise ValueError(f"No models:\n{models_df=}")
 
         descriptors_df = models_df.drop(columns="model").reset_index(drop=True)
+
+        if region_col is not None:
+            if region_col not in models_df.columns:
+                raise ValueError(f"{region_col=} not in {models_df.columns=}")
+            self.regions = [set(region) for region in models_df["region"]]
+            descriptors_df = descriptors_df.drop(columns=region_col)
+
         if not len(descriptors_df.columns):
             raise ValueError("not descriptor columns in `models_df`")
         self.descriptor_names = descriptors_df.columns.tolist()
@@ -349,6 +397,8 @@ class PolyclonalCollection:
             for name in self.descriptor_names
             if descriptors_df[name].nunique(dropna=False) > 1
         ]
+        if not len(self.unique_descriptor_names):
+            raise ValueError("no `unique_descriptor_names`")
         if len(descriptors_df.drop_duplicates()) != len(self.models):
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
@@ -371,6 +421,17 @@ class PolyclonalCollection:
             sites = sorted(set().union(*[model.sites for model in self.models]))
             assert all(isinstance(r, int) for r in sites), sites
             self.sites = tuple(sites)
+
+        if region_col is None:
+            self.regions = [set(self.sites) for _ in self.models]
+        for i, region in enumerate(self.regions):
+            if not region.issubset(self.sites):
+                raise ValueError(f"for model {i + 1}, {region - set(self.sites)=}")
+
+        self.n_models_by_site = {
+            site: sum(site in region for region in self.regions)
+            for site in self.sites
+        }
 
     @property
     def activity_wt_df_replicates(self):
