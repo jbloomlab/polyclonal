@@ -398,7 +398,7 @@ class PolyclonalCollection:
         self.unique_descriptor_names = [
             name
             for name in self.descriptor_names
-            if descriptors_df[name].nunique(dropna=False) > 1
+            if descriptors_df[name].nunique(dropna=False) > 1 or len(self.models) == 1
         ]
         if not len(self.unique_descriptor_names):
             raise ValueError("no `unique_descriptor_names`")
