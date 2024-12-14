@@ -1283,7 +1283,7 @@ class PolyclonalCollection:
                 m.mut_escape_site_summary_df(**kwargs)
                 .query("site in @sites")
                 .assign(**desc)
-                for m, desc, site in zip(
+                for m, desc, sites in zip(
                     self.models, self.model_descriptors, self.regions
                 )
             ],
