@@ -268,6 +268,12 @@ class PolyclonalCollection:
         for each row must be unique.
     default_avg_to_plot : {"mean", "median"}
         By default when plotting, plot either "mean" or "median".
+    region_col : None or str
+        Use this option if you want to only include sites in a specific region of the
+        protein for specific models (this is useful for instance if you split the
+        protein into halves in two different libraries). In this case, `region_col`
+        should be a columnn in `models_df` with the values being the list of sites
+        to use for that specific model.
 
     Attributes
     ----------
@@ -299,6 +305,16 @@ class PolyclonalCollection:
         All sites for which the model is defined.
     default_avg_to_plot : {"mean", "median"}
         By default when plotting, plot either "mean" or "median".
+    regions : list
+        List of same length as :attr:`PolyclonalCollection.models` with each entry being
+        the set of sites that are being used in returned results for that model. If
+        `region_col` is `None`, this is all sites (:attr:`PolyclonalCollection.sites`),
+        but if `region_col` is used to define regions for different models then
+        the different sets of sites may differ for models.
+    n_models_by_site : dict
+        Keyed by each site in :attr:`PolyclonalCollection.sites`, with the value being
+        the number of models for which that site is in region for that model (this will
+        just be the number of models when not using `region_col`).
 
     Example
     -------
@@ -327,10 +343,35 @@ class PolyclonalCollection:
     ... )
     >>> model_collection.sites
     (3, 5, 6)
+    >>> model_collection.regions == [{3, 5, 6}, {3, 5, 6}]
+    True
+    >>> model_collection.n_models_by_site
+    {3: 2, 5: 2, 6: 2}
+
+    Now create a toy example with different regions for each model:
+
+    >>> models_df = pd.DataFrame(
+    ...     {
+    ...         "model": [
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit, n_epitopes=1),
+    ...             polyclonal.Polyclonal(data_to_fit=data_to_fit2, n_epitopes=1),
+    ...         ],
+    ...         "description": ["model_1", "model_2"],
+    ...         "region": [[3, 5], [3, 5, 6]],
+    ...     }
+    ... )
+    >>> model_region = polyclonal.PolyclonalCollection(
+    ...     models_df, default_avg_to_plot="mean", region_col="region",
+    ... )
+    >>> model_region.sites
+    (3, 5, 6)
+    >>> assert model_region.regions == [{3, 5}, {3, 5, 6}], model_region.regions
+    >>> model_region.n_models_by_site
+    {3: 2, 5: 2, 6: 1}
 
     """
 
-    def __init__(self, models_df, *, default_avg_to_plot):
+    def __init__(self, models_df, *, default_avg_to_plot, region_col=None):
         """See main class docstring for details."""
         if default_avg_to_plot not in {"mean", "median"}:
             raise ValueError(f"invalid {default_avg_to_plot=}")
@@ -341,14 +382,26 @@ class PolyclonalCollection:
             raise ValueError(f"No models:\n{models_df=}")
 
         descriptors_df = models_df.drop(columns="model").reset_index(drop=True)
+
+        if region_col is not None:
+            if region_col not in models_df.columns:
+                raise ValueError(f"{region_col=} not in {models_df.columns=}")
+            self.regions = [set(region) for region in models_df[region_col]]
+            descriptors_df = descriptors_df.drop(columns=region_col)
+            self._has_regions = True
+        else:
+            self._has_regions = False
+
         if not len(descriptors_df.columns):
             raise ValueError("not descriptor columns in `models_df`")
         self.descriptor_names = descriptors_df.columns.tolist()
         self.unique_descriptor_names = [
             name
             for name in self.descriptor_names
-            if descriptors_df[name].nunique(dropna=False) > 1
+            if descriptors_df[name].nunique(dropna=False) > 1 or len(self.models) == 1
         ]
+        if not len(self.unique_descriptor_names):
+            raise ValueError("no `unique_descriptor_names`")
         if len(descriptors_df.drop_duplicates()) != len(self.models):
             raise ValueError("some models have the same descriptors")
         self.model_descriptors = list(descriptors_df.to_dict(orient="index").values())
@@ -371,6 +424,16 @@ class PolyclonalCollection:
             sites = sorted(set().union(*[model.sites for model in self.models]))
             assert all(isinstance(r, int) for r in sites), sites
             self.sites = tuple(sites)
+
+        if region_col is None:
+            self.regions = [set(self.sites) for _ in self.models]
+        for i, region in enumerate(self.regions):
+            if not region.issubset(self.sites):
+                raise ValueError(f"for model {i + 1}, {region - set(self.sites)=}")
+
+        self.n_models_by_site = {
+            site: sum(site in region for region in self.regions) for site in self.sites
+        }
 
     @property
     def activity_wt_df_replicates(self):
@@ -577,8 +640,10 @@ class PolyclonalCollection:
         """pandas.DataFrame: Mutation escape by model."""
         return pd.concat(
             [
-                m.mut_escape_df.assign(**desc)
-                for m, desc in zip(self.models, self.model_descriptors)
+                m.mut_escape_df.query("site in @sites").assign(**desc)
+                for m, desc, sites, in zip(
+                    self.models, self.model_descriptors, self.regions
+                )
             ],
             ignore_index=True,
         )
@@ -599,8 +664,10 @@ class PolyclonalCollection:
         """
         return pd.concat(
             [
-                m.mut_icXX_df(**kwargs).assign(**desc)
-                for m, desc in zip(self.models, self.model_descriptors)
+                m.mut_icXX_df(**kwargs).query("site in @sites").assign(**desc)
+                for m, desc, sites in zip(
+                    self.models, self.model_descriptors, self.regions
+                )
             ],
             ignore_index=True,
         )
@@ -626,7 +693,9 @@ class PolyclonalCollection:
             )
             .aggregate(**aggs)
             .assign(
-                frac_models=lambda x: x["n_models"] / len(self.models),
+                frac_models=lambda x: (
+                    x["n_models"] / x["site"].map(self.n_models_by_site)
+                ),
                 # make categorical to sort, then return to original type
                 epitope=lambda x: pd.Categorical(
                     x["epitope"],
@@ -685,7 +754,9 @@ class PolyclonalCollection:
             df.groupby(["site", "wildtype", "mutant"], as_index=False)
             .aggregate(**aggs)
             .assign(
-                frac_models=lambda x: x["n_models"] / len(self.models),
+                frac_models=lambda x: (
+                    x["n_models"] / x["site"].map(self.n_models_by_site)
+                ),
                 # make categorical to sort, then return to original type
                 site=lambda x: pd.Categorical(
                     x["site"],
@@ -1012,7 +1083,7 @@ class PolyclonalCollection:
             )
 
         if init_n_models is None:
-            init_n_models = int(math.ceil(len(self.models) / 2))
+            init_n_models = int(math.ceil(min(self.n_models_by_site.values()) / 2))
         if "n_models" not in kwargs["addtl_slider_stats"]:
             kwargs["addtl_slider_stats"]["n_models"] = init_n_models
 
@@ -1151,7 +1222,7 @@ class PolyclonalCollection:
             kwargs["addtl_slider_stats_as_max"] = []
 
         if init_n_models is None:
-            init_n_models = int(math.ceil(len(self.models) / 2))
+            init_n_models = int(math.ceil(min(self.n_models_by_site.values()) / 2))
         kwargs["addtl_slider_stats"]["n_models"] = init_n_models
 
         kwargs["data_df"] = polyclonal.Polyclonal._merge_df_to_merge(
@@ -1209,8 +1280,12 @@ class PolyclonalCollection:
         """
         return pd.concat(
             [
-                m.mut_escape_site_summary_df(**kwargs).assign(**desc)
-                for m, desc in zip(self.models, self.model_descriptors)
+                m.mut_escape_site_summary_df(**kwargs)
+                .query("site in @sites")
+                .assign(**desc)
+                for m, desc, sites in zip(
+                    self.models, self.model_descriptors, self.regions
+                )
             ],
             ignore_index=True,
         )
@@ -1252,7 +1327,9 @@ class PolyclonalCollection:
                 n_models=pd.NamedAgg("escape", "count"),
             )
             .assign(
-                frac_models=lambda x: x["n_models"] / len(self.models),
+                frac_models=lambda x: (
+                    x["n_models"] / x["site"].map(self.n_models_by_site)
+                ),
             )
             .merge(
                 df.groupby(["epitope", "site"]).aggregate({"n mutations": "mean"}),
@@ -1300,6 +1377,8 @@ class PolyclonalCollection:
             model are missing in that row.
 
         """
+        if self._has_regions:
+            raise ValueError("Cannot use this method when defining per-model regions")
         return pd.concat(
             [
                 m.icXX(m.filter_variants_by_seen_muts(variants_df), **kwargs).assign(
@@ -1329,6 +1408,8 @@ class PolyclonalCollection:
             icXX and summary stats for each variant across all models.
 
         """
+        if self._has_regions:
+            raise ValueError("Cannot use this method when defining per-model regions")
         if "col" in kwargs:
             col = kwargs["col"]
         else:
@@ -1378,6 +1459,8 @@ class PolyclonalCollection:
             missing in that row.
 
         """
+        if self._has_regions:
+            raise ValueError("Cannot use this method when defining per-model regions")
         return pd.concat(
             [
                 m.prob_escape(
@@ -1411,6 +1494,8 @@ class PolyclonalCollection:
             for each variant at each concentration across models.
 
         """
+        if self._has_regions:
+            raise ValueError("Cannot use this method when defining per-model regions")
         variants_df = variants_df.drop_duplicates()
         return (
             self.prob_escape_replicates(variants_df=variants_df, **kwargs)
@@ -1439,6 +1524,8 @@ class PolyclonalAverage(PolyclonalCollection):
         Same meaning as for :class:`PolyclonalCollection`. However, the resulting
         collection of models will have **copies** of these models rather than the
         actual objects in `models_df`.
+    region_col : str or None
+        Same meaning as for :class:`PolyclonalCollection`.
     harmonize_to : :class:`PolyclonalCollection` or None
         When harmonizing the epitopes, harmonize to this model. If `None`, just
         harmonize to the first model in `models_df`.
@@ -1452,7 +1539,14 @@ class PolyclonalAverage(PolyclonalCollection):
 
     """
 
-    def __init__(self, models_df, *, harmonize_to=None, default_avg_to_plot="median"):
+    def __init__(
+        self,
+        models_df,
+        *,
+        region_col=None,
+        harmonize_to=None,
+        default_avg_to_plot="median",
+    ):
         """See main class docstring."""
         if not len(models_df):
             raise ValueError("no models in `model_df`")
@@ -1463,7 +1557,9 @@ class PolyclonalAverage(PolyclonalCollection):
             m.epitope_harmonized_model(harmonize_to)[0] for m in models_df["model"]
         ]
 
-        super().__init__(models_df, default_avg_to_plot=default_avg_to_plot)
+        super().__init__(
+            models_df, region_col=region_col, default_avg_to_plot=default_avg_to_plot
+        )
 
 
 class PolyclonalBootstrap(PolyclonalCollection):
