@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.13
 ----
 - Fixed ``altair`` plots to work with ``numpy`` version 2, which caused problems in some cases apparently due to a data type conversion issue.
+- Add ability to specify specific regions for each model in ``PolyclonalCollection``. This adds the ``region_col`` parameter and the ``PolyclonalCollection.regions`` and ``PolyclonalCollection.n_models_by_site`` attributes. Related to adding functionality to address `this issue <https://github.com/dms-vep/dms-vep-pipeline-3/issues/160>`_.
 
 6.12
 ----
