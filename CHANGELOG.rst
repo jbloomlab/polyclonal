@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.14
+----
+- Fix bug in ``plot.lineplot_and_heatmap`` where the ``minimum max of <stat> at site`` failed to keep only the top sites when the hide-not-filter option was being used. Addresses `this issue <https://github.com/dms-vep/dms-vep-pipeline-3/issues/107>`_.
+
 6.13
 ----
 - Fixed ``altair`` plots to work with ``numpy`` version 2, which caused problems in some cases apparently due to a data type conversion issue.
