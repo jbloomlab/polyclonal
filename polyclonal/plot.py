@@ -952,7 +952,11 @@ def lineplot_and_heatmap(
                 _stat_site_max="max(_stat_not_hidden)",
                 groupby=["site"],
             )
-        if slider_stat not in addtl_slider_stats_hide_not_filter:
+            base_chart = base_chart.transform_filter(
+                (alt.datum[slider_stat] >= (slider - 1e-6))  # round tol
+                | ~alt.expr.isFinite(alt.datum[slider_stat])  # do not filter null
+            )
+        elif slider_stat not in addtl_slider_stats_hide_not_filter:
             if slider_stat in addtl_slider_stats_as_max:
                 base_chart = base_chart.transform_filter(
                     (alt.datum[slider_stat] <= (slider + 1e-6))  # round tol
