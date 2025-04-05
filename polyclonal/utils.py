@@ -24,6 +24,9 @@ class MutationParser:
     letter_suffixed_sites : bool
         Allow sites suffixed by lowercase letters, such as "214a". In this case, returned
         sites from :meth:`MutationParser.parse_mut` are str.
+    arbitrary_sites: bool
+        Allow arbitrary strings as sites, such as "31(E2)". In this case, returned
+        sites from :meth:`MutationParser.parse_mut` are str.
 
     Example
     -------
@@ -56,10 +59,11 @@ class MutationParser:
 
     """
 
-    def __init__(self, alphabet, letter_suffixed_sites=False):
+    def __init__(self, alphabet, letter_suffixed_sites=False, arbitrary_sites=False):
         """See main class docstring."""
         chars = []
         for char in alphabet:
+            assert len(char) == 1, f"{char=}, {alphabet=}"
             if char.isalpha():
                 chars.append(char)
             elif char == "*":
@@ -69,7 +73,10 @@ class MutationParser:
             else:
                 raise ValueError(f"invalid alphabet character: {char}")
         chars = "|".join(chars)
-        if letter_suffixed_sites:
+        if arbitrary_sites:
+            self._sites_as_int = False
+            site_regex = "(?P<site>.+)"
+        elif letter_suffixed_sites:
             self._sites_as_int = False
             site_regex = r"(?P<site>\-?\d+[a-z]?)"
         else:
@@ -96,6 +103,7 @@ def site_level_variants(
     wt_char="w",
     mut_char="m",
     letter_suffixed_sites=False,
+    arbitrary_sites=False,
 ):
     """Re-define variants simply in terms of which sites are mutated.
 
@@ -115,6 +123,8 @@ def site_level_variants(
     mut_char : str
         Single letter used to represent mutant identity at all sites.
     letter_suffixed_sites : str
+        Same mutation as for :class:`MutationParser`.
+    arbitrary_sites : str
         Same mutation as for :class:`MutationParser`.
 
     Returns
@@ -149,6 +159,7 @@ def site_level_variants(
     mutparser = MutationParser(
         original_alphabet,
         letter_suffixed_sites=letter_suffixed_sites,
+        arbitrary_sites=arbitrary_sites,
     )
 
     site_subs_mapping = {}

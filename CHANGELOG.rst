@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.15
+----
+- Add ``arbitrary_sites`` option to ``MutationParser`` to allow arbitrary strings as sites.
+
 6.14
 ----
 - Fix bug in ``plot.lineplot_and_heatmap`` where the ``minimum max of <stat> at site`` failed to keep only the top sites when the hide-not-filter option was being used. Addresses `this issue <https://github.com/dms-vep/dms-vep-pipeline-3/issues/107>`_.

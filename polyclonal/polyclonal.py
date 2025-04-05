@@ -820,7 +820,7 @@ class Polyclonal:
         self.alphabet = tuple(alphabet)
         self._mutparser = polyclonal.utils.MutationParser(
             alphabet,
-            letter_suffixed_sites=not self.sequential_integer_sites,
+            arbitrary_sites=not self.sequential_integer_sites,
         )
 
         # get any epitope labels as str, not int
@@ -1597,13 +1597,13 @@ class Polyclonal:
             site_data_to_fit = polyclonal.utils.site_level_variants(
                 self.data_to_fit,
                 original_alphabet=self.alphabet,
-                letter_suffixed_sites=not self.sequential_integer_sites,
+                arbitrary_sites=not self.sequential_integer_sites,
             )
         site_escape_df = (
             polyclonal.utils.site_level_variants(
                 self.mut_escape_df.rename(columns={"mutation": "aa_substitutions"}),
                 original_alphabet=self.alphabet,
-                letter_suffixed_sites=not self.sequential_integer_sites,
+                arbitrary_sites=not self.sequential_integer_sites,
             )
             .rename(columns={"aa_substitutions": "mutation"})
             .groupby(["epitope", "mutation"], as_index=False)
