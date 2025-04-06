@@ -456,7 +456,7 @@ class PolyclonalCollection:
         ).aggregate(
             activity_mean=pd.NamedAgg("activity", "mean"),
             activity_median=pd.NamedAgg("activity", "median"),
-            activity_std=pd.NamedAgg("activity", "std"),
+            activity_std=pd.NamedAgg("activity", lambda s: s.std(ddof=0)),
         )
 
     @property
@@ -480,7 +480,9 @@ class PolyclonalCollection:
         ).aggregate(
             hill_coefficient_mean=pd.NamedAgg("hill_coefficient", "mean"),
             hill_coefficient_median=pd.NamedAgg("hill_coefficient", "median"),
-            hill_coefficient_std=pd.NamedAgg("hill_coefficient", "std"),
+            hill_coefficient_std=pd.NamedAgg(
+                "hill_coefficient", lambda s: s.std(ddof=0)
+            ),
         )
 
     @property
@@ -504,7 +506,9 @@ class PolyclonalCollection:
         ).aggregate(
             non_neutralized_frac_mean=pd.NamedAgg("non_neutralized_frac", "mean"),
             non_neutralized_frac_median=pd.NamedAgg("non_neutralized_frac", "median"),
-            non_neutralized_frac_std=pd.NamedAgg("non_neutralized_frac", "std"),
+            non_neutralized_frac_std=pd.NamedAgg(
+                "non_neutralized_frac", lambda s: s.std(ddof=0)
+            ),
         )
 
     @property
@@ -682,7 +686,7 @@ class PolyclonalCollection:
                 "escape",
                 lambda s: s.tolist()[numpy.argmin(s.abs())],
             ),
-            "escape_std": pd.NamedAgg("escape", "std"),
+            "escape_std": pd.NamedAgg("escape", lambda s: s.std(ddof=0)),
             "n_models": pd.NamedAgg("escape", "count"),
         }
         if "times_seen" in self.mut_escape_df_replicates.columns:
@@ -745,7 +749,9 @@ class PolyclonalCollection:
                 log_fc_icXX_col,
                 lambda s: s.tolist()[numpy.argmin(s.abs())],
             ),
-            f"{log_fc_icXX_col} std": pd.NamedAgg(log_fc_icXX_col, "std"),
+            f"{log_fc_icXX_col} std": pd.NamedAgg(
+                log_fc_icXX_col, lambda s: s.std(ddof=0)
+            ),
             "n_models": pd.NamedAgg(log_fc_icXX_col, "count"),
         }
         if "times_seen" in df.columns:
@@ -1323,7 +1329,7 @@ class PolyclonalCollection:
             .aggregate(
                 escape_mean=pd.NamedAgg("escape", "mean"),
                 escape_median=pd.NamedAgg("escape", "median"),
-                escape_std=pd.NamedAgg("escape", "std"),
+                escape_std=pd.NamedAgg("escape", lambda s: s.std(ddof=0)),
                 n_models=pd.NamedAgg("escape", "count"),
             )
             .assign(
@@ -1421,7 +1427,7 @@ class PolyclonalCollection:
             .aggregate(
                 mean_IC=pd.NamedAgg(col, "mean"),
                 median_IC=pd.NamedAgg(col, "median"),
-                std_IC=pd.NamedAgg(col, "std"),
+                std_IC=pd.NamedAgg(col, lambda s: s.std(ddof=0)),
                 n_models=pd.NamedAgg(col, "count"),
             )
             .assign(
@@ -1506,7 +1512,9 @@ class PolyclonalCollection:
                     "predicted_prob_escape",
                     "median",
                 ),
-                std_predicted_prob_escape=pd.NamedAgg("predicted_prob_escape", "std"),
+                std_predicted_prob_escape=pd.NamedAgg(
+                    "predicted_prob_escape", lambda s: s.std(ddof=0)
+                ),
                 n_models=pd.NamedAgg("predicted_prob_escape", "count"),
             )
             .assign(
