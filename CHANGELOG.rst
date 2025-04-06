@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.16
+----
+- Compute standard deviations for ``PolyclonalCollection`` using population rather than sample standard deviations. This changes the values of these standard deviations (makes them smaller), makes them zero rather than NaN when only one model being averaged, and fixes problem with ``PolyclonalCollection`` plots when only a single model.
+
 6.15
 ----
 - Add ``arbitrary_sites`` option to ``MutationParser`` to allow arbitrary strings as sites.
