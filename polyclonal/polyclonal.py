@@ -181,8 +181,7 @@ class Polyclonal:
         from ``data_to_fit`` or ``mut_escape_df``. However, you can also have
         non-sequential integer sites, or sites with lower-case letter suffixes
         (eg, `214a`) if your protein is numbered against a reference that it has
-        indels relative to. In that case, provide list of all expected in order
-        here; we require that order to be natsorted.
+        indels relative to. In that case, provide list of all expected in order here.
     epitope_colors : array-like or dict
         Maps each epitope to the color used for plotting. Either a dict keyed
         by each epitope, or an array of colors that are sequentially assigned
@@ -801,8 +800,6 @@ class Polyclonal:
 
         if sites is not None:
             sites = tuple(sites)
-            if sites != tuple(natsort.natsorted(sites, alg=natsort.ns.SIGNED)):
-                raise ValueError("`sites` not natsorted")
             if any(not isinstance(r, int) for r in sites) or sites != tuple(
                 range(sites[0], sites[-1] + 1)
             ):
