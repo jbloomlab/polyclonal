@@ -10,6 +10,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 ----
 - Add ``arbitrary_sites`` option to ``MutationParser`` to allow arbitrary strings as sites.
 - Remove requirement that ``sites`` passed to ``Polyclonal`` be natsorted.
+- Upgrade ``binarymap`` to 0.8.
 
 6.14
 ----
