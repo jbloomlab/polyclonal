@@ -1561,9 +1561,11 @@ class PolyclonalAverage(PolyclonalCollection):
         if harmonize_to is None:
             harmonize_to = models_df.iloc[0]["model"]
 
-        models_df["model"] = [
-            m.epitope_harmonized_model(harmonize_to)[0] for m in models_df["model"]
-        ]
+        models_df = models_df.assign(
+            model=[
+                m.epitope_harmonized_model(harmonize_to)[0] for m in models_df["model"]
+            ]
+        )
 
         super().__init__(
             models_df, region_col=region_col, default_avg_to_plot=default_avg_to_plot
