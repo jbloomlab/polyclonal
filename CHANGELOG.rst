@@ -9,6 +9,7 @@ The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 6.17
 ----
 - Fixed bug in ``PolyclonalAverage`` when sequential integer sites are being used, see `here <https://github.com/dms-vep/MERS-Spike-EMC2012-DMS/issues/21>`_.
+- Test on Python 3.12 rather than 3.11.
 
 6.16
 ----
