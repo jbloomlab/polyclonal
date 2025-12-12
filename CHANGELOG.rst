@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_.
 
+6.17
+----
+- Fixed bug in ``PolyclonalAverage`` due to epitope harmonization when sequential integer sites are being used, see `here <https://github.com/dms-vep/MERS-Spike-EMC2012-DMS/issues/21>`_. This fix may only work when just one epitope is being used, with multiple epitopes there still may be issues with how the sites are assigned:
+  + Do not mutate the input ``models_df`` in ``PolyclonalAverage``; make a copy
+  + When there is just one epitope, return a deepcopy of self when harmonizing epitopes
+- Test on Python 3.12 rather than 3.11.
+
 6.16
 ----
 - Compute standard deviations for ``PolyclonalCollection`` using population rather than sample standard deviations. This changes the values of these standard deviations (makes them smaller), makes them zero rather than NaN when only one model being averaged, and fixes problem with ``PolyclonalCollection`` plots when only a single model.

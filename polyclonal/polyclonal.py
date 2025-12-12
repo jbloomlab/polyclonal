@@ -661,7 +661,10 @@ class Polyclonal:
       self_initial_epitope self_harmonized_epitope ref_epitope  correlation
     0                   e1                      e1          e1          1.0
     1                   e2                      e2          e2          1.0
-    >>> assert model.mut_escape_df.equals(model_harmonized.mut_escape_df)
+    >>> if not model.mut_escape_df.equals(model_harmonized.mut_escape_df):
+    ...     raise ValueError(
+    ...         f"{model.mut_escape_df=}\n{model_harmonized.mut_escape_df=}"
+    ...     )
 
     >>> inverted_harmonized, harmonize_df = inverted_model.epitope_harmonized_model(
     ...     ref_model
@@ -3258,6 +3261,10 @@ class Polyclonal:
             raise PolyclonalHarmonizeError(
                 f"cannot harmonize 1-to-1:\n{corr_df=}\n{harmonize_df=}"
             )
+
+        # if only one epitope, do not need to do anything more
+        if len(self.epitopes) == 1:
+            return copy.deepcopy(self), harmonize_df
 
         map_dict = harmonize_df.set_index("self_initial_epitope")[
             "self_harmonized_epitope"
