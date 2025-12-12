@@ -240,13 +240,13 @@ def reassign_b_factor(
     Now spot check some key lines in the output PDB.
     Chain A has all sites with B factors (last entry) re-assigned to 0:
 
-    >>> print(pdb_text[0].strip())
+    >>> print(pdb_text[0].strip())  # doctest: +NORMALIZE_WHITESPACE
     ATOM      1  N   SER A  19     -31.455  49.474   2.505  1.00  0.00           N
 
     Chain E has sites 333 and 334 with B-factors assigned to values in `df`, and
     other sites (such as 335) assigned to -1:
 
-    >>> print('\n'.join(line.strip() for line in pdb_text[5010: 5025]))
+    >>> print('\n'.join(line.strip() for line in pdb_text[5010: 5025]))  # doctest: +NORMALIZE_WHITESPACE
     ATOM   5010  O   THR E 333     -34.954  13.568  46.370  1.00  0.50           O
     ATOM   5011  CB  THR E 333     -33.695  14.409  48.627  1.00  0.50           C
     ATOM   5012  OG1 THR E 333     -34.797  14.149  49.507  1.00  0.50           O
